@@ -43,6 +43,7 @@ namespace Realmkeeper.Domain.Geography
         private readonly TerrainType[] _terrain;
         private readonly bool[] _road;
         private readonly List<RoadPath> _roads = new List<RoadPath>();
+        private readonly List<IReadOnlyList<MapCoord>> _rivers = new List<IReadOnlyList<MapCoord>>();
 
         public RegionMap(int width, int depth, float cellSize, float maxElevation, float waterLevel)
         {
@@ -75,6 +76,9 @@ namespace Realmkeeper.Domain.Geography
 
         public IReadOnlyList<RoadPath> Roads => _roads;
 
+        /// <summary>River centre lines, ordered from source to mouth.</summary>
+        public IReadOnlyList<IReadOnlyList<MapCoord>> Rivers => _rivers;
+
         public bool InBounds(int x, int z) => x >= 0 && z >= 0 && x < Width && z < Depth;
         public bool InBounds(MapCoord c) => InBounds(c.X, c.Z);
 
@@ -102,6 +106,17 @@ namespace Realmkeeper.Domain.Geography
 
             _roads.Add(road);
             foreach (var cell in road.Cells) _road[Index(cell.X, cell.Z)] = true;
+        }
+
+        public void AddRiver(IReadOnlyList<MapCoord> cells)
+        {
+            if (cells == null || cells.Count < 2) throw new ArgumentException("A river needs at least two cells.", nameof(cells));
+            foreach (var cell in cells)
+            {
+                if (!InBounds(cell)) throw new ArgumentOutOfRangeException(nameof(cells), $"River cell {cell} is outside the region.");
+            }
+
+            _rivers.Add(cells);
         }
 
         /// <summary>Elevation in world units, for presentation.</summary>
