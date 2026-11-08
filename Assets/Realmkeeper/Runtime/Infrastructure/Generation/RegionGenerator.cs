@@ -20,11 +20,6 @@ namespace Realmkeeper.Infrastructure.Generation
         public int EdgeMargin { get; set; } = 12;
     }
 
-    public sealed class WorldGenerationException : Exception
-    {
-        public WorldGenerationException(string message) : base(message) { }
-    }
-
     /// <summary>
     /// First-pass seed-based region generator (version 1). Pipeline, each stage with its own
     /// random stream derived from the seed:

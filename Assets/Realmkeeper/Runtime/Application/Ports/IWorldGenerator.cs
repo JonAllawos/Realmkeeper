@@ -1,3 +1,4 @@
+using System;
 using Realmkeeper.Domain.Geography;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
@@ -33,6 +34,12 @@ namespace Realmkeeper.Application.Ports
 
         public WorldData World { get; }
         public RegionMap Map { get; }
+    }
+
+    /// <summary>Thrown by generators when a seed cannot produce a valid world.</summary>
+    public sealed class WorldGenerationException : Exception
+    {
+        public WorldGenerationException(string message) : base(message) { }
     }
 
     /// <summary>Port implemented by Realmkeeper.Infrastructure.</summary>
