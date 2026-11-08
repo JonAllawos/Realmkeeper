@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Infrastructure",
+    "rootNamespace": "Realmkeeper.Infrastructure",
+    "references": ["Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": ["Newtonsoft.Json.dll"],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs the Unity EditMode test sources under NUnit 3 outside the editor. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(AssetsRoot)Tests/EditMode/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Realmkeeper.Domain/Realmkeeper.Domain.csproj" />
+    <ProjectReference Include="../Realmkeeper.Simulation/Realmkeeper.Simulation.csproj" />
+    <ProjectReference Include="../Realmkeeper.Application/Realmkeeper.Application.csproj" />
+    <ProjectReference Include="../Realmkeeper.Infrastructure/Realmkeeper.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

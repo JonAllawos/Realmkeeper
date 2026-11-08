@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Realmkeeper.Infrastructure</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(AssetsRoot)Runtime/Infrastructure/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Realmkeeper.Domain/Realmkeeper.Domain.csproj" />
+    <ProjectReference Include="../Realmkeeper.Simulation/Realmkeeper.Simulation.csproj" />
+    <ProjectReference Include="../Realmkeeper.Application/Realmkeeper.Application.csproj" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

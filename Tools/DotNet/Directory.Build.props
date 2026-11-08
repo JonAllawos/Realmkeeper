@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    Out-of-Unity verification harness. Compiles the engine-independent assemblies with
+    the language level and API profile Unity 6 uses (C# 9, .NET Standard 2.1) so they can
+    be built and tested without the Unity Editor (e.g. in CI or a cloud session).
+    Source of truth stays in Assets/; these projects only reference those files.
+    Project references mirror the .asmdef references, so dependency-rule violations
+    fail here too.
+  -->
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AssetsRoot>$(MSBuildThisFileDirectory)../../Assets/Realmkeeper/</AssetsRoot>
+  </PropertyGroup>
+</Project>

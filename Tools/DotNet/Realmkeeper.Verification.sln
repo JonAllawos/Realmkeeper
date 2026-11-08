@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Application", "Realmkeeper.Application\Realmkeeper.Application.csproj", "{71E589BA-13AC-452A-943F-84DA2A58609B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Domain", "Realmkeeper.Domain\Realmkeeper.Domain.csproj", "{3F56E567-E735-4B75-8D1D-95D9892C70E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Infrastructure", "Realmkeeper.Infrastructure\Realmkeeper.Infrastructure.csproj", "{863B3EF9-CABD-4F31-9EBB-51943710D58E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Simulation", "Realmkeeper.Simulation\Realmkeeper.Simulation.csproj", "{89A37E99-6B08-44B6-B65D-A58EE82A29BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Tests.EditMode", "Realmkeeper.Tests.EditMode\Realmkeeper.Tests.EditMode.csproj", "{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{71E589BA-13AC-452A-943F-84DA2A58609B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71E589BA-13AC-452A-943F-84DA2A58609B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71E589BA-13AC-452A-943F-84DA2A58609B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71E589BA-13AC-452A-943F-84DA2A58609B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F56E567-E735-4B75-8D1D-95D9892C70E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F56E567-E735-4B75-8D1D-95D9892C70E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F56E567-E735-4B75-8D1D-95D9892C70E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F56E567-E735-4B75-8D1D-95D9892C70E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{863B3EF9-CABD-4F31-9EBB-51943710D58E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{863B3EF9-CABD-4F31-9EBB-51943710D58E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{863B3EF9-CABD-4F31-9EBB-51943710D58E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{863B3EF9-CABD-4F31-9EBB-51943710D58E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89A37E99-6B08-44B6-B65D-A58EE82A29BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89A37E99-6B08-44B6-B65D-A58EE82A29BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89A37E99-6B08-44B6-B65D-A58EE82A29BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89A37E99-6B08-44B6-B65D-A58EE82A29BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
