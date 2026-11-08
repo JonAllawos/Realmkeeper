@@ -1,0 +1,73 @@
+# Persistence
+
+Implementation: `Assets/Realmkeeper/Runtime/Infrastructure/Persistence/`.
+Port: `Realmkeeper.Application.Ports.IWorldStore`.
+
+## Files
+
+- One file per slot: `<root>/<slot>.rkworld.json`. In Unity, `root` is meant to be
+  `UnityEngine.Application.persistentDataPath + "/Saves"` (wired up in the Presentation stage).
+- Slot names may use only `[A-Za-z0-9_-]` and be at most 48 characters long. Anything
+  else, such as `../x`, `a/b` or `C:`, is refused.
+- Writes are atomic: the file is written to `<file>.tmp`, then swapped in with
+  `File.Replace`, or `File.Move` for a new slot. A failed write leaves the previous save
+  intact.
+- Files over 32 MB are refused on load.
+
+## Format (schema v1)
+
+```json
+{
+  "format": "realmkeeper.world",
+  "schemaVersion": 1,
+  "savedAtUtc": "2026-11-08T17:24:04.0000000Z",
+  "world": {
+    "worldId": "…guid…",
+    "worldName": "Emberfell",
+    "seed": 9001,
+    "generatorVersion": 1,
+    "currentSimulationDate": "0412-04-16",
+    "settings": { "simulationSpeed": "Normal", "startingDate": "0412-03-01",
+                  "enabledSimulationSystems": ["realmkeeper.food", "realmkeeper.wellbeing"] },
+    "settlements": [ { "settlementId": "…", "name": "Oakgate", "settlementType": "Town",
+                       "positionX": 114, "positionZ": 68, "population": 2188,
+                       "prosperity": 61, "stability": 64, "factionId": "…",
+                       "foodProductionPerDay": 143, "isInFoodShortage": false,
+                       "resources": [ { "resourceTypeId": "food", "quantity": 10512 } ] } ],
+    "factions": [ … ], "npcs": [ ], "historicalEvents": [ … ]
+  }
+}
+```
+
+- IDs are stored in GUID `D` format, enums as names (never numbers), and dates as `YYYY-MM-DD`.
+- What is saved: identity, seed, generator version, schema version, date, settings,
+  settlements with inventories and shortage state, factions, NPCs and the full event history.
+- What is not saved: terrain. It is rebuilt from `seed` + `generatorVersion` on load
+  (ADR-0005), then the settlements are checked to still sit on valid land.
+
+## Load outcomes
+
+| Status | When |
+|---|---|
+| `Success` | Parsed, migrated, mapped and validated |
+| `NotFound` | No file, or an illegal slot name |
+| `Corrupt` | Empty, malformed JSON, wrong or missing format marker, missing or non-integer `schemaVersion`, wrong value types |
+| `UnsupportedVersion` | `schemaVersion` newer than this build, or no migration path from an older one |
+| `Invalid` | Bad GUID, unknown enum name, impossible date, duplicate resource stack, or any `WorldValidator` error (negative population, duplicate IDs, dangling references, …) |
+
+`WorldSession.Execute(LoadWorldCommand)` additionally rejects saves whose generator version
+this build can't rebuild. **Any failed load leaves the active world untouched.**
+
+## Versioning
+
+- The domain model and the file layout are separate (`SaveFileDtos.cs`), so renaming a
+  domain property does not silently break old saves.
+- To change the layout: bump `WorldData.CurrentSchemaVersion`, then register an
+  `ISaveMigration { SourceVersion = old; Migrate(JObject) }` with `JsonWorldSerializer`.
+  Migrations are chained (v0 → v1 → v2 …) and work on the raw JSON tree, so old DTO classes
+  never need to be kept. The chain is covered by a test.
+
+## Security
+
+`TypeNameHandling.None` (a save file can never choose which .NET type gets created),
+`MaxDepth` 32, a size cap and slot-name filtering.
