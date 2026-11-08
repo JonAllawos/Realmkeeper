@@ -1,0 +1,28 @@
+* text=auto eol=lf
+
+*.cs      text eol=lf diff=csharp
+*.asmdef  text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.uss     text eol=lf
+*.uxml    text eol=lf
+*.shader  text eol=lf
+*.hlsl    text eol=lf
+
+# Unity YAML assets
+*.unity   text eol=lf merge=unityyamlmerge
+*.prefab  text eol=lf merge=unityyamlmerge
+*.asset   text eol=lf merge=unityyamlmerge
+*.mat     text eol=lf merge=unityyamlmerge
+*.meta    text eol=lf
+
+# Binary
+*.png  binary
+*.jpg  binary
+*.tga  binary
+*.psd  binary
+*.fbx  binary
+*.wav  binary
+*.ogg  binary
+*.ttf  binary
+*.otf  binary
