@@ -35,10 +35,26 @@ Only results from runs that actually took place are recorded here.
   2. The persistence fixture was lengthened from 150 to 300 simulated days. The fixture
      seed's first shortage falls after day 150, and the test needs events in history.
 
+## Run 2: Unity Editor, EditMode (Gate 1)
+
+| | |
+|---|---|
+| Date | 2026-11-08 (local; 2026-11-09 06:08 UTC) |
+| Environment | Windows 11 Pro, Unity 6000.0.47f1, Test Framework 1.5.1 (NUnit 3.5), newtonsoft-json 3.2.1 |
+| Command | Test Runner → EditMode → Run All |
+| Build | Unity script compilation succeeded with **0 compiler errors, 0 compiler warnings**. Domain, Simulation, Application, Infrastructure and Tests.EditMode compiled; Presentation and Tests.PlayMode have no scripts yet, so they produce no DLL |
+| Console | 0 errors, 0 warnings (only the test framework's info messages) |
+| Result | **75 passed, 0 failed, 0 skipped** (61 test methods), the same totals as Run 1 |
+| Duration | about 4 s |
+
+Per fixture: `IdentifierAndRandomTests` 8/8, `WorldModelTests` 13/13,
+`SimulationSchedulerTests` 16/16, `RegionGeneratorTests` 8/8, `PersistenceTests` 22/22,
+`WorldSessionTests` 8/8.
+
+None of the likely first-import issues in the handoff occurred. The asmdefs needed no changes.
+
 ## Not yet run
 
 | Suite | Status |
 |---|---|
-| EditMode tests inside the Unity Editor | **Not executed.** No Unity Editor was available. |
 | PlayMode tests | **Not written.** They need the Presentation layer. The target of 8 or more is not met. |
-| Unity compilation of any assembly | **Not executed.** |
