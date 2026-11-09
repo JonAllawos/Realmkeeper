@@ -53,6 +53,15 @@ Per fixture: `IdentifierAndRandomTests` 8/8, `WorldModelTests` 13/13,
 
 None of the likely first-import issues in the handoff occurred. The asmdefs needed no changes.
 
+## Run 3: Unity Editor, EditMode, after Stage E
+
+| | |
+|---|---|
+| Date | 2026-11-08 (local; 2026-11-09 06:50 UTC) |
+| Environment | As Run 2 |
+| Result | **75 passed, 0 failed, 0 skipped**. Stage E added no core code, so the totals are unchanged |
+| Play mode smoke check | `Realmkeeper.unity` played with no console errors or exceptions. The bootstrap logged: 16 terrain chunks, 3 settlements, 16,591 trees, 2 bridge cells (seed 123456789) |
+
 ## Not yet run
 
 | Suite | Status |

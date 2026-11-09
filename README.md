@@ -25,13 +25,13 @@ hand-written.
 
 | Area | State | Evidence |
 |---|---|---|
-| Seven assembly definitions with enforced dependency rules | Written | Mirrored by the .NET harness; **not yet compiled by Unity** |
+| Seven assembly definitions with enforced dependency rules | Implemented | Mirrored by the .NET harness; compiled by Unity 6000.0.47f1 |
 | Domain models (world, settlements, resources, calendar, IDs, geography) | Implemented | Compiled and tested (.NET 8, C# 9, netstandard2.1) |
 | Deterministic daily simulation (scheduler + food rule + wellbeing rule) | Implemented | Tested |
 | Seed-based region generation (terrain, forest, mountains, lake, river, 3 settlements, roads) | Implemented | Tested across 12 seeds |
 | Versioned local JSON save/load | Implemented | Tested |
 | Application commands, queries and real-time playback pacing | Implemented | Tested |
-| Unity scene, 3D terrain rendering, isometric camera | **Not started** | Needs the Unity Editor |
+| Unity scene, 3D terrain rendering, isometric camera (Stage E) | Implemented | Runs in the editor with no console errors; PlayMode tests pending (Stage H) |
 | Settlement selection, inspector, UI Toolkit interface | **Not started** | Needs the Unity Editor |
 | PlayMode tests | **Not started** | Needs the Unity Editor |
 
@@ -44,7 +44,8 @@ Assets/Realmkeeper/
     Simulation/      Realmkeeper.Simulation      scheduler and daily systems
     Application/     Realmkeeper.Application     commands, queries, WorldSession, ports
     Infrastructure/  Realmkeeper.Infrastructure  RNG, generation, JSON persistence, composition root
-    Presentation/    Realmkeeper.Presentation    (empty: Unity scene, rendering, input, UI)
+    Presentation/    Realmkeeper.Presentation    bootstrap, world visuals, shaders, lighting, isometric camera
+  Scenes/            Realmkeeper.unity           the single scene (everything else is built at runtime)
   Tests/
     EditMode/        Realmkeeper.Tests.EditMode  61 test methods / 75 cases
     PlayMode/        Realmkeeper.Tests.PlayMode  (empty)

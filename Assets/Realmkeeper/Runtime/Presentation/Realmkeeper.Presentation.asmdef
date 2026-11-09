@@ -1,7 +1,7 @@
 {
     "name": "Realmkeeper.Presentation",
     "rootNamespace": "Realmkeeper.Presentation",
-    "references": ["Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure"],
+    "references": ["Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime", "Unity.InputSystem"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

@@ -40,6 +40,9 @@ crashlytics-buildid.txt
 *.unitypackage
 *.app
 
+# Development screenshots (F12 / auto-capture); curated shots are committed under other names
+/Documentation/Screenshots/dev-*.png
+
 # OS
 .DS_Store
 Thumbs.db
