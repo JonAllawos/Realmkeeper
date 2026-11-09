@@ -135,6 +135,8 @@ namespace Realmkeeper.Application
             FactionName = factionName;
             Specialization = e.Specialization;
             SecondarySpecialization = e.SecondarySpecialization;
+            LabourFocus = e.LabourFocus;
+            RegionId = s.RegionId;
             Workforce = EconomyMath.Workforce(s.Population, rules);
             Employed = e.TotalWorkers;
             TradeActivity = e.TradeActivity;
@@ -182,6 +184,11 @@ namespace Realmkeeper.Application
         public string FactionName { get; }
         public SettlementSpecialization Specialization { get; }
         public SettlementSpecialization SecondarySpecialization { get; }
+
+        /// <summary>Production source favoured by a posted labour notice, if any.</summary>
+        public ProductionSourceType? LabourFocus { get; }
+
+        public RegionId RegionId { get; }
         public int Workforce { get; }
         public int Employed { get; }
         public int TradeActivity { get; }
@@ -286,6 +293,76 @@ namespace Realmkeeper.Application
         public int InTransitQuantity { get; }
         public bool InTransitReturning { get; }
         public int DaysUntilArrival { get; }
+    }
+
+    public sealed class RegionSummary
+    {
+        internal RegionSummary(RegionData r, int settlementCount)
+        {
+            RegionId = r.RegionId;
+            Name = r.Name;
+            Origin = r.Origin;
+            Width = r.Width;
+            Depth = r.Depth;
+            SettlementCount = settlementCount;
+        }
+
+        public RegionId RegionId { get; }
+        public string Name { get; }
+        public MapCoord Origin { get; }
+        public int Width { get; }
+        public int Depth { get; }
+        public int SettlementCount { get; }
+    }
+
+    /// <summary>Snapshot of the player character for both presentations.</summary>
+    public sealed class PlayerSummary
+    {
+        internal PlayerSummary(PlayerCharacterData p, string settlementName)
+        {
+            CharacterId = p.CharacterId;
+            Name = p.Name;
+            LocationKind = p.LocationKind;
+            SettlementId = p.SettlementId;
+            SettlementName = settlementName;
+            RegionId = p.RegionId;
+            Pose = p.Pose;
+            Perspective = p.Perspective;
+            LastSettlementId = p.LastSettlementId;
+        }
+
+        public CharacterId CharacterId { get; }
+        public string Name { get; }
+        public CharacterLocationKind LocationKind { get; }
+        public bool IsInSettlement => LocationKind == CharacterLocationKind.Settlement;
+        public SettlementId SettlementId { get; }
+        public string SettlementName { get; }
+        public RegionId RegionId { get; }
+        public LocalPose Pose { get; }
+        public CameraPerspective Perspective { get; }
+        public SettlementId LastSettlementId { get; }
+    }
+
+    public sealed class NpcSummary
+    {
+        internal NpcSummary(NpcData n)
+        {
+            NpcId = n.NpcId;
+            Name = n.Name;
+            HomeSettlementId = n.HomeSettlementId;
+            Role = n.Role;
+            HasMetPlayer = n.HasMetPlayer;
+            MetPlayerOn = n.MetPlayerOn;
+            ConversationCount = n.ConversationCount;
+        }
+
+        public NpcId NpcId { get; }
+        public string Name { get; }
+        public SettlementId HomeSettlementId { get; }
+        public NpcRole Role { get; }
+        public bool HasMetPlayer { get; }
+        public WorldDate MetPlayerOn { get; }
+        public int ConversationCount { get; }
     }
 
     public sealed class EventSummary

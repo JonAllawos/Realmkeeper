@@ -14,13 +14,41 @@ namespace Realmkeeper.Domain.World
         public FactionData Clone() => new FactionData { FactionId = FactionId, Name = Name };
     }
 
-    /// <summary>Character record. Model only in Phase 1; no NPCs are generated yet.</summary>
+    /// <summary>What a named resident does in their settlement. Persisted by name.</summary>
+    public enum NpcRole
+    {
+        Resident = 0,
+        Elder = 1,
+        Merchant = 2,
+        Farmer = 3,
+        Guard = 4,
+        Smith = 5,
+        Innkeeper = 6,
+        Labourer = 7,
+    }
+
+    /// <summary>
+    /// A named person. Named NPCs are a tracked subset of their home settlement's population:
+    /// they are counted in <see cref="SettlementData.Population"/>, never added to it
+    /// (ADR-0009 point 5, first step). Exploration shows these records; it never creates its own.
+    /// </summary>
     public sealed class NpcData
     {
+        public const int MaxNameLength = 64;
+
         public NpcId NpcId { get; set; }
         public string Name { get; set; }
         public SettlementId HomeSettlementId { get; set; }
         public FactionId FactionId { get; set; }
+        public NpcRole Role { get; set; }
+
+        /// <summary>Date the player first spoke with this person; default (invalid) when they have not met.</summary>
+        public WorldDate MetPlayerOn { get; set; }
+
+        /// <summary>Conversations with the player so far.</summary>
+        public int ConversationCount { get; set; }
+
+        public bool HasMetPlayer => MetPlayerOn.IsValidDate;
 
         public NpcData Clone() => new NpcData
         {
@@ -28,6 +56,9 @@ namespace Realmkeeper.Domain.World
             Name = Name,
             HomeSettlementId = HomeSettlementId,
             FactionId = FactionId,
+            Role = Role,
+            MetPlayerOn = MetPlayerOn,
+            ConversationCount = ConversationCount,
         };
     }
 
@@ -49,6 +80,8 @@ namespace Realmkeeper.Domain.World
         SettlementDeclined = 12,
         ProductionMilestone = 13,
         EconomicMilestone = 14,
+        PlayerMetResident = 15,
+        LabourNoticePosted = 16,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

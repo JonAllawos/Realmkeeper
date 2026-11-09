@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Exploration.Domain",
+    "rootNamespace": "Realmkeeper.Exploration.Domain",
+    "references": ["Realmkeeper.Domain"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

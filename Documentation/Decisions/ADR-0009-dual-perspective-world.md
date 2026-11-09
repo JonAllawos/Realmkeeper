@@ -1,6 +1,8 @@
 # ADR-0009: Dual-perspective persistent world (strategic map + exploration)
 
-**Status.** Accepted as binding direction, 2026-11-09. Not implemented. Product requirements:
+**Status.** Accepted as binding direction, 2026-11-09. Prerequisites and one vertical slice
+implemented (see "Implementation clarifications" below and
+[Dual-perspective architecture](../Architecture/DualPerspective.md)). Product requirements:
 [Product foundation, Addendum A](../Product/ProductFoundation.md#addendum-a-dual-perspective-persistent-world-binding).
 
 **Context.** Realmkeeper will let the user switch between the overhead strategic map and
@@ -82,3 +84,32 @@ chronicle.
   A2.11, and synchronization bugs would corrupt saves.
 - *Running exploration as the "real" simulation and deriving the strategic view from it:*
   rejected. It replaces the existing architecture (A5) and ties simulation to frame time.
+
+## Implementation clarifications (2026-11-09)
+
+These clarify the decision; they do not change it. Recorded during the prerequisite and
+vertical-slice milestone ([plan](../Phase3/ImplementationPlan.md)).
+
+1. **Character, region and NPC state are core Domain types.** "Character state inside
+   `WorldData`" and "core never depends on Exploration" are both kept by putting persistent
+   world facts (`RegionData`, `PlayerCharacterData`, NPC acquaintance) in `Realmkeeper.Domain`.
+   `Exploration.Domain` holds only engine-free layouts derived from world data, which are never saved.
+2. **The shared runtime is its own assembly.** `Realmkeeper.Hosting` (Unity) holds
+   `RealmkeeperRuntime`, the lifecycle bridge both presentations attach to. The engine-free
+   `WorldSessionHost` lives in Application.
+3. **Chronicle scope (point 2).** Only commands with persistent consequences add chronicle
+   events (meeting a resident, posting a labour notice). Entering, leaving, moving and switching
+   perspective change character state but are not chronicled, following the Phase 2
+   "no low-value events" rule.
+4. **Inventory deferred.** "Take or give goods" and the character inventory are not part of the
+   slice (out of scope for the milestone). The command path they will use exists.
+5. **Level of detail (point 5) is partial.** Named residents are a tracked subset of each
+   settlement's population (never added to it), with persistent `NpcId`s. Simulating
+   individuals, and promoting or demoting between tiers, is still future work.
+6. **Local environments are generated, not saved.** A layout is a pure function of
+   (world seed, settlement ID, region ID, settlement type, residents), so nothing about it is
+   stored. Changes made inside an environment are stored only as world data (for example the
+   settlement's labour focus).
+7. **The gate is closed.** The local environment is bounded. Leaving goes through
+   "Return to World Map" (`ExitSettlementCommand`), so the character's stored position is
+   always inside the settlement it refers to.

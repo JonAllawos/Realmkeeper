@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Simulation", "R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Tests.EditMode", "Realmkeeper.Tests.EditMode\Realmkeeper.Tests.EditMode.csproj", "{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Domain\Realmkeeper.Exploration.Domain.csproj", "{6D93723E-DCEC-4E21-A184-AC3EF3DE31A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Realmkeeper.Exploration.Application", "Realmkeeper.Exploration.Application\Realmkeeper.Exploration.Application.csproj", "{8B2D5232-ECAD-4B23-A765-467E4CAA3685}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40429B78-5DF1-4A83-9792-1A0B61BA5C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D93723E-DCEC-4E21-A184-AC3EF3DE31A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D93723E-DCEC-4E21-A184-AC3EF3DE31A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D93723E-DCEC-4E21-A184-AC3EF3DE31A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D93723E-DCEC-4E21-A184-AC3EF3DE31A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B2D5232-ECAD-4B23-A765-467E4CAA3685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B2D5232-ECAD-4B23-A765-467E4CAA3685}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B2D5232-ECAD-4B23-A765-467E4CAA3685}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B2D5232-ECAD-4B23-A765-467E4CAA3685}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

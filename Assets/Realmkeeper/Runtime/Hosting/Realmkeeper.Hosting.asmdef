@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Hosting",
+    "rootNamespace": "Realmkeeper.Hosting",
+    "references": ["Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

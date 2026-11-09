@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Realmkeeper.Exploration.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(AssetsRoot)Runtime/Exploration/Application/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Realmkeeper.Domain/Realmkeeper.Domain.csproj" />
+    <ProjectReference Include="../Realmkeeper.Simulation/Realmkeeper.Simulation.csproj" />
+    <ProjectReference Include="../Realmkeeper.Application/Realmkeeper.Application.csproj" />
+    <ProjectReference Include="../Realmkeeper.Exploration.Domain/Realmkeeper.Exploration.Domain.csproj" />
+  </ItemGroup>
+</Project>

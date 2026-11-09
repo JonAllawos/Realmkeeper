@@ -5,6 +5,26 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v2 → v3 (ADR-0009 prerequisites). The JSON layout gains regions, settlement.regionId, the
+    /// player and resident fields, but none of them can be derived from JSON alone: they come from
+    /// seeded streams. So this step is structural only. After mapping, the serializer runs
+    /// <see cref="Generation.WorldPopulationInitializer"/>, which adds the region (assigning each
+    /// settlement to the region containing it), the player character on the world map, and named
+    /// residents if there are none, with the same IDs a fresh world of that seed gets. Existing
+    /// IDs and data are never changed or regenerated.
+    /// </summary>
+    public sealed class MigrationV2ToV3 : ISaveMigration
+    {
+        public int SourceVersion => 2;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["regions"] == null) world["regions"] = new JArray();
+        }
+    }
+
+    /// <summary>
     /// Phase 1 (v1) → Phase 2 (v2):
     /// - the "ore" resource becomes "iron" (quantities merged if both exist);
     /// - settlement.foodProductionPerDay is dropped (food now comes from farms, fishing, hunting);

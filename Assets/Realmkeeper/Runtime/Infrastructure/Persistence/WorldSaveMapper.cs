@@ -34,13 +34,36 @@ namespace Realmkeeper.Infrastructure.Persistence
                     StartingDate = w.WorldSettings.StartingDate.ToIsoString(),
                     EnabledSimulationSystems = new List<string>(w.WorldSettings.EnabledSimulationSystems),
                 },
+                Regions = new List<RegionDto>(),
                 Settlements = new List<SettlementDto>(),
                 Factions = new List<FactionDto>(),
                 Npcs = new List<NpcDto>(),
                 HistoricalEvents = new List<HistoricalEventDto>(),
                 TradeRoutes = new List<TradeRouteDto>(),
                 Shipments = new List<ShipmentDto>(),
+                Player = w.Player == null ? null : new PlayerDto
+                {
+                    CharacterId = w.Player.CharacterId.ToString(),
+                    Name = w.Player.Name,
+                    LocationKind = w.Player.LocationKind.ToString(),
+                    SettlementId = w.Player.SettlementId.IsEmpty ? null : w.Player.SettlementId.ToString(),
+                    RegionId = w.Player.RegionId.IsEmpty ? null : w.Player.RegionId.ToString(),
+                    X = w.Player.Pose.X,
+                    Y = w.Player.Pose.Y,
+                    Z = w.Player.Pose.Z,
+                    Yaw = w.Player.Pose.Yaw,
+                    Perspective = w.Player.Perspective.ToString(),
+                    LastSettlementId = w.Player.LastSettlementId.IsEmpty ? null : w.Player.LastSettlementId.ToString(),
+                },
             };
+
+            foreach (var r in w.Regions)
+            {
+                dto.Regions.Add(new RegionDto
+                {
+                    RegionId = r.RegionId.ToString(), Name = r.Name, OriginX = r.Origin.X, OriginZ = r.Origin.Z, Width = r.Width, Depth = r.Depth,
+                });
+            }
 
             foreach (var s in w.Settlements)
             {
@@ -49,6 +72,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     SettlementId = s.SettlementId.ToString(),
                     Name = s.Name,
                     SettlementType = s.SettlementType.ToString(),
+                    RegionId = s.RegionId.IsEmpty ? null : s.RegionId.ToString(),
                     PositionX = s.Position.X,
                     PositionZ = s.Position.Z,
                     Population = s.Population,
@@ -71,6 +95,9 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Name = n.Name,
                     HomeSettlementId = n.HomeSettlementId.IsEmpty ? null : n.HomeSettlementId.ToString(),
                     FactionId = n.FactionId.IsEmpty ? null : n.FactionId.ToString(),
+                    Role = n.Role.ToString(),
+                    MetPlayerOn = n.HasMetPlayer ? n.MetPlayerOn.ToIsoString() : null,
+                    ConversationCount = n.ConversationCount,
                 });
             }
 
@@ -145,6 +172,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             {
                 Specialization = e.Specialization.ToString(),
                 SecondarySpecialization = e.SecondarySpecialization.ToString(),
+                LabourFocus = e.LabourFocus?.ToString(),
                 Production = new List<ProductionDto>(),
                 StorageCapacity = Stacks(e.StorageCapacity),
                 LedgerDay = e.LedgerDay,
@@ -242,6 +270,35 @@ namespace Realmkeeper.Infrastructure.Persistence
                 },
             };
 
+            foreach (var rd in dto.Regions ?? new List<RegionDto>())
+            {
+                if (rd == null) throw new SaveDataException("Null region entry.");
+                world.Regions.Add(new RegionData
+                {
+                    RegionId = new RegionId(RequiredGuid(rd.RegionId, "regionId")),
+                    Name = rd.Name,
+                    Origin = new MapCoord(rd.OriginX, rd.OriginZ),
+                    Width = rd.Width,
+                    Depth = rd.Depth,
+                });
+            }
+
+            if (dto.Player != null)
+            {
+                var pd = dto.Player;
+                world.Player = new PlayerCharacterData
+                {
+                    CharacterId = new CharacterId(RequiredGuid(pd.CharacterId, "characterId")),
+                    Name = pd.Name,
+                    LocationKind = ParseEnum<CharacterLocationKind>(pd.LocationKind, "player locationKind"),
+                    SettlementId = new SettlementId(OptionalGuid(pd.SettlementId, "player settlementId")),
+                    RegionId = new RegionId(OptionalGuid(pd.RegionId, "player regionId")),
+                    Pose = new LocalPose(pd.X, pd.Y, pd.Z, pd.Yaw),
+                    Perspective = ParseEnum<CameraPerspective>(pd.Perspective, "player perspective"),
+                    LastSettlementId = new SettlementId(OptionalGuid(pd.LastSettlementId, "player lastSettlementId")),
+                };
+            }
+
             foreach (var sd in dto.Settlements ?? new List<SettlementDto>())
             {
                 if (sd == null) throw new SaveDataException("Null settlement entry.");
@@ -250,6 +307,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     SettlementId = new SettlementId(RequiredGuid(sd.SettlementId, "settlementId")),
                     Name = sd.Name,
                     SettlementType = ParseEnum<SettlementType>(sd.SettlementType, "settlementType"),
+                    RegionId = new RegionId(OptionalGuid(sd.RegionId, "regionId")),
                     Position = new MapCoord(sd.PositionX, sd.PositionZ),
                     Population = sd.Population,
                     Prosperity = sd.Prosperity,
@@ -277,6 +335,9 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Name = nd.Name,
                     HomeSettlementId = new SettlementId(OptionalGuid(nd.HomeSettlementId, "homeSettlementId")),
                     FactionId = new FactionId(OptionalGuid(nd.FactionId, "factionId")),
+                    Role = string.IsNullOrEmpty(nd.Role) ? NpcRole.Resident : ParseEnum<NpcRole>(nd.Role, "npc role"),
+                    MetPlayerOn = string.IsNullOrEmpty(nd.MetPlayerOn) ? default(WorldDate) : ParseDate(nd.MetPlayerOn, "npc metPlayerOn"),
+                    ConversationCount = nd.ConversationCount,
                 });
             }
 
@@ -360,6 +421,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             {
                 Specialization = ParseEnum<SettlementSpecialization>(dto.Specialization, "specialization"),
                 SecondarySpecialization = ParseEnum<SettlementSpecialization>(dto.SecondarySpecialization, "secondarySpecialization"),
+                LabourFocus = string.IsNullOrEmpty(dto.LabourFocus) ? (ProductionSourceType?)null : ParseEnum<ProductionSourceType>(dto.LabourFocus, "labourFocus"),
                 StorageCapacity = Inventory(dto.StorageCapacity, label + " storage"),
                 LedgerDay = dto.LedgerDay,
                 LifetimeProduced = Inventory(dto.LifetimeProduced, label + " lifetime production"),

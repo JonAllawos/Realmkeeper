@@ -13,6 +13,9 @@ namespace Realmkeeper.Tests.EditMode
     {
         public static readonly WorldDate Start = new WorldDate(412, 3, 1);
 
+        /// <summary>The single region of hand-built test worlds; covers cells 0..63 × 0..63.</summary>
+        public static readonly RegionId RegionId = new RegionId(new System.Guid("8d4f8f8e-6a43-4c1b-9d55-0d1f6f4a9001"));
+
         /// <summary>A settlement amply stocked with non-food goods, so food tests are not disturbed by other shortages.</summary>
         public const int AmpleGoods = 1000000;
 
@@ -40,6 +43,7 @@ namespace Realmkeeper.Tests.EditMode
             settings.EnabledSimulationSystems.AddRange(enabledSystems);
             var world = WorldData.CreateNew(
                 new WorldId(new System.Guid("8d4f8f8e-6a43-4c1b-9d55-0d1f6f4a0001")), "Test Realm", 1234, 1, settings);
+            world.Regions.Add(new RegionData { RegionId = RegionId, Name = "Test Vale", Origin = new MapCoord(0, 0), Width = 64, Depth = 64 });
             world.Settlements.Add(MakeSettlement("Ashford", "8d4f8f8e-6a43-4c1b-9d55-0d1f6f4a1001", population, food, production));
             return world;
         }
@@ -55,6 +59,7 @@ namespace Realmkeeper.Tests.EditMode
                 SettlementId = new SettlementId(new System.Guid(id)),
                 Name = name,
                 SettlementType = SettlementType.Village,
+                RegionId = RegionId,
                 Position = new MapCoord(10, 10),
                 Population = population,
                 Prosperity = 50,

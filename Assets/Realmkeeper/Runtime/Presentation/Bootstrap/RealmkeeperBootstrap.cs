@@ -1,15 +1,17 @@
-using System.IO;
 using Realmkeeper.Application;
-using Realmkeeper.Infrastructure.Composition;
+using Realmkeeper.Domain.Identifiers;
+using Realmkeeper.Hosting;
 using UnityEngine;
 
 namespace Realmkeeper.Presentation
 {
     /// <summary>
-    /// Entry point of the Realmkeeper scene. Creates the <see cref="WorldSession"/> through the
-    /// composition root, creates the world, owns the <see cref="SimulationPlayback"/> and feeds
-    /// it frame time. This is the only connection between Unity's frame loop and the simulation.
-    /// Visuals are rebuilt when the session reports changed geography.
+    /// Entry point of the strategic presentation. It does not own the world: it asks the one
+    /// <see cref="RealmkeeperRuntime"/> (which survives scene changes) for the active session,
+    /// starting a new world only when none is active, then builds the map view, camera,
+    /// selection and HUD on that session. Visuals are rebuilt when the session reports changed
+    /// geography. While the player character is inside a settlement (exploration view) the
+    /// strategic view is hidden; it returns unchanged when the character comes back.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     public sealed class RealmkeeperBootstrap : MonoBehaviour
@@ -24,10 +26,14 @@ namespace Realmkeeper.Presentation
         [SerializeField] private float _autoScreenshotSeconds;
 
         private PresentationMaterials _materials;
+        private bool _strategicVisible = true;
 
+        public RealmkeeperRuntime Runtime { get; private set; }
+
+        /// <summary>The runtime's session (the same object exploration uses).</summary>
         public WorldSession Session { get; private set; }
 
-        public SimulationPlayback Playback { get; private set; }
+        public SimulationPlayback Playback => Runtime != null ? Runtime.Playback : null;
 
         public WorldView WorldView { get; private set; }
 
@@ -41,6 +47,9 @@ namespace Realmkeeper.Presentation
 
         public CommandResult LastCreateResult { get; private set; }
 
+        /// <summary>True while the strategic map (camera, world, HUD) is shown.</summary>
+        public bool StrategicVisible => _strategicVisible;
+
         public long Seed
         {
             get => _seed;
@@ -49,9 +58,7 @@ namespace Realmkeeper.Presentation
 
         private void Awake()
         {
-            var saveDirectory = Path.Combine(UnityEngine.Application.persistentDataPath, "Saves");
-            Session = RealmkeeperComposition.CreateSession(saveDirectory);
-            Playback = new SimulationPlayback(Session);
+            Runtime = RealmkeeperRuntime.FindOrCreate();
 
             _materials = new PresentationMaterials(_vertexColorShader, _waterShader);
             Environment = SceneEnvironment.Create(transform);
@@ -67,40 +74,51 @@ namespace Realmkeeper.Presentation
             screenshots.AutoCaptureSeconds = _autoScreenshotSeconds;
 #endif
 
+            // Uses the world that is already running (for example after a scene change), or starts one.
+            LastCreateResult = Runtime.EnsureWorld(_worldName, _seed);
+            if (!LastCreateResult.IsSuccess || !Runtime.Host.IsActive)
+            {
+                Debug.LogError($"Realmkeeper: {LastCreateResult.Message} {string.Join("; ", LastCreateResult.Errors)}");
+                return;
+            }
+
+            Session = Runtime.Session;
+
             // Rebuild visuals first; selection and HUD subscribe afterwards so they see the new views.
             Session.WorldChanged += OnWorldChanged;
+            RebuildWorld();
 
             Selection = gameObject.AddComponent<SettlementSelection>();
             Selection.Initialize(Session, WorldView, CameraController.Camera, _materials.Highlight);
             Hud = RealmkeeperHud.Create(transform);
             Hud.Initialize(Session, Playback, Selection, CameraController, WorldView);
+            Hud.SaveHandler = slot => Runtime.Save(slot);
             Selection.IsPointerOverUi = Hud.IsPointerOverUi;
             CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
 
-            LastCreateResult = Session.Execute(new CreateWorldCommand(_worldName, _seed));
-            if (!LastCreateResult.IsSuccess)
-            {
-                Debug.LogError($"Realmkeeper: {LastCreateResult.Message} {string.Join("; ", LastCreateResult.Errors)}");
-            }
+            Runtime.ModeChanged += OnModeChanged;
+            ApplyMode(Runtime.Mode);
 
             if (_playOnStart) Playback.Play();
-        }
-
-        private void Update()
-        {
-            Playback?.Tick(Time.deltaTime);
         }
 
         private void OnDestroy()
         {
             if (Session != null) Session.WorldChanged -= OnWorldChanged;
+            if (Runtime != null) Runtime.ModeChanged -= OnModeChanged;
             if (WorldView != null) WorldView.Clear();
             _materials?.Dispose();
         }
 
         private void OnWorldChanged(WorldChange change)
         {
-            if (!change.GeographyChanged) return;
+            if (change.Reason == WorldChangeReason.Closed) return;
+            if (change.GeographyChanged) RebuildWorld();
+        }
+
+        private void RebuildWorld()
+        {
+            if (Session == null || !Session.HasWorld) return;
             var map = Session.Map;
             WorldView.Rebuild(map, Session.GetSettlements());
             CameraController.FrameRegion(WorldView.Bounds, map.WaterWorldHeight);
@@ -108,6 +126,40 @@ namespace Realmkeeper.Presentation
                       $"{WorldView.TerrainChunkCount} terrain chunks, {WorldView.Settlements.Count} settlements, " +
                       $"{WorldView.TreeCount} trees, {WorldView.BridgeCount} bridge cells; camera at {CameraController.Camera.transform.position}, " +
                       $"ortho size {CameraController.Camera.orthographicSize:0.#}.");
+        }
+
+        private void OnModeChanged(ViewMode previous, ViewMode current)
+        {
+            ApplyMode(current);
+            if (current != ViewMode.Strategic || Session == null || !Session.HasWorld) return;
+
+            // Back on the map: select and focus the settlement the character just left.
+            var player = Session.GetPlayer();
+            var last = player != null ? player.LastSettlementId : default(SettlementId);
+            if (last.IsEmpty) return;
+            Selection.Select(last);
+            var view = WorldView.FindSettlementView(last);
+            if (view != null) CameraController.FocusOn(view.Center);
+        }
+
+        /// <summary>
+        /// Shows or hides the strategic view. Hidden objects keep their state (camera position,
+        /// selection, built terrain), so returning restores the map exactly as it was. The
+        /// global Volume stays on: exploration uses the same colour grading.
+        /// </summary>
+        private void ApplyMode(ViewMode mode)
+        {
+            var visible = mode == ViewMode.Strategic;
+            _strategicVisible = visible;
+            CameraController.gameObject.SetActive(visible);
+            WorldView.gameObject.SetActive(visible);
+            if (Environment.Sun != null) Environment.Sun.gameObject.SetActive(visible);
+            if (Hud != null) Hud.SetVisible(visible); // hidden by style: re-enabling a UIDocument would rebuild its tree
+            if (Selection != null)
+            {
+                Selection.enabled = visible;
+                Selection.SetHighlightShown(visible);
+            }
         }
     }
 }

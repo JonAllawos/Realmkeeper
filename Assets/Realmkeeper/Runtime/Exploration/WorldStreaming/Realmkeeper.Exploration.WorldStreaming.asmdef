@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Exploration.WorldStreaming",
+    "rootNamespace": "Realmkeeper.Exploration.WorldStreaming",
+    "references": ["Realmkeeper.Domain", "Realmkeeper.Application", "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Application"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

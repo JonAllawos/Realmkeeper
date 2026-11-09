@@ -67,6 +67,24 @@ namespace Realmkeeper.Domain.World
                 if (string.IsNullOrWhiteSpace(faction.Name)) result.AddError($"Faction {faction.FactionId} has no name.");
             }
 
+            if (world.Regions == null)
+            {
+                result.AddError("Regions collection must not be null.");
+                return result;
+            }
+
+            var regions = new Dictionary<RegionId, RegionData>();
+            foreach (var region in world.Regions)
+            {
+                if (region == null) { result.AddError("Null region entry."); continue; }
+                if (region.RegionId.IsEmpty) result.AddError($"Region '{region.Name}' has an empty ID.");
+                else if (regions.ContainsKey(region.RegionId)) result.AddError($"Duplicate RegionId {region.RegionId}.");
+                else regions.Add(region.RegionId, region);
+                if (string.IsNullOrWhiteSpace(region.Name)) result.AddError($"Region {region.RegionId} has no name.");
+                else if (region.Name.Length > RegionData.MaxNameLength) result.AddError($"Region {region.RegionId} name is too long.");
+                if (region.Width < 1 || region.Depth < 1) result.AddError($"Region '{region.Name}' must cover at least one cell.");
+            }
+
             var settlementIds = new HashSet<SettlementId>();
             foreach (var settlement in world.Settlements)
             {
@@ -76,16 +94,39 @@ namespace Realmkeeper.Domain.World
                     result.AddError($"Duplicate SettlementId {settlement.SettlementId}.");
                 if (!settlement.FactionId.IsEmpty && !factionIds.Contains(settlement.FactionId))
                     result.AddError($"Settlement '{settlement.Name}' references unknown faction {settlement.FactionId}.");
+                if (settlement.RegionId.IsEmpty)
+                    result.AddError($"Settlement '{settlement.Name}' has no region.");
+                else if (!regions.TryGetValue(settlement.RegionId, out var region))
+                    result.AddError($"Settlement '{settlement.Name}' references unknown region {settlement.RegionId}.");
+                else if (!region.Contains(settlement.Position))
+                    result.AddError($"Settlement '{settlement.Name}' at {settlement.Position} lies outside its region '{region.Name}'.");
             }
 
+            if (world.Player != null) ValidatePlayer(world, settlementIds, regions, result);
+
             var npcIds = new HashSet<NpcId>();
+            var namedPerSettlement = new Dictionary<SettlementId, int>();
             foreach (var npc in world.Npcs)
             {
                 if (npc == null) { result.AddError("Null NPC entry."); continue; }
                 if (npc.NpcId.IsEmpty) result.AddError("NPC has empty ID.");
                 else if (!npcIds.Add(npc.NpcId)) result.AddError($"Duplicate NpcId {npc.NpcId}.");
+                if (string.IsNullOrWhiteSpace(npc.Name)) result.AddError($"NPC {npc.NpcId} has no name.");
+                if (npc.ConversationCount < 0) result.AddError($"NPC {npc.NpcId} has a negative conversation count.");
                 if (!npc.HomeSettlementId.IsEmpty && !settlementIds.Contains(npc.HomeSettlementId))
                     result.AddError($"NPC {npc.NpcId} references unknown settlement.");
+                if (!npc.HomeSettlementId.IsEmpty)
+                {
+                    namedPerSettlement.TryGetValue(npc.HomeSettlementId, out var count);
+                    namedPerSettlement[npc.HomeSettlementId] = count + 1;
+                }
+            }
+
+            // Named people are part of the population, never extra to it.
+            foreach (var settlement in world.Settlements)
+            {
+                if (settlement != null && namedPerSettlement.TryGetValue(settlement.SettlementId, out var named) && named > settlement.Population)
+                    result.AddError($"Settlement '{settlement.Name}' has more named residents ({named}) than people ({settlement.Population}).");
             }
 
             var eventIds = new HashSet<EventId>();
@@ -105,6 +146,31 @@ namespace Realmkeeper.Domain.World
 
             ValidateTrade(world, settlementIds, result);
             return result;
+        }
+
+        private static void ValidatePlayer(WorldData world, HashSet<SettlementId> settlementIds, Dictionary<RegionId, RegionData> regions, ValidationResult result)
+        {
+            var p = world.Player;
+            if (p.CharacterId.IsEmpty) result.AddError("Player character has an empty ID.");
+            if (string.IsNullOrWhiteSpace(p.Name)) result.AddError("Player character has no name.");
+            else if (p.Name.Length > PlayerCharacterData.MaxNameLength) result.AddError("Player character name is too long.");
+            if (!System.Enum.IsDefined(typeof(CharacterLocationKind), p.LocationKind)) result.AddError("Player character location kind is unknown.");
+            if (!System.Enum.IsDefined(typeof(CameraPerspective), p.Perspective)) result.AddError("Player character perspective is unknown.");
+            if (!p.Pose.IsFinite) result.AddError("Player character position is not a finite number.");
+            if (!p.LastSettlementId.IsEmpty && !settlementIds.Contains(p.LastSettlementId))
+                result.AddError("Player character's last settlement does not exist.");
+
+            if (p.LocationKind == CharacterLocationKind.Settlement)
+            {
+                var settlement = world.FindSettlement(p.SettlementId);
+                if (settlement == null) result.AddError("Player character is in a settlement that does not exist.");
+                else if (p.RegionId != settlement.RegionId) result.AddError("Player character's region does not match their settlement's region.");
+                if (!regions.ContainsKey(p.RegionId)) result.AddError("Player character is in a region that does not exist.");
+            }
+            else if (!p.SettlementId.IsEmpty || !p.RegionId.IsEmpty)
+            {
+                result.AddError("Player character on the world map must not reference a settlement or region.");
+            }
         }
 
         private static void ValidateTrade(WorldData world, HashSet<SettlementId> settlementIds, ValidationResult result)

@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1000000002}
   - component: {fileID: 1000000003}
+  - component: {fileID: 1000000004}
   m_Layer: 0
   m_Name: Realmkeeper
   m_TagString: Untagged
@@ -169,6 +170,18 @@ MonoBehaviour:
   _vertexColorShader: {fileID: 4800000, guid: cc097d62f5d5460ebb3ff63288ad66b3, type: 3}
   _waterShader: {fileID: 4800000, guid: 4d7804fd4db64024a27d06f3f3fc65a4, type: 3}
   _autoScreenshotSeconds: 3
+--- !u!114 &1000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3e1c7d94b2f4e6c8d5a0b9f7e2c4d61, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

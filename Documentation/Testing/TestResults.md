@@ -139,3 +139,37 @@ UI Toolkit `NavigationSubmitEvent`s. Real mouse and keyboard reading
 Screenshots (1920×1080, captured with the F10 tour; these show the Phase 1 HUD):
 [overview](../Screenshots/realmkeeper-overview.png) ·
 [settlement selected](../Screenshots/realmkeeper-settlement-selected.png).
+
+## ADR-0009 prerequisites and exploration vertical slice (2026-11-09)
+
+| Run | Where | Result |
+|---|---|---|
+| .NET harness | Windows, .NET 8 (`dotnet test Tools/DotNet/Realmkeeper.Verification.sln -c Release`) | **135 passed, 0 failed** (110 earlier + 25 new: region identity 7, session and commands 10, exploration domain and application 8) |
+| Unity EditMode | Unity 6000.0.47f1 Test Runner, run by the user in the editor | **135 passed, 0 failed, 0 skipped** |
+| Unity PlayMode | Unity 6000.0.47f1 Test Runner, run by the user in the editor | **30 passed, 0 failed, 0 skipped** (17 earlier + 13 new in `ExplorationPlayModeTests`) |
+| Gameplay | Play Mode in the editor, played by the user; screenshots `Documentation/Screenshots/dev-20261109-1011*.png` and `-1012*.png` | Entered Bramhaven from the inspector; walked in third and first person; read the granary ledger (shown as informational) and saw the posted labour notice reflected in it |
+
+**What the new PlayMode tests cover:**
+- entering a settlement loads an environment keyed by its settlement and region IDs, and hides the map;
+- returning to the map restores it and selects the settlement just left;
+- repeated entry creates no duplicate residents, characters or cameras;
+- entering twice is refused;
+- the character walks, stays grounded and jumps under scripted input;
+- switching perspective keeps the character's position;
+- the third-person camera is kept in front of walls;
+- talking to a resident and posting a notice are recorded through the registry;
+- the ledger is informational and changes nothing;
+- saving and reloading inside a settlement restores the character;
+- the clock keeps running while exploring;
+- a second runtime is refused.
+
+**Found by gameplay, not by tests, and fixed after these runs:**
+- roofs were built inverted (the slab pitch signs were swapped);
+- the granary's loading platform covered the ledger lectern, and barrels crowded the granary door.
+
+After the fixes the .NET harness passed 135/135 again. The Unity suites were **not** re-run
+after these presentation-only fixes, and the fixed roofs have not yet been seen in Play Mode.
+
+**Not tested:**
+- the mouse-look feel, and cursor capture with Esc and click;
+- the Save (F5) → Load round trip in manual play (it is covered by the PlayMode test, but no screenshot of it was taken).

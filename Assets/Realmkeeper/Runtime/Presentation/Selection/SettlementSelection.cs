@@ -63,6 +63,12 @@ namespace Realmkeeper.Presentation
             SelectionChanged?.Invoke(SelectedId);
         }
 
+        /// <summary>Hides or shows the highlight object without changing the selection (used while exploring).</summary>
+        public void SetHighlightShown(bool shown)
+        {
+            if (_highlight != null) _highlight.gameObject.SetActive(shown);
+        }
+
         public void Clear()
         {
             _highlight?.Hide();

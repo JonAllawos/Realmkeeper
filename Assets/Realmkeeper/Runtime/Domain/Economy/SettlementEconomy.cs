@@ -204,6 +204,12 @@ namespace Realmkeeper.Domain.Economy
         public SettlementSpecialization Specialization { get; set; }
         public SettlementSpecialization SecondarySpecialization { get; set; }
 
+        /// <summary>
+        /// Labour policy set by a posted notice: the source whose allocation weight the labour system
+        /// doubles. Null when no notice is in force.
+        /// </summary>
+        public ProductionSourceType? LabourFocus { get; set; }
+
         /// <summary>Production capabilities, one per source type, kept in source-type order.</summary>
         public List<ProductionAssignment> Production { get; set; } = new List<ProductionAssignment>();
 
@@ -301,6 +307,7 @@ namespace Realmkeeper.Domain.Economy
             {
                 Specialization = Specialization,
                 SecondarySpecialization = SecondarySpecialization,
+                LabourFocus = LabourFocus,
                 Production = new List<ProductionAssignment>(Production.Count),
                 StorageCapacity = StorageCapacity.Clone(),
                 LedgerDay = LedgerDay,

@@ -60,6 +60,7 @@ namespace Realmkeeper.Infrastructure.Generation
         public void InitializeEconomy(WorldData world, RegionMap map)
         {
             if (world == null) throw new ArgumentNullException(nameof(world));
+            WorldPopulationInitializer.EnsureAll(world, map.Width, map.Depth, _randomFactory);
             _economy.Initialize(world, map, _randomFactory.Create(SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "trade-routes")));
         }
 
@@ -101,6 +102,7 @@ namespace Realmkeeper.Infrastructure.Generation
 
             var world = BuildWorldData(request, map, sites, Stream("ids"), Stream("names"), Stream("stats"));
             BuildRoads(map, world.Settlements);
+            WorldPopulationInitializer.EnsureAll(world, map.Width, map.Depth, _randomFactory);
             _economy.Initialize(world, map, Stream("trade-routes"));
 
             var worldValidation = WorldValidator.Validate(world);

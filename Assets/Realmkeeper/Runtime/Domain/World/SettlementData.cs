@@ -26,6 +26,10 @@ namespace Realmkeeper.Domain.World
         public SettlementId SettlementId { get; set; }
         public string Name { get; set; }
         public SettlementType SettlementType { get; set; }
+
+        /// <summary>Region the settlement belongs to. Must reference a region in <see cref="WorldData.Regions"/>.</summary>
+        public RegionId RegionId { get; set; }
+
         public MapCoord Position { get; set; }
         public int Population { get; set; }
 
@@ -55,6 +59,7 @@ namespace Realmkeeper.Domain.World
                 SettlementId = SettlementId,
                 Name = Name,
                 SettlementType = SettlementType,
+                RegionId = RegionId,
                 Position = Position,
                 Population = Population,
                 Prosperity = Prosperity,

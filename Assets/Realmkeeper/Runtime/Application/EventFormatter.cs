@@ -60,6 +60,10 @@ namespace Realmkeeper.Application
                     return $"{s} has produced {N(e, "amount")} {Resource(e)} since its founding.";
                 case HistoricalEventType.EconomicMilestone:
                     return $"The treasury of {s} has passed {N(e, "treasury")} coin.";
+                case HistoricalEventType.PlayerMetResident:
+                    return $"{e.Get("player") ?? "A traveller"} met {e.Get("name") ?? "a resident"}, {(e.Get("role") ?? "resident").ToLowerInvariant()} of {s}.";
+                case HistoricalEventType.LabourNoticePosted:
+                    return $"{e.Get("player") ?? "A traveller"} posted a notice in {s} calling for more {(e.Get("focus") ?? "work").ToLowerInvariant()}.";
                 default:
                     return string.IsNullOrEmpty(e.Description) ? e.EventType.ToString() : e.Description;
             }

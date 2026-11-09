@@ -29,27 +29,28 @@ because it implements Application's ports.
 
 When an `.asmdef` reference changes, change the matching `.csproj` in the same commit.
 
-## Planned exploration assemblies (not created)
+## Hosting and exploration assemblies (ADR-0009)
 
-Binding direction from [ADR-0009](../Decisions/ADR-0009-dual-perspective-world.md). Each
-assembly is created only when the vertical slice needs it. The intended rules:
+Created for the ADR-0009 prerequisites and vertical slice
+(see [Dual-perspective architecture](DualPerspective.md)).
 
-| Assembly | May reference | Unity engine | Must never be referenced by |
+| Assembly | References | Unity engine | Must never be referenced by |
 |---|---|---|---|
+| `Realmkeeper.Hosting` | Domain, Simulation, Application, Infrastructure | Yes | Any engine-free assembly |
 | `Realmkeeper.Exploration.Domain` | Domain | **No** (`noEngineReferences`) | Domain |
-| `Realmkeeper.Exploration.Application` | Domain, Simulation, Application, Exploration.Domain | **No** | Domain, Simulation, Application |
-| `Realmkeeper.Exploration.Interaction` | Application, Exploration.Application, Exploration.Domain, Input System | Yes | Any core or exploration engine-free assembly |
-| `Realmkeeper.Exploration.WorldStreaming` | Application, Exploration.Application, Exploration.Domain, Domain | Yes | Any core or exploration engine-free assembly |
-| `Realmkeeper.Exploration.Presentation` | Exploration.Interaction, Exploration.WorldStreaming, Exploration.Application, Exploration.Domain, Application, Domain, URP | Yes | Strategic `Realmkeeper.Presentation` (the two views stay siblings) |
+| `Realmkeeper.Exploration.Application` | Domain, Simulation, Application, Exploration.Domain | **No** | Domain, Simulation, Application, Infrastructure |
+| `Realmkeeper.Exploration.Interaction` | Domain, Application, Exploration.Domain, Exploration.Application, Input System | Yes | Any engine-free assembly |
+| `Realmkeeper.Exploration.WorldStreaming` | Domain, Application, Exploration.Domain, Exploration.Application | Yes | Any engine-free assembly |
+| `Realmkeeper.Exploration.Presentation` | Domain, Simulation, Application, Hosting, Exploration.Domain, Exploration.Application, Exploration.Interaction, Exploration.WorldStreaming, Input System, URP, Core RP | Yes | Strategic `Realmkeeper.Presentation` (the two views stay siblings) |
 
-- The existing core (Domain, Simulation, Application, Infrastructure) never references an
-  `Exploration.*` assembly. Exploration plugs in through the composition root and application
-  ports, as Infrastructure does today.
-- The engine-free exploration assemblies join the `Tools/DotNet` harness when they are
-  created, with mirrored `.csproj` files.
-- Shared runtime hosting (one `WorldSession` across additive scenes) needs a small host that
-  both presentations use. Where it lives is decided with the first exploration code.
-
+- `Realmkeeper.Presentation` (strategic) additionally references `Realmkeeper.Hosting`, to
+  use the shared runtime, and `Realmkeeper.Exploration.Application`, for the "Enter settlement"
+  command. It does not reference any exploration Unity assembly.
+- The core (Domain, Simulation, Application, Infrastructure) references no `Exploration.*`
+  assembly. Exploration registers its command handlers on the session through
+  `IRuntimeModule` (`ExplorationInstaller`).
+- `Exploration.Domain` and `Exploration.Application` are mirrored in the .NET harness
+  (`Tools/DotNet/Realmkeeper.Exploration.*`) and covered by the EditMode suite.
 ## Package dependencies
 
 | Package | Used by | Why |
@@ -57,7 +58,7 @@ assembly is created only when the vertical slice needs it. The intended rules:
 | `com.unity.render-pipelines.universal` | Presentation | Required renderer |
 | `com.unity.test-framework` | Tests | Unity Test Framework (NUnit 3) |
 | `com.unity.nuget.newtonsoft-json` | Infrastructure, EditMode tests | JSON persistence (ADR-0007) |
-| `com.unity.inputsystem` | Presentation | Camera and selection input |
+| `com.unity.inputsystem` | Presentation, Exploration.Interaction, Exploration.Presentation | Camera and selection input; exploration action map |
 
 UI Toolkit is built into Unity 6, so it needs no package. No package has been added for
 exploration. Candidates such as Addressables or Cinemachine each need their own decision

@@ -1,0 +1,43 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="ExplorationHud.uss" />
+    <ui:VisualElement name="xhud-root" class="xk-root" picking-mode="Ignore">
+
+        <!-- Top: where the character is, perspective, and leaving -->
+        <ui:VisualElement class="xk-top" picking-mode="Ignore">
+            <ui:VisualElement class="xk-panel xk-location">
+                <ui:Label name="xk-settlement" text="-" class="xk-settlement" />
+                <ui:Label name="xk-region" text="-" class="xk-region" />
+                <ui:Label name="xk-date" text="-" class="xk-date" />
+            </ui:VisualElement>
+            <ui:VisualElement class="xk-grow" picking-mode="Ignore" />
+            <ui:VisualElement class="xk-panel xk-actions">
+                <ui:Label name="xk-perspective" text="Third person" class="xk-perspective" />
+                <ui:VisualElement class="xk-divider" />
+                <ui:Button name="xk-save" text="Save (F5)" class="xk-button" />
+                <ui:Button name="xk-return" text="Return to World Map (M)" class="xk-button xk-button--primary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="xk-grow" picking-mode="Ignore">
+            <ui:VisualElement name="xk-crosshair" class="xk-crosshair xk-hidden" picking-mode="Ignore" />
+        </ui:VisualElement>
+
+        <!-- Bottom: interaction response, prompt, controls -->
+        <ui:VisualElement class="xk-bottom" picking-mode="Ignore">
+            <ui:VisualElement name="xk-response" class="xk-panel xk-response xk-hidden">
+                <ui:VisualElement class="xk-response-head">
+                    <ui:Label name="xk-response-title" text="-" class="xk-response-title" />
+                    <ui:Label name="xk-response-kind" text="Informational" class="xk-kind" />
+                </ui:VisualElement>
+                <ui:Label name="xk-response-text" text="-" class="xk-response-text" />
+            </ui:VisualElement>
+            <ui:VisualElement name="xk-prompt" class="xk-panel xk-prompt xk-hidden">
+                <ui:Label text="E" class="xk-key" />
+                <ui:Label name="xk-prompt-text" text="-" class="xk-prompt-text" />
+                <ui:Label name="xk-prompt-kind" text="Informational" class="xk-kind" />
+            </ui:VisualElement>
+            <ui:Label name="xk-message" text="" class="xk-message" />
+            <ui:Label name="xk-help" text="WASD move · Shift sprint · Space jump · Mouse look · V switch view · E interact · Esc free the cursor" class="xk-help" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

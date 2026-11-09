@@ -38,7 +38,8 @@ namespace Realmkeeper.Application
         public int Days { get; }
     }
 
-    public sealed class SaveWorldCommand
+    /// <summary>Saves the active world session. Dispatched through the command registry.</summary>
+    public sealed class SaveWorldCommand : ICommand
     {
         public SaveWorldCommand(string slotName) { SlotName = slotName; }
         public string SlotName { get; }
@@ -50,27 +51,60 @@ namespace Realmkeeper.Application
         public string SlotName { get; }
     }
 
-    public sealed class SetSimulationSpeedCommand
+    public sealed class SetSimulationSpeedCommand : ICommand
     {
         public SetSimulationSpeedCommand(SimulationSpeed speed) { Speed = speed; }
         public SimulationSpeed Speed { get; }
     }
 
+    /// <summary>Outcome category of a command. Every failure says which kind it is.</summary>
+    public enum CommandStatus
+    {
+        Success = 0,
+
+        /// <summary>The command's inputs, or the state it would produce, are invalid. Nothing changed.</summary>
+        ValidationFailed = 1,
+
+        /// <summary>A referenced world, region, settlement, character or person does not exist.</summary>
+        NotFound = 2,
+
+        /// <summary>The session is not in a state that allows the command (no world, wrong location, closed session).</summary>
+        InvalidSessionState = 3,
+
+        /// <summary>No handler is registered for the command type.</summary>
+        Unsupported = 4,
+
+        /// <summary>The handler failed unexpectedly. Nothing changed.</summary>
+        Failed = 5,
+    }
+
     public class CommandResult
     {
-        protected CommandResult(bool success, string message, IReadOnlyList<string> errors)
+        protected CommandResult(CommandStatus status, string message, IReadOnlyList<string> errors)
         {
-            IsSuccess = success;
+            Status = status;
             Message = message ?? string.Empty;
             Errors = errors ?? Array.Empty<string>();
         }
 
-        public bool IsSuccess { get; }
+        protected CommandResult(bool success, string message, IReadOnlyList<string> errors)
+            : this(success ? CommandStatus.Success : CommandStatus.Failed, message, errors)
+        {
+        }
+
+        public CommandStatus Status { get; }
+        public bool IsSuccess => Status == CommandStatus.Success;
         public string Message { get; }
         public IReadOnlyList<string> Errors { get; }
 
-        public static CommandResult Ok(string message = null) => new CommandResult(true, message, null);
-        public static CommandResult Fail(string message, IReadOnlyList<string> errors = null) => new CommandResult(false, message, errors);
+        public static CommandResult Ok(string message = null) => new CommandResult(CommandStatus.Success, message, null);
+        public static CommandResult Fail(string message, IReadOnlyList<string> errors = null) => new CommandResult(CommandStatus.Failed, message, errors);
+        public static CommandResult Invalid(string message, IReadOnlyList<string> errors = null) => new CommandResult(CommandStatus.ValidationFailed, message, errors);
+        public static CommandResult NotFound(string message) => new CommandResult(CommandStatus.NotFound, message, null);
+        public static CommandResult InvalidState(string message) => new CommandResult(CommandStatus.InvalidSessionState, message, null);
+        public static CommandResult Unsupported(string message) => new CommandResult(CommandStatus.Unsupported, message, null);
+
+        public override string ToString() => Errors.Count == 0 ? $"{Status}: {Message}" : $"{Status}: {Message} ({string.Join("; ", Errors)})";
     }
 
     public sealed class AdvanceResult : CommandResult

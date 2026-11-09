@@ -84,12 +84,15 @@ namespace Realmkeeper.Simulation.Systems
         {
             bool Open(ProductionAssignment p) => eligible(p) && p.AllocationWeight > 0 && p.Workers < p.WorkerCapacity;
 
+            // A posted labour notice doubles the focused source's weight (stored policy, not randomness).
+            long Weight(ProductionAssignment p) => economy.LabourFocus == p.SourceType ? 2L * p.AllocationWeight : p.AllocationWeight;
+
             while (remaining > 0)
             {
                 long totalWeight = 0;
                 foreach (var p in economy.Production)
                 {
-                    if (Open(p)) totalWeight += p.AllocationWeight;
+                    if (Open(p)) totalWeight += Weight(p);
                 }
 
                 if (totalWeight == 0) break;
@@ -99,7 +102,7 @@ namespace Realmkeeper.Simulation.Systems
                 foreach (var p in economy.Production)
                 {
                     if (!Open(p)) continue;
-                    var share = (int)(pool * (long)p.AllocationWeight / totalWeight);
+                    var share = (int)(pool * Weight(p) / totalWeight);
                     var take = Math.Min(share, p.WorkerCapacity - p.Workers);
                     p.Workers += take;
                     given += take;

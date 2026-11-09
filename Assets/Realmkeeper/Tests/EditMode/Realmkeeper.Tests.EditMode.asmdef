@@ -1,7 +1,7 @@
 {
     "name": "Realmkeeper.Tests.EditMode",
     "rootNamespace": "Realmkeeper.Tests.EditMode",
-    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure"],
+    "references": ["UnityEngine.TestRunner", "UnityEditor.TestRunner", "Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure", "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Application"],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

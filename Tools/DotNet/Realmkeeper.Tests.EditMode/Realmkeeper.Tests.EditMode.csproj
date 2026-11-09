@@ -19,5 +19,7 @@
     <ProjectReference Include="../Realmkeeper.Simulation/Realmkeeper.Simulation.csproj" />
     <ProjectReference Include="../Realmkeeper.Application/Realmkeeper.Application.csproj" />
     <ProjectReference Include="../Realmkeeper.Infrastructure/Realmkeeper.Infrastructure.csproj" />
+    <ProjectReference Include="../Realmkeeper.Exploration.Domain/Realmkeeper.Exploration.Domain.csproj" />
+    <ProjectReference Include="../Realmkeeper.Exploration.Application/Realmkeeper.Exploration.Application.csproj" />
   </ItemGroup>
 </Project>

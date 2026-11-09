@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Exploration.Interaction",
+    "rootNamespace": "Realmkeeper.Exploration.Interaction",
+    "references": ["Realmkeeper.Domain", "Realmkeeper.Application", "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Application", "Unity.InputSystem"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

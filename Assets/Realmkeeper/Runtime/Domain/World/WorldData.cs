@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -48,7 +48,13 @@ namespace Realmkeeper.Domain.World
         public int SchemaVersion { get; set; } = CurrentSchemaVersion;
         public WorldDate CurrentSimulationDate { get; set; }
         public WorldSettings WorldSettings { get; set; } = new WorldSettings();
+        /// <summary>Geographic regions; every settlement references one by <see cref="RegionId"/>.</summary>
+        public List<RegionData> Regions { get; set; } = new List<RegionData>();
+
         public List<SettlementData> Settlements { get; set; } = new List<SettlementData>();
+
+        /// <summary>The player character, or null for worlds that have none (e.g. focused test worlds).</summary>
+        public PlayerCharacterData Player { get; set; }
         public List<FactionData> Factions { get; set; } = new List<FactionData>();
         public List<NpcData> Npcs { get; set; } = new List<NpcData>();
         public List<HistoricalEvent> HistoricalEvents { get; set; } = new List<HistoricalEvent>();
@@ -116,7 +122,11 @@ namespace Realmkeeper.Domain.World
                 HistoricalEvents = new List<HistoricalEvent>(HistoricalEvents),
                 TradeRoutes = new List<TradeRouteData>(TradeRoutes?.Count ?? 0),
                 Shipments = new List<ShipmentData>(Shipments?.Count ?? 0),
+                Regions = new List<RegionData>(Regions?.Count ?? 0),
+                Player = Player?.Clone(),
             };
+
+            if (Regions != null) foreach (var r in Regions) copy.Regions.Add(r?.Clone());
 
             foreach (var s in Settlements) copy.Settlements.Add(s?.Clone());
             foreach (var f in Factions) copy.Factions.Add(f?.Clone());
@@ -124,6 +134,37 @@ namespace Realmkeeper.Domain.World
             if (TradeRoutes != null) foreach (var r in TradeRoutes) copy.TradeRoutes.Add(r?.Clone());
             if (Shipments != null) foreach (var s in Shipments) copy.Shipments.Add(s?.Clone());
             return copy;
+        }
+
+        public RegionData FindRegion(RegionId id)
+        {
+            for (var i = 0; i < Regions.Count; i++)
+            {
+                if (Regions[i].RegionId == id) return Regions[i];
+            }
+
+            return null;
+        }
+
+        /// <summary>The region whose bounds contain a map cell, or null when no region covers it.</summary>
+        public RegionData FindRegionContaining(MapCoord cell)
+        {
+            for (var i = 0; i < Regions.Count; i++)
+            {
+                if (Regions[i].Contains(cell)) return Regions[i];
+            }
+
+            return null;
+        }
+
+        public NpcData FindNpc(NpcId id)
+        {
+            for (var i = 0; i < Npcs.Count; i++)
+            {
+                if (Npcs[i].NpcId == id) return Npcs[i];
+            }
+
+            return null;
         }
 
         public TradeRouteData FindTradeRoute(TradeRouteId id)

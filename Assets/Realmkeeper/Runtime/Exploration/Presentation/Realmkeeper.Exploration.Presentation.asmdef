@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Exploration.Presentation",
+    "rootNamespace": "Realmkeeper.Exploration.Presentation",
+    "references": ["Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Hosting", "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Application", "Realmkeeper.Exploration.Interaction", "Realmkeeper.Exploration.WorldStreaming", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

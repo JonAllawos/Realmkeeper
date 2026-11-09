@@ -4,6 +4,7 @@ using Realmkeeper.Application.Ports;
 using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Geography;
 using Realmkeeper.Domain.Identifiers;
+using Realmkeeper.Domain.Randomness;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Simulation;
 using Realmkeeper.Simulation.Systems;
@@ -16,18 +17,28 @@ namespace Realmkeeper.Application
         Loaded = 1,
         Advanced = 2,
         SettingsChanged = 3,
+
+        /// <summary>A registered command committed a change (see <see cref="WorldChange.CommandType"/>).</summary>
+        CommandApplied = 4,
+
+        /// <summary>The session was closed; there is no world any more.</summary>
+        Closed = 5,
     }
 
     public sealed class WorldChange
     {
-        internal WorldChange(WorldChangeReason reason, IReadOnlyList<HistoricalEvent> newEvents)
+        internal WorldChange(WorldChangeReason reason, IReadOnlyList<HistoricalEvent> newEvents, Type commandType = null)
         {
             Reason = reason;
             NewEvents = newEvents ?? Array.Empty<HistoricalEvent>();
+            CommandType = commandType;
         }
 
         public WorldChangeReason Reason { get; }
         public IReadOnlyList<HistoricalEvent> NewEvents { get; }
+
+        /// <summary>The command that caused a <see cref="WorldChangeReason.CommandApplied"/> change.</summary>
+        public Type CommandType { get; }
 
         /// <summary>True when geography was replaced and visuals must be rebuilt.</summary>
         public bool GeographyChanged => Reason == WorldChangeReason.Created || Reason == WorldChangeReason.Loaded;
@@ -44,21 +55,89 @@ namespace Realmkeeper.Application
         private readonly IWorldGenerator _generator;
         private readonly IWorldStore _store;
         private readonly EconomyRules _rules;
+        private readonly IRandomSourceFactory _random;
+        private readonly CommandRegistry _commands = new CommandRegistry();
         private WorldData _world;
+        private bool _dispatching;
 
-        public WorldSession(SimulationScheduler scheduler, IWorldGenerator generator, IWorldStore store, EconomyRules rules = null)
+        public WorldSession(SimulationScheduler scheduler, IWorldGenerator generator, IWorldStore store, EconomyRules rules,
+            IRandomSourceFactory random)
         {
             _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _rules = rules ?? new EconomyRules();
+            _random = random ?? throw new ArgumentNullException(nameof(random));
+
+            // Built-in commands that go through the registry.
+            _commands.Register<SaveWorldCommand>(new SaveWorldHandler());
+            _commands.Register<SetSimulationSpeedCommand>(new SetSpeedHandler());
         }
 
         public EconomyRules Rules => _rules;
 
+        /// <summary>Command handlers for this session. Modules register theirs at composition time.</summary>
+        public CommandRegistry Commands => _commands;
+
         public event Action<WorldChange> WorldChanged;
 
         public bool HasWorld => _world != null;
+
+        /// <summary>True after <see cref="Close"/>: the session holds no world and accepts no commands.</summary>
+        public bool IsClosed { get; private set; }
+
+        /// <summary>
+        /// Executes a registered command: resolve the handler by type, let it validate and edit a
+        /// working copy, validate the result with <see cref="WorldValidator"/>, then commit.
+        /// A failure at any step leaves the committed world unchanged.
+        /// </summary>
+        public CommandResult Dispatch<TCommand>(TCommand command) where TCommand : ICommand
+        {
+            if (command == null) return CommandResult.Invalid("A command is required.");
+            if (IsClosed) return CommandResult.InvalidState("The world session is closed.");
+            if (_dispatching) return CommandResult.InvalidState("Commands cannot be dispatched from inside another command.");
+            var handler = _commands.Resolve<TCommand>();
+            if (handler == null) return CommandResult.Unsupported($"No handler is registered for {typeof(TCommand).Name}.");
+
+            var context = new CommandContext(this, _world, _random);
+            CommandResult result;
+            _dispatching = true;
+            try
+            {
+                result = handler.Handle(command, context) ?? CommandResult.Fail($"{typeof(TCommand).Name} returned no result.");
+            }
+            catch (Exception ex)
+            {
+                return CommandResult.Fail($"{typeof(TCommand).Name} failed unexpectedly; nothing was changed.", new[] { ex.Message });
+            }
+            finally
+            {
+                _dispatching = false;
+            }
+
+            if (!result.IsSuccess || !context.HasEdits) return result;
+
+            var working = context.Working;
+            working.HistoricalEvents.AddRange(context.Events);
+            var validation = WorldValidator.Validate(working);
+            if (!validation.IsValid)
+                return CommandResult.Invalid($"{typeof(TCommand).Name} would leave the world invalid; nothing was changed.", validation.Errors);
+
+            _world = working;
+            WorldChanged?.Invoke(new WorldChange(WorldChangeReason.CommandApplied, context.Events, typeof(TCommand)));
+            return result;
+        }
+
+        /// <summary>Ends the session: drops the world and refuses further commands. Listeners get a <see cref="WorldChangeReason.Closed"/> change.</summary>
+        public void Close()
+        {
+            if (IsClosed) return;
+            IsClosed = true;
+            _world = null;
+            Map = null;
+            WorldChanged?.Invoke(new WorldChange(WorldChangeReason.Closed, null));
+            WorldChanged = null;
+        }
 
         /// <summary>Geography for rendering. Read-only by convention; edits go through IRegionMapEditor.</summary>
         public RegionMap Map { get; private set; }
@@ -68,6 +147,7 @@ namespace Realmkeeper.Application
         public CommandResult Execute(CreateWorldCommand command)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
+            if (IsClosed) return CommandResult.InvalidState("The world session is closed.");
             var settings = command.Settings?.Clone() ?? DefaultSettings();
             try
             {
@@ -89,18 +169,18 @@ namespace Realmkeeper.Application
             return Advance(command.Days);
         }
 
+        /// <summary>Same as <c>Dispatch(command)</c>; kept for Phase 1 and 2 callers.</summary>
         public CommandResult Execute(SaveWorldCommand command)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
-            if (!HasWorld) return CommandResult.Fail("There is no world to save.");
-            var result = _store.Save(_world, command.SlotName);
-            return result.IsSuccess ? CommandResult.Ok($"Saved to {result.Location}.") : CommandResult.Fail("Save failed.", new[] { result.Error });
+            return Dispatch(command);
         }
 
         /// <summary>Loads a world. On any failure the current world stays active and unchanged.</summary>
         public CommandResult Execute(LoadWorldCommand command)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
+            if (IsClosed) return CommandResult.InvalidState("The world session is closed.");
             var load = _store.Load(command.SlotName);
             if (!load.IsSuccess) return CommandResult.Fail(DescribeLoadFailure(load.Status), load.Errors);
 
@@ -146,16 +226,33 @@ namespace Realmkeeper.Application
             return CommandResult.Ok(upgraded ? $"Loaded '{world.WorldName}' (economy added to an older save)." : $"Loaded '{world.WorldName}'.");
         }
 
+        /// <summary>Same as <c>Dispatch(command)</c>; kept for Phase 1 and 2 callers.</summary>
         public CommandResult Execute(SetSimulationSpeedCommand command)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
-            if (!HasWorld) return CommandResult.Fail("There is no active world.");
-            if (!Enum.IsDefined(typeof(SimulationSpeed), command.Speed)) return CommandResult.Fail("Unknown simulation speed.");
-            var next = _world.DeepClone();
-            next.WorldSettings.SimulationSpeed = command.Speed;
-            _world = next;
-            WorldChanged?.Invoke(new WorldChange(WorldChangeReason.SettingsChanged, null));
-            return CommandResult.Ok();
+            return Dispatch(command);
+        }
+
+        private sealed class SaveWorldHandler : ICommandHandler<SaveWorldCommand>
+        {
+            public CommandResult Handle(SaveWorldCommand command, CommandContext context)
+            {
+                if (!context.HasWorld) return CommandResult.InvalidState("There is no world to save.");
+                if (string.IsNullOrWhiteSpace(command.SlotName)) return CommandResult.Invalid("A save slot name is required.");
+                var result = context.Session._store.Save(context.Committed, command.SlotName);
+                return result.IsSuccess ? CommandResult.Ok($"Saved to {result.Location}.") : CommandResult.Fail("Save failed.", new[] { result.Error });
+            }
+        }
+
+        private sealed class SetSpeedHandler : ICommandHandler<SetSimulationSpeedCommand>
+        {
+            public CommandResult Handle(SetSimulationSpeedCommand command, CommandContext context)
+            {
+                if (!context.HasWorld) return CommandResult.InvalidState("There is no active world.");
+                if (!Enum.IsDefined(typeof(SimulationSpeed), command.Speed)) return CommandResult.Invalid("Unknown simulation speed.");
+                context.Edit().WorldSettings.SimulationSpeed = command.Speed;
+                return CommandResult.Ok();
+            }
         }
 
         // ----- Queries -------------------------------------------------------------------
@@ -219,6 +316,59 @@ namespace Realmkeeper.Application
             return list;
         }
 
+        public IReadOnlyList<RegionSummary> GetRegions()
+        {
+            var list = new List<RegionSummary>();
+            if (!HasWorld) return list;
+            foreach (var r in _world.Regions) list.Add(new RegionSummary(r, CountSettlements(r.RegionId)));
+            return list;
+        }
+
+        /// <summary>Returns null when no region has the given ID.</summary>
+        public RegionSummary FindRegion(RegionId id)
+        {
+            var r = _world?.FindRegion(id);
+            return r == null ? null : new RegionSummary(r, CountSettlements(id));
+        }
+
+        /// <summary>The player character, or null when the world has none.</summary>
+        public PlayerSummary GetPlayer()
+        {
+            var p = _world?.Player;
+            return p == null ? null : new PlayerSummary(p, NameOf(p.SettlementId));
+        }
+
+        /// <summary>Named residents of a settlement, in stable record order.</summary>
+        public IReadOnlyList<NpcSummary> GetResidents(SettlementId settlementId)
+        {
+            var list = new List<NpcSummary>();
+            if (!HasWorld) return list;
+            foreach (var n in _world.Npcs)
+            {
+                if (n.HomeSettlementId == settlementId) list.Add(new NpcSummary(n));
+            }
+
+            return list;
+        }
+
+        /// <summary>Returns null when no named person has the given ID.</summary>
+        public NpcSummary FindNpc(NpcId id)
+        {
+            var n = _world?.FindNpc(id);
+            return n == null ? null : new NpcSummary(n);
+        }
+
+        private int CountSettlements(RegionId id)
+        {
+            var count = 0;
+            foreach (var s in _world.Settlements)
+            {
+                if (s.RegionId == id) count++;
+            }
+
+            return count;
+        }
+
         /// <summary>Total quantity of a resource across all settlements plus goods on the road (for checks and debugging).</summary>
         public long TotalOf(Domain.Economy.ResourceTypeId resource)
         {
@@ -244,7 +394,7 @@ namespace Realmkeeper.Application
 
         private AdvanceResult Advance(int days)
         {
-            if (!HasWorld) return new AdvanceResult(false, "There is no active world.", null, 0, null);
+            if (IsClosed || !HasWorld) return new AdvanceResult(false, "There is no active world.", null, 0, null);
             if (days > SimulationScheduler.MaxDaysPerRun)
                 return new AdvanceResult(false, $"Cannot advance more than {SimulationScheduler.MaxDaysPerRun} days at once.", null, 0, null);
 

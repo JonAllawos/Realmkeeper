@@ -6,6 +6,7 @@ using Realmkeeper.Domain.Calendar;
 using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
+using Realmkeeper.Exploration.Application;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -77,6 +78,22 @@ namespace Realmkeeper.Presentation
         /// <summary>The recent-events list in the bottom panel.</summary>
         public VisualElement EventList => Root?.Q<VisualElement>("event-list");
         public Label MessageLabel { get; private set; }
+
+        /// <summary>"Enter settlement" in the inspector: sends the player character into the selected settlement.</summary>
+        public Button EnterSettlementButton { get; private set; }
+
+        /// <summary>Saves through the runtime (so exploration can record the character first). Null: the session saves directly.</summary>
+        public Func<string, CommandResult> SaveHandler { get; set; }
+
+        /// <summary>False while the exploration view is shown.</summary>
+        public bool IsVisible => Root == null || Root.style.display != DisplayStyle.None;
+
+        /// <summary>Hides the HUD without disabling the document (re-enabling a UIDocument would rebuild its tree).</summary>
+        public void SetVisible(bool visible)
+        {
+            if (Root != null) Root.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            if (visible) RefreshAll();
+        }
 
         public bool InspectorVisible => Inspector != null && !Inspector.ClassListContains("rk-hidden");
 
@@ -170,6 +187,8 @@ namespace Realmkeeper.Presentation
             InspectorFood = Root.Q<Label>("insp-food");
             InspectorStatus = Root.Q<Label>("insp-status");
             MessageLabel = Root.Q<Label>("message");
+            EnterSettlementButton = Root.Q<Button>("insp-enter");
+            EnterSettlementButton.clicked += () => EnterSelectedSettlement();
 
             PlayPauseButton.clicked += () => _playback.Toggle();
             AdvanceDayButton.clicked += () => Advance(1);
@@ -213,7 +232,17 @@ namespace Realmkeeper.Presentation
             if (!result.IsSuccess) ShowMessage(result);
         }
 
-        private void Save() => ShowMessage(_session.Execute(new SaveWorldCommand(SaveSlot)));
+        private void Save() => ShowMessage(SaveHandler != null ? SaveHandler(SaveSlot) : _session.Execute(new SaveWorldCommand(SaveSlot)));
+
+        /// <summary>Dispatches <see cref="EnterSettlementCommand"/> for the selected settlement; the view switches when world data says the character is inside.</summary>
+        public CommandResult EnterSelectedSettlement()
+        {
+            var result = _selection.HasSelection
+                ? _session.Dispatch(new EnterSettlementCommand(_selection.SelectedId))
+                : CommandResult.Invalid("Select a settlement first.");
+            if (!result.IsSuccess) ShowMessage(result);
+            return result;
+        }
 
         private void Load()
         {
@@ -325,6 +354,8 @@ namespace Realmkeeper.Presentation
             if (s == null) return;
 
             InspectorName.text = s.Name;
+            var region = _session.FindRegion(s.RegionId);
+            Root.Q<Label>("insp-region").text = region != null ? region.Name : "No region";
             var specialization = s.Specialization.ToString();
             if (s.SecondarySpecialization != SettlementSpecialization.None) specialization += " · " + s.SecondarySpecialization;
             Root.Q<Label>("insp-type").text = $"{s.SettlementType} — {specialization}";
@@ -410,7 +441,8 @@ namespace Realmkeeper.Presentation
             {
                 var row = new VisualElement();
                 row.AddToClassList("rk-row");
-                row.Add(Cell($"{p.SourceType} ({N(p.Workers)}/{N(p.WorkerCapacity)})", "rk-key"));
+                var favoured = s.LabourFocus.HasValue && s.LabourFocus.Value == p.SourceType ? " · notice posted" : string.Empty;
+                row.Add(Cell($"{p.SourceType} ({N(p.Workers)}/{N(p.WorkerCapacity)}){favoured}", "rk-key"));
                 row.Add(Cell($"+{N(p.LastOutput)} {EventFormatter.ResourceName(p.Output.Value).ToLowerInvariant()}", "rk-value"));
                 list.Add(row);
             }

@@ -46,6 +46,10 @@
                     <ui:Label name="insp-shortage" text="Food shortage" class="rk-badge rk-badge--critical" />
                 </ui:VisualElement>
                 <ui:VisualElement name="insp-warnings" class="rk-warnings" />
+                <ui:VisualElement class="rk-enter-row">
+                    <ui:Label name="insp-region" text="-" class="rk-insp-region" />
+                    <ui:Button name="insp-enter" text="Enter settlement" class="rk-button rk-button--primary rk-enter" />
+                </ui:VisualElement>
 
                 <ui:ScrollView name="insp-body" class="rk-insp-body" mode="Vertical" horizontal-scroller-visibility="Hidden">
                     <ui:VisualElement class="rk-row">

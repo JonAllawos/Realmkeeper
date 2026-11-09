@@ -19,9 +19,21 @@ namespace Realmkeeper.Tests.EditMode
               .Append(w.WorldSettings.SimulationSpeed).Append('|').Append(w.WorldSettings.StartingDate.ToIsoString()).Append('|')
               .Append(string.Join(",", w.WorldSettings.EnabledSimulationSystems)).AppendLine();
             foreach (var f in w.Factions) sb.Append("F ").Append(f.FactionId).Append(' ').Append(f.Name).AppendLine();
+            foreach (var r in w.Regions)
+                sb.Append("G ").Append(r.RegionId).Append(' ').Append(r.Name).Append(' ').Append(r.Origin).Append(' ').Append(r.Width).Append('x').Append(r.Depth).AppendLine();
+            if (w.Player != null)
+            {
+                var p = w.Player;
+                sb.Append("P ").Append(p.CharacterId).Append(' ').Append(p.Name).Append(' ').Append(p.LocationKind).Append(' ')
+                  .Append(p.SettlementId).Append(' ').Append(p.RegionId).Append(' ').Append(p.Pose.X.ToString("R", System.Globalization.CultureInfo.InvariantCulture))
+                  .Append(',').Append(p.Pose.Y.ToString("R", System.Globalization.CultureInfo.InvariantCulture))
+                  .Append(',').Append(p.Pose.Z.ToString("R", System.Globalization.CultureInfo.InvariantCulture))
+                  .Append(',').Append(p.Pose.Yaw.ToString("R", System.Globalization.CultureInfo.InvariantCulture))
+                  .Append(' ').Append(p.Perspective).Append(' ').Append(p.LastSettlementId).AppendLine();
+            }
             foreach (var s in w.Settlements)
             {
-                sb.Append("S ").Append(s.SettlementId).Append(' ').Append(s.Name).Append(' ').Append(s.SettlementType)
+                sb.Append("S ").Append(s.SettlementId).Append(' ').Append(s.Name).Append(' ').Append(s.SettlementType).Append(" region=").Append(s.RegionId)
                   .Append(' ').Append(s.Position).Append(" pop=").Append(s.Population).Append(" pr=").Append(s.Prosperity)
                   .Append(" st=").Append(s.Stability).Append(" fac=").Append(s.FactionId)
                   .Append(" short=").Append(s.IsInFoodShortage);
@@ -29,7 +41,7 @@ namespace Realmkeeper.Tests.EditMode
                 sb.AppendLine();
 
                 var e = s.Economy;
-                sb.Append("  econ ").Append(e.Specialization).Append('/').Append(e.SecondarySpecialization)
+                sb.Append("  econ ").Append(e.Specialization).Append('/').Append(e.SecondarySpecialization).Append(" focus=").Append(e.LabourFocus)
                   .Append(" ledger=").Append(e.LedgerDay).Append(" dwf=").Append(e.DaysWithoutFood)
                   .Append(" prog=").Append(e.PopulationProgressMilli).Append(" pt=").Append(e.ProsperityTarget)
                   .Append(" stt=").Append(e.StabilityTarget).Append(" ta=").Append(e.TradeActivity)
@@ -72,7 +84,9 @@ namespace Realmkeeper.Tests.EditMode
                   .Append(s.LossApplied).Append(' ').Append(s.IsReturning).AppendLine();
             }
 
-            foreach (var n in w.Npcs) sb.Append("N ").Append(n.NpcId).Append(' ').Append(n.Name).AppendLine();
+            foreach (var n in w.Npcs)
+                sb.Append("N ").Append(n.NpcId).Append(' ').Append(n.Name).Append(' ').Append(n.HomeSettlementId).Append(' ').Append(n.FactionId)
+                  .Append(' ').Append(n.Role).Append(' ').Append(n.HasMetPlayer ? n.MetPlayerOn.ToIsoString() : "-").Append(' ').Append(n.ConversationCount).AppendLine();
             foreach (var e in w.HistoricalEvents)
             {
                 sb.Append("E ").Append(e.EventId).Append(' ').Append(e.Date.ToIsoString()).Append(' ').Append(e.EventType)

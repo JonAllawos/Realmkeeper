@@ -1,3 +1,4 @@
+using System;
 using Realmkeeper.Application;
 using Realmkeeper.Infrastructure.Generation;
 using Realmkeeper.Infrastructure.Persistence;
@@ -21,7 +22,11 @@ namespace Realmkeeper.Infrastructure.Composition
             var scheduler = StandardSimulationSystems.CreateScheduler(randomFactory, rules);
             var generator = new RegionGenerator(randomFactory, generatorSettings, rules);
             var store = new JsonWorldStore(saveDirectory);
-            return new WorldSession(scheduler, generator, store, rules);
+            return new WorldSession(scheduler, generator, store, rules, randomFactory);
         }
+
+        /// <summary>A session host whose sessions are built by <see cref="CreateSession"/>. Modules register handlers through <paramref name="configure"/>.</summary>
+        public static WorldSessionHost CreateHost(string saveDirectory, Action<WorldSession> configure = null, RegionGeneratorSettings generatorSettings = null, EconomyRules rules = null) =>
+            new WorldSessionHost(() => CreateSession(saveDirectory, generatorSettings, rules), configure);
     }
 }

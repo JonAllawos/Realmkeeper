@@ -62,7 +62,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3() };
+
+        /// <summary>First schema with regions, the player character and named residents.</summary>
+        public const int FirstSchemaWithRegions = 3;
 
         public string Serialize(WorldData world)
         {
@@ -106,6 +109,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 return LoadResult.Failure(LoadStatus.Corrupt, "Missing or non-integer schemaVersion.");
 
             var version = (int)versionToken;
+            var originalVersion = version;
             if (version > WorldData.CurrentSchemaVersion)
                 return LoadResult.Failure(LoadStatus.UnsupportedVersion,
                     $"Save schema v{version} is newer than this build supports (v{WorldData.CurrentSchemaVersion}).");
@@ -145,6 +149,20 @@ namespace Realmkeeper.Infrastructure.Persistence
             catch (SaveDataException ex)
             {
                 return LoadResult.Failure(LoadStatus.Invalid, ex.Message);
+            }
+
+            // Saves older than v3 gain their region, player and named residents (deterministic, additive).
+            if (originalVersion < FirstSchemaWithRegions)
+            {
+                try
+                {
+                    var defaults = new Generation.RegionGeneratorSettings();
+                    Generation.WorldPopulationInitializer.EnsureAll(world, defaults.Width, defaults.Depth, new Randomness.Xoshiro256RandomFactory());
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return LoadResult.Failure(LoadStatus.Invalid, "The save could not be upgraded to regions: " + ex.Message);
+                }
             }
 
             var validation = WorldValidator.Validate(world);
