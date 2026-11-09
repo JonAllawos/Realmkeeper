@@ -168,7 +168,7 @@ Screenshots (1920×1080, captured with the F10 tour; these show the Phase 1 HUD)
 - the granary's loading platform covered the ledger lectern, and barrels crowded the granary door.
 
 After the fixes the .NET harness passed 135/135 again. The Unity suites were **not** re-run
-after these presentation-only fixes, and the fixed roofs have not yet been seen in Play Mode.
+after these presentation-only fixes. The user replayed and confirmed the roofs and granary front look right.
 
 **Not tested:**
 - the mouse-look feel, and cursor capture with Esc and click;
