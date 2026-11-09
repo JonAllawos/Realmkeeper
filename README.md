@@ -7,12 +7,13 @@ isometric 3D world.
 This repository is an independent project. It shares no code, assets, packages or
 assemblies with any other Unity project.
 
-> **Status: Phase 0/1 foundation, partially complete.**
+> **Status: Phase 0/1 foundation complete.**
 > The engine-independent core (domain, simulation, generation, persistence, application
-> services) is implemented and tested outside Unity. **The Unity project itself, the 3D
-> presentation, the camera, the UI and the PlayMode tests have not been built yet.** They
-> need a machine with the Unity 6 Editor. See
-> [Documentation/Handoff/DesktopSession.md](Documentation/Handoff/DesktopSession.md).
+> services) is tested inside and outside Unity (75 EditMode cases). The Unity project has
+> the 3D world, the isometric camera, settlement selection and the UI Toolkit HUD, covered
+> by 11 PlayMode tests. See [Documentation/Testing/TestResults.md](Documentation/Testing/TestResults.md).
+
+![Realmkeeper overview](Documentation/Screenshots/realmkeeper-overview.png)
 
 ## Unity version
 
@@ -31,9 +32,9 @@ hand-written.
 | Seed-based region generation (terrain, forest, mountains, lake, river, 3 settlements, roads) | Implemented | Tested across 12 seeds |
 | Versioned local JSON save/load | Implemented | Tested |
 | Application commands, queries and real-time playback pacing | Implemented | Tested |
-| Unity scene, 3D terrain rendering, isometric camera (Stage E) | Implemented | Runs in the editor with no console errors; PlayMode tests pending (Stage H) |
-| Settlement selection, inspector, UI Toolkit interface (Stage F) | Implemented | Checked by hand in play mode (select, inspect, advance, save); PlayMode tests pending (Stage H) |
-| PlayMode tests | **Not started** | Needs the Unity Editor |
+| Unity scene, 3D terrain rendering, isometric camera (Stage E) | Implemented | PlayMode tests (world, terrain, pan, zoom, rotate) |
+| Settlement selection, inspector, UI Toolkit interface (Stage F) | Implemented | PlayMode tests (select, inspector, clear, +1 week, play/pause) |
+| PlayMode tests (Stage H) | Implemented | 11 passing in Unity 6000.0.47f1 |
 
 ## Repository layout
 
@@ -49,7 +50,7 @@ Assets/Realmkeeper/
   Scenes/            Realmkeeper.unity           the single scene (everything else is built at runtime)
   Tests/
     EditMode/        Realmkeeper.Tests.EditMode  61 test methods / 75 cases
-    PlayMode/        Realmkeeper.Tests.PlayMode  (empty)
+    PlayMode/        Realmkeeper.Tests.PlayMode  11 tests: world, camera, selection, HUD
 Tools/DotNet/        Out-of-Unity build and test harness (mirrors the .asmdef graph)
 Documentation/       Architecture, systems, testing, decisions, handoff
 ```

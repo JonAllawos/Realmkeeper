@@ -71,8 +71,35 @@ None of the likely first-import issues in the handoff occurred. The asmdefs need
 | Result | **75 passed, 0 failed, 0 skipped** |
 | Play mode manual check | No console errors or warnings. Selecting Bramhaven from the list showed the highlight ring and the inspector (population 1,644; food 9,570 at −21/day, 455 days remaining). +1 week, +1 month and Play advanced the date, and Save wrote `autosave.rkworld.json` dated 0412-04-09 (38 days after the start). Load and the Escape key were not checked separately |
 
-## Not yet run
+## Run 5: Unity Editor, EditMode and PlayMode, after Stage H
 
-| Suite | Status |
+| | |
 |---|---|
-| PlayMode tests | **Not written.** They need the Presentation layer. The target of 8 or more is not met. |
+| Date | 2026-11-09 (local 00:04 and 00:07; 07:04 and 07:07 UTC) |
+| Environment | As Run 2 |
+| EditMode | **75 passed, 0 failed, 0 skipped** |
+| PlayMode | **11 passed, 0 failed, 0 skipped**, about 4.5 s. Run separately because both suites write to the same `TestResults.xml` |
+
+| PlayMode fixture | Test | Handoff item |
+|---|---|---|
+| `WorldPresentationTests` | `Bootstrap_CreatesWorld_WithOneSettlementViewPerSettlementId` | 1 |
+| | `TerrainMesh_VertexCountAndBounds_MatchRegionMap` | 2 |
+| | `Forests_AreInstanced_WithinTargetRange` | extra |
+| `CameraTests` | `Pan_MovesPivot_AndStaysClampedAtRegionEdge` | 3 |
+| | `Zoom_ChangesOrthoSizeSmoothly_WithinLimits` | 4 |
+| | `Rotate_SnapsToQuarterTurn_AfterEasing` | 5 |
+| `SelectionAndHudTests` | `ClickingSettlement_SelectsItsId_AndShowsHighlight` | 6 |
+| | `AfterSelection_InspectorShowsSettlementPopulationAndFood` | 7 |
+| | `ClearingSelection_HidesInspectorAndHighlight` | 8 |
+| | `PlusOneWeekButton_AdvancesSevenDays_AndRefreshesDateLabel` | 9 |
+| | `PlayPause_TogglesPlayback_AndDateHoldsWhilePaused` | 10 |
+
+The tests build the real bootstrap in the test scene with device input switched off. Camera
+tests drive `IsometricCameraMath` with synthetic `CameraInput`. Selection uses
+`SelectAtScreenPoint` with the settlement's projected screen position, and buttons receive
+UI Toolkit `NavigationSubmitEvent`s. Real mouse and keyboard reading
+(`CameraInputReader`, the Escape key) is checked by hand only.
+
+Screenshots (1920×1080, captured with the F10 tour):
+[overview](../Screenshots/realmkeeper-overview.png) ·
+[settlement selected](../Screenshots/realmkeeper-settlement-selected.png).
