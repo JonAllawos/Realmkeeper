@@ -22,7 +22,12 @@ namespace Realmkeeper.Presentation
 
             Opaque = new Material(vertexColorShader) { name = "Realmkeeper Vertex Colour", enableInstancing = true };
             Water = new Material(waterShader) { name = "Realmkeeper Water" };
+
+            // Separate instance so the selection ring's pulsing tint never touches world materials.
+            Highlight = new Material(vertexColorShader) { name = "Realmkeeper Selection Highlight" };
         }
+
+        public Material Highlight { get; }
 
         public Material Opaque { get; }
 
@@ -32,6 +37,7 @@ namespace Realmkeeper.Presentation
         {
             DestroyObject(Opaque);
             DestroyObject(Water);
+            DestroyObject(Highlight);
         }
 
         internal static void DestroyObject(UnityEngine.Object obj)

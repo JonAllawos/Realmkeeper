@@ -32,7 +32,7 @@ hand-written.
 | Versioned local JSON save/load | Implemented | Tested |
 | Application commands, queries and real-time playback pacing | Implemented | Tested |
 | Unity scene, 3D terrain rendering, isometric camera (Stage E) | Implemented | Runs in the editor with no console errors; PlayMode tests pending (Stage H) |
-| Settlement selection, inspector, UI Toolkit interface | **Not started** | Needs the Unity Editor |
+| Settlement selection, inspector, UI Toolkit interface (Stage F) | Implemented | Checked by hand in play mode (select, inspect, advance, save); PlayMode tests pending (Stage H) |
 | PlayMode tests | **Not started** | Needs the Unity Editor |
 
 ## Repository layout
@@ -44,7 +44,8 @@ Assets/Realmkeeper/
     Simulation/      Realmkeeper.Simulation      scheduler and daily systems
     Application/     Realmkeeper.Application     commands, queries, WorldSession, ports
     Infrastructure/  Realmkeeper.Infrastructure  RNG, generation, JSON persistence, composition root
-    Presentation/    Realmkeeper.Presentation    bootstrap, world visuals, shaders, lighting, isometric camera
+    Presentation/    Realmkeeper.Presentation    bootstrap, world visuals, shaders, lighting, isometric camera,
+                                                 selection, UI Toolkit HUD (UI/Resources: UXML, USS, theme)
   Scenes/            Realmkeeper.unity           the single scene (everything else is built at runtime)
   Tests/
     EditMode/        Realmkeeper.Tests.EditMode  61 test methods / 75 cases

@@ -62,6 +62,15 @@ None of the likely first-import issues in the handoff occurred. The asmdefs need
 | Result | **75 passed, 0 failed, 0 skipped**. Stage E added no core code, so the totals are unchanged |
 | Play mode smoke check | `Realmkeeper.unity` played with no console errors or exceptions. The bootstrap logged: 16 terrain chunks, 3 settlements, 16,591 trees, 2 bridge cells (seed 123456789) |
 
+## Run 4: Unity Editor, EditMode, after Stage F
+
+| | |
+|---|---|
+| Date | 2026-11-08 (local; 2026-11-09 06:59 UTC) |
+| Environment | As Run 2 |
+| Result | **75 passed, 0 failed, 0 skipped** |
+| Play mode manual check | No console errors or warnings. Selecting Bramhaven from the list showed the highlight ring and the inspector (population 1,644; food 9,570 at −21/day, 455 days remaining). +1 week, +1 month and Play advanced the date, and Save wrote `autosave.rkworld.json` dated 0412-04-09 (38 days after the start). Load and the Escape key were not checked separately |
+
 ## Not yet run
 
 | Suite | Status |

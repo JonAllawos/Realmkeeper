@@ -35,6 +35,10 @@ namespace Realmkeeper.Presentation
 
         public SceneEnvironment Environment { get; private set; }
 
+        public SettlementSelection Selection { get; private set; }
+
+        public RealmkeeperHud Hud { get; private set; }
+
         public CommandResult LastCreateResult { get; private set; }
 
         public long Seed
@@ -63,7 +67,16 @@ namespace Realmkeeper.Presentation
             screenshots.AutoCaptureSeconds = _autoScreenshotSeconds;
 #endif
 
+            // Rebuild visuals first; selection and HUD subscribe afterwards so they see the new views.
             Session.WorldChanged += OnWorldChanged;
+
+            Selection = gameObject.AddComponent<SettlementSelection>();
+            Selection.Initialize(Session, WorldView, CameraController.Camera, _materials.Highlight);
+            Hud = RealmkeeperHud.Create(transform);
+            Hud.Initialize(Session, Playback, Selection, CameraController, WorldView);
+            Selection.IsPointerOverUi = Hud.IsPointerOverUi;
+            CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
+
             LastCreateResult = Session.Execute(new CreateWorldCommand(_worldName, _seed));
             if (!LastCreateResult.IsSuccess)
             {

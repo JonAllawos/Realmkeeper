@@ -24,11 +24,15 @@ namespace Realmkeeper.Presentation
         /// <summary>World-space centre of the settlement on the ground.</summary>
         public Vector3 Center { get; private set; }
 
+        /// <summary>Radius of the selection ring: just outside walls and houses.</summary>
+        public float HighlightRadius { get; private set; }
+
         public void Build(RegionMap map, SettlementSummary settlement, Material material)
         {
             SettlementId = settlement.SettlementId;
             SettlementType = settlement.SettlementType;
             Center = MapSampling.CellToWorld(map, settlement.Position);
+            HighlightRadius = MapSampling.SettlementRadiusCells(settlement.SettlementType) * map.CellSize + 1.8f;
             gameObject.name = $"Settlement {settlement.Name} ({settlement.SettlementType})";
 
             var result = SettlementBuilder.Build(map, settlement);

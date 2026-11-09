@@ -1,0 +1,100 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="RealmkeeperHud.uss" />
+    <ui:VisualElement name="hud-root" class="rk-root" picking-mode="Ignore">
+
+        <!-- Top bar: wordmark, world, date, time controls, speed, save/load -->
+        <ui:VisualElement name="top-bar" class="rk-panel rk-top-bar">
+            <ui:Label text="REALMKEEPER" class="rk-wordmark" />
+            <ui:VisualElement class="rk-divider" />
+            <ui:Label name="world-name" text="-" class="rk-world-name" />
+            <ui:Label name="date" text="-" class="rk-date" />
+            <ui:VisualElement class="rk-grow" picking-mode="Ignore" />
+            <ui:Button name="play-pause" text="Play" class="rk-button rk-button--primary" />
+            <ui:Button name="advance-day" text="+1 day" class="rk-button" />
+            <ui:Button name="advance-week" text="+1 week" class="rk-button" />
+            <ui:Button name="advance-month" text="+1 month" class="rk-button" />
+            <ui:DropdownField name="speed" label="Speed" class="rk-speed" />
+            <ui:VisualElement class="rk-divider" />
+            <ui:Button name="save" text="Save" class="rk-button" />
+            <ui:Button name="load" text="Load" class="rk-button" />
+        </ui:VisualElement>
+
+        <ui:VisualElement name="middle" class="rk-middle" picking-mode="Ignore">
+
+            <!-- Left navigation -->
+            <ui:VisualElement name="nav" class="rk-panel rk-nav">
+                <ui:Button name="nav-world" text="World" class="rk-nav-item rk-nav-item--active" />
+                <ui:Button name="nav-settlements" text="Settlements" class="rk-nav-item" />
+                <ui:ScrollView name="settlement-list" class="rk-settlement-list" />
+                <ui:VisualElement class="rk-nav-separator" />
+                <ui:VisualElement name="nav-later" class="rk-nav-later" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="rk-grow" picking-mode="Ignore" />
+
+            <!-- Right inspector -->
+            <ui:VisualElement name="inspector" class="rk-panel rk-inspector">
+                <ui:VisualElement class="rk-inspector-header">
+                    <ui:VisualElement class="rk-grow">
+                        <ui:Label name="insp-name" text="-" class="rk-insp-name" />
+                        <ui:Label name="insp-type" text="-" class="rk-insp-type" />
+                    </ui:VisualElement>
+                    <ui:Button name="insp-close" text="×" class="rk-close" />
+                </ui:VisualElement>
+                <ui:Label name="insp-shortage" text="Food shortage" class="rk-badge rk-badge--critical" />
+
+                <ui:VisualElement class="rk-row">
+                    <ui:Label text="Population" class="rk-key" />
+                    <ui:Label name="insp-population" text="-" class="rk-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rk-row">
+                    <ui:Label text="Faction" class="rk-key" />
+                    <ui:Label name="insp-faction" text="-" class="rk-value" />
+                </ui:VisualElement>
+
+                <ui:Label text="Prosperity" class="rk-key rk-bar-label" />
+                <ui:VisualElement class="rk-bar">
+                    <ui:VisualElement name="insp-prosperity-fill" class="rk-bar-fill rk-bar-fill--prosperity" />
+                    <ui:Label name="insp-prosperity" text="-" class="rk-bar-text" />
+                </ui:VisualElement>
+                <ui:Label text="Stability" class="rk-key rk-bar-label" />
+                <ui:VisualElement class="rk-bar">
+                    <ui:VisualElement name="insp-stability-fill" class="rk-bar-fill rk-bar-fill--stability" />
+                    <ui:Label name="insp-stability" text="-" class="rk-bar-text" />
+                </ui:VisualElement>
+
+                <ui:Label text="Food" class="rk-section" />
+                <ui:VisualElement class="rk-row">
+                    <ui:Label text="Reserves" class="rk-key" />
+                    <ui:Label name="insp-food" text="-" class="rk-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rk-row">
+                    <ui:Label text="Net per day" class="rk-key" />
+                    <ui:Label name="insp-food-net" text="-" class="rk-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="rk-row">
+                    <ui:Label text="Days remaining" class="rk-key" />
+                    <ui:Label name="insp-food-days" text="-" class="rk-value" />
+                </ui:VisualElement>
+
+                <ui:Label text="Resources" class="rk-section" />
+                <ui:VisualElement name="insp-resources" class="rk-resources" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Bottom activity area -->
+        <ui:VisualElement name="bottom" class="rk-panel rk-bottom">
+            <ui:VisualElement class="rk-activity">
+                <ui:Label text="Recent events" class="rk-section rk-section--first" />
+                <ui:VisualElement name="event-list" class="rk-events" />
+            </ui:VisualElement>
+            <ui:VisualElement class="rk-sim">
+                <ui:Label text="Simulation" class="rk-section rk-section--first" />
+                <ui:Label name="sim-state" text="Paused" class="rk-sim-state" />
+                <ui:Label name="sim-speed" text="-" class="rk-sim-line" />
+                <ui:Label name="sim-days" text="-" class="rk-sim-line" />
+                <ui:Label name="message" text="" class="rk-message" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

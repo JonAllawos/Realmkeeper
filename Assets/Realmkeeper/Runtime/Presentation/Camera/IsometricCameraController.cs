@@ -62,6 +62,18 @@ namespace Realmkeeper.Presentation
             Apply();
         }
 
+        /// <summary>Optional: returns true when the pointer is over UI, so wheel and drag go to the UI instead.</summary>
+        public System.Func<Vector2, bool> IsPointerOverUi { get; set; }
+
+        public const float FocusOrthoSize = 28f;
+
+        /// <summary>Centres the view on a world point, zooming in to at least <see cref="FocusOrthoSize"/>.</summary>
+        public void FocusOn(Vector3 point)
+        {
+            Motion.JumpTo(new Vector3(point.x, Motion.Pivot.y, point.z), Mathf.Min(Motion.TargetOrthoSize, FocusOrthoSize));
+            Apply();
+        }
+
         /// <summary>Frames the whole region and restricts panning to it.</summary>
         public void FrameRegion(Rect bounds, float groundHeight)
         {
@@ -75,6 +87,13 @@ namespace Realmkeeper.Presentation
             if (Motion == null) return;
             _reader.EdgePanEnabled = _edgePan;
             var input = _readInput ? _reader.Read() : CameraInput.None;
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            if (_readInput && mouse != null && IsPointerOverUi != null && IsPointerOverUi(mouse.position.ReadValue()))
+            {
+                input.Zoom = 0f;
+                input.DragPixels = Vector2.zero;
+            }
+
             var unitsPerPixel = Screen.height > 0 ? 2f * Motion.OrthoSize / Screen.height : 0f;
             Motion.Step(input, Time.unscaledDeltaTime, unitsPerPixel);
             Apply();
