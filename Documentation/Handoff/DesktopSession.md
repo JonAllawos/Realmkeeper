@@ -126,6 +126,7 @@ inspector open. Store them in `Documentation/Screenshots/`.
 ## 5. Suggested opening prompt for the desktop session
 
 > Continue Realmkeeper Phase 1 on branch `feature/phase-0-1-foundation`. Read README.md and
-> Documentation/Handoff/DesktopSession.md. Unity 6 version is <fill in>. Do step 1 and stop
+> Documentation/Handoff/DesktopSession.md. Unity version is 6000.0.47f1; the donor template project is at
+> C:\Users\JonathanAllawos\Downloads\rk-template. Do step 1 and stop
 > at Gate 1 with the console and test results. Then do Stages E, F and H in that order,
 > compiling and running tests between stages, and commit each stage separately.

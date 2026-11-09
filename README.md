@@ -16,10 +16,10 @@ assemblies with any other Unity project.
 
 ## Unity version
 
-Unity 6 with the Universal Render Pipeline. **The exact 6000.x version has not been chosen
-yet.** It is set when the Unity project is first opened (see the handoff document).
-`ProjectSettings/` and `Packages/` are deliberately not committed until then, so that Unity
-creates them itself.
+**Unity 6000.0.47f1** (Unity 6.0 LTS line) with the Universal Render Pipeline.
+`ProjectSettings/` and `Packages/` are copied from a Unity-generated *Universal 3D*
+template project created with that version (see the handoff document); they are not
+hand-written.
 
 ## What works today
 

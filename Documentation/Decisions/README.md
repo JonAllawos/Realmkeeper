@@ -2,7 +2,7 @@
 
 | ADR | Decision | Status |
 |---|---|---|
-| [0001](ADR-0001-unity6-urp-uitoolkit.md) | Unity 6 + URP + UI Toolkit | Accepted (exact 6000.x version pending) |
+| [0001](ADR-0001-unity6-urp-uitoolkit.md) | Unity 6 + URP + UI Toolkit | Accepted (6000.0.47f1) |
 | [0002](ADR-0002-layered-assemblies.md) | Seven layered assemblies, ports in Application | Accepted |
 | [0003](ADR-0003-engine-independent-core.md) | Engine-independent core plus an out-of-Unity .NET harness | Accepted |
 | [0004](ADR-0004-deterministic-randomness.md) | xoshiro256**, derived streams, integer simulation state | Accepted |
