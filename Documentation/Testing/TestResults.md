@@ -100,6 +100,42 @@ tests drive `IsometricCameraMath` with synthetic `CameraInput`. Selection uses
 UI Toolkit `NavigationSubmitEvent`s. Real mouse and keyboard reading
 (`CameraInputReader`, the Escape key) is checked by hand only.
 
-Screenshots (1920×1080, captured with the F10 tour):
+## Run 6: Phase 2 (economy, trade, chronicle), 2026-11-09
+
+| Suite | Where | Result |
+|---|---|---|
+| EditMode | .NET 8 harness (`dotnet test Tools/DotNet`) | **110 passed, 0 failed** (75 existing, some updated for Phase 2 behaviour, + 35 new) |
+| EditMode | **Unity 6000.0.47f1, batch mode** (`-runTests -testPlatform EditMode`) | **110 passed, 0 failed**, 18 s |
+| PlayMode | **Unity 6000.0.47f1, batch mode** (`-runTests -testPlatform PlayMode`) | **17 passed, 0 failed** (11 existing + 6 new), 15 s |
+
+- **First Unity compile failed.** A PlayMode test was missing `using Realmkeeper.Presentation;`. It
+  was fixed before the runs above. The out-of-Unity Presentation compile check did not cover
+  test assemblies.
+- **Mutation check:** making trade departures remove one unit less than they ship (creating
+  goods) failed 30 tests, including every trade test. It was reverted, and the reversion was verified.
+- **Manual play check** (editor, seed 123456789): +1 month advanced exactly 30 days. The town
+  imported 8 iron and paid 48 coin (8 × 6). The chronicle recorded "18 timber from Bramhaven
+  reached Westerthorpe for 54 coin" and 10-point stability rises. The console stayed free of
+  errors and warnings.
+- **Layout bugs found by eye, then fixed:** squashed event rows, the badge overlapping the
+  header, the economy table too wide. The fixes were confirmed in a later screenshot. They are not covered by an automated test.
+
+| New EditMode fixture | Tests | Covers |
+|---|---|---|
+| `Phase2.EconomyTests` | 10 | Production formula, storage limit and waste, consumption and shortfall, food balance, exhaustion estimate, labour priority and caps, specialization targets, seasonal hook, resource shortage warnings |
+| `Phase2.TradeTests` | 9 | Successful shipment and payment, insufficient surplus, capacity limits, destination capacity, wait-then-return with nothing lost, buyer coin limits, 200-day conservation, failed day leaves no partial transfer, duplicate shipments rejected |
+| `Phase2.SettlementWellbeingTests` | 7 | Prosperity and stability formulas, factors, ≤ 1 point per day, gradual food-shortage consequences, population growth and emigration, milestone events not daily |
+| `Phase2.SimulationAndPersistenceTests` | 9 | 1/7/30-day commands, 7 × 1 = 7 days, determinism over a year, speed affects timing only, save/load mid-shipment, chronicle across save/load, Phase 1 save migration, event formatting, inspector snapshot |
+
+| New PlayMode test (`EconomyHudTests`) | Covers |
+|---|---|
+| `Inspector_ShowsOneEconomyRowPerResource_WithSimulatedValues` | Table rows and values come from the ledger |
+| `AdvanceMonthButton_Advances30Days_AndTradeMovesGoods` | Button path, 30 days, deliveries happen |
+| `Inspector_ListsTheSelectedSettlementsTradeRoutes` | Trade section |
+| `RecentEvents_ShowTheChroniclesFormattedEntries` | Event panel shows formatted facts |
+| `ShortageWarnings_AppearForASettlementThatRunsShort` | Warnings and highlighted rows |
+| `SaveAndLoad_RestoreTheWorldAndTheChronicleShownInTheHud` | Save/load through the session, HUD restored |
+
+Screenshots (1920×1080, captured with the F10 tour; these show the Phase 1 HUD):
 [overview](../Screenshots/realmkeeper-overview.png) ·
 [settlement selected](../Screenshots/realmkeeper-settlement-selected.png).

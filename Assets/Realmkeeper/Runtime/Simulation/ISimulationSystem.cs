@@ -24,6 +24,26 @@ namespace Realmkeeper.Simulation
         void Execute(SimulationDayContext context);
     }
 
+    /// <summary>Small builder for structured event facts, always formatted with the invariant culture.</summary>
+    public sealed class EventData
+    {
+        private readonly SortedDictionary<string, string> _values = new SortedDictionary<string, string>(StringComparer.Ordinal);
+
+        public IEnumerable<KeyValuePair<string, string>> Values => _values;
+
+        public EventData Set(string key, string value)
+        {
+            _values[key] = value ?? string.Empty;
+            return this;
+        }
+
+        public EventData Set(string key, long value)
+        {
+            _values[key] = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return this;
+        }
+    }
+
     /// <summary>
     /// Per-day execution context. The scheduler gives every system its own random stream
     /// derived from (world seed, day number, system ID), so adding or removing one system
@@ -58,9 +78,23 @@ namespace Realmkeeper.Simulation
 
         public IReadOnlyList<HistoricalEvent> Events => _events;
 
+        /// <summary>Legacy text event (kept for systems and tests that predate structured events).</summary>
         public HistoricalEvent ReportEvent(HistoricalEventType type, EventSeverity severity, SettlementId settlementId, string description)
         {
             var e = new HistoricalEvent(new EventId(DeterministicGuid.Next(_eventIdRandom)), Date, type, severity, settlementId, description);
+            _events.Add(e);
+            return e;
+        }
+
+        /// <summary>
+        /// Records a structured event: facts only, no prose. The application layer formats it.
+        /// Data values must already be invariant-culture strings (use <see cref="EventData"/>).
+        /// </summary>
+        public HistoricalEvent ReportEvent(HistoricalEventType type, EventSeverity severity, EventImportance importance,
+            IReadOnlyList<SettlementId> settlementIds, EventData data = null)
+        {
+            var e = new HistoricalEvent(new EventId(DeterministicGuid.Next(_eventIdRandom)), Date, type, severity, importance,
+                settlementIds, data?.Values);
             _events.Add(e);
             return e;
         }

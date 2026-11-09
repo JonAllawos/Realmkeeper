@@ -28,20 +28,22 @@ changing one stage does not disturb the others.
 | 6 | Settlements | Candidates are Plains cells 12+ from the edge, 3+ from water, and flat within a 5 × 5 area. Score = fertile land within 7 cells + nearness to water + small jitter. Sites are taken greedily with minimum spacing 34, relaxed to 26, 18 or 12 if needed. First pick is the Town, then the Village, then the Hamlet. |
 | 7 | Flatten | Blends terrain to each site's height over radius + 4 (water excluded). |
 | 8 | Reclassify | Repeats stage 5 on the flattened elevation, then clears each site to Plains. |
-| 9 | World data | Deterministic IDs and names, starting stats, food production, resources and factions. |
+| 9 | World data | Deterministic IDs and names, starting stats, starting stock, and factions. |
 | 10 | Roads | A* over the grid for all three settlement pairs. Costs: plains 1, shore 1.4, hills 2.2, forest 2.6, river (bridge) 10, mountain 14, plus 220 × slope; open water is impassable; existing road × 0.35, so routes merge. |
-| 11 | Validate | `WorldValidator` and `RegionMapValidator`. Failure throws `WorldGenerationException`. |
+| 11 | Economy | `EconomyInitializer`: production capacity, specialization, storage, starting labour and a founding-day ledger from the terrain; two trade routes per road (stream `trade-routes`). The same code upgrades Phase 1 saves on load. |
+| 12 | Validate | `WorldValidator` and `RegionMapValidator`. Failure throws `WorldGenerationException`. |
+
+Terrain (stages 1–8, 10) is unchanged since Phase 1, so the generator version is still 1 and
+existing seeds keep their geography.
 
 ## Settlement economics
 
-- Food production = `min(fertile cells within 7, population × 12 / 100)`.
-  Land caps production at about 149, while a Town needs at least 160 per day (population
-  1600 or more ÷ 10). **The Town is always in food deficit** and lives off reserves. A test
-  guarantees the deficit. Measured over seeds 1–40 (10-day resolution), the first
-  food-shortage event arrives after a median of **170 days**: minimum 100, 80% within 280,
-  maximum 540.
-- Starting reserves: 45–75 days of consumption.
-- Timber, stone, ore and coin come from nearby forest, hill and mountain cells, and population.
+- Starting food reserves: 45–75 days of consumption. Timber, stone and iron start from nearby
+  forest, hill and mountain cells, with at least 20 days of demand; all clamped to storage.
+- Production capacity and specialization come from the land: see [Economy](Economy.md).
+- Measured over 6 seeds for one year (Phase 2 balance runs): the default seed 123456789 stays
+  stable (prosperity 67–70, stability 90+, about 21 recorded deliveries). One seed (42)
+  produces a struggling town short of timber, stone and iron. No seed starves.
 
 ## Measured output (this build)
 

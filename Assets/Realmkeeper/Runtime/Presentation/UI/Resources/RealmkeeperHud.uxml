@@ -41,44 +41,82 @@
                     </ui:VisualElement>
                     <ui:Button name="insp-close" text="×" class="rk-close" />
                 </ui:VisualElement>
-                <ui:Label name="insp-shortage" text="Food shortage" class="rk-badge rk-badge--critical" />
+                <ui:VisualElement class="rk-badges">
+                    <ui:Label name="insp-status" text="Stable" class="rk-badge rk-status" />
+                    <ui:Label name="insp-shortage" text="Food shortage" class="rk-badge rk-badge--critical" />
+                </ui:VisualElement>
+                <ui:VisualElement name="insp-warnings" class="rk-warnings" />
 
-                <ui:VisualElement class="rk-row">
-                    <ui:Label text="Population" class="rk-key" />
-                    <ui:Label name="insp-population" text="-" class="rk-value" />
-                </ui:VisualElement>
-                <ui:VisualElement class="rk-row">
-                    <ui:Label text="Faction" class="rk-key" />
-                    <ui:Label name="insp-faction" text="-" class="rk-value" />
-                </ui:VisualElement>
+                <ui:ScrollView name="insp-body" class="rk-insp-body" mode="Vertical" horizontal-scroller-visibility="Hidden">
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Population" class="rk-key" />
+                        <ui:Label name="insp-population" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Workers" class="rk-key" />
+                        <ui:Label name="insp-workers" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Faction" class="rk-key" />
+                        <ui:Label name="insp-faction" text="-" class="rk-value" />
+                    </ui:VisualElement>
 
-                <ui:Label text="Prosperity" class="rk-key rk-bar-label" />
-                <ui:VisualElement class="rk-bar">
-                    <ui:VisualElement name="insp-prosperity-fill" class="rk-bar-fill rk-bar-fill--prosperity" />
-                    <ui:Label name="insp-prosperity" text="-" class="rk-bar-text" />
-                </ui:VisualElement>
-                <ui:Label text="Stability" class="rk-key rk-bar-label" />
-                <ui:VisualElement class="rk-bar">
-                    <ui:VisualElement name="insp-stability-fill" class="rk-bar-fill rk-bar-fill--stability" />
-                    <ui:Label name="insp-stability" text="-" class="rk-bar-text" />
-                </ui:VisualElement>
+                    <ui:VisualElement class="rk-row rk-bar-label">
+                        <ui:Label text="Prosperity" class="rk-key" />
+                        <ui:Label name="insp-prosperity-trend" text="-" class="rk-trend" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-bar">
+                        <ui:VisualElement name="insp-prosperity-fill" class="rk-bar-fill rk-bar-fill--prosperity" />
+                        <ui:Label name="insp-prosperity" text="-" class="rk-bar-text" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row rk-bar-label">
+                        <ui:Label text="Stability" class="rk-key" />
+                        <ui:Label name="insp-stability-trend" text="-" class="rk-trend" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-bar">
+                        <ui:VisualElement name="insp-stability-fill" class="rk-bar-fill rk-bar-fill--stability" />
+                        <ui:Label name="insp-stability" text="-" class="rk-bar-text" />
+                    </ui:VisualElement>
 
-                <ui:Label text="Food" class="rk-section" />
-                <ui:VisualElement class="rk-row">
-                    <ui:Label text="Reserves" class="rk-key" />
-                    <ui:Label name="insp-food" text="-" class="rk-value" />
-                </ui:VisualElement>
-                <ui:VisualElement class="rk-row">
-                    <ui:Label text="Net per day" class="rk-key" />
-                    <ui:Label name="insp-food-net" text="-" class="rk-value" />
-                </ui:VisualElement>
-                <ui:VisualElement class="rk-row">
-                    <ui:Label text="Days remaining" class="rk-key" />
-                    <ui:Label name="insp-food-days" text="-" class="rk-value" />
-                </ui:VisualElement>
+                    <ui:Label text="Food" class="rk-section" />
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Reserves" class="rk-key" />
+                        <ui:Label name="insp-food" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Produced per day" class="rk-key" />
+                        <ui:Label name="insp-food-produced" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Eaten per day" class="rk-key" />
+                        <ui:Label name="insp-food-consumed" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Net (own farms)" class="rk-key" />
+                        <ui:Label name="insp-food-net" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Days remaining" class="rk-key" />
+                        <ui:Label name="insp-food-days" text="-" class="rk-value" />
+                    </ui:VisualElement>
 
-                <ui:Label text="Resources" class="rk-section" />
-                <ui:VisualElement name="insp-resources" class="rk-resources" />
+                    <ui:Label text="Economy (last day)" class="rk-section" />
+                    <ui:VisualElement class="rk-table-head">
+                        <ui:Label text="" class="rk-col-name" />
+                        <ui:Label text="Stock" class="rk-col-num rk-col-stock" />
+                        <ui:Label text="Made" class="rk-col-num" />
+                        <ui:Label text="Used" class="rk-col-num" />
+                        <ui:Label text="Trade" class="rk-col-num" />
+                        <ui:Label text="Net" class="rk-col-num" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="insp-economy" class="rk-table" />
+
+                    <ui:Label text="Production" class="rk-section" />
+                    <ui:VisualElement name="insp-production" class="rk-resources" />
+
+                    <ui:Label text="Trade routes" class="rk-section" />
+                    <ui:VisualElement name="insp-trade" class="rk-resources" />
+                </ui:ScrollView>
             </ui:VisualElement>
         </ui:VisualElement>
 

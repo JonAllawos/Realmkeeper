@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.Calendar;
+using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using UnityEngine;
@@ -22,7 +23,8 @@ namespace Realmkeeper.Presentation
         public const string ThemeResource = "RealmkeeperTheme";
         public const string PanelSettingsResource = "RealmkeeperPanelSettings";
         public const string SaveSlot = "autosave";
-        public const int EventCount = 8;
+        /// <summary>Rows that fit the bottom panel at the reference resolution.</summary>
+        public const int EventCount = 7;
 
         private static readonly string[] ComingLater = { "Factions", "Characters", "Adventures", "Chronicle", "World Editor" };
 
@@ -61,6 +63,19 @@ namespace Realmkeeper.Presentation
         public Label InspectorName { get; private set; }
         public Label InspectorPopulation { get; private set; }
         public Label InspectorFood { get; private set; }
+        public Label InspectorStatus { get; private set; }
+
+        /// <summary>Economy table rows (one per resource) for the selected settlement.</summary>
+        public VisualElement EconomyTable => Root?.Q<VisualElement>("insp-economy");
+
+        /// <summary>Trade route lines for the selected settlement.</summary>
+        public VisualElement TradeList => Root?.Q<VisualElement>("insp-trade");
+
+        /// <summary>Shortage warning lines for the selected settlement.</summary>
+        public VisualElement WarningList => Root?.Q<VisualElement>("insp-warnings");
+
+        /// <summary>The recent-events list in the bottom panel.</summary>
+        public VisualElement EventList => Root?.Q<VisualElement>("event-list");
         public Label MessageLabel { get; private set; }
 
         public bool InspectorVisible => Inspector != null && !Inspector.ClassListContains("rk-hidden");
@@ -153,6 +168,7 @@ namespace Realmkeeper.Presentation
             InspectorName = Root.Q<Label>("insp-name");
             InspectorPopulation = Root.Q<Label>("insp-population");
             InspectorFood = Root.Q<Label>("insp-food");
+            InspectorStatus = Root.Q<Label>("insp-status");
             MessageLabel = Root.Q<Label>("message");
 
             PlayPauseButton.clicked += () => _playback.Toggle();
@@ -309,35 +325,190 @@ namespace Realmkeeper.Presentation
             if (s == null) return;
 
             InspectorName.text = s.Name;
-            Root.Q<Label>("insp-type").text = s.SettlementType.ToString();
-            InspectorPopulation.text = s.Population.ToString("N0", CultureInfo.InvariantCulture);
+            var specialization = s.Specialization.ToString();
+            if (s.SecondarySpecialization != SettlementSpecialization.None) specialization += " · " + s.SecondarySpecialization;
+            Root.Q<Label>("insp-type").text = $"{s.SettlementType} — {specialization}";
+            InspectorPopulation.text = N(s.Population);
+            Root.Q<Label>("insp-workers").text = $"{N(s.Employed)} of {N(s.Workforce)}";
             Root.Q<Label>("insp-faction").text = string.IsNullOrEmpty(s.FactionName) ? "Independent" : s.FactionName;
-            SetBar("insp-prosperity", s.Prosperity);
-            SetBar("insp-stability", s.Stability);
 
-            InspectorFood.text = s.FoodReserves.ToString("N0", CultureInfo.InvariantCulture);
-            var net = Root.Q<Label>("insp-food-net");
-            net.text = (s.NetFoodPerDay > 0 ? "+" : "") + s.NetFoodPerDay.ToString("N0", CultureInfo.InvariantCulture);
-            net.EnableInClassList("rk-value--negative", s.NetFoodPerDay < 0);
-            net.EnableInClassList("rk-value--positive", s.NetFoodPerDay > 0);
-            var days = s.DaysOfFoodRemaining;
-            Root.Q<Label>("insp-food-days").text = days.HasValue ? $"{days.Value} days" : "Stable";
+            InspectorStatus.text = StatusText(s.Status);
+            foreach (EconomicStatus status in Enum.GetValues(typeof(EconomicStatus)))
+                InspectorStatus.EnableInClassList("rk-status--" + status.ToString().ToLowerInvariant(), status == s.Status);
             Root.Q<Label>("insp-shortage").EnableInClassList("rk-hidden", !s.IsInFoodShortage);
 
-            var resources = Root.Q<VisualElement>("insp-resources");
-            resources.Clear();
-            foreach (var stack in s.Resources)
+            SetBar("insp-prosperity", s.Prosperity);
+            SetBar("insp-stability", s.Stability);
+            SetTrend("insp-prosperity-trend", s.ProsperityTrend, s.ProsperityTarget);
+            SetTrend("insp-stability-trend", s.StabilityTrend, s.StabilityTarget);
+
+            // Food at a glance.
+            var food = s.Food;
+            InspectorFood.text = N(food.Stock);
+            Root.Q<Label>("insp-food-produced").text = N(food.Produced);
+            Root.Q<Label>("insp-food-consumed").text = N(food.Demand);
+            SetSigned(Root.Q<Label>("insp-food-net"), s.NetFoodPerDay);
+            var days = s.DaysOfFoodRemaining;
+            Root.Q<Label>("insp-food-days").text = days.HasValue ? $"{N(days.Value)} days" : "Not running down";
+            Root.Q<Label>("insp-food-days").EnableInClassList("rk-value--negative", days.HasValue && days.Value < 30);
+
+            RefreshWarnings(s);
+            RefreshEconomyTable(s);
+            RefreshProduction(s);
+            RefreshTrade(s);
+        }
+
+        /// <summary>Shortage warnings, one line each, most urgent first.</summary>
+        private void RefreshWarnings(SettlementSummary s)
+        {
+            var warnings = Root.Q<VisualElement>("insp-warnings");
+            warnings.Clear();
+            void Add(string text)
+            {
+                var label = new Label(text);
+                label.AddToClassList("rk-warning");
+                warnings.Add(label);
+            }
+
+            if (s.DaysWithoutFood > 0) Add($"No food for {s.DaysWithoutFood} day(s): people are going hungry.");
+            foreach (var row in s.Economy)
+            {
+                if (!row.InShortage) continue;
+                var name = EventFormatter.ResourceName(row.ResourceTypeId.Value);
+                Add(row.Shortfall > 0
+                    ? $"{name} shortage: {N(row.Shortfall)} of {N(row.Demand)} needed went unmet."
+                    : $"{name} running low: {N(row.Stock)} left at {N(row.Demand)} a day.");
+            }
+        }
+
+        private void RefreshEconomyTable(SettlementSummary s)
+        {
+            var table = Root.Q<VisualElement>("insp-economy");
+            table.Clear();
+            foreach (var r in s.Economy)
+            {
+                var row = new VisualElement();
+                row.AddToClassList("rk-table-row");
+                row.EnableInClassList("rk-table-row--short", r.InShortage);
+                row.Add(Cell(EventFormatter.ResourceName(r.ResourceTypeId.Value), "rk-col-name"));
+                var capacity = r.Capacity == int.MaxValue ? string.Empty : "/" + Compact(r.Capacity);
+                row.Add(Cell(Compact(r.Stock) + capacity, "rk-col-num", "rk-col-stock"));
+                row.Add(Cell(r.Produced > 0 ? "+" + N(r.Produced) : "0", "rk-col-num"));
+                row.Add(Cell(r.Demand > 0 ? "−" + N(r.Consumed) : "0", "rk-col-num"));
+                var trade = r.Imported - r.Exported;
+                row.Add(SignedCell(trade));
+                row.Add(SignedCell(r.NetChange));
+                table.Add(row);
+            }
+        }
+
+        private void RefreshProduction(SettlementSummary s)
+        {
+            var list = Root.Q<VisualElement>("insp-production");
+            list.Clear();
+            foreach (var p in s.Production)
             {
                 var row = new VisualElement();
                 row.AddToClassList("rk-row");
-                var key = new Label(DisplayName(stack.ResourceTypeId.Value));
-                key.AddToClassList("rk-key");
-                var value = new Label(stack.Quantity.ToString("N0", CultureInfo.InvariantCulture));
-                value.AddToClassList("rk-value");
-                row.Add(key);
-                row.Add(value);
-                resources.Add(row);
+                row.Add(Cell($"{p.SourceType} ({N(p.Workers)}/{N(p.WorkerCapacity)})", "rk-key"));
+                row.Add(Cell($"+{N(p.LastOutput)} {EventFormatter.ResourceName(p.Output.Value).ToLowerInvariant()}", "rk-value"));
+                list.Add(row);
             }
+        }
+
+        private void RefreshTrade(SettlementSummary s)
+        {
+            var list = Root.Q<VisualElement>("insp-trade");
+            list.Clear();
+            var routes = _session.GetTradeRoutes(s.SettlementId);
+            if (routes.Count == 0)
+            {
+                list.Add(Cell("No trade routes.", "rk-trade-line"));
+                return;
+            }
+
+            foreach (var r in routes)
+            {
+                var outgoing = r.OriginId == s.SettlementId;
+                var partner = outgoing ? r.DestinationName : r.OriginName;
+                string text;
+                if (r.HasShipmentOnRoad)
+                {
+                    var goods = $"{N(r.InTransitQuantity)} {EventFormatter.ResourceName(r.InTransitResource.Value).ToLowerInvariant()}";
+                    text = r.InTransitReturning
+                        ? $"{goods} returning from {partner} (no room there)"
+                        : r.Status == TradeRouteStatus.Blocked
+                            ? $"{goods} waiting at {partner}: storage full"
+                            : $"{(outgoing ? "→" : "←")} {partner}: {goods} on the road, {r.DaysUntilArrival} day(s) left";
+                }
+                else if (r.LastDeliveryDate.HasValue)
+                {
+                    text = $"{(outgoing ? "→" : "←")} {partner}: last {N(r.LastDeliveryQuantity)} {EventFormatter.ResourceName(r.LastDeliveryResource.Value).ToLowerInvariant()} on {r.LastDeliveryDate.Value} ({N(r.ShipmentsDelivered)} deliveries)";
+                }
+                else
+                {
+                    text = $"{(outgoing ? "→" : "←")} {partner}: {(r.Status == TradeRouteStatus.Idle ? "nothing to trade yet" : "no deliveries yet")}";
+                }
+
+                var line = Cell(text, "rk-trade-line");
+                line.EnableInClassList("rk-trade-line--blocked", r.Status == TradeRouteStatus.Blocked);
+                list.Add(line);
+            }
+
+            list.Add(Cell($"Trade activity: {N(s.TradeActivity)}", "rk-trade-line"));
+        }
+
+        private void SetTrend(string name, RatingTrend trend, int target)
+        {
+            var label = Root.Q<Label>(name);
+            label.text = trend == RatingTrend.Rising ? $"rising toward {target}" : trend == RatingTrend.Falling ? $"falling toward {target}" : "steady";
+            label.EnableInClassList("rk-trend--rising", trend == RatingTrend.Rising);
+            label.EnableInClassList("rk-trend--falling", trend == RatingTrend.Falling);
+        }
+
+        private static void SetSigned(Label label, int value)
+        {
+            label.text = (value > 0 ? "+" : value < 0 ? "−" : "") + N(Math.Abs(value));
+            label.EnableInClassList("rk-value--negative", value < 0);
+            label.EnableInClassList("rk-value--positive", value > 0);
+        }
+
+        private static Label SignedCell(int value)
+        {
+            var label = Cell(string.Empty, "rk-col-num");
+            SetSigned(label, value);
+            if (value == 0) label.text = "0";
+            return label;
+        }
+
+        private static Label Cell(string text, params string[] classes)
+        {
+            var label = new Label(text);
+            foreach (var c in classes) label.AddToClassList(c);
+            return label;
+        }
+
+        private static string StatusText(EconomicStatus status)
+        {
+            switch (status)
+            {
+                case EconomicStatus.Starving: return "Starving";
+                case EconomicStatus.Shortage: return "Shortage";
+                case EconomicStatus.Strained: return "Strained";
+                case EconomicStatus.Thriving: return "Thriving";
+                default: return "Stable";
+            }
+        }
+
+        private static string N(int value) => value.ToString("N0", CultureInfo.InvariantCulture);
+
+        /// <summary>Short number for narrow columns: 1,234 → "1.2k", 1,000,000 → "1M".</summary>
+        private static string Compact(int value)
+        {
+            if (value >= 1000000) return (value / 1000000) + "M";
+            if (value >= 10000) return (value / 1000) + "k";
+            if (value >= 1000) return (value / 100 / 10.0).ToString("0.0", CultureInfo.InvariantCulture) + "k";
+            return value.ToString(CultureInfo.InvariantCulture);
         }
 
         private void RefreshActivity()
@@ -349,10 +520,10 @@ namespace Realmkeeper.Presentation
             {
                 var row = new VisualElement();
                 row.AddToClassList("rk-event");
-                row.AddToClassList(e.Severity == EventSeverity.Critical ? "rk-sev-critical" : e.Severity == EventSeverity.Warning ? "rk-sev-warning" : "rk-sev-info");
+                row.AddToClassList(SeverityClass(e.Severity));
                 var date = new Label(e.Date.ToString());
                 date.AddToClassList("rk-event-date");
-                var text = new Label(e.Description);
+                var text = new Label(e.Summary);
                 text.AddToClassList("rk-event-text");
                 row.Add(date);
                 row.Add(text);
@@ -379,6 +550,17 @@ namespace Realmkeeper.Presentation
             Root.Q<Label>(name).text = $"{clamped} / {SettlementData.MaxRating}";
         }
 
+        private static string SeverityClass(EventSeverity severity)
+        {
+            switch (severity)
+            {
+                case EventSeverity.Critical: return "rk-sev-critical";
+                case EventSeverity.Warning: return "rk-sev-warning";
+                case EventSeverity.Positive: return "rk-sev-positive";
+                default: return "rk-sev-info";
+            }
+        }
+
         private static string LabelFor(SimulationSpeed speed)
         {
             foreach (var s in Speeds)
@@ -387,13 +569,6 @@ namespace Realmkeeper.Presentation
             }
 
             return speed.ToString();
-        }
-
-        /// <summary>Presentation-side display names for resource keys (content keys are not shown raw).</summary>
-        private static string DisplayName(string key)
-        {
-            if (string.IsNullOrEmpty(key)) return "-";
-            return char.ToUpperInvariant(key[0]) + key.Substring(1).Replace('_', ' ').Replace('.', ' ');
         }
 
         private void OnDestroy()

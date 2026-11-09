@@ -1,17 +1,21 @@
 # Realmkeeper
 
-Realmkeeper is a persistent fantasy-world simulation: a seeded medieval region that
-lives on through deterministic daily simulation and is presented as a stylized-realistic
-isometric 3D world.
+Realmkeeper is a persistent fantasy world simulation and exploration platform: a seeded
+medieval world that lives on through deterministic daily simulation. Today it is presented as
+a stylized-realistic isometric 3D strategic map. The long-term direction (binding) adds
+first- and third-person exploration of the same settlements, backed by the same single
+simulation. See the [Product foundation](Documentation/Product/ProductFoundation.md).
 
 This repository is an independent project. It shares no code, assets, packages or
-assemblies with any other Unity project.
+assemblies with any other Unity project, including Living Realms and The Tavern Table.
 
-> **Status: Phase 0/1 foundation complete.**
-> The engine-independent core (domain, simulation, generation, persistence, application
-> services) is tested inside and outside Unity (75 EditMode cases). The Unity project has
-> the 3D world, the isometric camera, settlement selection and the UI Toolkit HUD, covered
-> by 11 PlayMode tests. See [Documentation/Testing/TestResults.md](Documentation/Testing/TestResults.md).
+> **Status: Phase 2 (settlement economies) complete.**
+> Settlements have terrain-derived production, labour, storage, consumption and shortages.
+> They trade real goods along the roads, and prosperity, stability and population follow
+> documented formulas. A structured chronicle records what happens. Tested in Unity
+> 6000.0.47f1: 110 EditMode and 17 PlayMode tests passing. See
+> [Documentation/Testing/TestResults.md](Documentation/Testing/TestResults.md) and
+> [Economy](Documentation/Systems/Economy.md).
 
 ![Realmkeeper overview](Documentation/Screenshots/realmkeeper-overview.png)
 
@@ -28,13 +32,17 @@ hand-written.
 |---|---|---|
 | Seven assembly definitions with enforced dependency rules | Implemented | Mirrored by the .NET harness; compiled by Unity 6000.0.47f1 |
 | Domain models (world, settlements, resources, calendar, IDs, geography) | Implemented | Compiled and tested (.NET 8, C# 9, netstandard2.1) |
-| Deterministic daily simulation (scheduler + food rule + wellbeing rule) | Implemented | Tested |
+| Deterministic daily simulation (scheduler + 7 economy systems, no randomness in rules) | Implemented | Tested (determinism, 7 × 1 day = 7 days, failed days roll back) |
+| Settlement economy: 5 resources, labour, production, storage, consumption, shortages (Phase 2) | Implemented | 10 EditMode tests + inspector PlayMode test |
+| Trade routes moving real goods with conservation checks (Phase 2) | Implemented | 9 EditMode tests incl. 200-day conservation; mutation-checked |
+| Explainable prosperity, stability and population (Phase 2) | Implemented | 7 EditMode tests |
+| Structured chronicle with formatted summaries, persisted (Phase 2) | Implemented | EditMode and PlayMode save/load tests |
 | Seed-based region generation (terrain, forest, mountains, lake, river, 3 settlements, roads) | Implemented | Tested across 12 seeds |
 | Versioned local JSON save/load | Implemented | Tested |
 | Application commands, queries and real-time playback pacing | Implemented | Tested |
 | Unity scene, 3D terrain rendering, isometric camera (Stage E) | Implemented | PlayMode tests (world, terrain, pan, zoom, rotate) |
 | Settlement selection, inspector, UI Toolkit interface (Stage F) | Implemented | PlayMode tests (select, inspector, clear, +1 week, play/pause) |
-| PlayMode tests (Stage H) | Implemented | 11 passing in Unity 6000.0.47f1 |
+| PlayMode tests | Implemented | 17 passing in Unity 6000.0.47f1 |
 
 ## Repository layout
 
@@ -49,8 +57,8 @@ Assets/Realmkeeper/
                                                  selection, UI Toolkit HUD (UI/Resources: UXML, USS, theme)
   Scenes/            Realmkeeper.unity           the single scene (everything else is built at runtime)
   Tests/
-    EditMode/        Realmkeeper.Tests.EditMode  61 test methods / 75 cases
-    PlayMode/        Realmkeeper.Tests.PlayMode  11 tests: world, camera, selection, HUD
+    EditMode/        Realmkeeper.Tests.EditMode  110 cases (Phase2/ holds the economy, trade and chronicle tests)
+    PlayMode/        Realmkeeper.Tests.PlayMode  17 tests: world, camera, selection, HUD, economy UI
 Tools/DotNet/        Out-of-Unity build and test harness (mirrors the .asmdef graph)
 Documentation/       Architecture, systems, testing, decisions, handoff
 ```
@@ -69,29 +77,39 @@ under NUnit 3. Results are written to `Tools/DotNet/TestResults/`.
 
 ### Open in Unity
 
-The Unity project still has to be created. Follow
-[Documentation/Handoff/DesktopSession.md](Documentation/Handoff/DesktopSession.md).
+Open the repository root (`C:\Dev\Realmkeeper` on the development PC) in Unity Hub with
+6000.0.47f1, then open `Assets/Realmkeeper/Scenes/Realmkeeper.unity` and press Play.
+
+### Run the Unity tests without the editor open
+
+```bash
+Unity -batchmode -projectPath . -runTests -testPlatform EditMode -testResults EditMode.xml
+Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults PlayMode.xml
+```
 
 ## Known limitations
 
-- Nothing has been compiled or run inside the Unity Editor yet. Expect a few small fixes the
-  first time Unity imports the scripts (see the handoff document for the likely ones).
 - Generation uses single-precision floats. Results are reproducible on one platform, and
   very likely on all IEEE-754 x64/ARM64 runtimes, but this has not been verified across
   Mono, IL2CPP and CoreCLR.
 - Terrain is not saved: it is rebuilt from seed and generator version on load. A save made
   with a different generator version is refused, not migrated.
 - One region of 128 × 128 cells, three settlements, two factions and no NPCs.
-- The simulation rules are intentionally minimal: food production and consumption, shortage
-  and starvation, and slow stability, prosperity and population drift.
+- Economy balance is tuned on six seeds. Some seeds produce a struggling town (by design),
+  and balance across many more seeds has not been studied.
+- No seasons, construction, diplomacy or military yet. Trade routes follow the generated roads only.
+- The HUD's layout was checked by eye at one resolution (about 1707 × 875); no automated layout test exists.
 
 ## Documentation
 
+- [Product foundation](Documentation/Product/ProductFoundation.md), including the binding
+  dual-perspective addendum
 - [Architecture overview](Documentation/Architecture/Overview.md)
 - [Assembly dependencies](Documentation/Architecture/AssemblyDependencies.md)
 - [Simulation lifecycle](Documentation/Architecture/SimulationLifecycle.md)
 - [Data ownership](Documentation/Architecture/DataOwnership.md)
-- Systems: [World generation](Documentation/Systems/WorldGeneration.md) ·
+- Systems: [Economy and trade](Documentation/Systems/Economy.md) ·
+  [World generation](Documentation/Systems/WorldGeneration.md) ·
   [Simulation scheduling](Documentation/Systems/SimulationScheduling.md) ·
   [Persistence](Documentation/Systems/Persistence.md)
 - Testing: [How to run](Documentation/Testing/RunningTests.md) ·

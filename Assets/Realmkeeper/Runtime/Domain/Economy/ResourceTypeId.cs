@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Realmkeeper.Domain.Economy
 {
@@ -55,13 +56,29 @@ namespace Realmkeeper.Domain.Economy
         public static bool operator !=(ResourceTypeId a, ResourceTypeId b) => !a.Equals(b);
     }
 
-    /// <summary>Resource keys used by Phase 1 systems.</summary>
+    /// <summary>The resources simulated in Phase 2. Keys are persisted; never rename one without a save migration.</summary>
     public static class ResourceTypes
     {
         public static readonly ResourceTypeId Food = new ResourceTypeId("food");
         public static readonly ResourceTypeId Timber = new ResourceTypeId("timber");
         public static readonly ResourceTypeId Stone = new ResourceTypeId("stone");
-        public static readonly ResourceTypeId Ore = new ResourceTypeId("ore");
+        public static readonly ResourceTypeId Iron = new ResourceTypeId("iron");
         public static readonly ResourceTypeId Coin = new ResourceTypeId("coin");
+
+        /// <summary>Every simulated resource, in display order.</summary>
+        public static IReadOnlyList<ResourceTypeId> All { get; } = new[] { Food, Timber, Stone, Iron, Coin };
+
+        /// <summary>Physical goods that can be shipped along trade routes (coin is payment, not cargo).</summary>
+        public static IReadOnlyList<ResourceTypeId> Goods { get; } = new[] { Food, Timber, Stone, Iron };
+
+        public static bool IsKnown(ResourceTypeId id)
+        {
+            foreach (var r in All)
+            {
+                if (r == id) return true;
+            }
+
+            return false;
+        }
     }
 }

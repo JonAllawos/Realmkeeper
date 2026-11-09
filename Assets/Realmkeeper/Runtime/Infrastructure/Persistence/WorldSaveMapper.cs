@@ -17,6 +17,8 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// <summary>Explicit, field-by-field mapping between domain models and save DTOs.</summary>
     public static class WorldSaveMapper
     {
+        // ----- Domain → DTO -----------------------------------------------------------------
+
         public static WorldDto ToDto(WorldData w)
         {
             var dto = new WorldDto
@@ -36,11 +38,13 @@ namespace Realmkeeper.Infrastructure.Persistence
                 Factions = new List<FactionDto>(),
                 Npcs = new List<NpcDto>(),
                 HistoricalEvents = new List<HistoricalEventDto>(),
+                TradeRoutes = new List<TradeRouteDto>(),
+                Shipments = new List<ShipmentDto>(),
             };
 
             foreach (var s in w.Settlements)
             {
-                var sd = new SettlementDto
+                dto.Settlements.Add(new SettlementDto
                 {
                     SettlementId = s.SettlementId.ToString(),
                     Name = s.Name,
@@ -51,13 +55,10 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Prosperity = s.Prosperity,
                     Stability = s.Stability,
                     FactionId = s.FactionId.IsEmpty ? null : s.FactionId.ToString(),
-                    FoodProductionPerDay = s.FoodProductionPerDay,
                     IsInFoodShortage = s.IsInFoodShortage,
-                    Resources = new List<ResourceStackDto>(),
-                };
-                foreach (var r in s.ResourceInventory.Stacks)
-                    sd.Resources.Add(new ResourceStackDto { ResourceTypeId = r.ResourceTypeId.Value, Quantity = r.Quantity });
-                dto.Settlements.Add(sd);
+                    Resources = Stacks(s.ResourceInventory),
+                    Economy = s.Economy.IsInitialized ? EconomyToDto(s.Economy) : null,
+                });
             }
 
             foreach (var f in w.Factions) dto.Factions.Add(new FactionDto { FactionId = f.FactionId.ToString(), Name = f.Name });
@@ -75,19 +76,149 @@ namespace Realmkeeper.Infrastructure.Persistence
 
             foreach (var e in w.HistoricalEvents)
             {
+                var ids = new List<string>();
+                foreach (var id in e.SettlementIds) ids.Add(id.ToString());
                 dto.HistoricalEvents.Add(new HistoricalEventDto
                 {
                     EventId = e.EventId.ToString(),
                     Date = e.Date.ToIsoString(),
                     EventType = e.EventType.ToString(),
                     Severity = e.Severity.ToString(),
+                    Importance = e.Importance.ToString(),
                     SettlementId = e.SettlementId.IsEmpty ? null : e.SettlementId.ToString(),
+                    SettlementIds = ids,
+                    Data = ToDictionary(e.Data),
                     Description = e.Description,
+                });
+            }
+
+            foreach (var r in w.TradeRoutes)
+            {
+                dto.TradeRoutes.Add(new TradeRouteDto
+                {
+                    TradeRouteId = r.TradeRouteId.ToString(),
+                    OriginId = r.OriginId.ToString(),
+                    DestinationId = r.DestinationId.ToString(),
+                    CapacityPerShipment = r.CapacityPerShipment,
+                    TravelDays = r.TravelDays,
+                    FrequencyDays = r.FrequencyDays,
+                    EfficiencyPercent = r.EfficiencyPercent,
+                    Status = r.Status.ToString(),
+                    NextDepartureDay = r.NextDepartureDay,
+                    ShipmentsDelivered = r.ShipmentsDelivered,
+                    Delivered = Stacks(r.Delivered),
+                    LastReportedDay = r.LastReportedDay,
+                    LastDeliveryDay = r.LastDeliveryDay,
+                    LastDeliveryResource = r.LastDeliveryResource.IsEmpty ? null : r.LastDeliveryResource.Value,
+                    LastDeliveryQuantity = r.LastDeliveryQuantity,
+                    LastDeliveryPayment = r.LastDeliveryPayment,
+                });
+            }
+
+            foreach (var s in w.Shipments)
+            {
+                dto.Shipments.Add(new ShipmentDto
+                {
+                    ShipmentId = s.ShipmentId.ToString(),
+                    TradeRouteId = s.TradeRouteId.ToString(),
+                    OriginId = s.OriginId.ToString(),
+                    DestinationId = s.DestinationId.ToString(),
+                    ResourceTypeId = s.ResourceTypeId.Value,
+                    Quantity = s.Quantity,
+                    DeliveredQuantity = s.DeliveredQuantity,
+                    LostQuantity = s.LostQuantity,
+                    Payment = s.Payment,
+                    DepartureDay = s.DepartureDay,
+                    ArrivalDay = s.ArrivalDay,
+                    DaysWaiting = s.DaysWaiting,
+                    LossApplied = s.LossApplied,
+                    IsReturning = s.IsReturning,
                 });
             }
 
             return dto;
         }
+
+        private static EconomyDto EconomyToDto(SettlementEconomy e)
+        {
+            var dto = new EconomyDto
+            {
+                Specialization = e.Specialization.ToString(),
+                SecondarySpecialization = e.SecondarySpecialization.ToString(),
+                Production = new List<ProductionDto>(),
+                StorageCapacity = Stacks(e.StorageCapacity),
+                LedgerDay = e.LedgerDay,
+                LastDay = new List<ResourceFlowDto>(),
+                LastDaySources = new List<SourceOutputDto>(),
+                ResourceStatuses = new List<ResourceStatusDto>(),
+                LifetimeProduced = Stacks(e.LifetimeProduced),
+                DaysWithoutFood = e.DaysWithoutFood,
+                PopulationProgressMilli = e.PopulationProgressMilli,
+                ProsperityTarget = e.ProsperityTarget,
+                StabilityTarget = e.StabilityTarget,
+                TradeActivity = e.TradeActivity,
+                Markers = new MarkersDto
+                {
+                    ReportedProsperity = e.Markers.ReportedProsperity,
+                    ReportedStability = e.Markers.ReportedStability,
+                    ReportedPopulation = e.Markers.ReportedPopulation,
+                    CoinMilestone = e.Markers.CoinMilestone,
+                    LastFoodExhaustedReportDay = e.Markers.LastFoodExhaustedReportDay,
+                    LastStarvationReportDay = e.Markers.LastStarvationReportDay,
+                    ProductionMilestoneIndex = new List<ResourceStackDto>(),
+                },
+            };
+
+            foreach (var p in e.Production)
+            {
+                dto.Production.Add(new ProductionDto
+                {
+                    SourceType = p.SourceType.ToString(),
+                    AllocationWeight = p.AllocationWeight,
+                    WorkerCapacity = p.WorkerCapacity,
+                    EfficiencyPercent = p.EfficiencyPercent,
+                    Workers = p.Workers,
+                });
+            }
+
+            foreach (var f in e.LastDay)
+            {
+                dto.LastDay.Add(new ResourceFlowDto
+                {
+                    ResourceTypeId = f.ResourceTypeId.Value,
+                    Produced = f.Produced,
+                    Wasted = f.Wasted,
+                    Demand = f.Demand,
+                    Consumed = f.Consumed,
+                    Shortfall = f.Shortfall,
+                    Imported = f.Imported,
+                    Exported = f.Exported,
+                });
+            }
+
+            foreach (var s in e.LastDaySources) dto.LastDaySources.Add(new SourceOutputDto { SourceType = s.SourceType.ToString(), Workers = s.Workers, Amount = s.Amount });
+            foreach (var s in e.ResourceStatuses)
+                dto.ResourceStatuses.Add(new ResourceStatusDto { ResourceTypeId = s.ResourceTypeId.Value, InShortage = s.InShortage, DaysBelowThreshold = s.DaysBelowThreshold });
+            foreach (var pair in e.Markers.ProductionMilestoneIndex)
+                dto.Markers.ProductionMilestoneIndex.Add(new ResourceStackDto { ResourceTypeId = pair.Key.Value, Quantity = pair.Value });
+            return dto;
+        }
+
+        private static List<ResourceStackDto> Stacks(ResourceInventory inventory)
+        {
+            var list = new List<ResourceStackDto>();
+            foreach (var r in inventory.Stacks) list.Add(new ResourceStackDto { ResourceTypeId = r.ResourceTypeId.Value, Quantity = r.Quantity });
+            return list;
+        }
+
+        private static Dictionary<string, string> ToDictionary(IReadOnlyDictionary<string, string> data)
+        {
+            var d = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var pair in data) d[pair.Key] = pair.Value;
+            return d;
+        }
+
+        // ----- DTO → Domain -----------------------------------------------------------------
 
         /// <summary>Maps a DTO to domain data. Throws <see cref="SaveDataException"/> on malformed fields.</summary>
         public static WorldData FromDto(WorldDto dto)
@@ -124,27 +255,10 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Prosperity = sd.Prosperity,
                     Stability = sd.Stability,
                     FactionId = new FactionId(OptionalGuid(sd.FactionId, "factionId")),
-                    FoodProductionPerDay = sd.FoodProductionPerDay,
                     IsInFoodShortage = sd.IsInFoodShortage,
+                    ResourceInventory = Inventory(sd.Resources, $"Settlement '{sd.Name}' resources"),
+                    Economy = sd.Economy == null ? new SettlementEconomy() : EconomyFromDto(sd.Economy, sd.Name),
                 };
-
-                var stacks = new List<ResourceStack>();
-                foreach (var r in sd.Resources ?? new List<ResourceStackDto>())
-                {
-                    if (r == null || !ResourceTypeId.IsValidKey(r.ResourceTypeId))
-                        throw new SaveDataException($"Settlement '{sd.Name}' has an invalid resource type.");
-                    stacks.Add(new ResourceStack(new ResourceTypeId(r.ResourceTypeId), r.Quantity));
-                }
-
-                try
-                {
-                    s.ResourceInventory = ResourceInventory.FromStacks(stacks);
-                }
-                catch (ArgumentException ex)
-                {
-                    throw new SaveDataException($"Settlement '{sd.Name}' has an invalid inventory: {ex.Message}");
-                }
-
                 world.Settlements.Add(s);
             }
 
@@ -169,16 +283,176 @@ namespace Realmkeeper.Infrastructure.Persistence
             foreach (var ed in dto.HistoricalEvents ?? new List<HistoricalEventDto>())
             {
                 if (ed == null) throw new SaveDataException("Null event entry.");
+                var ids = new List<SettlementId>();
+                if (ed.SettlementIds != null)
+                {
+                    foreach (var id in ed.SettlementIds) ids.Add(new SettlementId(RequiredGuid(id, "event settlementIds")));
+                }
+                else if (!string.IsNullOrEmpty(ed.SettlementId))
+                {
+                    ids.Add(new SettlementId(RequiredGuid(ed.SettlementId, "settlementId"))); // v1 events
+                }
+
                 world.HistoricalEvents.Add(new HistoricalEvent(
                     new EventId(RequiredGuid(ed.EventId, "eventId")),
                     ParseDate(ed.Date, "event date"),
                     ParseEnum<HistoricalEventType>(ed.EventType, "eventType"),
                     ParseEnum<EventSeverity>(ed.Severity, "severity"),
-                    new SettlementId(OptionalGuid(ed.SettlementId, "settlementId")),
+                    string.IsNullOrEmpty(ed.Importance) ? EventImportance.Notable : ParseEnum<EventImportance>(ed.Importance, "importance"),
+                    ids,
+                    ed.Data,
                     ed.Description));
             }
 
+            foreach (var rd in dto.TradeRoutes ?? new List<TradeRouteDto>())
+            {
+                if (rd == null) throw new SaveDataException("Null trade route entry.");
+                world.TradeRoutes.Add(new TradeRouteData
+                {
+                    TradeRouteId = new TradeRouteId(RequiredGuid(rd.TradeRouteId, "tradeRouteId")),
+                    OriginId = new SettlementId(RequiredGuid(rd.OriginId, "originId")),
+                    DestinationId = new SettlementId(RequiredGuid(rd.DestinationId, "destinationId")),
+                    CapacityPerShipment = rd.CapacityPerShipment,
+                    TravelDays = rd.TravelDays,
+                    FrequencyDays = rd.FrequencyDays,
+                    EfficiencyPercent = rd.EfficiencyPercent,
+                    Status = ParseEnum<TradeRouteStatus>(rd.Status, "route status"),
+                    NextDepartureDay = rd.NextDepartureDay,
+                    ShipmentsDelivered = rd.ShipmentsDelivered,
+                    Delivered = Inventory(rd.Delivered, "Trade route deliveries"),
+                    LastReportedDay = rd.LastReportedDay,
+                    LastDeliveryDay = rd.LastDeliveryDay,
+                    LastDeliveryResource = string.IsNullOrEmpty(rd.LastDeliveryResource) ? default : Resource(rd.LastDeliveryResource, "lastDeliveryResource"),
+                    LastDeliveryQuantity = rd.LastDeliveryQuantity,
+                    LastDeliveryPayment = rd.LastDeliveryPayment,
+                });
+            }
+
+            foreach (var sd in dto.Shipments ?? new List<ShipmentDto>())
+            {
+                if (sd == null) throw new SaveDataException("Null shipment entry.");
+                world.Shipments.Add(new ShipmentData
+                {
+                    ShipmentId = new ShipmentId(RequiredGuid(sd.ShipmentId, "shipmentId")),
+                    TradeRouteId = new TradeRouteId(RequiredGuid(sd.TradeRouteId, "shipment tradeRouteId")),
+                    OriginId = new SettlementId(RequiredGuid(sd.OriginId, "shipment originId")),
+                    DestinationId = new SettlementId(RequiredGuid(sd.DestinationId, "shipment destinationId")),
+                    ResourceTypeId = Resource(sd.ResourceTypeId, "shipment resource"),
+                    Quantity = sd.Quantity,
+                    DeliveredQuantity = sd.DeliveredQuantity,
+                    LostQuantity = sd.LostQuantity,
+                    Payment = sd.Payment,
+                    DepartureDay = sd.DepartureDay,
+                    ArrivalDay = sd.ArrivalDay,
+                    DaysWaiting = sd.DaysWaiting,
+                    LossApplied = sd.LossApplied,
+                    IsReturning = sd.IsReturning,
+                });
+            }
+
             return world;
+        }
+
+        private static SettlementEconomy EconomyFromDto(EconomyDto dto, string name)
+        {
+            var label = $"Settlement '{name}' economy";
+            var e = new SettlementEconomy
+            {
+                Specialization = ParseEnum<SettlementSpecialization>(dto.Specialization, "specialization"),
+                SecondarySpecialization = ParseEnum<SettlementSpecialization>(dto.SecondarySpecialization, "secondarySpecialization"),
+                StorageCapacity = Inventory(dto.StorageCapacity, label + " storage"),
+                LedgerDay = dto.LedgerDay,
+                LifetimeProduced = Inventory(dto.LifetimeProduced, label + " lifetime production"),
+                DaysWithoutFood = dto.DaysWithoutFood,
+                PopulationProgressMilli = dto.PopulationProgressMilli,
+                ProsperityTarget = dto.ProsperityTarget,
+                StabilityTarget = dto.StabilityTarget,
+                TradeActivity = dto.TradeActivity,
+            };
+
+            foreach (var p in dto.Production ?? new List<ProductionDto>())
+            {
+                if (p == null) throw new SaveDataException($"{label} has a null production entry.");
+                e.Production.Add(new ProductionAssignment
+                {
+                    SourceType = ParseEnum<ProductionSourceType>(p.SourceType, "production source"),
+                    AllocationWeight = p.AllocationWeight,
+                    WorkerCapacity = p.WorkerCapacity,
+                    EfficiencyPercent = p.EfficiencyPercent,
+                    Workers = p.Workers,
+                });
+            }
+
+            foreach (var f in dto.LastDay ?? new List<ResourceFlowDto>())
+            {
+                if (f == null) throw new SaveDataException($"{label} has a null ledger entry.");
+                e.LastDay.Add(new ResourceFlow
+                {
+                    ResourceTypeId = Resource(f.ResourceTypeId, "ledger resource"),
+                    Produced = f.Produced,
+                    Wasted = f.Wasted,
+                    Demand = f.Demand,
+                    Consumed = f.Consumed,
+                    Shortfall = f.Shortfall,
+                    Imported = f.Imported,
+                    Exported = f.Exported,
+                });
+            }
+
+            foreach (var s in dto.LastDaySources ?? new List<SourceOutputDto>())
+            {
+                if (s == null) throw new SaveDataException($"{label} has a null source entry.");
+                e.LastDaySources.Add(new SourceOutput { SourceType = ParseEnum<ProductionSourceType>(s.SourceType, "source"), Workers = s.Workers, Amount = s.Amount });
+            }
+
+            foreach (var s in dto.ResourceStatuses ?? new List<ResourceStatusDto>())
+            {
+                if (s == null) throw new SaveDataException($"{label} has a null resource status.");
+                e.ResourceStatuses.Add(new ResourceStatus { ResourceTypeId = Resource(s.ResourceTypeId, "status resource"), InShortage = s.InShortage, DaysBelowThreshold = s.DaysBelowThreshold });
+            }
+
+            var m = dto.Markers ?? new MarkersDto();
+            e.Markers = new ChronicleMarkers
+            {
+                ReportedProsperity = m.ReportedProsperity,
+                ReportedStability = m.ReportedStability,
+                ReportedPopulation = m.ReportedPopulation,
+                CoinMilestone = m.CoinMilestone,
+                LastFoodExhaustedReportDay = m.LastFoodExhaustedReportDay,
+                LastStarvationReportDay = m.LastStarvationReportDay,
+            };
+            foreach (var pair in m.ProductionMilestoneIndex ?? new List<ResourceStackDto>())
+            {
+                if (pair == null) throw new SaveDataException($"{label} has a null milestone entry.");
+                e.Markers.ProductionMilestoneIndex[Resource(pair.ResourceTypeId, "milestone resource")] = pair.Quantity;
+            }
+
+            return e;
+        }
+
+        private static ResourceInventory Inventory(List<ResourceStackDto> stacks, string label)
+        {
+            var list = new List<ResourceStack>();
+            foreach (var r in stacks ?? new List<ResourceStackDto>())
+            {
+                if (r == null) throw new SaveDataException($"{label} has a null entry.");
+                list.Add(new ResourceStack(Resource(r.ResourceTypeId, label), r.Quantity));
+            }
+
+            try
+            {
+                return ResourceInventory.FromStacks(list);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new SaveDataException($"{label} are invalid: {ex.Message}");
+            }
+        }
+
+        private static ResourceTypeId Resource(string key, string field)
+        {
+            if (!ResourceTypeId.IsValidKey(key)) throw new SaveDataException($"Invalid resource type in {field}.");
+            return new ResourceTypeId(key);
         }
 
         private static Guid RequiredGuid(string text, string field)

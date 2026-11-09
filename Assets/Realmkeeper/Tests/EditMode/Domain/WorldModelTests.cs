@@ -59,13 +59,24 @@ namespace Realmkeeper.Tests.EditMode.Domain
                 Population = -1,
                 Prosperity = 101,
                 Stability = -5,
-                FoodProductionPerDay = -2,
             };
+            settlement.Economy.Production.Add(new ProductionAssignment
+            {
+                SourceType = ProductionSourceType.Farming,
+                WorkerCapacity = 5,
+                Workers = 9,
+            });
 
             var result = WorldValidator.ValidateSettlement(settlement);
 
+            // Empty ID, no name, negative population, prosperity and stability out of range,
+            // more workers than capacity. ("More workers than people" is not double-reported
+            // when the population itself is already invalid.)
             Assert.That(result.IsValid, Is.False);
             Assert.That(result.Errors.Count, Is.EqualTo(6), result.ToString());
+
+            settlement.Population = 4;
+            Assert.That(WorldValidator.ValidateSettlement(settlement).Errors, Has.Some.Contains("more workers than it has people"));
         }
 
         [Test]

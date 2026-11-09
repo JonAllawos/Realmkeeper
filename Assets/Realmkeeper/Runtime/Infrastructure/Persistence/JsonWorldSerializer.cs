@@ -36,7 +36,11 @@ namespace Realmkeeper.Infrastructure.Persistence
             _utcNow = utcNow ?? (() => DateTime.UtcNow);
             _settings = new JsonSerializerSettings
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                // camelCase property names; event data keys are stored exactly as written.
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new CamelCaseNamingStrategy { ProcessDictionaryKeys = false, OverrideSpecifiedNames = true },
+                },
                 TypeNameHandling = TypeNameHandling.None, // never instantiate types named by the file
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Include,
@@ -46,14 +50,19 @@ namespace Realmkeeper.Infrastructure.Persistence
                 Culture = CultureInfo.InvariantCulture,
             };
 
-            if (migrations == null) return;
-            foreach (var m in migrations)
+            // Built-in migrations are always available; callers may add more (e.g. tests for older layouts).
+            var all = new List<ISaveMigration>(BuiltInMigrations);
+            if (migrations != null) all.AddRange(migrations);
+            foreach (var m in all)
             {
                 if (m.SourceVersion >= WorldData.CurrentSchemaVersion)
                     throw new ArgumentException($"Migration from v{m.SourceVersion} targets a version beyond the current schema.");
                 _migrations.Add(m.SourceVersion, m);
             }
         }
+
+        /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2() };
 
         public string Serialize(WorldData world)
         {

@@ -40,11 +40,11 @@ namespace Realmkeeper.Domain.World
         /// <summary>Owning faction; <see cref="FactionId.Empty"/> when independent.</summary>
         public FactionId FactionId { get; set; }
 
-        /// <summary>Daily food output, derived from surrounding fertile land at generation time.</summary>
-        public int FoodProductionPerDay { get; set; }
-
-        /// <summary>Simulation condition: reserves have fallen below the shortage threshold.</summary>
+        /// <summary>Simulation condition: food reserves have fallen below the shortage threshold.</summary>
         public bool IsInFoodShortage { get; set; }
+
+        /// <summary>Production, storage, last-day ledger and shortage tracking.</summary>
+        public SettlementEconomy Economy { get; set; } = new SettlementEconomy();
 
         public int FoodReserves => ResourceInventory?.Get(ResourceTypes.Food) ?? 0;
 
@@ -61,8 +61,8 @@ namespace Realmkeeper.Domain.World
                 Stability = Stability,
                 ResourceInventory = ResourceInventory?.Clone(),
                 FactionId = FactionId,
-                FoodProductionPerDay = FoodProductionPerDay,
                 IsInFoodShortage = IsInFoodShortage,
+                Economy = Economy?.Clone(),
             };
         }
     }

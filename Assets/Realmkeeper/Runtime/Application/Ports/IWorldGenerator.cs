@@ -54,5 +54,11 @@ namespace Realmkeeper.Application.Ports
 
         /// <summary>Rebuilds the geography of an existing world from its seed and generator version.</summary>
         RegionMap RegenerateRegion(WorldData world);
+
+        /// <summary>
+        /// Fills in economy data (production, storage, trade routes) that an older save lacks,
+        /// derived from the regenerated geography. Leaves already-initialized settlements alone.
+        /// </summary>
+        void InitializeEconomy(WorldData world, RegionMap map);
     }
 }

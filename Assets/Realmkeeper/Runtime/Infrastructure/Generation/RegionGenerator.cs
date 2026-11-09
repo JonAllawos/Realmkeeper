@@ -41,12 +41,26 @@ namespace Realmkeeper.Infrastructure.Generation
 
         private readonly IRandomSourceFactory _randomFactory;
         private readonly RegionGeneratorSettings _settings;
-        private readonly FoodEconomyRules _foodRules = new FoodEconomyRules();
+        private readonly EconomyRules _rules;
+        private readonly EconomyInitializer _economy;
 
-        public RegionGenerator(IRandomSourceFactory randomFactory, RegionGeneratorSettings settings = null)
+        public RegionGenerator(IRandomSourceFactory randomFactory, RegionGeneratorSettings settings = null, EconomyRules rules = null)
         {
             _randomFactory = randomFactory ?? throw new ArgumentNullException(nameof(randomFactory));
             _settings = settings ?? new RegionGeneratorSettings();
+            _rules = rules ?? new EconomyRules();
+            _economy = new EconomyInitializer(_rules);
+        }
+
+        /// <summary>
+        /// Gives settlements without economic data (Phase 1 saves) their terrain-derived economy and
+        /// creates missing trade routes. Uses the same seeded streams as generation, so the result
+        /// matches what a fresh world of the same seed would have.
+        /// </summary>
+        public void InitializeEconomy(WorldData world, RegionMap map)
+        {
+            if (world == null) throw new ArgumentNullException(nameof(world));
+            _economy.Initialize(world, map, _randomFactory.Create(SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "trade-routes")));
         }
 
         public int GeneratorVersion => Version;
@@ -87,6 +101,7 @@ namespace Realmkeeper.Infrastructure.Generation
 
             var world = BuildWorldData(request, map, sites, Stream("ids"), Stream("names"), Stream("stats"));
             BuildRoads(map, world.Settlements);
+            _economy.Initialize(world, map, Stream("trade-routes"));
 
             var worldValidation = WorldValidator.Validate(world);
             var mapValidation = RegionMapValidator.Validate(map, world.Settlements);
@@ -570,15 +585,12 @@ namespace Realmkeeper.Infrastructure.Generation
             s.Prosperity = rng.NextInt(48, 70);
             s.Stability = rng.NextInt(55, 73);
 
-            // Land-limited vs labour-limited food: towns outgrow their fields and rely on reserves.
-            var fertile = CountTerrain(map, s.Position, 7, TerrainType.Plains, TerrainType.Shore);
-            s.FoodProductionPerDay = Math.Min(fertile, s.Population * 12 / 100);
-
-            var consumption = _foodRules.DailyConsumption(s.Population);
+            // Starting stock; production capacity and storage come from EconomyInitializer.
+            var consumption = _rules.Food.DailyConsumption(s.Population);
             s.ResourceInventory.Set(ResourceTypes.Food, consumption * rng.NextInt(45, 76));
             s.ResourceInventory.Set(ResourceTypes.Timber, CountTerrain(map, s.Position, 10, TerrainType.Forest) * 4);
             s.ResourceInventory.Set(ResourceTypes.Stone, CountTerrain(map, s.Position, 10, TerrainType.Hills, TerrainType.Mountain) * 3);
-            s.ResourceInventory.Set(ResourceTypes.Ore, CountTerrain(map, s.Position, 12, TerrainType.Mountain) * 2);
+            s.ResourceInventory.Set(ResourceTypes.Iron, CountTerrain(map, s.Position, 12, TerrainType.Mountain) * 2);
             s.ResourceInventory.Set(ResourceTypes.Coin, s.Population / 2 + rng.NextInt(0, 100));
         }
 

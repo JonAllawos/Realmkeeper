@@ -144,15 +144,39 @@ namespace Realmkeeper.Tests.EditMode.Generation
         }
 
         [Test]
-        public void Town_IsLandLimitedAndDependsOnReserves()
+        public void Economy_IsDerivedFromTerrain_AndTradeRoutesFollowTheRoads()
         {
-            var rules = new FoodEconomyRules();
+            var rules = new EconomyRules();
             foreach (var seed in SampleSeeds.Take(6))
             {
                 var g = Generate(seed);
-                var town = g.World.Settlements.Single(s => s.SettlementType == SettlementType.Town);
-                Assert.That(town.FoodProductionPerDay, Is.LessThan(rules.DailyConsumption(town.Population)), $"seed {seed}");
-                Assert.That(town.FoodReserves, Is.GreaterThan(0));
+                foreach (var s in g.World.Settlements)
+                {
+                    var e = s.Economy;
+                    Assert.That(e.IsInitialized, Is.True, $"seed {seed}");
+                    Assert.That(e.Specialization, Is.Not.EqualTo(Realmkeeper.Domain.Economy.SettlementSpecialization.None));
+                    Assert.That(e.FindProduction(Realmkeeper.Domain.Economy.ProductionSourceType.Farming), Is.Not.Null, "Every site is on plains, so every settlement can farm.");
+                    Assert.That(e.TotalWorkers, Is.LessThanOrEqualTo(EconomyMath.Workforce(s.Population, rules)));
+
+                    // Fishing exists only where there is enough water nearby.
+                    var fishing = e.FindProduction(Realmkeeper.Domain.Economy.ProductionSourceType.Fishing);
+                    if (fishing != null) Assert.That(fishing.WorkerCapacity, Is.GreaterThanOrEqualTo(10));
+
+                    // Founding-day ledger is the real projection: demand from population, production from staffed sources.
+                    var food = e.FindFlow(Realmkeeper.Domain.Economy.ResourceTypes.Food);
+                    Assert.That(food.Demand, Is.EqualTo(rules.Food.DailyConsumption(s.Population)));
+                    Assert.That(food.Produced, Is.GreaterThan(0));
+                    foreach (var stack in s.ResourceInventory.Stacks) Assert.That(stack.Quantity, Is.LessThanOrEqualTo(e.CapacityOf(stack.ResourceTypeId)));
+                }
+
+                // One route each way per road, between existing settlements.
+                Assert.That(g.World.TradeRoutes.Count, Is.EqualTo(g.Map.Roads.Count * 2));
+                Assert.That(g.World.TradeRoutes.Select(r => r.TradeRouteId).Distinct().Count(), Is.EqualTo(g.World.TradeRoutes.Count));
+                foreach (var road in g.Map.Roads)
+                {
+                    Assert.That(g.World.TradeRoutes.Any(r => r.OriginId == road.From && r.DestinationId == road.To), Is.True);
+                    Assert.That(g.World.TradeRoutes.Any(r => r.OriginId == road.To && r.DestinationId == road.From), Is.True);
+                }
             }
         }
 

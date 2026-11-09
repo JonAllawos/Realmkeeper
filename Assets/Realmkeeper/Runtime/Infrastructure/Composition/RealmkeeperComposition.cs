@@ -13,14 +13,15 @@ namespace Realmkeeper.Infrastructure.Composition
     /// </summary>
     public static class RealmkeeperComposition
     {
-        public static WorldSession CreateSession(string saveDirectory, RegionGeneratorSettings generatorSettings = null, FoodEconomyRules foodRules = null)
+        public static WorldSession CreateSession(string saveDirectory, RegionGeneratorSettings generatorSettings = null, EconomyRules rules = null)
         {
             var randomFactory = new Xoshiro256RandomFactory();
-            foodRules = foodRules ?? new FoodEconomyRules();
-            var scheduler = StandardSimulationSystems.CreateScheduler(randomFactory, foodRules);
-            var generator = new RegionGenerator(randomFactory, generatorSettings);
+            rules = rules ?? new EconomyRules();
+            rules.Validate();
+            var scheduler = StandardSimulationSystems.CreateScheduler(randomFactory, rules);
+            var generator = new RegionGenerator(randomFactory, generatorSettings, rules);
             var store = new JsonWorldStore(saveDirectory);
-            return new WorldSession(scheduler, generator, store, foodRules);
+            return new WorldSession(scheduler, generator, store, rules);
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -30,9 +30,9 @@ namespace Realmkeeper.Tests.EditMode.Simulation
             public void Execute(SimulationDayContext context) => _action(context);
         }
 
-        private static SimulationScheduler Standard() => StandardSimulationSystems.CreateScheduler(new Xoshiro256RandomFactory());
+        private static SimulationScheduler Standard() => TestWorlds.Scheduler();
 
-        private static string[] AllSystems => StandardSimulationSystems.AllIds.ToArray();
+        private static string[] AllSystems => TestWorlds.AllSystems;
 
         [Test]
         public void AdvanceDay_MovesDateForwardOneDay_WithoutMutatingInput()
@@ -62,7 +62,7 @@ namespace Realmkeeper.Tests.EditMode.Simulation
         public void FoodSystem_SurplusProductionIncreasesReserves()
         {
             // Population 100 consumes 10/day; production 50 -> +40/day.
-            var world = TestWorlds.SingleSettlement(100, 1000, 50, FoodEconomySystem.Id);
+            var world = TestWorlds.SingleSettlement(100, 1000, 50, TestWorlds.FoodSystems);
             var result = Standard().AdvanceDays(world, 3);
             Assert.That(result.World.Settlements[0].FoodReserves, Is.EqualTo(1000 + 3 * 40));
         }
@@ -71,7 +71,7 @@ namespace Realmkeeper.Tests.EditMode.Simulation
         public void FoodSystem_ConsumptionAboveProductionDrawsDownReserves()
         {
             // Population 1000 consumes 100/day; production 40 -> -60/day.
-            var world = TestWorlds.SingleSettlement(1000, 6000, 40, FoodEconomySystem.Id);
+            var world = TestWorlds.SingleSettlement(1000, 6000, 40, TestWorlds.FoodSystems);
             var result = Standard().AdvanceDays(world, 10);
             Assert.That(result.World.Settlements[0].FoodReserves, Is.EqualTo(6000 - 10 * 60));
             Assert.That(result.World.Settlements[0].Population, Is.EqualTo(1000));
@@ -82,7 +82,7 @@ namespace Realmkeeper.Tests.EditMode.Simulation
         {
             // Consumption 100/day, threshold = 15 days = 1500. Reserves 2000, net -60/day.
             // Day 9: 2000 - 540 = 1460 < 1500 -> shortage begins on day 9 only.
-            var world = TestWorlds.SingleSettlement(1000, 2000, 40, FoodEconomySystem.Id);
+            var world = TestWorlds.SingleSettlement(1000, 2000, 40, TestWorlds.FoodSystems);
             var scheduler = Standard();
 
             var first8 = scheduler.AdvanceDays(world, 8);
@@ -104,7 +104,7 @@ namespace Realmkeeper.Tests.EditMode.Simulation
         public void FoodSystem_ShortageEndsOnlyAfterRecoveryThreshold()
         {
             // Consumption 10/day: shortage below 150, recovery at 300. Start in shortage with 100, net +20/day.
-            var world = TestWorlds.SingleSettlement(100, 100, 30, FoodEconomySystem.Id);
+            var world = TestWorlds.SingleSettlement(100, 100, 30, TestWorlds.FoodSystems);
             world.Settlements[0].IsInFoodShortage = true;
             var scheduler = Standard();
 
@@ -117,16 +117,29 @@ namespace Realmkeeper.Tests.EditMode.Simulation
         }
 
         [Test]
-        public void FoodSystem_ExhaustedReservesCauseStarvationAndCriticalEvent()
+        public void FoodSystem_StarvationIsGradual_GraceDaysBeforeAnyLoss()
         {
             // Consumption 100, production 40, reserves 50 -> 90 available < 100: day 1 exhausts reserves.
-            var world = TestWorlds.SingleSettlement(1000, 50, 40, FoodEconomySystem.Id);
-            var day1 = Standard().AdvanceDay(world);
+            var world = TestWorlds.SingleSettlement(1000, 50, 40, TestWorlds.FoodSystems);
+            var scheduler = Standard();
+            var grace = new FoodEconomyRules().StarvationGraceDays;
 
+            var day1 = scheduler.AdvanceDay(world);
             var s = day1.World.Settlements[0];
             Assert.That(s.FoodReserves, Is.Zero);
-            Assert.That(s.Population, Is.EqualTo(1000 - 1000 / 200));
+            Assert.That(s.Population, Is.EqualTo(1000), "One bad day kills no one.");
             Assert.That(day1.Events.Any(e => e.EventType == HistoricalEventType.FoodReservesExhausted && e.Severity == EventSeverity.Critical), Is.True);
+
+            var graceRun = scheduler.AdvanceDays(day1.World, grace - 1);
+            Assert.That(graceRun.World.Settlements[0].Population, Is.EqualTo(1000), "No losses during the grace period.");
+
+            var firstLoss = scheduler.AdvanceDay(graceRun.World);
+            Assert.That(firstLoss.World.Settlements[0].Population, Is.EqualTo(1000 - 1000 / 200));
+            Assert.That(firstLoss.Events.Single(e => e.EventType == HistoricalEventType.StarvationBegan).Importance, Is.EqualTo(EventImportance.Major));
+
+            var nextDay = scheduler.AdvanceDay(firstLoss.World);
+            Assert.That(nextDay.World.Settlements[0].Population, Is.EqualTo(995 - 995 / 200), "Losses are a small fraction per day.");
+            Assert.That(nextDay.Events.Any(e => e.EventType == HistoricalEventType.StarvationBegan), Is.False, "Starvation is reported once.");
         }
 
         [Test]
@@ -161,17 +174,22 @@ namespace Realmkeeper.Tests.EditMode.Simulation
         }
 
         [Test]
-        public void Simulation_DifferentSeedsDivergeInRandomisedSystems()
+        public void Simulation_EconomyHasNoHiddenRandomness_SeedOnlyAffectsIds()
         {
-            var a = TestWorlds.SingleSettlement(1000, 0, 0, AllSystems);
-            var b = TestWorlds.SingleSettlement(1000, 0, 0, AllSystems);
+            // Phase 1 drifted ratings on coin flips. Phase 2 outcomes depend only on world state.
+            var a = TestWorlds.SingleSettlement(1000, 3000, 70, AllSystems);
+            var b = TestWorlds.SingleSettlement(1000, 3000, 70, AllSystems);
             b.Seed = a.Seed + 1;
             var scheduler = Standard();
 
-            var ra = scheduler.AdvanceDays(a, 60).World.Settlements[0];
-            var rb = scheduler.AdvanceDays(b, 60).World.Settlements[0];
+            var ra = scheduler.AdvanceDays(a, 120).World;
+            var rb = scheduler.AdvanceDays(b, 120).World;
 
-            Assert.That(ra.Stability != rb.Stability || ra.Prosperity != rb.Prosperity, Is.True);
+            Assert.That(rb.Settlements[0].Population, Is.EqualTo(ra.Settlements[0].Population));
+            Assert.That(rb.Settlements[0].Prosperity, Is.EqualTo(ra.Settlements[0].Prosperity));
+            Assert.That(rb.Settlements[0].Stability, Is.EqualTo(ra.Settlements[0].Stability));
+            Assert.That(rb.Settlements[0].FoodReserves, Is.EqualTo(ra.Settlements[0].FoodReserves));
+            Assert.That(rb.HistoricalEvents.Select(e => e.EventType), Is.EqualTo(ra.HistoricalEvents.Select(e => e.EventType)));
         }
 
         [Test]

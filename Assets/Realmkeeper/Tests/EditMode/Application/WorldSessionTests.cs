@@ -93,8 +93,11 @@ namespace Realmkeeper.Tests.EditMode.Application
             var events = session.GetRecentEvents(5);
             Assert.That(events.Count, Is.InRange(2, 5));
             for (var i = 1; i < events.Count; i++) Assert.That(events[i - 1].Date, Is.GreaterThanOrEqualTo(events[i].Date));
-            Assert.That(events.Any(e => e.EventType == HistoricalEventType.FoodShortageBegan), Is.True,
-                "The land-limited town should run short within a year.");
+            Assert.That(events.All(e => !string.IsNullOrWhiteSpace(e.Summary)), Is.True, "Every event is formatted for the UI.");
+            var all = session.GetRecentEvents(10000);
+            Assert.That(all.Any(e => e.EventType == HistoricalEventType.TradeShipmentDelivered), Is.True,
+                "Within a year the settlements should trade and the chronicle should say so.");
+            Assert.That(session.GetRecentEvents(10000, EventImportance.Notable).All(e => e.Importance >= EventImportance.Notable), Is.True);
         }
 
         [Test]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Realmkeeper.Domain.Calendar;
+using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Identifiers;
 
 namespace Realmkeeper.Domain.World
@@ -37,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -51,6 +52,12 @@ namespace Realmkeeper.Domain.World
         public List<FactionData> Factions { get; set; } = new List<FactionData>();
         public List<NpcData> Npcs { get; set; } = new List<NpcData>();
         public List<HistoricalEvent> HistoricalEvents { get; set; } = new List<HistoricalEvent>();
+
+        /// <summary>One-way trade routes (generated in pairs along the roads).</summary>
+        public List<TradeRouteData> TradeRoutes { get; set; } = new List<TradeRouteData>();
+
+        /// <summary>Goods currently on the road.</summary>
+        public List<ShipmentData> Shipments { get; set; } = new List<ShipmentData>();
 
         public static WorldData CreateNew(WorldId worldId, string worldName, long seed, int generatorVersion, WorldSettings settings)
         {
@@ -107,12 +114,26 @@ namespace Realmkeeper.Domain.World
                 Factions = new List<FactionData>(Factions.Count),
                 Npcs = new List<NpcData>(Npcs.Count),
                 HistoricalEvents = new List<HistoricalEvent>(HistoricalEvents),
+                TradeRoutes = new List<TradeRouteData>(TradeRoutes?.Count ?? 0),
+                Shipments = new List<ShipmentData>(Shipments?.Count ?? 0),
             };
 
             foreach (var s in Settlements) copy.Settlements.Add(s?.Clone());
             foreach (var f in Factions) copy.Factions.Add(f?.Clone());
             foreach (var n in Npcs) copy.Npcs.Add(n?.Clone());
+            if (TradeRoutes != null) foreach (var r in TradeRoutes) copy.TradeRoutes.Add(r?.Clone());
+            if (Shipments != null) foreach (var s in Shipments) copy.Shipments.Add(s?.Clone());
             return copy;
+        }
+
+        public TradeRouteData FindTradeRoute(TradeRouteId id)
+        {
+            for (var i = 0; i < TradeRoutes.Count; i++)
+            {
+                if (TradeRoutes[i].TradeRouteId == id) return TradeRoutes[i];
+            }
+
+            return null;
         }
     }
 }

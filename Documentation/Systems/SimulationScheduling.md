@@ -28,9 +28,8 @@ A system must not:
 ## Registration
 
 ```csharp
-var scheduler = new SimulationScheduler(new Xoshiro256RandomFactory());
-scheduler.Register(new FoodEconomySystem());
-scheduler.Register(new SettlementWellbeingSystem());
+var scheduler = StandardSimulationSystems.CreateScheduler(new Xoshiro256RandomFactory(), new EconomyRules());
+// or register individually: scheduler.Register(new LabourSystem(rules)); …
 ```
 
 `Register` rejects null systems, empty IDs, duplicate IDs and **duplicate execution
@@ -40,32 +39,21 @@ error, not a tie-break. Leave gaps of 100 so new systems can slot in between.
 A world runs only the systems whose IDs appear in `WorldSettings.EnabledSimulationSystems`.
 Unknown IDs are ignored, so a save from a build with an extra system still loads.
 
-## Phase 1 systems
+## Phase 2 systems
 
-### `realmkeeper.food` (order 100), no randomness
+| Order | ID | Randomness |
+|---|---|---|
+| 50 | `realmkeeper.labour` | None |
+| 100 | `realmkeeper.production` | None |
+| 150 | `realmkeeper.trade` | Only for new shipment IDs (the system's own stream) |
+| 200 | `realmkeeper.consumption` | None |
+| 300 | `realmkeeper.wellbeing` | None |
+| 400 | `realmkeeper.population` | None |
+| 500 | `realmkeeper.chronicle` | None |
 
-For each settlement, in list order:
-
-1. `consumption = ceil(population / 10)`
-2. If `reserves + production ≥ consumption`, reserves become `reserves + production − consumption`.
-3. Otherwise reserves become 0 and population falls by `max(1, population / 200)`. If
-   reserves were above 0 before, a **`FoodReservesExhausted` (Critical)** event is reported.
-4. Shortage state, with hysteresis:
-   - begins when reserves < 15 days of consumption → **`FoodShortageBegan` (Warning)**
-   - ends when reserves ≥ 30 days → **`FoodShortageEnded` (Info)**
-   - Events are reported only on these transitions, never every day.
-
-### `realmkeeper.wellbeing` (order 200), seeded randomness
-
-- In shortage: stability −1 with probability 0.5; another −1 if reserves are 0; prosperity
-  −1 with probability 0.2.
-- Otherwise: stability +1 with probability 0.1 while below 60. When in surplus: prosperity +1
-  with probability 0.05, and population grows by `max(1, population / 1000)` with
-  probability 0.1.
-- Stability and prosperity are kept within 0–100.
-
-All simulation state is integral. The only floating-point values are the `Chance`
-probabilities, compared against `NextDouble()`, which is built from 53 random bits.
+Rules and formulas: [Economy](Economy.md). Phase 1's `realmkeeper.food` and its coin-flip
+`realmkeeper.wellbeing` were replaced. A v1 save that lists them is migrated to the Phase 2
+list on load. All simulation state is integral; there is no floating point in any rule.
 
 ## Guarantees (tested)
 

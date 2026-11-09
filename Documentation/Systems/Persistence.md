@@ -14,7 +14,20 @@ Port: `Realmkeeper.Application.Ports.IWorldStore`.
   intact.
 - Files over 32 MB are refused on load.
 
-## Format (schema v1)
+## Format (schema v2, Phase 2)
+
+v2 adds, per settlement, an `economy` object (specialization, production assignments, storage
+capacity, last-day ledger, per-source output, shortage statuses, lifetime production,
+markers). At world level it adds `tradeRoutes` and `shipments`. Events gain `settlementIds`,
+`data` and `importance`. The `ore` resource is `iron`, and `foodProductionPerDay` is gone.
+
+**v1 → v2 migration** (`MigrationV1ToV2`, always registered): renames `ore` to `iron`, drops
+`foodProductionPerDay`, and replaces the Phase 1 system list. Economy and trade are absent in
+v1. On load, `WorldSession` asks the generator to initialize them from the regenerated
+terrain, giving the same result as a fresh world of that seed. Text-only v1 events keep their
+wording. This is tested by building a real v1 document and loading it through the session.
+
+The v1 layout, for reference:
 
 ```json
 {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Realmkeeper.Application.Ports;
+using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Geography;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
@@ -42,16 +43,18 @@ namespace Realmkeeper.Application
         private readonly SimulationScheduler _scheduler;
         private readonly IWorldGenerator _generator;
         private readonly IWorldStore _store;
-        private readonly FoodEconomyRules _foodRules;
+        private readonly EconomyRules _rules;
         private WorldData _world;
 
-        public WorldSession(SimulationScheduler scheduler, IWorldGenerator generator, IWorldStore store, FoodEconomyRules foodRules = null)
+        public WorldSession(SimulationScheduler scheduler, IWorldGenerator generator, IWorldStore store, EconomyRules rules = null)
         {
             _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
             _store = store ?? throw new ArgumentNullException(nameof(store));
-            _foodRules = foodRules ?? new FoodEconomyRules();
+            _rules = rules ?? new EconomyRules();
         }
+
+        public EconomyRules Rules => _rules;
 
         public event Action<WorldChange> WorldChanged;
 
@@ -120,8 +123,27 @@ namespace Realmkeeper.Application
             var placement = RegionMapValidator.Validate(map, load.World.Settlements);
             if (!placement.IsValid) return CommandResult.Fail("Load failed: settlements do not match the regenerated region.", placement.Errors);
 
-            Replace(load.World, map, WorldChangeReason.Loaded);
-            return CommandResult.Ok($"Loaded '{load.World.WorldName}'.");
+            // Saves from before the economy (schema v1) get their economy from the terrain now.
+            var world = load.World;
+            var upgraded = false;
+            if (NeedsEconomy(world))
+            {
+                try
+                {
+                    _generator.InitializeEconomy(world, map);
+                    upgraded = true;
+                }
+                catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+                {
+                    return CommandResult.Fail("Load failed: the economy could not be initialized.", new[] { ex.Message });
+                }
+
+                var check = WorldValidator.Validate(world);
+                if (!check.IsValid) return CommandResult.Fail("Load failed: the upgraded world is invalid.", check.Errors);
+            }
+
+            Replace(world, map, WorldChangeReason.Loaded);
+            return CommandResult.Ok(upgraded ? $"Loaded '{world.WorldName}' (economy added to an older save)." : $"Loaded '{world.WorldName}'.");
         }
 
         public CommandResult Execute(SetSimulationSpeedCommand command)
@@ -161,18 +183,54 @@ namespace Realmkeeper.Application
             return s == null ? null : Summarize(s);
         }
 
-        /// <summary>Most recent first.</summary>
-        public IReadOnlyList<EventSummary> GetRecentEvents(int maxCount)
+        /// <summary>Most recent first, optionally only events at or above an importance and/or involving a settlement.</summary>
+        public IReadOnlyList<EventSummary> GetRecentEvents(int maxCount, EventImportance minimumImportance = EventImportance.Minor, SettlementId involving = default)
         {
             var list = new List<EventSummary>();
             if (!HasWorld || maxCount <= 0) return list;
             for (var i = _world.HistoricalEvents.Count - 1; i >= 0 && list.Count < maxCount; i--)
             {
                 var e = _world.HistoricalEvents[i];
-                list.Add(new EventSummary(e, _world.FindSettlement(e.SettlementId)?.Name));
+                if (e.Importance < minimumImportance) continue;
+                if (!involving.IsEmpty && !Involves(e, involving)) continue;
+                list.Add(new EventSummary(e, _world.FindSettlement(e.SettlementId)?.Name, EventFormatter.Format(e, NameOf)));
             }
 
             return list;
+        }
+
+        /// <summary>Trade routes, optionally only those starting or ending at a settlement, in stable route order.</summary>
+        public IReadOnlyList<TradeRouteSummary> GetTradeRoutes(SettlementId involving = default)
+        {
+            var list = new List<TradeRouteSummary>();
+            if (!HasWorld) return list;
+            foreach (var r in _world.TradeRoutes)
+            {
+                if (!involving.IsEmpty && r.OriginId != involving && r.DestinationId != involving) continue;
+                ShipmentData onRoad = null;
+                foreach (var s in _world.Shipments)
+                {
+                    if (s.TradeRouteId == r.TradeRouteId) onRoad = s;
+                }
+
+                list.Add(new TradeRouteSummary(r, NameOf(r.OriginId), NameOf(r.DestinationId), onRoad, _world.CurrentSimulationDate));
+            }
+
+            return list;
+        }
+
+        /// <summary>Total quantity of a resource across all settlements plus goods on the road (for checks and debugging).</summary>
+        public long TotalOf(Domain.Economy.ResourceTypeId resource)
+        {
+            if (!HasWorld) return 0;
+            long total = 0;
+            foreach (var s in _world.Settlements) total += s.ResourceInventory.Get(resource);
+            foreach (var s in _world.Shipments)
+            {
+                if (s.ResourceTypeId == resource) total += s.Quantity;
+            }
+
+            return total;
         }
 
         // ----- Internals -----------------------------------------------------------------
@@ -210,7 +268,30 @@ namespace Realmkeeper.Application
         }
 
         private SettlementSummary Summarize(SettlementData s) =>
-            new SettlementSummary(s, _world.FindFaction(s.FactionId)?.Name, _foodRules.DailyConsumption(s.Population));
+            new SettlementSummary(s, _world.FindFaction(s.FactionId)?.Name, _rules);
+
+        private string NameOf(SettlementId id) => _world?.FindSettlement(id)?.Name;
+
+        private static bool Involves(HistoricalEvent e, SettlementId id)
+        {
+            foreach (var s in e.SettlementIds)
+            {
+                if (s == id) return true;
+            }
+
+            return false;
+        }
+
+        private static bool NeedsEconomy(WorldData world)
+        {
+            if (world.TradeRoutes.Count == 0 && world.Settlements.Count > 1) return true;
+            foreach (var s in world.Settlements)
+            {
+                if (s.Economy == null || !s.Economy.IsInitialized) return true;
+            }
+
+            return false;
+        }
 
         private static string DescribeLoadFailure(LoadStatus status)
         {

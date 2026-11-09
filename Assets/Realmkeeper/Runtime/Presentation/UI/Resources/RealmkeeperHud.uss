@@ -342,7 +342,9 @@
 
 .rk-event-text {
     flex-shrink: 1;
-    white-space: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .rk-sev-info .rk-event-text {
@@ -351,6 +353,10 @@
 
 .rk-sev-warning .rk-event-text {
     color: rgb(230, 190, 100);
+}
+
+.rk-sev-positive .rk-event-text {
+    color: rgb(170, 206, 132);
 }
 
 .rk-sev-critical .rk-event-text {
@@ -386,6 +392,160 @@
 
 .rk-message--error {
     color: rgb(236, 120, 96);
+}
+
+/* ----- Phase 2 inspector: status, warnings, economy table, trade ----------------------- */
+
+.rk-inspector {
+    max-height: 100%;
+}
+
+/* Top bar and bottom panel keep their size; the middle row absorbs any shortage of space. */
+.rk-top-bar,
+.rk-bottom {
+    flex-shrink: 0;
+}
+
+.rk-middle {
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Only the scrolling body may shrink; everything above it keeps its height. */
+.rk-inspector > * {
+    flex-shrink: 0;
+}
+
+.rk-inspector > .rk-insp-body {
+    flex-shrink: 1;
+}
+
+/* Bottom panel: rows keep their height and extra rows are clipped, never overlapped. */
+.rk-bottom Label,
+.rk-event {
+    flex-shrink: 0;
+}
+
+.rk-activity,
+.rk-events,
+.rk-sim {
+    overflow: hidden;
+}
+
+.rk-badges {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.rk-badges > .rk-badge {
+    margin-right: 6px;
+}
+
+.rk-status {
+    background-color: rgba(96, 128, 140, 0.85);
+    color: rgb(236, 240, 242);
+}
+
+.rk-status--thriving {
+    background-color: rgba(92, 128, 70, 0.9);
+}
+
+.rk-status--stable {
+    background-color: rgba(96, 128, 140, 0.85);
+}
+
+.rk-status--strained {
+    background-color: rgba(150, 118, 52, 0.9);
+}
+
+.rk-status--shortage,
+.rk-status--starving {
+    background-color: rgba(150, 52, 40, 0.9);
+}
+
+.rk-warnings {
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.rk-warning {
+    margin: 1px 0;
+    padding: 2px 6px;
+    border-left-width: 3px;
+    border-color: rgb(214, 120, 90);
+    background-color: rgba(150, 52, 40, 0.25);
+    color: rgb(244, 210, 196);
+    font-size: 12px;
+    white-space: normal;
+}
+
+.rk-trend {
+    font-size: 11px;
+    color: rgb(170, 161, 144);
+}
+
+.rk-trend--rising {
+    color: rgb(160, 200, 120);
+}
+
+.rk-trend--falling {
+    color: rgb(232, 128, 104);
+}
+
+.rk-table-head,
+.rk-table-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.rk-table-head > Label {
+    font-size: 10px;
+    color: rgb(150, 142, 126);
+}
+
+.rk-table-row {
+    margin: 1px 0;
+    padding: 1px 2px;
+    border-radius: 3px;
+}
+
+.rk-table-row--short {
+    background-color: rgba(150, 52, 40, 0.3);
+}
+
+/* Columns sized to fit the inspector's content width (310 − padding − scrollbar ≈ 260).
+   Labels carry default margins and padding, so table cells reset them. */
+.rk-table-head > Label,
+.rk-table-row > Label {
+    margin: 0;
+    padding: 0 1px;
+    flex-shrink: 0;
+}
+
+.rk-col-name {
+    width: 44px;
+    color: rgb(214, 205, 186);
+}
+
+.rk-col-num {
+    width: 35px;
+    -unity-text-align: middle-right;
+    font-size: 11px;
+}
+
+.rk-col-stock {
+    width: 66px;
+}
+
+.rk-trade-line {
+    font-size: 12px;
+    white-space: normal;
+    margin: 1px 0;
+    color: rgb(214, 205, 186);
+}
+
+.rk-trade-line--blocked {
+    color: rgb(230, 190, 100);
 }
 
 .rk-hidden {
