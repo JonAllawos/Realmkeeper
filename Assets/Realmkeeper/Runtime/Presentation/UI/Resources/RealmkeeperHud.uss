@@ -570,3 +570,34 @@
 .rk-enter {
     margin: 0;
 }
+
+/* ----- Phase 2 completion: reasons, route toggles ------------------------------------------ */
+
+.rk-why {
+    font-size: 11px;
+    white-space: normal;
+    margin: 1px 0 2px 0;
+    color: rgb(170, 161, 144);
+}
+
+.rk-route-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.rk-route-row > .rk-trade-line {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.rk-route-toggle {
+    height: 20px;
+    min-width: 0;
+    margin: 0 0 0 4px;
+    padding: 0 6px;
+    font-size: 10px;
+}
+
+.rk-trade-line--suspended {
+    color: rgb(150, 142, 126);
+}

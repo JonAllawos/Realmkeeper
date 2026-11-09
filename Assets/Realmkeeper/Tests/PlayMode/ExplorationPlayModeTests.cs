@@ -367,6 +367,55 @@ namespace Realmkeeper.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator RestartWhileExploring_UnloadsTheTown_AndExplorationWorksOnTheNewSession()
+        {
+            yield return Enter(FirstSettlement);
+            var old = Session;
+            var baseline = old.WorldChangedSubscriberCount;
+
+            Assert.That(Runtime.Host.Shutdown().IsSuccess, Is.True);
+            for (var i = 0; i < 20 && AnyExplorationSceneLoaded(); i++) yield return null;
+
+            Assert.That(Controller.IsExploring, Is.False);
+            Assert.That(AnyExplorationSceneLoaded(), Is.False);
+            Assert.That(Runtime.Mode, Is.EqualTo(ViewMode.Strategic));
+            Assert.That(Bootstrap.StrategicVisible, Is.True);
+
+            for (var cycle = 0; cycle < 2; cycle++)
+            {
+                if (Runtime.Host.IsActive) Runtime.Host.Shutdown();
+                Assert.That(Runtime.Host.StartNew(new CreateWorldCommand("Again " + cycle, 777 + cycle)).IsSuccess, Is.True);
+                yield return null;
+                Assert.That(Session, Is.Not.SameAs(old));
+                Assert.That(Session.WorldChangedSubscriberCount, Is.EqualTo(baseline), "Map, HUD, selection, runtime and exploration each subscribed once.");
+                Assert.That(Session.Commands.IsRegistered<Realmkeeper.Exploration.Application.EnterSettlementCommand>(), Is.True);
+            }
+
+            yield return Enter(FirstSettlement);
+            Assert.That(Controller.IsExploring, Is.True);
+            Assert.That(Controller.Streamer.Current.SettlementId, Is.EqualTo(FirstSettlement.SettlementId));
+            Assert.That(Object.FindObjectsByType<ResidentView>(FindObjectsSortMode.None).Length, Is.EqualTo(Session.GetResidents(FirstSettlement.SettlementId).Count));
+        }
+
+        [UnityTest]
+        public IEnumerator SavingWhileExploring_UsesTheSelectedSlot()
+        {
+            var path = Path.Combine(UnityEngine.Application.persistentDataPath, "Saves", "playmode-explore-slot.rkworld.json");
+            try
+            {
+                Assert.That(Runtime.SelectSlot("playmode-explore-slot").IsSuccess, Is.True);
+                yield return Enter(FirstSettlement);
+
+                Assert.That(Controller.SaveNow().IsSuccess, Is.True);
+                Assert.That(File.Exists(path), Is.True, "The exploration view saved to the slot the map selected.");
+            }
+            finally
+            {
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ASecondRuntime_IsRefused()
         {
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("second runtime"));

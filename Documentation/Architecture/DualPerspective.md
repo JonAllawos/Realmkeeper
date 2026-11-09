@@ -60,6 +60,23 @@ WorldSessionHost (Application, engine-free)
   | Save | `Runtime.Save` raises `PreparingSave`, then dispatches `SaveWorldCommand`. |
   | Close | `Host.Shutdown` or `Dispose`. |
 
+### Rebinding after a restart
+
+Presentation never assumes the first session is the only one. Every component that listens
+to a session holds a `WorldSessionBinding` (Application, engine-free):
+- `Bind(newSession)` first removes the old subscription, then subscribes exactly once.
+- Binding the same session again does nothing.
+- A closed session is never kept: the binding drops it when the session closes.
+
+`RealmkeeperBootstrap` listens to `Host.SessionStarted` and `SessionEnded`, and rebinds the
+world view, selection, HUD (and its playback clock) and map markers. `ExplorationController`
+does the same.
+
+Tests check this:
+- `WorldSession.WorldChangedSubscriberCount` stays the same over repeated shutdown and restart
+  cycles (EditMode and PlayMode);
+- the HUD refuses commands safely while no session is active.
+
 ### Accessing the session from a scene
 
 1. Call `RealmkeeperRuntime.FindOrCreate()`.

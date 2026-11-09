@@ -139,7 +139,7 @@ namespace Realmkeeper.Simulation.Systems
 
         private void Complete(SimulationDayContext context, TradeRouteData route, ShipmentData shipment, long day)
         {
-            route.Status = TradeRouteStatus.Active;
+            route.Status = route.IsSuspended ? TradeRouteStatus.Suspended : TradeRouteStatus.Active;
             var ids = new[] { route.OriginId, route.DestinationId };
             if (shipment.IsReturning)
             {
@@ -196,6 +196,15 @@ namespace Realmkeeper.Simulation.Systems
 
             foreach (var route in world.TradeRoutes)
             {
+                // Status decides whether trade happens: a suspended route sends nothing. Its shipment
+                // already on the road (if any) is still delivered by ProcessArrivals.
+                if (route.IsSuspended)
+                {
+                    if (!onRoad.Contains(route.TradeRouteId)) route.Status = TradeRouteStatus.Suspended;
+                    continue;
+                }
+
+                if (route.Status == TradeRouteStatus.Suspended) route.Status = TradeRouteStatus.Active; // resumed
                 if (day < route.NextDepartureDay) continue;
                 route.NextDepartureDay = day + route.FrequencyDays;
                 if (onRoad.Contains(route.TradeRouteId)) continue; // one shipment per route at a time

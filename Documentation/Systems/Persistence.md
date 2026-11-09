@@ -8,11 +8,30 @@ Port: `Realmkeeper.Application.Ports.IWorldStore`.
 - One file per slot: `<root>/<slot>.rkworld.json`. In Unity, `root` is meant to be
   `UnityEngine.Application.persistentDataPath + "/Saves"` (wired up in the Presentation stage).
 - Slot names may use only `[A-Za-z0-9_-]` and be at most 48 characters long. Anything
-  else, such as `../x`, `a/b` or `C:`, is refused.
+  else, such as `../x`, `a/b` or `C:`, is refused. One rule, `Application.SaveSlot`, is used by
+  the store, the save and load commands, the session host and the Unity runtime.
+- **Save slots.** `SaveSlot.Default` is `autosave`, the slot every earlier build used, so
+  existing saves keep loading. `RealmkeeperRuntime.ActiveSlot` is the one slot both the map and
+  exploration views save to and load from:
+  - `SelectSlot(name)` changes it;
+  - `Load(name)` selects the slot when the load succeeds;
+  - an invalid name is refused (`ValidationFailed`) and leaves the active slot unchanged.
+
+  Loading a slot that has no save returns `NotFound`, and the current world stays. There is
+  no save browser yet.
 - Writes are atomic: the file is written to `<file>.tmp`, then swapped in with
   `File.Replace`, or `File.Move` for a new slot. A failed write leaves the previous save
   intact.
 - Files over 32 MB are refused on load.
+
+## Schema history
+
+| Version | Adds | Migration |
+|---|---|---|
+| 1 | Phase 1 world | — |
+| 2 | Phase 2 economy, trade routes, shipments, structured events | `MigrationV1ToV2`, then the economy is derived from terrain on load |
+| 3 | Regions, settlement `regionId`, player character, named residents, labour focus (ADR-0009) | `MigrationV2ToV3` (structural), then `WorldPopulationInitializer` with the generation streams |
+| 4 | `tradeRoutes[].isSuspended` | `MigrationV3ToV4`: sets `false` (every route in an older save was trading); nothing else changes. A test checks that a v3 copy of a save loads identical to the v4 original. |
 
 ## Format (schema v2, Phase 2)
 

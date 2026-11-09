@@ -63,7 +63,9 @@ namespace Realmkeeper.Tests.PlayMode
 
             var expected = Bootstrap.Session.GetTradeRoutes(Town.SettlementId).Count;
             Assert.That(expected, Is.EqualTo(4), "The town has a route to and from each of the other two settlements.");
-            var lines = Bootstrap.Hud.TradeList.Children().OfType<Label>().Select(l => l.text).ToList();
+            // Each route line sits in a row with its Suspend/Resume toggle, so look at every depth.
+            var lines = Bootstrap.Hud.TradeList.Query<Label>(className: "rk-trade-line").ToList().Select(l => l.text).ToList();
+            Assert.That(Bootstrap.Hud.TradeList.Query<Button>(className: "rk-route-toggle").ToList().Count, Is.EqualTo(expected), "One toggle per route.");
             Assert.That(lines.Count, Is.EqualTo(expected + 1), "One line per route plus the trade activity line.");
             foreach (var other in Bootstrap.Session.GetSettlements().Where(s => s.SettlementId != Town.SettlementId))
                 Assert.That(lines.Any(l => l.Contains(other.Name)), Is.True, other.Name);

@@ -15,6 +15,9 @@ namespace Realmkeeper.Domain.Economy
 
         /// <summary>A shipment is waiting because the destination's storage is full.</summary>
         Blocked = 3,
+
+        /// <summary>Suspended by a command: no new shipments leave. Goods already on the road still arrive.</summary>
+        Suspended = 4,
     }
 
     /// <summary>
@@ -41,6 +44,12 @@ namespace Realmkeeper.Domain.Economy
         public int EfficiencyPercent { get; set; }
 
         public TradeRouteStatus Status { get; set; }
+
+        /// <summary>
+        /// Set by <c>SetTradeRouteSuspendedCommand</c>. A suspended route sends nothing; a shipment
+        /// already on the road still completes, so no goods are lost or created.
+        /// </summary>
+        public bool IsSuspended { get; set; }
 
         /// <summary>Absolute day number (WorldDate.ToDayNumber) of the next departure check.</summary>
         public long NextDepartureDay { get; set; }
@@ -69,6 +78,7 @@ namespace Realmkeeper.Domain.Economy
             FrequencyDays = FrequencyDays,
             EfficiencyPercent = EfficiencyPercent,
             Status = Status,
+            IsSuspended = IsSuspended,
             NextDepartureDay = NextDepartureDay,
             ShipmentsDelivered = ShipmentsDelivered,
             Delivered = Delivered.Clone(),

@@ -7,6 +7,7 @@ using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Exploration.Application;
+using Realmkeeper.Simulation.Systems;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -39,7 +40,7 @@ namespace Realmkeeper.Presentation
 
         private readonly Dictionary<SettlementId, Button> _settlementButtons = new Dictionary<SettlementId, Button>();
 
-        private WorldSession _session;
+        private WorldSessionBinding _binding;
         private SimulationPlayback _playback;
         private SettlementSelection _selection;
         private IsometricCameraController _camera;
@@ -83,7 +84,10 @@ namespace Realmkeeper.Presentation
         public Button EnterSettlementButton { get; private set; }
 
         /// <summary>Saves through the runtime (so exploration can record the character first). Null: the session saves directly.</summary>
-        public Func<string, CommandResult> SaveHandler { get; set; }
+        public Func<CommandResult> SaveHandler { get; set; }
+
+        /// <summary>Loads through the runtime's active save slot. Null: the session loads <see cref="SaveSlot"/> directly.</summary>
+        public Func<CommandResult> LoadHandler { get; set; }
 
         /// <summary>False while the exploration view is shown.</summary>
         public bool IsVisible => Root == null || Root.style.display != DisplayStyle.None;
@@ -126,21 +130,49 @@ namespace Realmkeeper.Presentation
         public void Initialize(WorldSession session, SimulationPlayback playback, SettlementSelection selection,
             IsometricCameraController cameraController, WorldView worldView)
         {
-            _session = session;
-            _playback = playback;
+            _binding = new WorldSessionBinding(OnWorldChanged);
             _selection = selection;
             _camera = cameraController;
             _worldView = worldView;
 
             BindElements();
 
-            _session.WorldChanged += OnWorldChanged;
-            _playback.PlayStateChanged += OnPlayStateChanged;
             _selection.SelectionChanged += OnSelectionChanged;
+            Bind(session, playback);
+        }
 
-            if (_session.HasWorld) _startDate = _session.GetOverview().Date;
+        private WorldSession _session => _binding?.Session;
+
+        /// <summary>The session the HUD reads and commands (null when no world session is active).</summary>
+        public WorldSession BoundSession => _session;
+
+        /// <summary>The playback clock the HUD controls (null when no world session is active).</summary>
+        public SimulationPlayback BoundPlayback => _playback;
+
+        /// <summary>
+        /// Follows a newly started session and its playback clock (null, null: no session).
+        /// Old subscriptions are removed first; binding the same pair again changes nothing.
+        /// </summary>
+        public void Bind(WorldSession session, SimulationPlayback playback)
+        {
+            if (session == null || session.IsClosed) playback = null;
+            var sessionChanged = _binding.Bind(session);
+            if (!ReferenceEquals(playback, _playback))
+            {
+                if (_playback != null) _playback.PlayStateChanged -= OnPlayStateChanged;
+                _playback = playback;
+                if (_playback != null) _playback.PlayStateChanged += OnPlayStateChanged;
+            }
+            else if (!sessionChanged)
+            {
+                return;
+            }
+
+            _startDate = _session != null && _session.HasWorld ? _session.GetOverview().Date : default;
             RefreshAll();
         }
+
+        private CommandResult NoSession() => CommandResult.InvalidState("No world session is active.");
 
         /// <summary>True when a screen position (origin bottom-left) is over an interactive HUD element.</summary>
         public bool IsPointerOverUi(Vector2 screenPosition)
@@ -190,7 +222,7 @@ namespace Realmkeeper.Presentation
             EnterSettlementButton = Root.Q<Button>("insp-enter");
             EnterSettlementButton.clicked += () => EnterSelectedSettlement();
 
-            PlayPauseButton.clicked += () => _playback.Toggle();
+            PlayPauseButton.clicked += () => { if (_playback != null) _playback.Toggle(); else ShowMessage(NoSession()); };
             AdvanceDayButton.clicked += () => Advance(1);
             AdvanceWeekButton.clicked += () => Advance(WorldDate.DaysPerWeek);
             AdvanceMonthButton.clicked += () => Advance(WorldDate.DaysPerMonth);
@@ -228,15 +260,22 @@ namespace Realmkeeper.Presentation
 
         private void Advance(int days)
         {
+            if (_session == null)
+            {
+                ShowMessage(NoSession());
+                return;
+            }
+
             var result = days == 1 ? _session.Execute(new AdvanceDayCommand()) : _session.Execute(new AdvanceDaysCommand(days));
             if (!result.IsSuccess) ShowMessage(result);
         }
 
-        private void Save() => ShowMessage(SaveHandler != null ? SaveHandler(SaveSlot) : _session.Execute(new SaveWorldCommand(SaveSlot)));
+        private void Save() => ShowMessage(SaveHandler != null ? SaveHandler() : _session != null ? _session.Execute(new SaveWorldCommand(SaveSlot)) : NoSession());
 
         /// <summary>Dispatches <see cref="EnterSettlementCommand"/> for the selected settlement; the view switches when world data says the character is inside.</summary>
         public CommandResult EnterSelectedSettlement()
         {
+            if (_session == null) return NoSession();
             var result = _selection.HasSelection
                 ? _session.Dispatch(new EnterSettlementCommand(_selection.SelectedId))
                 : CommandResult.Invalid("Select a settlement first.");
@@ -246,13 +285,25 @@ namespace Realmkeeper.Presentation
 
         private void Load()
         {
-            _playback.Pause();
+            if (LoadHandler != null)
+            {
+                ShowMessage(LoadHandler());
+                return;
+            }
+
+            if (_session == null)
+            {
+                ShowMessage(NoSession());
+                return;
+            }
+
+            _playback?.Pause();
             ShowMessage(_session.Execute(new LoadWorldCommand(SaveSlot)));
         }
 
         private void OnSpeedChanged(ChangeEvent<string> evt)
         {
-            if (_updatingSpeed) return;
+            if (_updatingSpeed || _session == null) return;
             foreach (var s in Speeds)
             {
                 if (s.label != evt.newValue) continue;
@@ -275,6 +326,12 @@ namespace Realmkeeper.Presentation
 
         private void OnWorldChanged(WorldChange change)
         {
+            if (change.Reason == WorldChangeReason.Closed)
+            {
+                RefreshAll(); // the binding has already let go of the closed session
+                return;
+            }
+
             if (change.GeographyChanged && _session.HasWorld) _startDate = _session.GetOverview().Date;
             if (change.GeographyChanged) RebuildSettlementList();
             RefreshTopBar();
@@ -308,10 +365,10 @@ namespace Realmkeeper.Presentation
         private void RefreshTopBar()
         {
             if (Root == null) return;
-            var overview = _session.GetOverview();
+            var overview = _session?.GetOverview();
             WorldNameLabel.text = overview?.WorldName ?? "No world";
             DateLabel.text = overview != null ? overview.Date.ToString() : "-";
-            PlayPauseButton.text = _playback.IsPlaying ? "Pause" : "Play";
+            PlayPauseButton.text = _playback != null && _playback.IsPlaying ? "Pause" : "Play";
 
             if (overview != null)
             {
@@ -327,6 +384,7 @@ namespace Realmkeeper.Presentation
             var list = Root.Q<ScrollView>("settlement-list");
             list.Clear();
             _settlementButtons.Clear();
+            if (_session == null || !_session.HasWorld) return;
             foreach (var s in _session.GetSettlements())
             {
                 var id = s.SettlementId;
@@ -349,15 +407,15 @@ namespace Realmkeeper.Presentation
         private void RefreshInspector()
         {
             if (Root == null) return;
-            var s = _selection.HasSelection ? _session.FindSettlement(_selection.SelectedId) : null;
+            var s = _selection.HasSelection && _session != null && _session.HasWorld ? _session.FindSettlement(_selection.SelectedId) : null;
             Inspector.EnableInClassList("rk-hidden", s == null);
             if (s == null) return;
 
             InspectorName.text = s.Name;
             var region = _session.FindRegion(s.RegionId);
             Root.Q<Label>("insp-region").text = region != null ? region.Name : "No region";
-            var specialization = s.Specialization.ToString();
-            if (s.SecondarySpecialization != SettlementSpecialization.None) specialization += " · " + s.SecondarySpecialization;
+            var specialization = SpecializationName(s.Specialization);
+            if (s.SecondarySpecialization != SettlementSpecialization.None) specialization += " · " + SpecializationName(s.SecondarySpecialization);
             Root.Q<Label>("insp-type").text = $"{s.SettlementType} — {specialization}";
             InspectorPopulation.text = N(s.Population);
             Root.Q<Label>("insp-workers").text = $"{N(s.Employed)} of {N(s.Workforce)}";
@@ -372,6 +430,8 @@ namespace Realmkeeper.Presentation
             SetBar("insp-stability", s.Stability);
             SetTrend("insp-prosperity-trend", s.ProsperityTrend, s.ProsperityTarget);
             SetTrend("insp-stability-trend", s.StabilityTrend, s.StabilityTarget);
+            Root.Q<Label>("insp-prosperity-why").text = WhyText(s.Wellbeing.Prosperity);
+            Root.Q<Label>("insp-stability-why").text = WhyText(s.Wellbeing.Stability);
 
             // Food at a glance.
             var food = s.Food;
@@ -382,6 +442,10 @@ namespace Realmkeeper.Presentation
             var days = s.DaysOfFoodRemaining;
             Root.Q<Label>("insp-food-days").text = days.HasValue ? $"{N(days.Value)} days" : "Not running down";
             Root.Q<Label>("insp-food-days").EnableInClassList("rk-value--negative", days.HasValue && days.Value < 30);
+            var trend = Root.Q<Label>("insp-food-trend");
+            trend.text = FoodTrendText(s);
+            trend.EnableInClassList("rk-value--negative", s.FoodReserveTrend == RatingTrend.Falling || s.FoodShortageOutlook == ShortageOutlook.Worsening);
+            trend.EnableInClassList("rk-value--positive", s.FoodReserveTrend == RatingTrend.Rising);
 
             RefreshWarnings(s);
             RefreshEconomyTable(s);
@@ -459,8 +523,10 @@ namespace Realmkeeper.Presentation
                 return;
             }
 
+            var active = 0;
             foreach (var r in routes)
             {
+                if (!r.IsSuspended) active++;
                 var outgoing = r.OriginId == s.SettlementId;
                 var partner = outgoing ? r.DestinationName : r.OriginName;
                 string text;
@@ -482,12 +548,73 @@ namespace Realmkeeper.Presentation
                     text = $"{(outgoing ? "→" : "←")} {partner}: {(r.Status == TradeRouteStatus.Idle ? "nothing to trade yet" : "no deliveries yet")}";
                 }
 
+                if (r.IsSuspended) text += " · suspended";
                 var line = Cell(text, "rk-trade-line");
                 line.EnableInClassList("rk-trade-line--blocked", r.Status == TradeRouteStatus.Blocked);
-                list.Add(line);
+                line.EnableInClassList("rk-trade-line--suspended", r.IsSuspended);
+
+                // Each route is one-way; its toggle suspends or resumes that direction only.
+                var routeId = r.TradeRouteId;
+                var suspend = !r.IsSuspended;
+                var toggle = new Button(() => ShowMessage(_session.Dispatch(new SetTradeRouteSuspendedCommand(routeId, suspend))))
+                {
+                    text = r.IsSuspended ? "Resume" : "Suspend",
+                    name = "route-toggle-" + routeId,
+                    tooltip = r.IsSuspended ? "Let this route send shipments again." : "Stop new shipments on this route (goods on the road still arrive).",
+                };
+                toggle.AddToClassList("rk-button");
+                toggle.AddToClassList("rk-route-toggle");
+
+                var row = new VisualElement();
+                row.AddToClassList("rk-route-row");
+                row.Add(line);
+                row.Add(toggle);
+                list.Add(row);
             }
 
-            list.Add(Cell($"Trade activity: {N(s.TradeActivity)}", "rk-trade-line"));
+            list.Add(Cell($"Active routes: {active} of {routes.Count} · trade activity {N(s.TradeActivity)}", "rk-trade-line"));
+        }
+
+        /// <summary>"Generalist" for settlements with no specialization (stored as None).</summary>
+        public static string SpecializationName(SettlementSpecialization specialization) =>
+            specialization == SettlementSpecialization.None ? "Generalist" : specialization.ToString();
+
+        /// <summary>The terms behind a rating target, largest effect first: "Food +27 · Output +21 · Shortages −5".</summary>
+        public static string WhyText(IReadOnlyList<WellbeingContribution> parts)
+        {
+            var shown = new List<WellbeingContribution>();
+            foreach (var p in parts)
+            {
+                if (p.Points != 0) shown.Add(p);
+            }
+
+            shown.Sort((a, b) => Math.Abs(b.Hundredths).CompareTo(Math.Abs(a.Hundredths)));
+            if (shown.Count == 0) return string.Empty;
+            var text = new List<string>();
+            foreach (var p in shown) text.Add($"{FactorName(p.Factor)} {(p.Points > 0 ? "+" : "−")}{Math.Abs(p.Points)}");
+            return "Why: " + string.Join(" · ", text);
+        }
+
+        private static string FactorName(WellbeingFactor factor)
+        {
+            switch (factor)
+            {
+                case WellbeingFactor.EconomicSecurity: return "Security";
+                case WellbeingFactor.Goods: return "Goods";
+                default: return factor.ToString();
+            }
+        }
+
+        private static string FoodTrendText(SettlementSummary s)
+        {
+            var direction = s.FoodReserveTrend == RatingTrend.Rising ? "rising" : s.FoodReserveTrend == RatingTrend.Falling ? "falling" : "steady";
+            switch (s.FoodShortageOutlook)
+            {
+                case ShortageOutlook.Easing: return $"{direction} · shortage easing";
+                case ShortageOutlook.Worsening: return $"{direction} · shortage worsening";
+                case ShortageOutlook.Unchanged: return $"{direction} · shortage unchanged";
+                default: return direction;
+            }
         }
 
         private void SetTrend(string name, RatingTrend trend, int target)
@@ -548,7 +675,8 @@ namespace Realmkeeper.Presentation
             if (Root == null) return;
             var events = Root.Q<VisualElement>("event-list");
             events.Clear();
-            foreach (var e in _session.GetRecentEvents(EventCount))
+            var recent = _session != null && _session.HasWorld ? _session.GetRecentEvents(EventCount) : Array.Empty<EventSummary>();
+            foreach (var e in recent)
             {
                 var row = new VisualElement();
                 row.AddToClassList("rk-event");
@@ -563,10 +691,11 @@ namespace Realmkeeper.Presentation
             }
 
             var state = Root.Q<Label>("sim-state");
-            state.text = _playback.IsPlaying ? "Playing" : "Paused";
-            state.EnableInClassList("rk-sim-state--playing", _playback.IsPlaying);
+            var playing = _playback != null && _playback.IsPlaying;
+            state.text = playing ? "Playing" : "Paused";
+            state.EnableInClassList("rk-sim-state--playing", playing);
 
-            var overview = _session.GetOverview();
+            var overview = _session?.GetOverview();
             Root.Q<Label>("sim-speed").text = overview != null
                 ? $"Speed: {LabelFor(overview.Speed)} ({SimulationPlayback.SecondsPerDay(overview.Speed):0.##} s per day)"
                 : "-";
@@ -605,7 +734,7 @@ namespace Realmkeeper.Presentation
 
         private void OnDestroy()
         {
-            if (_session != null) _session.WorldChanged -= OnWorldChanged;
+            _binding?.Dispose();
             if (_playback != null) _playback.PlayStateChanged -= OnPlayStateChanged;
             if (_selection != null) _selection.SelectionChanged -= OnSelectionChanged;
             if (_ownedPanelSettings != null) PresentationMaterials.DestroyObject(_ownedPanelSettings);

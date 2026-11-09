@@ -72,6 +72,7 @@ namespace Realmkeeper.Application
             // Built-in commands that go through the registry.
             _commands.Register<SaveWorldCommand>(new SaveWorldHandler());
             _commands.Register<SetSimulationSpeedCommand>(new SetSpeedHandler());
+            _commands.Register<SetTradeRouteSuspendedCommand>(new SetTradeRouteSuspendedHandler());
         }
 
         public EconomyRules Rules => _rules;
@@ -80,6 +81,9 @@ namespace Realmkeeper.Application
         public CommandRegistry Commands => _commands;
 
         public event Action<WorldChange> WorldChanged;
+
+        /// <summary>Number of current <see cref="WorldChanged"/> subscribers (diagnostics and duplicate-subscription tests).</summary>
+        public int WorldChangedSubscriberCount => WorldChanged?.GetInvocationList().Length ?? 0;
 
         public bool HasWorld => _world != null;
 
@@ -181,8 +185,15 @@ namespace Realmkeeper.Application
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
             if (IsClosed) return CommandResult.InvalidState("The world session is closed.");
+            var slotError = SaveSlot.Validate(command.SlotName);
+            if (slotError != null) return CommandResult.Invalid(slotError);
             var load = _store.Load(command.SlotName);
-            if (!load.IsSuccess) return CommandResult.Fail(DescribeLoadFailure(load.Status), load.Errors);
+            if (!load.IsSuccess)
+            {
+                return load.Status == LoadStatus.NotFound
+                    ? CommandResult.NotFound(DescribeLoadFailure(load.Status) + $" ('{command.SlotName}')")
+                    : CommandResult.Fail(DescribeLoadFailure(load.Status), load.Errors);
+            }
 
             if (!_generator.SupportsVersion(load.World.GeneratorVersion))
             {
@@ -238,7 +249,8 @@ namespace Realmkeeper.Application
             public CommandResult Handle(SaveWorldCommand command, CommandContext context)
             {
                 if (!context.HasWorld) return CommandResult.InvalidState("There is no world to save.");
-                if (string.IsNullOrWhiteSpace(command.SlotName)) return CommandResult.Invalid("A save slot name is required.");
+                var slotError = SaveSlot.Validate(command.SlotName);
+                if (slotError != null) return CommandResult.Invalid(slotError);
                 var result = context.Session._store.Save(context.Committed, command.SlotName);
                 return result.IsSuccess ? CommandResult.Ok($"Saved to {result.Location}.") : CommandResult.Fail("Save failed.", new[] { result.Error });
             }
@@ -417,8 +429,16 @@ namespace Realmkeeper.Application
             WorldChanged?.Invoke(new WorldChange(reason, null));
         }
 
-        private SettlementSummary Summarize(SettlementData s) =>
-            new SettlementSummary(s, _world.FindFaction(s.FactionId)?.Name, _rules);
+        private SettlementSummary Summarize(SettlementData s)
+        {
+            var trading = false;
+            foreach (var shipment in _world.Shipments)
+            {
+                if (!shipment.IsReturning && (shipment.OriginId == s.SettlementId || shipment.DestinationId == s.SettlementId)) trading = true;
+            }
+
+            return new SettlementSummary(s, _world.FindFaction(s.FactionId)?.Name, _rules, trading);
+        }
 
         private string NameOf(SettlementId id) => _world?.FindSettlement(id)?.Name;
 

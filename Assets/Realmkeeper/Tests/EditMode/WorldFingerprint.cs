@@ -67,7 +67,7 @@ namespace Realmkeeper.Tests.EditMode
             {
                 sb.Append("T ").Append(r.TradeRouteId).Append(' ').Append(r.OriginId).Append("->").Append(r.DestinationId)
                   .Append(" cap=").Append(r.CapacityPerShipment).Append(" travel=").Append(r.TravelDays).Append(" freq=").Append(r.FrequencyDays)
-                  .Append(" eff=").Append(r.EfficiencyPercent).Append(' ').Append(r.Status).Append(" next=").Append(r.NextDepartureDay)
+                  .Append(" eff=").Append(r.EfficiencyPercent).Append(' ').Append(r.Status).Append(r.IsSuspended ? " suspended" : "").Append(" next=").Append(r.NextDepartureDay)
                   .Append(" n=").Append(r.ShipmentsDelivered).Append(" rep=").Append(r.LastReportedDay)
                   .Append(" last=").Append(r.LastDeliveryDay).Append(',').Append(r.LastDeliveryResource).Append(',')
                   .Append(r.LastDeliveryQuantity).Append(',').Append(r.LastDeliveryPayment);

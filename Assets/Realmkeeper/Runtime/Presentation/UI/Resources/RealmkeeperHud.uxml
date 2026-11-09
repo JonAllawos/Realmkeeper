@@ -73,6 +73,7 @@
                         <ui:VisualElement name="insp-prosperity-fill" class="rk-bar-fill rk-bar-fill--prosperity" />
                         <ui:Label name="insp-prosperity" text="-" class="rk-bar-text" />
                     </ui:VisualElement>
+                    <ui:Label name="insp-prosperity-why" text="" class="rk-why" />
                     <ui:VisualElement class="rk-row rk-bar-label">
                         <ui:Label text="Stability" class="rk-key" />
                         <ui:Label name="insp-stability-trend" text="-" class="rk-trend" />
@@ -81,6 +82,7 @@
                         <ui:VisualElement name="insp-stability-fill" class="rk-bar-fill rk-bar-fill--stability" />
                         <ui:Label name="insp-stability" text="-" class="rk-bar-text" />
                     </ui:VisualElement>
+                    <ui:Label name="insp-stability-why" text="" class="rk-why" />
 
                     <ui:Label text="Food" class="rk-section" />
                     <ui:VisualElement class="rk-row">
@@ -102,6 +104,10 @@
                     <ui:VisualElement class="rk-row">
                         <ui:Label text="Days remaining" class="rk-key" />
                         <ui:Label name="insp-food-days" text="-" class="rk-value" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="rk-row">
+                        <ui:Label text="Reserves trend" class="rk-key" />
+                        <ui:Label name="insp-food-trend" text="-" class="rk-value" />
                     </ui:VisualElement>
 
                     <ui:Label text="Economy (last day)" class="rk-section" />

@@ -1,10 +1,48 @@
 using System;
+using System.Collections.Generic;
 using Realmkeeper.Domain.Calendar;
 using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.World;
 
 namespace Realmkeeper.Simulation.Systems
 {
+    /// <summary>One term of a prosperity or stability target, used to explain the target in the UI.</summary>
+    public enum WellbeingFactor
+    {
+        Food = 0,
+        Goods = 1,
+        Trade = 2,
+        Output = 3,
+        EconomicSecurity = 4,
+        Housing = 5,
+        Prosperity = 6,
+        Employment = 7,
+        Shortages = 8,
+        Starvation = 9,
+    }
+
+    /// <summary>A factor's score and its signed contribution to a target, in hundredths of a point.</summary>
+    public readonly struct WellbeingContribution
+    {
+        public WellbeingContribution(WellbeingFactor factor, int score, int hundredths)
+        {
+            Factor = factor;
+            Score = score;
+            Hundredths = hundredths;
+        }
+
+        public WellbeingFactor Factor { get; }
+
+        /// <summary>The factor's 0–100 score (or the penalty in points, for penalties).</summary>
+        public int Score { get; }
+
+        /// <summary>Signed contribution in hundredths of a rating point (penalties are negative).</summary>
+        public int Hundredths { get; }
+
+        /// <summary>Contribution rounded to whole points (half away from zero), for display.</summary>
+        public int Points => Hundredths >= 0 ? (Hundredths + 50) / 100 : -((-Hundredths + 50) / 100);
+    }
+
     /// <summary>Factor scores (0..100) behind a settlement's prosperity and stability targets.</summary>
     public readonly struct WellbeingFactors
     {
@@ -227,6 +265,49 @@ namespace Realmkeeper.Simulation.Systems
             var economicSecurity = (f.Resources + f.Coin) / 2;
             return ClampRating((35 * f.Food + 20 * economicSecurity + 15 * f.Housing + 20 * prosperity + 10 * f.Employment) / 100
                                - f.ShortagePenalty - f.StarvationPenalty);
+        }
+
+        /// <summary>
+        /// The terms of <see cref="ProsperityTarget"/>, each in hundredths of a point (weight × score,
+        /// or −100 × penalty). <c>Clamp(Σ positive / 100 − penalties)</c> equals the target exactly.
+        /// </summary>
+        public static IReadOnlyList<WellbeingContribution> ProsperityContributions(WellbeingFactors f) => new[]
+        {
+            new WellbeingContribution(WellbeingFactor.Food, f.Food, 30 * f.Food),
+            new WellbeingContribution(WellbeingFactor.Goods, f.Resources, 15 * f.Resources),
+            new WellbeingContribution(WellbeingFactor.Trade, f.Trade, 20 * f.Trade),
+            new WellbeingContribution(WellbeingFactor.Output, f.Output, 35 * f.Output),
+            new WellbeingContribution(WellbeingFactor.Shortages, f.ShortagePenalty, -100 * f.ShortagePenalty),
+        };
+
+        /// <summary>The terms of <see cref="StabilityTarget"/>, in hundredths of a point, like <see cref="ProsperityContributions"/>.</summary>
+        public static IReadOnlyList<WellbeingContribution> StabilityContributions(WellbeingFactors f, int prosperity)
+        {
+            var economicSecurity = (f.Resources + f.Coin) / 2;
+            return new[]
+            {
+                new WellbeingContribution(WellbeingFactor.Food, f.Food, 35 * f.Food),
+                new WellbeingContribution(WellbeingFactor.EconomicSecurity, economicSecurity, 20 * economicSecurity),
+                new WellbeingContribution(WellbeingFactor.Housing, f.Housing, 15 * f.Housing),
+                new WellbeingContribution(WellbeingFactor.Prosperity, prosperity, 20 * prosperity),
+                new WellbeingContribution(WellbeingFactor.Employment, f.Employment, 10 * f.Employment),
+                new WellbeingContribution(WellbeingFactor.Shortages, f.ShortagePenalty, -100 * f.ShortagePenalty),
+                new WellbeingContribution(WellbeingFactor.Starvation, f.StarvationPenalty, -100 * f.StarvationPenalty),
+            };
+        }
+
+        /// <summary>Recombines contributions the way the target formulas do (integer division of the weighted sum, then penalties, then clamp).</summary>
+        public static int TargetFrom(IReadOnlyList<WellbeingContribution> parts)
+        {
+            long weighted = 0;
+            long penalties = 0;
+            foreach (var p in parts)
+            {
+                if (p.Hundredths >= 0) weighted += p.Hundredths;
+                else penalties += -p.Hundredths / 100;
+            }
+
+            return ClampRating((int)(weighted / 100 - penalties));
         }
 
         /// <summary>Moves a rating toward its target by at most <paramref name="maxStep"/>.</summary>

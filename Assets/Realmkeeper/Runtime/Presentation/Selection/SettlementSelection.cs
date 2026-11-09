@@ -15,7 +15,7 @@ namespace Realmkeeper.Presentation
     {
         public const float MaxRayDistance = 2000f;
 
-        private WorldSession _session;
+        private WorldSessionBinding _binding;
         private WorldView _worldView;
         private Camera _camera;
         private SelectionHighlight _highlight;
@@ -35,9 +35,14 @@ namespace Realmkeeper.Presentation
         /// <summary>When false, Update ignores devices; tests call the public methods directly.</summary>
         public bool ReadInput { get; set; } = true;
 
+        private WorldSession _session => _binding?.Session;
+
+        /// <summary>The session this selection reads (null when none is active).</summary>
+        public WorldSession BoundSession => _session;
+
         public void Initialize(WorldSession session, WorldView worldView, Camera targetCamera, Material material)
         {
-            _session = session;
+            _binding = new WorldSessionBinding(OnWorldChanged);
             _worldView = worldView;
             _camera = targetCamera;
 
@@ -46,7 +51,14 @@ namespace Realmkeeper.Presentation
             _highlight = highlightObject.AddComponent<SelectionHighlight>();
             _highlight.Initialize(material);
 
-            _session.WorldChanged += OnWorldChanged;
+            Bind(session);
+        }
+
+        /// <summary>Follows a newly started session (null: none). Clears a selection that belonged to the old one.</summary>
+        public void Bind(WorldSession session)
+        {
+            if (_binding == null || !_binding.Bind(session)) return;
+            Clear();
         }
 
         public void Select(SettlementId id)
@@ -114,6 +126,12 @@ namespace Realmkeeper.Presentation
 
         private void OnWorldChanged(WorldChange change)
         {
+            if (change.Reason == WorldChangeReason.Closed)
+            {
+                Clear();
+                return;
+            }
+
             if (!change.GeographyChanged || SelectedId.IsEmpty) return;
 
             // Visuals were rebuilt: keep the selection if the settlement still exists.
@@ -130,7 +148,7 @@ namespace Realmkeeper.Presentation
 
         private void OnDestroy()
         {
-            if (_session != null) _session.WorldChanged -= OnWorldChanged;
+            _binding?.Dispose();
         }
     }
 }

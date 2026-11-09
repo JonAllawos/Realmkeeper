@@ -93,12 +93,58 @@ namespace Realmkeeper.Hosting
 
         public void UnregisterModule(IRuntimeModule module) => _modules.Remove(module);
 
+        /// <summary>
+        /// The save slot both views save to and load from. Starts as <see cref="SaveSlot.Default"/>
+        /// ("autosave"), so behaviour from before slots existed is unchanged.
+        /// </summary>
+        public SaveSlot ActiveSlot { get; private set; } = SaveSlot.Default;
+
+        /// <summary>Raised when <see cref="ActiveSlot"/> changes.</summary>
+        public event Action<SaveSlot> ActiveSlotChanged;
+
+        /// <summary>Chooses the slot later saves and loads use. An invalid name is refused and the active slot is kept.</summary>
+        public CommandResult SelectSlot(string slotName)
+        {
+            if (!SaveSlot.TryCreate(slotName, out var slot, out var error)) return CommandResult.Invalid(error);
+            if (slot == ActiveSlot) return CommandResult.Ok($"Save slot '{slot}' is already selected.");
+            ActiveSlot = slot;
+            ActiveSlotChanged?.Invoke(slot);
+            return CommandResult.Ok($"Save slot '{slot}' selected.");
+        }
+
+        /// <summary>Saves to <see cref="ActiveSlot"/>.</summary>
+        public CommandResult Save() => Save(ActiveSlot.Name);
+
         /// <summary>Saves through the command registry, after letting presentations record transient state.</summary>
         public CommandResult Save(string slot)
         {
             if (!Host.IsActive) return CommandResult.InvalidState("No world session is active.");
+            var slotError = SaveSlot.Validate(slot);
+            if (slotError != null) return CommandResult.Invalid(slotError);
             PreparingSave?.Invoke();
             return Host.Session.Dispatch(new SaveWorldCommand(slot));
+        }
+
+        /// <summary>Loads <see cref="ActiveSlot"/> into the active session (the session object stays the same).</summary>
+        public CommandResult Load() => Load(ActiveSlot.Name);
+
+        /// <summary>
+        /// Loads a slot into the active session; on success that slot becomes active. On failure
+        /// the current world, and the active slot, stay unchanged.
+        /// </summary>
+        public CommandResult Load(string slot)
+        {
+            if (!Host.IsActive) return CommandResult.InvalidState("No world session is active.");
+            if (!SaveSlot.TryCreate(slot, out var parsed, out var error)) return CommandResult.Invalid(error);
+            Playback?.Pause();
+            var result = Host.Session.Execute(new LoadWorldCommand(parsed));
+            if (result.IsSuccess && parsed != ActiveSlot)
+            {
+                ActiveSlot = parsed;
+                ActiveSlotChanged?.Invoke(parsed);
+            }
+
+            return result;
         }
 
         private void ConfigureSession(WorldSession session)

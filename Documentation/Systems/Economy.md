@@ -24,6 +24,24 @@ that does not fit is recorded as **wasted**; unmet demand is recorded as **short
 | 400 | `realmkeeper.population` | Slow growth or emigration, carried in thousandths of a person. |
 | 500 | `realmkeeper.chronicle` | Milestone events (ratings, population, treasury, production). |
 
+Each day is one transaction (ADR-0008): the scheduler copies the world, runs these systems in
+this order on the copy, validates the result and only then commits it. A failure anywhere
+leaves the previous day untouched. `DailyOrder_IsLabourProductionTradeConsumptionWellbeingPopulationChronicle`
+pins the order.
+
+**Why trade comes before consumption** (the Phase 2 brief suggested the reverse): goods that
+arrive today can feed people today, and a departure can only take surplus that exists after
+production. Shortage detection happens inside consumption, after both. Prosperity and
+stability (300) then see the day's final state.
+
+**Pausing.** Time only passes through `AdvanceDay`/`AdvanceDays` commands. `SimulationPlayback`
+issues them while playing; paused, `Tick` does nothing, however much time passes.
+
+**Measured cost** (`ThirtyDayRun_IsMeasured`, .NET 8 Release, Windows): a 30-day run of the
+default world (3 settlements, 15 named residents, 6 trade routes) took **7.2–9.3 ms** over two runs, or
+**0.24–0.31 ms per day**, including the whole-world copy and validation. Nothing has been
+measured at larger scales; no claim is made about thousands of settlements or residents.
+
 ## Production capacity and specialization (from terrain, at generation)
 
 Capacity is the number of workers the land can employ, counted in cells around the settlement:
@@ -54,6 +72,12 @@ data, so manual editing later needs no change to the systems.
   shortfall), and recover at 14 days of cover (`ResourceShortageBegan` and `ResourceShortageEnded`).
 - **Days of food remaining** = reserves ÷ (demand − own production), shown only while in deficit.
 
+## Specialization labels
+
+A settlement with no dominant potential is stored as `SettlementSpecialization.None` and shown
+as **Generalist**. Specializations are chosen from terrain potential, never from names, so the
+same seed always gives the same profiles.
+
 ## Trade
 
 Routes come in pairs (A→B and B→A) along each generated road. Each route has a capacity
@@ -79,6 +103,14 @@ is recorded on the route. The chronicle gets at most one delivery entry per rout
 
 Trade adds the value moved to both settlements' **trade activity**, which decays by 1/30 a day.
 
+**Suspension.** `SetTradeRouteSuspendedCommand(routeId, suspended)` (a registry command, offered
+as Suspend/Resume in the inspector) sets `TradeRouteData.IsSuspended`:
+- A suspended route sends nothing and shows status `Suspended`.
+- A shipment already on the road still arrives and is paid for, so goods are never lost or created.
+- Resuming lets the route trade again at its next departure check.
+- Both changes are chronicled (`TradeRouteSuspended`, `TradeRouteResumed`).
+- Refusals change nothing: an unknown route (`NotFound`), or suspending one that is already suspended (`ValidationFailed`).
+
 ## Prosperity and stability
 
 Factor scores, each 0–100 (`EconomyMath.Factors`):
@@ -99,6 +131,35 @@ Targets:
 The shortage penalty is 10 for a food shortage, 5 per other resource in shortage, and +2 per
 day without food (up to 20). Each rating moves toward its target by at most 1 point a day.
 The target is stored, so the inspector shows "rising toward" or "falling toward".
+
+**Why a rating is moving.** `EconomyMath.ProsperityContributions` and `StabilityContributions`
+return each term of the formulas above: weight × score, and the penalties as negatives.
+`TargetFrom` recombines them exactly as the formulas do; a test checks 1,080 factor
+combinations. The inspector prints the terms, largest first, under each bar, for example
+"Why: Food +27 · Output +21 · Goods +9 · Shortages −10". They are rounded to whole points, so
+they can differ from the target by a point.
+
+**Food outlook** (inspector, "Reserves trend"):
+- **Trend:** the sign of yesterday's net food change, including trade (rising, falling or steady).
+- **Shortage outlook:**
+  - None: not in shortage and fed;
+  - Easing: reserves rose;
+  - Worsening: reserves fell, or people went without food;
+  - Unchanged: otherwise.
+- **Own production:** "Net (own farms)" shows whether production alone covers demand.
+
+## Map indicators
+
+Small diamonds above each settlement (`MapIndicatorLayer`), from `SettlementSummary.Indicators`:
+
+| Colour | Condition |
+|---|---|
+| Red | In food shortage, or out of food |
+| Amber | Stability falling toward a target at least 5 points lower |
+| Green | Strong production: last day's output score ≥ 75 |
+| Blue | A shipment to or from the settlement is on the road |
+
+They refresh after every world change, are hidden while exploring and have no colliders.
 
 ## Population
 

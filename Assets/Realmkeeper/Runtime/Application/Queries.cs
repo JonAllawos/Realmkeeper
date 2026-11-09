@@ -115,9 +115,66 @@ namespace Realmkeeper.Application
         public int LastOutput { get; }
     }
 
+    /// <summary>Conditions shown as small markers above a settlement on the strategic map.</summary>
+    [Flags]
+    public enum SettlementIndicators
+    {
+        None = 0,
+
+        /// <summary>In food shortage, or already out of food.</summary>
+        FoodShortage = 1,
+
+        /// <summary>Last day's production value per person scores at least <see cref="SettlementSummary.StrongOutputScore"/>.</summary>
+        StrongProduction = 2,
+
+        /// <summary>A shipment to or from the settlement is on the road.</summary>
+        ActiveTrade = 4,
+
+        /// <summary>Stability is falling toward a target at least <see cref="SettlementSummary.DecliningStabilityGap"/> points lower.</summary>
+        DecliningStability = 8,
+    }
+
+    /// <summary>How a food shortage is developing (judged from the last day's change in reserves).</summary>
+    public enum ShortageOutlook
+    {
+        /// <summary>No food shortage.</summary>
+        None = 0,
+        Easing = 1,
+        Unchanged = 2,
+        Worsening = 3,
+    }
+
+    /// <summary>Why a settlement's prosperity and stability targets are what they are.</summary>
+    public sealed class WellbeingBreakdown
+    {
+        internal WellbeingBreakdown(IReadOnlyList<WellbeingContribution> prosperity, IReadOnlyList<WellbeingContribution> stability)
+        {
+            Prosperity = prosperity;
+            Stability = stability;
+            ProsperityTarget = EconomyMath.TargetFrom(prosperity);
+            StabilityTarget = EconomyMath.TargetFrom(stability);
+        }
+
+        /// <summary>Terms of the prosperity target (weights in Documentation/Systems/Economy.md).</summary>
+        public IReadOnlyList<WellbeingContribution> Prosperity { get; }
+
+        public IReadOnlyList<WellbeingContribution> Stability { get; }
+
+        /// <summary>The prosperity target these terms add up to (equal to the simulation's formula).</summary>
+        public int ProsperityTarget { get; }
+
+        public int StabilityTarget { get; }
+    }
+
     public sealed class SettlementSummary
     {
-        internal SettlementSummary(SettlementData s, string factionName, EconomyRules rules)
+        /// <summary>Output score (0–100) from which a settlement counts as strongly productive on the map.</summary>
+        public const int StrongOutputScore = 75;
+
+        /// <summary>How far below current stability the target must be for the map to flag a decline.</summary>
+        public const int DecliningStabilityGap = 5;
+
+        internal SettlementSummary(SettlementData s, string factionName, EconomyRules rules, bool hasTradeOnRoad = false)
         {
             var e = s.Economy;
             SettlementId = s.SettlementId;
@@ -165,7 +222,54 @@ namespace Realmkeeper.Application
 
             Production = production;
             Status = ComputeStatus(this);
+
+            var factors = EconomyMath.Factors(s, rules);
+            Wellbeing = new WellbeingBreakdown(EconomyMath.ProsperityContributions(factors), EconomyMath.StabilityContributions(factors, s.Prosperity));
+
+            var food = Food;
+            FoodReserveTrend = food.NetChange > 0 ? RatingTrend.Rising : food.NetChange < 0 ? RatingTrend.Falling : RatingTrend.Steady;
+            FoodShortageOutlook = OutlookFor(s.IsInFoodShortage, e.DaysWithoutFood, FoodReserveTrend);
+            Indicators = IndicatorsFor(s.IsInFoodShortage, e.DaysWithoutFood, factors.Output, hasTradeOnRoad, Stability, StabilityTarget);
         }
+
+        /// <summary>
+        /// Shortage outlook rule: no shortage (and food not run out) → None; reserves rose last day →
+        /// Easing; reserves fell, or people are going without food → Worsening; otherwise Unchanged.
+        /// </summary>
+        public static ShortageOutlook OutlookFor(bool inFoodShortage, int daysWithoutFood, RatingTrend reserveTrend)
+        {
+            if (!inFoodShortage && daysWithoutFood == 0) return ShortageOutlook.None;
+            if (reserveTrend == RatingTrend.Rising) return ShortageOutlook.Easing;
+            if (reserveTrend == RatingTrend.Falling || daysWithoutFood > 0) return ShortageOutlook.Worsening;
+            return ShortageOutlook.Unchanged;
+        }
+
+        /// <summary>Map indicator rule (see <see cref="SettlementIndicators"/>).</summary>
+        public static SettlementIndicators IndicatorsFor(bool inFoodShortage, int daysWithoutFood, int outputScore, bool hasTradeOnRoad,
+            int stability, int stabilityTarget)
+        {
+            var indicators = SettlementIndicators.None;
+            if (inFoodShortage || daysWithoutFood > 0) indicators |= SettlementIndicators.FoodShortage;
+            if (outputScore >= StrongOutputScore) indicators |= SettlementIndicators.StrongProduction;
+            if (hasTradeOnRoad) indicators |= SettlementIndicators.ActiveTrade;
+            if (stability - stabilityTarget >= DecliningStabilityGap) indicators |= SettlementIndicators.DecliningStability;
+            return indicators;
+        }
+
+        /// <summary>Why prosperity and stability are heading where they are.</summary>
+        public WellbeingBreakdown Wellbeing { get; }
+
+        /// <summary>Direction of the food reserves over the last day (production, consumption and trade together).</summary>
+        public RatingTrend FoodReserveTrend { get; }
+
+        /// <summary>Whether a food shortage is easing or worsening (None when there is no shortage).</summary>
+        public ShortageOutlook FoodShortageOutlook { get; }
+
+        /// <summary>True when the settlement's own food production covered its demand last day.</summary>
+        public bool FoodProductionMeetsDemand => Food.Produced >= Food.Demand;
+
+        /// <summary>Map markers for this settlement, from authoritative simulation data.</summary>
+        public SettlementIndicators Indicators { get; }
 
         public SettlementId SettlementId { get; }
         public string Name { get; }
@@ -249,6 +353,7 @@ namespace Realmkeeper.Application
             OriginName = originName;
             DestinationName = destinationName;
             Status = r.Status;
+            IsSuspended = r.IsSuspended;
             CapacityPerShipment = r.CapacityPerShipment;
             TravelDays = r.TravelDays;
             FrequencyDays = r.FrequencyDays;
@@ -278,6 +383,10 @@ namespace Realmkeeper.Application
         public string OriginName { get; }
         public string DestinationName { get; }
         public TradeRouteStatus Status { get; }
+
+        /// <summary>Suspended by command: no new shipments leave (one already on the road still arrives).</summary>
+        public bool IsSuspended { get; }
+
         public int CapacityPerShipment { get; }
         public int TravelDays { get; }
         public int FrequencyDays { get; }

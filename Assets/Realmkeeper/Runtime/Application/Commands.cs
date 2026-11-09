@@ -42,12 +42,19 @@ namespace Realmkeeper.Application
     public sealed class SaveWorldCommand : ICommand
     {
         public SaveWorldCommand(string slotName) { SlotName = slotName; }
+        public SaveWorldCommand(SaveSlot slot) : this(slot.Name) { }
+
+        /// <summary>The raw slot name; validated with <see cref="SaveSlot"/> when executed.</summary>
         public string SlotName { get; }
     }
 
+    /// <summary>Replaces the session's world with a saved one. On failure the current world stays.</summary>
     public sealed class LoadWorldCommand
     {
         public LoadWorldCommand(string slotName) { SlotName = slotName; }
+        public LoadWorldCommand(SaveSlot slot) : this(slot.Name) { }
+
+        /// <summary>The raw slot name; validated with <see cref="SaveSlot"/> when executed.</summary>
         public string SlotName { get; }
     }
 

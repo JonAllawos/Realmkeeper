@@ -60,7 +60,8 @@ namespace Realmkeeper.Application
 
         public CommandResult StartFromSave(string slotName)
         {
-            if (string.IsNullOrWhiteSpace(slotName)) return CommandResult.Invalid("A save slot name is required.");
+            var slotError = SaveSlot.Validate(slotName);
+            if (slotError != null) return CommandResult.Invalid(slotError);
             return Start(session => session.Execute(new LoadWorldCommand(slotName)));
         }
 

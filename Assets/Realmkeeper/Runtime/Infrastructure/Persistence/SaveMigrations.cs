@@ -5,6 +5,25 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v3 → v4 (Phase 2 completion): trade routes gain "isSuspended". Every route in an older
+    /// save was trading, so the documented default is false (not suspended). Nothing else
+    /// changes; resources, routes, shipments and history are kept exactly as saved.
+    /// </summary>
+    public sealed class MigrationV3ToV4 : ISaveMigration
+    {
+        public int SourceVersion => 3;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world) || !(world["tradeRoutes"] is JArray routes)) return;
+            foreach (var token in routes)
+            {
+                if (token is JObject route && route["isSuspended"] == null) route["isSuspended"] = false;
+            }
+        }
+    }
+
+    /// <summary>
     /// v2 → v3 (ADR-0009 prerequisites). The JSON layout gains regions, settlement.regionId, the
     /// player and resident fields, but none of them can be derived from JSON alone: they come from
     /// seeded streams. So this step is structural only. After mapping, the serializer runs

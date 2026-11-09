@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Realmkeeper.Application;
 using Realmkeeper.Application.Ports;
 using Realmkeeper.Domain.World;
 
@@ -28,18 +29,8 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         public string RootDirectory => _root;
 
-        /// <summary>Slot names: 1-48 chars of letters, digits, '-' or '_'. Rejects path tricks.</summary>
-        public static bool IsValidSlotName(string slot)
-        {
-            if (string.IsNullOrEmpty(slot) || slot.Length > 48) return false;
-            foreach (var c in slot)
-            {
-                var ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_';
-                if (!ok) return false;
-            }
-
-            return true;
-        }
+        /// <summary>Slot names: 1-48 chars of letters, digits, '-' or '_'. Rejects path tricks. One rule: <see cref="SaveSlot"/>.</summary>
+        public static bool IsValidSlotName(string slot) => SaveSlot.IsValidName(slot);
 
         public string PathFor(string slot)
         {

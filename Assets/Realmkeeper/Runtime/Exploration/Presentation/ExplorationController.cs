@@ -21,7 +21,6 @@ namespace Realmkeeper.Exploration.Presentation
     /// </summary>
     public sealed class ExplorationController : MonoBehaviour
     {
-        public const string SaveSlot = "autosave";
 
         private readonly LocalEnvironmentStreamer _streamer = new LocalEnvironmentStreamer();
         private readonly InteractionDetector _detector = new InteractionDetector();
@@ -29,7 +28,8 @@ namespace Realmkeeper.Exploration.Presentation
         private readonly List<EnvironmentInteractable> _interactables = new List<EnvironmentInteractable>();
 
         private RealmkeeperRuntime _runtime;
-        private WorldSession _session;
+        private WorldSessionBinding _binding;
+        private WorldSession _session => _binding?.Session;
         private ExplorationMaterials _materials;
         private IExplorationInput _input;
         private bool _ownsInput;
@@ -57,6 +57,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             _runtime = runtime;
             _input = input;
+            _binding = new WorldSessionBinding(OnWorldChanged);
             if (_input == null)
             {
                 _input = new InputSystemExplorationInput();
@@ -84,17 +85,14 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void BindSession(WorldSession session)
         {
-            if (_session == session) return;
-            UnbindSession();
-            _session = session;
-            _session.WorldChanged += OnWorldChanged;
+            if (!_binding.Bind(session)) return; // already bound: never subscribe twice
+            UnloadEnvironment();
             Sync(forceReload: true);
         }
 
         private void UnbindSession()
         {
-            if (_session != null) _session.WorldChanged -= OnWorldChanged;
-            _session = null;
+            _binding?.Unbind();
             UnloadEnvironment();
         }
 
@@ -274,7 +272,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         public CommandResult SaveNow()
         {
-            var result = _runtime.Save(SaveSlot);
+            var result = _runtime.Save(); // the runtime's active slot, shared with the map view
             Hud?.ShowMessage(result);
             return result;
         }

@@ -173,3 +173,35 @@ after these presentation-only fixes. The user replayed and confirmed the roofs a
 **Not tested:**
 - the mouse-look feel, and cursor capture with Esc and click;
 - the Save (F5) → Load round trip in manual play (it is covered by the PlayMode test, but no screenshot of it was taken).
+
+## Pre-Phase-2 stabilization and Phase 2 completion (2026-11-09)
+
+| Run | Where | Result |
+|---|---|---|
+| .NET harness | Windows, .NET 8, Release | **174 passed, 0 failed** (135 earlier + 39 new) |
+| Unity EditMode | Unity 6000.0.47f1 Test Runner, run by the user, 13:32 | **174 passed, 0 failed, 0 skipped** |
+| Unity PlayMode | Unity 6000.0.47f1 Test Runner, run by the user, 13:32 | **37 passed, 0 failed, 0 skipped** (30 earlier + 7 new) |
+| Gameplay check | Play Mode, screenshots `Documentation/Screenshots/dev-20261109-1332*.png` | Inspector shows the "Why" lines and the reserves trend; a strong-production marker shows on the map |
+
+**New tests:**
+
+| Where | Tests | Cases |
+|---|---|---|
+| EditMode, `Stabilization/SessionRebindingAndSaveSlotTests` | Rebinding across 3 restarts with one subscription each; rebinding to another session; slot names; default slot; independent slots; invalid slots; missing slot | 20 |
+| EditMode, `Phase2/Phase2CompletionTests` | Daily order; route suspension (in transit, from the start, through the command); v3 → v4 migration; contributions match the formulas (1,080 combinations); settlement breakdown; shortage outlook; indicator rules; empty granary; active-trade marker; pausing; chronicle integrity over 180 days; 30-day timing | 19 |
+| PlayMode, `SessionRestartPlayModeTests` | Map, selection and HUD rebind over 3 restarts; saving to the selected slot | 2 |
+| PlayMode, `ExplorationPlayModeTests` | Restart while exploring; saving from exploration uses the selected slot | 2 |
+| PlayMode, `Phase2HudPlayModeTests` | Inspector reasons and food trend; route toggle; map markers match the simulation for 15 days | 3 |
+
+**Mutation checks:** three deliberate breaks, each caught by the new tests and then reverted:
+- the binding's same-session guard removed;
+- suspension ignored by trade;
+- the shortage outlook inverted.
+
+**A failure found and fixed between runs.** The first Unity PlayMode run had 36/37 passing.
+`EconomyHudTests.Inspector_ListsTheSelectedSettlementsTradeRoutes` counted trade lines only
+directly under the list, but each line now sits in a row with its Suspend/Resume toggle. The
+test now searches at every depth and also checks one toggle per route. The second run: 37/37.
+
+**Performance:** a 30-day run of the default world (3 settlements, 15 named residents, 6
+routes) took 7.2–9.3 ms in the .NET harness. Nothing was measured in Unity or at larger scale.

@@ -27,11 +27,12 @@ namespace Realmkeeper.Presentation
 
         private PresentationMaterials _materials;
         private bool _strategicVisible = true;
+        private WorldSessionBinding _binding;
 
         public RealmkeeperRuntime Runtime { get; private set; }
 
-        /// <summary>The runtime's session (the same object exploration uses).</summary>
-        public WorldSession Session { get; private set; }
+        /// <summary>The runtime's active session (the same object exploration uses); null while none is active.</summary>
+        public WorldSession Session => _binding?.Session;
 
         public SimulationPlayback Playback => Runtime != null ? Runtime.Playback : null;
 
@@ -42,6 +43,9 @@ namespace Realmkeeper.Presentation
         public SceneEnvironment Environment { get; private set; }
 
         public SettlementSelection Selection { get; private set; }
+
+        /// <summary>Condition markers above settlements (food shortage, strong production, trade, declining stability).</summary>
+        public MapIndicatorLayer Indicators { get; private set; }
 
         public RealmkeeperHud Hud { get; private set; }
 
@@ -68,52 +72,95 @@ namespace Realmkeeper.Presentation
             worldObject.transform.SetParent(transform, false);
             WorldView = worldObject.AddComponent<WorldView>();
             WorldView.Initialize(_materials);
+            Indicators = MapIndicatorLayer.Create(transform, WorldView, CameraController.Camera);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             var screenshots = gameObject.AddComponent<DevScreenshot>();
             screenshots.AutoCaptureSeconds = _autoScreenshotSeconds;
 #endif
 
+            // Rebuild visuals first; selection and HUD subscribe afterwards so they see the new views.
+            _binding = new WorldSessionBinding(OnWorldChanged);
+            Selection = gameObject.AddComponent<SettlementSelection>();
+            Selection.Initialize(null, WorldView, CameraController.Camera, _materials.Highlight);
+            Hud = RealmkeeperHud.Create(transform);
+            Hud.Initialize(null, null, Selection, CameraController, WorldView);
+            Hud.SaveHandler = () => Runtime.Save();
+            Hud.LoadHandler = () => Runtime.Load();
+            Selection.IsPointerOverUi = Hud.IsPointerOverUi;
+            CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
+
+            // Follow every session the runtime starts, not just the first (restart, start from a save).
+            Runtime.Host.SessionStarted += BindSession;
+            Runtime.Host.SessionEnded += UnbindSession;
+            Runtime.ModeChanged += OnModeChanged;
+
             // Uses the world that is already running (for example after a scene change), or starts one.
             LastCreateResult = Runtime.EnsureWorld(_worldName, _seed);
             if (!LastCreateResult.IsSuccess || !Runtime.Host.IsActive)
             {
                 Debug.LogError($"Realmkeeper: {LastCreateResult.Message} {string.Join("; ", LastCreateResult.Errors)}");
+                ApplyMode(Runtime.Mode);
                 return;
             }
 
-            Session = Runtime.Session;
-
-            // Rebuild visuals first; selection and HUD subscribe afterwards so they see the new views.
-            Session.WorldChanged += OnWorldChanged;
-            RebuildWorld();
-
-            Selection = gameObject.AddComponent<SettlementSelection>();
-            Selection.Initialize(Session, WorldView, CameraController.Camera, _materials.Highlight);
-            Hud = RealmkeeperHud.Create(transform);
-            Hud.Initialize(Session, Playback, Selection, CameraController, WorldView);
-            Hud.SaveHandler = slot => Runtime.Save(slot);
-            Selection.IsPointerOverUi = Hud.IsPointerOverUi;
-            CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
-
-            Runtime.ModeChanged += OnModeChanged;
+            BindSession(Runtime.Session); // no-op when SessionStarted already bound it
             ApplyMode(Runtime.Mode);
 
             if (_playOnStart) Playback.Play();
         }
 
+        /// <summary>
+        /// Points the whole strategic view (world visuals, selection, HUD and its clock) at a
+        /// session. The previous session's subscriptions are removed first; binding the same
+        /// session again does nothing, so repeated restarts never stack subscriptions.
+        /// </summary>
+        private void BindSession(WorldSession session)
+        {
+            if (!_binding.Bind(session)) return;
+            Selection.Bind(session);
+            Hud.Bind(session, Runtime.Playback);
+            RebuildWorld();
+        }
+
+        /// <summary>The runtime shut its session down: let go of it everywhere and show no world.</summary>
+        private void UnbindSession()
+        {
+            _binding.Unbind();
+            Selection.Bind(null);
+            Hud.Bind(null, null);
+            Indicators.Clear();
+            WorldView.Clear();
+        }
+
         private void OnDestroy()
         {
-            if (Session != null) Session.WorldChanged -= OnWorldChanged;
-            if (Runtime != null) Runtime.ModeChanged -= OnModeChanged;
+            _binding?.Dispose();
+            if (Runtime != null)
+            {
+                Runtime.ModeChanged -= OnModeChanged;
+                if (Runtime.Host != null)
+                {
+                    Runtime.Host.SessionStarted -= BindSession;
+                    Runtime.Host.SessionEnded -= UnbindSession;
+                }
+            }
+
             if (WorldView != null) WorldView.Clear();
             _materials?.Dispose();
         }
 
         private void OnWorldChanged(WorldChange change)
         {
-            if (change.Reason == WorldChangeReason.Closed) return;
-            if (change.GeographyChanged) RebuildWorld();
+            if (change.Reason == WorldChangeReason.Closed)
+            {
+                Indicators.Clear();
+                WorldView.Clear();
+                return;
+            }
+
+            if (change.GeographyChanged) RebuildWorld(); // rebuilds the views, then the indicators
+            else Indicators.Refresh(Session.GetSettlements()); // ratings, shortages and trade change daily
         }
 
         private void RebuildWorld()
@@ -121,6 +168,8 @@ namespace Realmkeeper.Presentation
             if (Session == null || !Session.HasWorld) return;
             var map = Session.Map;
             WorldView.Rebuild(map, Session.GetSettlements());
+            Indicators.Clear();
+            Indicators.Refresh(Session.GetSettlements());
             CameraController.FrameRegion(WorldView.Bounds, map.WaterWorldHeight);
             Debug.Log($"Realmkeeper: built '{Session.GetOverview().WorldName}' (seed {Session.GetOverview().Seed}): " +
                       $"{WorldView.TerrainChunkCount} terrain chunks, {WorldView.Settlements.Count} settlements, " +
@@ -153,6 +202,7 @@ namespace Realmkeeper.Presentation
             _strategicVisible = visible;
             CameraController.gameObject.SetActive(visible);
             WorldView.gameObject.SetActive(visible);
+            Indicators.gameObject.SetActive(visible);
             if (Environment.Sun != null) Environment.Sun.gameObject.SetActive(visible);
             if (Hud != null) Hud.SetVisible(visible); // hidden by style: re-enabling a UIDocument would rebuild its tree
             if (Selection != null)

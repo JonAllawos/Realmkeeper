@@ -213,6 +213,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int FrequencyDays { get; set; }
         public int EfficiencyPercent { get; set; }
         public string Status { get; set; }
+
+        /// <summary>Schema v4. Absent in older saves, which means "not suspended".</summary>
+        public bool IsSuspended { get; set; }
+
         public long NextDepartureDay { get; set; }
         public int ShipmentsDelivered { get; set; }
         public List<ResourceStackDto> Delivered { get; set; }

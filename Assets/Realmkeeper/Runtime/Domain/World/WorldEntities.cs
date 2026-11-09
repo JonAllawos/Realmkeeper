@@ -82,6 +82,8 @@ namespace Realmkeeper.Domain.World
         EconomicMilestone = 14,
         PlayerMetResident = 15,
         LabourNoticePosted = 16,
+        TradeRouteSuspended = 17,
+        TradeRouteResumed = 18,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>
