@@ -10,5 +10,6 @@
 | [0006](ADR-0006-fixed-calendar.md) | Fixed 12 × 30-day calendar | Accepted |
 | [0007](ADR-0007-json-persistence.md) | Newtonsoft JSON with DTOs and migrations | Accepted |
 | [0008](ADR-0008-copy-validate-commit.md) | Copy → simulate → validate → commit per day | Accepted |
+| [0009](ADR-0009-dual-perspective-world.md) | Dual-perspective world: strategic map and exploration share one simulation | Accepted (binding direction; not implemented) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

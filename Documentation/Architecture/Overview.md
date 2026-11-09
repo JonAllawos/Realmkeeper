@@ -47,6 +47,37 @@ Realmkeeper is split into an **engine-independent core** and a **Unity presentat
    `WorldSession.Execute(...)`. Presentation receives immutable snapshots
    (`SettlementSummary`, `EventSummary`, `WorldOverview`).
 
+## Long-term direction: one world, two perspectives (binding)
+
+Realmkeeper will gain an exploration mode (first- and third-person) beside the strategic map.
+Both must be clients of the **same** `WorldSession` and `WorldData`. See
+[Product foundation, Addendum A](../Product/ProductFoundation.md#addendum-a-dual-perspective-persistent-world-binding)
+and [ADR-0009](../Decisions/ADR-0009-dual-perspective-world.md). Nothing below is built yet.
+
+```
+   ┌──────────────────────────┐   ┌─────────────────────────────────────────────┐
+   │ Strategic Presentation   │   │ Exploration.Presentation / .Interaction /   │
+   │ (today: Presentation)    │   │ .WorldStreaming            (Unity, future)  │
+   └────────────┬─────────────┘   └───────────────────┬─────────────────────────┘
+                │ commands / queries / changes        │ commands / queries / changes
+   ┌────────────▼─────────────────────────────────────▼─────────────────────────┐
+   │ Application: WorldSession (one per running world) + Exploration.Application │
+   └────────────┬───────────────────────────────────────────────────────────────┘
+                │
+   ┌────────────▼──────────────┐   ┌───────────────────────────────┐
+   │ Simulation (one scheduler)│   │ Exploration.Domain (future)   │
+   └────────────┬──────────────┘   └──────────────┬────────────────┘
+                └──────────────► Domain ◄─────────┘
+```
+
+Rules that follow from it, on top of the principles above:
+
+6. **No second world.** Exploration never keeps its own copy of settlement, NPC or resource
+   data. It renders snapshots and sends commands, like the strategic HUD.
+7. **The clock ignores the camera.** Days advance through `SimulationPlayback` in either mode.
+8. **Exploration keys on stable IDs.** Local environments, NPC instances and the character
+   refer to settlement and region IDs. They are never looked up by name or scene path.
+
 ## Extension points
 
 | Need | Extend by |
@@ -56,6 +87,7 @@ Realmkeeper is split into an **engine-independent core** and a **Unity presentat
 | Save format change | Bump `WorldData.CurrentSchemaVersion` and add an `ISaveMigration` |
 | Generator change | Bump `RegionGenerator.Version`; old saves are refused until a version-pinned generator is kept |
 | New persistence backend | Implement `IWorldStore` |
+| Exploration (future) | New `Exploration.*` modules per ADR-0009; added one at a time for the vertical slice |
 
 ## Known architectural constraints
 
