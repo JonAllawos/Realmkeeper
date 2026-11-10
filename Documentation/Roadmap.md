@@ -9,6 +9,7 @@
 | Phase 2 completion | Done; see the test results for what was run | `Systems/Economy.md`, `Testing/TestResults.md` |
 | Phase 3: factions and political engine | Done (this milestone); see the test results for what was run | `Documentation/Systems/Politics.md` |
 | Phase 4 | **Not started.** It needs its own brief. | — |
+| Graphics pass | **Proposed, not started.** Brief written; owner decisions recorded (frame-rate numbers and art reference still to confirm) | `Documentation/Briefs/GraphicsPass.md` |
 
 ## Phase 2 completion: what it added
 
