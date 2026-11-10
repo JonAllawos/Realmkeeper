@@ -79,13 +79,99 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Prosperity = s.Prosperity,
                     Stability = s.Stability,
                     FactionId = s.FactionId.IsEmpty ? null : s.FactionId.ToString(),
+                    AdministratorFactionId = s.AdministratorFactionId.IsEmpty ? null : s.AdministratorFactionId.ToString(),
                     IsInFoodShortage = s.IsInFoodShortage,
                     Resources = Stacks(s.ResourceInventory),
                     Economy = s.Economy.IsInitialized ? EconomyToDto(s.Economy) : null,
                 });
             }
 
-            foreach (var f in w.Factions) dto.Factions.Add(new FactionDto { FactionId = f.FactionId.ToString(), Name = f.Name });
+            foreach (var f in w.Factions)
+            {
+                var fd = new FactionDto
+                {
+                    FactionId = f.FactionId.ToString(),
+                    Name = f.Name,
+                    Description = f.Description,
+                    Type = f.Type.ToString(),
+                    FoundedOn = f.FoundedOn.IsValidDate ? f.FoundedOn.ToIsoString() : null,
+                    Status = f.Status.ToString(),
+                    DissolvedOn = f.DissolvedOn.IsValidDate ? f.DissolvedOn.ToIsoString() : null,
+                    LeaderNpcId = f.LeaderNpcId.IsEmpty ? null : f.LeaderNpcId.ToString(),
+                    Influence = f.Influence,
+                    InfluenceTarget = f.InfluenceTarget,
+                    Treasury = f.Treasury,
+                    DormantTicks = f.DormantTicks,
+                    LastReportedInfluence = f.LastReportedInfluence,
+                    Presence = new List<FactionPresenceDto>(),
+                    Goals = new List<FactionGoalDto>(),
+                };
+                foreach (var p in f.Presence)
+                {
+                    fd.Presence.Add(new FactionPresenceDto
+                    {
+                        SettlementId = p.SettlementId.ToString(),
+                        Strength = p.Strength,
+                        Members = p.Members,
+                        Status = p.Status.ToString(),
+                        EstablishedOn = p.EstablishedOn.IsValidDate ? p.EstablishedOn.ToIsoString() : null,
+                        LastReportedSharePerMille = p.LastReportedSharePerMille,
+                    });
+                }
+
+                foreach (var g in f.Goals)
+                {
+                    fd.Goals.Add(new FactionGoalDto
+                    {
+                        GoalId = g.GoalId.ToString(),
+                        Type = g.Type.ToString(),
+                        TargetSettlementId = g.TargetSettlementId.IsEmpty ? null : g.TargetSettlementId.ToString(),
+                        TargetFactionId = g.TargetFactionId.IsEmpty ? null : g.TargetFactionId.ToString(),
+                        TargetValue = g.TargetValue,
+                        Progress = g.Progress,
+                        Priority = g.Priority,
+                        Status = g.Status.ToString(),
+                        CreatedOn = g.CreatedOn.IsValidDate ? g.CreatedOn.ToIsoString() : null,
+                        ClosedOn = g.ClosedOn.IsValidDate ? g.ClosedOn.ToIsoString() : null,
+                        CloseReason = g.CloseReason.ToString(),
+                        IsManual = g.IsManual,
+                    });
+                }
+
+                dto.Factions.Add(fd);
+            }
+
+            dto.Relations = new List<FactionRelationDto>();
+            foreach (var r in w.Relations)
+            {
+                dto.Relations.Add(new FactionRelationDto
+                {
+                    FactionA = r.FactionA.ToString(),
+                    FactionB = r.FactionB.ToString(),
+                    Opinion = r.Opinion,
+                    Trust = r.Trust,
+                    Rivalry = r.Rivalry,
+                    Agreement = r.Agreement.ToString(),
+                    AgreementSince = r.AgreementSince.IsValidDate ? r.AgreementSince.ToIsoString() : null,
+                    LastCause = r.LastCause.ToString(),
+                    LastReportedState = r.LastReportedState.ToString(),
+                });
+            }
+
+            dto.Claims = new List<TerritorialClaimDto>();
+            foreach (var c in w.Claims)
+            {
+                dto.Claims.Add(new TerritorialClaimDto
+                {
+                    ClaimId = c.ClaimId.ToString(),
+                    ClaimantId = c.ClaimantId.ToString(),
+                    SettlementId = c.SettlementId.ToString(),
+                    Status = c.Status.ToString(),
+                    FiledOn = c.FiledOn.IsValidDate ? c.FiledOn.ToIsoString() : null,
+                    UpdatedOn = c.UpdatedOn.IsValidDate ? c.UpdatedOn.ToIsoString() : null,
+                    IsManual = c.IsManual,
+                });
+            }
 
             foreach (var n in w.Npcs)
             {
@@ -105,6 +191,8 @@ namespace Realmkeeper.Infrastructure.Persistence
             {
                 var ids = new List<string>();
                 foreach (var id in e.SettlementIds) ids.Add(id.ToString());
+                var factionIds = new List<string>();
+                foreach (var id in e.FactionIds) factionIds.Add(id.ToString());
                 dto.HistoricalEvents.Add(new HistoricalEventDto
                 {
                     EventId = e.EventId.ToString(),
@@ -114,6 +202,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Importance = e.Importance.ToString(),
                     SettlementId = e.SettlementId.IsEmpty ? null : e.SettlementId.ToString(),
                     SettlementIds = ids,
+                    FactionIds = factionIds.Count > 0 ? factionIds : null,
                     Data = ToDictionary(e.Data),
                     Description = e.Description,
                 });
@@ -314,6 +403,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Prosperity = sd.Prosperity,
                     Stability = sd.Stability,
                     FactionId = new FactionId(OptionalGuid(sd.FactionId, "factionId")),
+                    AdministratorFactionId = new FactionId(OptionalGuid(sd.AdministratorFactionId, "administratorFactionId")),
                     IsInFoodShortage = sd.IsInFoodShortage,
                     ResourceInventory = Inventory(sd.Resources, $"Settlement '{sd.Name}' resources"),
                     Economy = sd.Economy == null ? new SettlementEconomy() : EconomyFromDto(sd.Economy, sd.Name),
@@ -324,7 +414,89 @@ namespace Realmkeeper.Infrastructure.Persistence
             foreach (var fd in dto.Factions ?? new List<FactionDto>())
             {
                 if (fd == null) throw new SaveDataException("Null faction entry.");
-                world.Factions.Add(new FactionData { FactionId = new FactionId(RequiredGuid(fd.FactionId, "factionId")), Name = fd.Name });
+                var f = new FactionData
+                {
+                    FactionId = new FactionId(RequiredGuid(fd.FactionId, "factionId")),
+                    Name = fd.Name,
+                    Description = fd.Description ?? string.Empty,
+                    Type = string.IsNullOrEmpty(fd.Type) ? FactionType.Kingdom : ParseEnum<FactionType>(fd.Type, "faction type"),
+                    FoundedOn = OptionalDate(fd.FoundedOn, "faction foundedOn"),
+                    Status = string.IsNullOrEmpty(fd.Status) ? FactionStatus.Active : ParseEnum<FactionStatus>(fd.Status, "faction status"),
+                    DissolvedOn = OptionalDate(fd.DissolvedOn, "faction dissolvedOn"),
+                    LeaderNpcId = new NpcId(OptionalGuid(fd.LeaderNpcId, "leaderNpcId")),
+                    Influence = fd.Influence,
+                    InfluenceTarget = fd.InfluenceTarget,
+                    Treasury = fd.Treasury,
+                    DormantTicks = fd.DormantTicks,
+                    LastReportedInfluence = fd.LastReportedInfluence,
+                };
+                foreach (var pd in fd.Presence ?? new List<FactionPresenceDto>())
+                {
+                    if (pd == null) throw new SaveDataException("Null faction presence entry.");
+                    f.Presence.Add(new FactionPresenceData
+                    {
+                        SettlementId = new SettlementId(RequiredGuid(pd.SettlementId, "presence settlementId")),
+                        Strength = pd.Strength,
+                        Members = pd.Members,
+                        Status = ParseEnum<PresenceStatus>(pd.Status, "presence status"),
+                        EstablishedOn = OptionalDate(pd.EstablishedOn, "presence establishedOn"),
+                        LastReportedSharePerMille = pd.LastReportedSharePerMille,
+                    });
+                }
+
+                foreach (var gd in fd.Goals ?? new List<FactionGoalDto>())
+                {
+                    if (gd == null) throw new SaveDataException("Null faction goal entry.");
+                    f.Goals.Add(new FactionGoalData
+                    {
+                        GoalId = new GoalId(RequiredGuid(gd.GoalId, "goalId")),
+                        Type = ParseEnum<GoalType>(gd.Type, "goal type"),
+                        TargetSettlementId = new SettlementId(OptionalGuid(gd.TargetSettlementId, "goal targetSettlementId")),
+                        TargetFactionId = new FactionId(OptionalGuid(gd.TargetFactionId, "goal targetFactionId")),
+                        TargetValue = gd.TargetValue,
+                        Progress = gd.Progress,
+                        Priority = gd.Priority,
+                        Status = ParseEnum<GoalStatus>(gd.Status, "goal status"),
+                        CreatedOn = OptionalDate(gd.CreatedOn, "goal createdOn"),
+                        ClosedOn = OptionalDate(gd.ClosedOn, "goal closedOn"),
+                        CloseReason = string.IsNullOrEmpty(gd.CloseReason) ? GoalCloseReason.None : ParseEnum<GoalCloseReason>(gd.CloseReason, "goal closeReason"),
+                        IsManual = gd.IsManual,
+                    });
+                }
+
+                world.Factions.Add(f);
+            }
+
+            foreach (var rd in dto.Relations ?? new List<FactionRelationDto>())
+            {
+                if (rd == null) throw new SaveDataException("Null relation entry.");
+                world.Relations.Add(new FactionRelationData
+                {
+                    FactionA = new FactionId(RequiredGuid(rd.FactionA, "relation factionA")),
+                    FactionB = new FactionId(RequiredGuid(rd.FactionB, "relation factionB")),
+                    Opinion = rd.Opinion,
+                    Trust = rd.Trust,
+                    Rivalry = rd.Rivalry,
+                    Agreement = string.IsNullOrEmpty(rd.Agreement) ? AgreementType.None : ParseEnum<AgreementType>(rd.Agreement, "relation agreement"),
+                    AgreementSince = OptionalDate(rd.AgreementSince, "relation agreementSince"),
+                    LastCause = string.IsNullOrEmpty(rd.LastCause) ? RelationCause.None : ParseEnum<RelationCause>(rd.LastCause, "relation lastCause"),
+                    LastReportedState = string.IsNullOrEmpty(rd.LastReportedState) ? RelationState.Neutral : ParseEnum<RelationState>(rd.LastReportedState, "relation state"),
+                });
+            }
+
+            foreach (var cd in dto.Claims ?? new List<TerritorialClaimDto>())
+            {
+                if (cd == null) throw new SaveDataException("Null claim entry.");
+                world.Claims.Add(new TerritorialClaimData
+                {
+                    ClaimId = new ClaimId(RequiredGuid(cd.ClaimId, "claimId")),
+                    ClaimantId = new FactionId(RequiredGuid(cd.ClaimantId, "claim claimantId")),
+                    SettlementId = new SettlementId(RequiredGuid(cd.SettlementId, "claim settlementId")),
+                    Status = ParseEnum<ClaimStatus>(cd.Status, "claim status"),
+                    FiledOn = OptionalDate(cd.FiledOn, "claim filedOn"),
+                    UpdatedOn = OptionalDate(cd.UpdatedOn, "claim updatedOn"),
+                    IsManual = cd.IsManual,
+                });
             }
 
             foreach (var nd in dto.Npcs ?? new List<NpcDto>())
@@ -355,6 +527,12 @@ namespace Realmkeeper.Infrastructure.Persistence
                     ids.Add(new SettlementId(RequiredGuid(ed.SettlementId, "settlementId"))); // v1 events
                 }
 
+                var eventFactions = new List<FactionId>();
+                if (ed.FactionIds != null)
+                {
+                    foreach (var id in ed.FactionIds) eventFactions.Add(new FactionId(RequiredGuid(id, "event factionIds")));
+                }
+
                 world.HistoricalEvents.Add(new HistoricalEvent(
                     new EventId(RequiredGuid(ed.EventId, "eventId")),
                     ParseDate(ed.Date, "event date"),
@@ -363,7 +541,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                     string.IsNullOrEmpty(ed.Importance) ? EventImportance.Notable : ParseEnum<EventImportance>(ed.Importance, "importance"),
                     ids,
                     ed.Data,
-                    ed.Description));
+                    ed.Description,
+                    eventFactions));
             }
 
             foreach (var rd in dto.TradeRoutes ?? new List<TradeRouteDto>())
@@ -528,6 +707,8 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         private static Guid OptionalGuid(string text, string field) =>
             string.IsNullOrEmpty(text) ? Guid.Empty : RequiredGuid(text, field);
+
+        private static WorldDate OptionalDate(string text, string field) => string.IsNullOrEmpty(text) ? default(WorldDate) : ParseDate(text, field);
 
         private static WorldDate ParseDate(string text, string field)
         {

@@ -32,6 +32,7 @@ Port: `Realmkeeper.Application.Ports.IWorldStore`.
 | 2 | Phase 2 economy, trade routes, shipments, structured events | `MigrationV1ToV2`, then the economy is derived from terrain on load |
 | 3 | Regions, settlement `regionId`, player character, named residents, labour focus (ADR-0009) | `MigrationV2ToV3` (structural), then `WorldPopulationInitializer` with the generation streams |
 | 4 | `tradeRoutes[].isSuspended` | `MigrationV3ToV4`: sets `false` (every route in an older save was trading); nothing else changes. A test checks that a v3 copy of a save loads identical to the v4 original. |
+| 5 | Faction type, status, dates, leader, influence, treasury, presence and goals; `relations`; `claims`; settlement `administratorFactionId`; event `factionIds` | `MigrationV4ToV5` adds the empty arrays and lists `realmkeeper.politics` before the chronicle system for worlds running the standard systems. After mapping, `PoliticalInitializer` builds the political structure once: existing factions keep their IDs and names, and the new ones get the IDs a fresh world of that seed gets. No settlement, resource, route or event changes. A world with no factions gets none. A test checks that a v4 copy of a save loads identical to a fresh v5 world of that seed. |
 
 ## Format (schema v2, Phase 2)
 

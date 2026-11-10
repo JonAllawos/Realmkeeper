@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = 5;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -64,6 +64,12 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Goods currently on the road.</summary>
         public List<ShipmentData> Shipments { get; set; } = new List<ShipmentData>();
+
+        /// <summary>Relationships between factions, one record per pair (FactionA &lt; FactionB).</summary>
+        public List<FactionRelationData> Relations { get; set; } = new List<FactionRelationData>();
+
+        /// <summary>Territorial claims, open and closed (closed ones are history).</summary>
+        public List<TerritorialClaimData> Claims { get; set; } = new List<TerritorialClaimData>();
 
         public static WorldData CreateNew(WorldId worldId, string worldName, long seed, int generatorVersion, WorldSettings settings)
         {
@@ -133,7 +139,31 @@ namespace Realmkeeper.Domain.World
             foreach (var n in Npcs) copy.Npcs.Add(n?.Clone());
             if (TradeRoutes != null) foreach (var r in TradeRoutes) copy.TradeRoutes.Add(r?.Clone());
             if (Shipments != null) foreach (var s in Shipments) copy.Shipments.Add(s?.Clone());
+            if (Relations != null) foreach (var r in Relations) copy.Relations.Add(r?.Clone());
+            if (Claims != null) foreach (var c in Claims) copy.Claims.Add(c?.Clone());
             return copy;
+        }
+
+        /// <summary>The relationship between two factions (order does not matter), or null.</summary>
+        public FactionRelationData FindRelation(FactionId a, FactionId b)
+        {
+            for (var i = 0; i < Relations.Count; i++)
+            {
+                var r = Relations[i];
+                if ((r.FactionA == a && r.FactionB == b) || (r.FactionA == b && r.FactionB == a)) return r;
+            }
+
+            return null;
+        }
+
+        public TerritorialClaimData FindClaim(ClaimId id)
+        {
+            for (var i = 0; i < Claims.Count; i++)
+            {
+                if (Claims[i].ClaimId == id) return Claims[i];
+            }
+
+            return null;
         }
 
         public RegionData FindRegion(RegionId id)

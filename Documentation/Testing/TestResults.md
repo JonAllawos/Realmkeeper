@@ -205,3 +205,43 @@ test now searches at every depth and also checks one toggle per route. The secon
 
 **Performance:** a 30-day run of the default world (3 settlements, 15 named residents, 6
 routes) took 7.2–9.3 ms in the .NET harness. Nothing was measured in Unity or at larger scale.
+
+## Phase 3: factions and political engine (2026-11-10)
+
+| Run | Where | Result |
+|---|---|---|
+| Baseline, before changes | .NET harness | 174 passed, 0 failed |
+| .NET harness | Windows, .NET 8, Release | **279 passed, 0 failed, 0 skipped** (174 earlier + 105 new cases) |
+| Unity compilation | Unity 6000.0.47f1, batch mode | First run: 1 compiler error in a new test (NUnit in Unity has no `.And.Contain(object)`); fixed with `Has.Member`. Second run: **0 errors** |
+| Unity EditMode | Unity 6000.0.47f1, batch mode (`-runTests -testPlatform EditMode`) | **279 passed, 0 failed, 0 skipped** |
+| Unity PlayMode | Unity 6000.0.47f1, batch mode (`-runTests -testPlatform PlayMode`) | **42 passed, 0 failed, 0 skipped** (37 earlier + 5 new in `PoliticsPlayModeTests`) |
+
+**Written for this milestone:**
+
+| Suite | Cases | Covers |
+|---|---|---|
+| EditMode `Politics/PoliticalSimulationTests` | 48 | Profiles; influence terms, bounds, economic links; step limits; milestones; dues and upkeep; membership, clamping, affiliation reports; presence and rival pressure; every state threshold; relation causes; trust; goal progress and completion; goal-driven presence and claims; claim answers; decided claims left alone; status hysteresis; dormancy and dissolution; tick cadence; determinism across batching; atomic failed days; economy still daily |
+| EditMode `Politics/PoliticalWorldTests` | 57 | 37 validator rejections; ID stability; generated structure; seed reproducibility and variation; no duplication on re-init or reload; v4 → v5 migration (exact match with a fresh world), and no factions invented for a world without any; exact save/load and identical continuation; dissolved factions surviving reload; every command refusing with the right status and no change; relation, claim, governance, presence and goal commands; influence explanation adds up; hardship eroding the crown's support; exploration changes nothing political; pause; a year with valid, non-spam events; performance |
+| PlayMode `PoliticsPlayModeTests` | 5 | Faction list and inspector; settlement political section beside the economy; optional overlay, which follows governance and claims and keeps selection working; HUD buttons sending commands; the HUD following a simulated 70 days |
+| Updated | 3 | The daily-order test now includes politics at 450; the world fingerprint covers political state; the exploration HUD test checks the governing faction |
+
+**Mutation checks** (deliberate breaks, then reverted):
+
+| Break | Caught by |
+|---|---|
+| Tick every day | 18 tests |
+| Opinion moving twice as fast | 1 test |
+| The governor's presence removable | 1 test |
+| A dissolved faction keeping its presence | 1 test |
+| The simulation overriding decided claims | 0 tests at first. I added `DecidedClaims_AreLeftAlone_WhateverRelationsDo`, which now catches it |
+
+**Performance** (.NET harness, Windows, Release; nothing measured inside Unity):
+
+| World | Measurement |
+|---|---|
+| Default (3 settlements, 5 factions, 10 relations) | 30-day run of all systems 6.3 ms, 84 KB allocated per day; one political tick 22 µs |
+| Synthetic (30 settlements, 120 factions, 7,140 relations) | one political tick 54.5 ms; 30 days of politics, with the daily copy and validation, 304 ms |
+
+**Not executed:**
+- manual gameplay with the new UI;
+- the F10 screenshot tour (it needs the Game view in the editor).

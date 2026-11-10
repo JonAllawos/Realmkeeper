@@ -73,9 +73,13 @@ namespace Realmkeeper.Application
             _commands.Register<SaveWorldCommand>(new SaveWorldHandler());
             _commands.Register<SetSimulationSpeedCommand>(new SetSpeedHandler());
             _commands.Register<SetTradeRouteSuspendedCommand>(new SetTradeRouteSuspendedHandler());
+            PoliticalCommandHandlers.Register(_commands);
         }
 
         public EconomyRules Rules => _rules;
+
+        /// <summary>Political constants used by queries and commands (the scheduler holds its own copy for the simulation).</summary>
+        public PoliticalRules PoliticalRules { get; set; } = new PoliticalRules();
 
         /// <summary>Command handlers for this session. Modules register theirs at composition time.</summary>
         public CommandRegistry Commands => _commands;
@@ -302,7 +306,7 @@ namespace Realmkeeper.Application
                 var e = _world.HistoricalEvents[i];
                 if (e.Importance < minimumImportance) continue;
                 if (!involving.IsEmpty && !Involves(e, involving)) continue;
-                list.Add(new EventSummary(e, _world.FindSettlement(e.SettlementId)?.Name, EventFormatter.Format(e, NameOf)));
+                list.Add(new EventSummary(e, _world.FindSettlement(e.SettlementId)?.Name, EventFormatter.Format(e, NameOf, FactionNameOf)));
             }
 
             return list;
@@ -439,6 +443,93 @@ namespace Realmkeeper.Application
 
             return new SettlementSummary(s, _world.FindFaction(s.FactionId)?.Name, _rules, trading);
         }
+
+        // ----- Political queries (Phase 3) ---------------------------------------------------
+
+        /// <summary>All factions in stable record order. Dissolved factions are included unless excluded: they are history.</summary>
+        public IReadOnlyList<FactionSummary> GetFactions(bool includeDissolved = true)
+        {
+            var list = new List<FactionSummary>();
+            if (!HasWorld) return list;
+            foreach (var f in _world.Factions)
+            {
+                if (!includeDissolved && f.IsDissolved) continue;
+                list.Add(new FactionSummary(_world, f, PoliticalRules));
+            }
+
+            return list;
+        }
+
+        /// <summary>Returns null when no faction has the given ID.</summary>
+        public FactionSummary FindFaction(FactionId id)
+        {
+            if (!HasWorld) return null;
+            var f = _world.FindFaction(id);
+            return f == null ? null : new FactionSummary(_world, f, PoliticalRules);
+        }
+
+        /// <summary>Every relationship, optionally only those involving one faction.</summary>
+        public IReadOnlyList<FactionRelationSummary> GetRelations(FactionId involving = default)
+        {
+            var list = new List<FactionRelationSummary>();
+            if (!HasWorld) return list;
+            foreach (var r in _world.Relations)
+            {
+                if (!involving.IsEmpty && !r.Involves(involving)) continue;
+                var a = _world.FindFaction(r.FactionA);
+                var b = _world.FindFaction(r.FactionB);
+                if (a == null || b == null) continue;
+                var live = !a.IsDissolved && !b.IsDissolved;
+                list.Add(new FactionRelationSummary(r, a, b, live ? PoliticalMath.EvaluateRelation(_world, a, b, r, PoliticalRules) : null));
+            }
+
+            return list;
+        }
+
+        /// <summary>Territorial claims, optionally only those on one settlement and/or only open ones.</summary>
+        public IReadOnlyList<TerritorialClaimSummary> GetClaims(SettlementId settlementId = default, bool openOnly = false)
+        {
+            var list = new List<TerritorialClaimSummary>();
+            if (!HasWorld) return list;
+            foreach (var c in _world.Claims)
+            {
+                if (!settlementId.IsEmpty && c.SettlementId != settlementId) continue;
+                if (openOnly && !c.IsOpen) continue;
+                list.Add(new TerritorialClaimSummary(c, _world.FindFaction(c.ClaimantId)?.Name, NameOf(c.SettlementId)));
+            }
+
+            return list;
+        }
+
+        /// <summary>Governance, faction presence, affiliation and claims of one settlement; null when it does not exist.</summary>
+        public SettlementPoliticsSummary GetSettlementPolitics(SettlementId id)
+        {
+            if (!HasWorld) return null;
+            var s = _world.FindSettlement(id);
+            return s == null ? null : new SettlementPoliticsSummary(_world, s);
+        }
+
+        /// <summary>Most recent first: events that involve a faction (including after it has dissolved).</summary>
+        public IReadOnlyList<EventSummary> GetFactionEvents(FactionId factionId, int maxCount)
+        {
+            var list = new List<EventSummary>();
+            if (!HasWorld || maxCount <= 0 || factionId.IsEmpty) return list;
+            for (var i = _world.HistoricalEvents.Count - 1; i >= 0 && list.Count < maxCount; i--)
+            {
+                var e = _world.HistoricalEvents[i];
+                var involved = false;
+                foreach (var id in e.FactionIds)
+                {
+                    if (id == factionId) involved = true;
+                }
+
+                if (involved) list.Add(new EventSummary(e, _world.FindSettlement(e.SettlementId)?.Name, EventFormatter.Format(e, NameOf, FactionNameOf)));
+            }
+
+            return list;
+        }
+
+        private string FactionNameOf(FactionId id) => _world?.FindFaction(id)?.Name;
 
         private string NameOf(SettlementId id) => _world?.FindSettlement(id)?.Name;
 

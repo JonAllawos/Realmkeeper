@@ -19,7 +19,7 @@ namespace Realmkeeper.Presentation
     /// bottom activity area. Reads only query snapshots and sends commands. It refreshes from
     /// <see cref="WorldSession.WorldChanged"/>, playback and selection events, never by polling.
     /// </summary>
-    public sealed class RealmkeeperHud : MonoBehaviour
+    public sealed partial class RealmkeeperHud : MonoBehaviour
     {
         public const string HudResource = "RealmkeeperHud";
         public const string ThemeResource = "RealmkeeperTheme";
@@ -28,7 +28,7 @@ namespace Realmkeeper.Presentation
         /// <summary>Rows that fit the bottom panel at the reference resolution.</summary>
         public const int EventCount = 7;
 
-        private static readonly string[] ComingLater = { "Factions", "Characters", "Adventures", "Chronicle", "World Editor" };
+        private static readonly string[] ComingLater = { "Characters", "Adventures", "Chronicle", "World Editor" };
 
         private static readonly (SimulationSpeed speed, string label)[] Speeds =
         {
@@ -221,6 +221,7 @@ namespace Realmkeeper.Presentation
             MessageLabel = Root.Q<Label>("message");
             EnterSettlementButton = Root.Q<Button>("insp-enter");
             EnterSettlementButton.clicked += () => EnterSelectedSettlement();
+            BindPolitics();
 
             PlayPauseButton.clicked += () => { if (_playback != null) _playback.Toggle(); else ShowMessage(NoSession()); };
             AdvanceDayButton.clicked += () => Advance(1);
@@ -337,6 +338,7 @@ namespace Realmkeeper.Presentation
             RefreshTopBar();
             RefreshInspector();
             RefreshActivity();
+            RefreshPolitics();
         }
 
         private void OnPlayStateChanged(bool playing)
@@ -348,6 +350,7 @@ namespace Realmkeeper.Presentation
         private void OnSelectionChanged(SettlementId id)
         {
             foreach (var pair in _settlementButtons) pair.Value.EnableInClassList("rk-settlement-item--selected", pair.Key == id);
+            OnSettlementSelectedForPolitics(id);
             RefreshInspector();
         }
 
@@ -360,6 +363,7 @@ namespace Realmkeeper.Presentation
             RefreshTopBar();
             RefreshInspector();
             RefreshActivity();
+            RefreshPolitics();
         }
 
         private void RefreshTopBar()
@@ -451,6 +455,7 @@ namespace Realmkeeper.Presentation
             RefreshEconomyTable(s);
             RefreshProduction(s);
             RefreshTrade(s);
+            RefreshSettlementPolitics(s);
         }
 
         /// <summary>Shortage warnings, one line each, most urgent first.</summary>

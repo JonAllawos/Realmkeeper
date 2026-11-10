@@ -12,7 +12,7 @@ namespace Realmkeeper.Application
     /// </summary>
     public static class EventFormatter
     {
-        public static string Format(HistoricalEvent e, Func<SettlementId, string> nameOf)
+        public static string Format(HistoricalEvent e, Func<SettlementId, string> nameOf, Func<FactionId, string> factionNameOf = null)
         {
             if (e == null) throw new ArgumentNullException(nameof(e));
             if (e.Data.Count == 0 && !string.IsNullOrEmpty(e.Description)) return e.Description;
@@ -21,6 +21,12 @@ namespace Realmkeeper.Application
             {
                 if (index >= e.SettlementIds.Count) return "a settlement";
                 return nameOf?.Invoke(e.SettlementIds[index]) ?? "a settlement";
+            }
+
+            string F(int index)
+            {
+                if (index >= e.FactionIds.Count) return "a faction";
+                return factionNameOf?.Invoke(e.FactionIds[index]) ?? "a faction";
             }
 
             var s = Name(0);
@@ -68,6 +74,45 @@ namespace Realmkeeper.Application
                     return $"Trade from {s} to {Name(1)} was suspended.";
                 case HistoricalEventType.TradeRouteResumed:
                     return $"Trade from {s} to {Name(1)} resumed.";
+                case HistoricalEventType.FactionFounded:
+                    return $"{F(0)} was founded.";
+                case HistoricalEventType.FactionDissolved:
+                    return $"{F(0)} has dissolved after a long decline.";
+                case HistoricalEventType.FactionStatusChanged:
+                    return $"{F(0)} is now {(e.Get("to") ?? "changed").ToLowerInvariant()} (influence {N(e, "influence")}).";
+                case HistoricalEventType.FactionInfluenceChanged:
+                    return $"The influence of {F(0)} {(e.GetInt("to") > e.GetInt("from") ? "rose" : "fell")} from {N(e, "from")} to {N(e, "to")}; its {(e.Get("factor") ?? "standing").ToLowerInvariant()} counts for most.";
+                case HistoricalEventType.GovernanceChanged:
+                {
+                    var to = string.IsNullOrEmpty(e.Get("to")) ? "independent" : "governed by " + F(0);
+                    return $"{By(e)}{s} is now {to}.";
+                }
+                case HistoricalEventType.TerritorialClaimFiled:
+                    return $"{By(e)}{F(0)} laid claim to {s}.";
+                case HistoricalEventType.TerritorialClaimContested:
+                    return $"{By(e)}{F(0)}'s claim on {s} is contested{Because(e)}.";
+                case HistoricalEventType.TerritorialClaimResolved:
+                    return $"{By(e)}{F(0)}'s claim on {s} is {(e.Get("outcome") ?? "resolved").ToLowerInvariant()}{Because(e)}.";
+                case HistoricalEventType.RelationshipChanged:
+                    return e.Get("from") == e.Get("to")
+                        ? $"{By(e)}{F(0)} and {F(1)} remain {(e.Get("to") ?? "neutral").ToLowerInvariant()} (opinion {N(e, "opinion")})."
+                        : $"{By(e)}{F(0)} and {F(1)} went from {(e.Get("from") ?? "neutral").ToLowerInvariant()} to {(e.Get("to") ?? "neutral").ToLowerInvariant()}{CauseOf(e)}.";
+                case HistoricalEventType.AgreementEstablished:
+                    return $"{By(e)}{F(0)} and {F(1)} entered a {AgreementName(e)}.";
+                case HistoricalEventType.AgreementBroken:
+                    return $"{By(e)}the {AgreementName(e)} between {F(0)} and {F(1)} was broken.";
+                case HistoricalEventType.FactionGoalCompleted:
+                    return $"{F(0)} achieved a goal: {GoalText(e, s, F(1))}.";
+                case HistoricalEventType.FactionGoalAbandoned:
+                    return $"{By(e)}{F(0)} gave up a goal: {GoalText(e, s, F(1))}.";
+                case HistoricalEventType.FactionGoalSet:
+                    return $"{By(e)}{F(0)} took up a goal: {GoalText(e, s, F(1))}.";
+                case HistoricalEventType.AffiliationShifted:
+                    return $"Support for {F(0)} in {s} {e.Get("direction") ?? "changed"} to {N(e, "members")} people ({e.GetInt("toPerMille") / 10}% of the settlement).";
+                case HistoricalEventType.FactionPresenceEstablished:
+                    return $"{By(e)}{F(0)} established itself in {s}.";
+                case HistoricalEventType.FactionPresenceWithdrawn:
+                    return $"{By(e)}{F(0)} withdrew from {s}.";
                 default:
                     return string.IsNullOrEmpty(e.Description) ? e.EventType.ToString() : e.Description;
             }
@@ -78,6 +123,39 @@ namespace Realmkeeper.Application
         {
             if (string.IsNullOrEmpty(key)) return "-";
             return char.ToUpperInvariant(key[0]) + key.Substring(1).Replace('_', ' ').Replace('.', ' ');
+        }
+
+        /// <summary>"By your hand, " for events a player command caused; empty for the simulation's.</summary>
+        private static string By(HistoricalEvent e) => IsManual(e) ? "By your hand: " : string.Empty;
+
+        /// <summary>True when a player command caused the event (its "source" fact is "player").</summary>
+        public static bool IsManual(HistoricalEvent e) => e.Get("source") == "player";
+
+        private static string Because(HistoricalEvent e)
+        {
+            switch (e.Get("cause"))
+            {
+                case "competingClaim": return " by a competing claim";
+                case "poorRelations": return " because relations with the governing authority are poor";
+                case "goodRelations": return " because relations with the governing authority are good";
+                case "administrator": return " because the claimant already administers it";
+                case "noAuthority": return " because no authority governs it";
+                case "governs": return ": the claimant now governs it";
+                default: return string.Empty;
+            }
+        }
+
+        private static string CauseOf(HistoricalEvent e) =>
+            Enum.TryParse<RelationCause>(e.Get("cause"), out var cause) && cause != RelationCause.None ? " because of " + PoliticalText.Cause(cause) : string.Empty;
+
+        private static string AgreementName(HistoricalEvent e) =>
+            Enum.TryParse<AgreementType>(e.Get("agreement"), out var type) ? PoliticalText.Agreement(type) : "agreement";
+
+        private static string GoalText(HistoricalEvent e, string settlement, string faction)
+        {
+            if (!Enum.TryParse<GoalType>(e.Get("goalType"), out var type)) return "a goal";
+            var text = PoliticalText.Goal(type, e.GetInt("target"), e.SettlementIds.Count > 0 ? settlement : null, e.FactionIds.Count > 1 ? faction : null);
+            return char.ToLowerInvariant(text[0]) + text.Substring(1);
         }
 
         private static string Resource(HistoricalEvent e) => e.Get("resource") ?? "goods";

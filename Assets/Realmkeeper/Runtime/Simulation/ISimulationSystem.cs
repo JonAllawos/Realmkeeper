@@ -99,6 +99,16 @@ namespace Realmkeeper.Simulation
             return e;
         }
 
+        /// <summary>Records a structured event that involves factions (Phase 3). Dissolved factions remain valid references.</summary>
+        public HistoricalEvent ReportEvent(HistoricalEventType type, EventSeverity severity, EventImportance importance,
+            IReadOnlyList<SettlementId> settlementIds, IReadOnlyList<FactionId> factionIds, EventData data = null)
+        {
+            var e = new HistoricalEvent(new EventId(DeterministicGuid.Next(_eventIdRandom)), Date, type, severity, importance,
+                settlementIds, data?.Values, null, factionIds);
+            _events.Add(e);
+            return e;
+        }
+
         internal void BeginSystem(ISimulationSystem system)
         {
             CurrentSystemId = system.SystemId ?? throw new InvalidOperationException("System ID is null.");

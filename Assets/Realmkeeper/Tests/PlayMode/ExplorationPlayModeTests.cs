@@ -99,7 +99,10 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(Bootstrap.Hud.IsVisible, Is.False);
             Assert.That(Controller.CameraRig.Camera.enabled, Is.True);
             Assert.That(Controller.Hud.SettlementLabel.text, Is.EqualTo(s.Name));
-            Assert.That(Controller.Hud.RegionLabel.text, Is.EqualTo(Session.FindRegion(s.RegionId).Name));
+            // Region, then who governs the settlement: the same political data the map shows.
+            var politics = Session.GetSettlementPolitics(s.SettlementId);
+            Assert.That(Controller.Hud.RegionLabel.text, Does.StartWith(Session.FindRegion(s.RegionId).Name));
+            Assert.That(Controller.Hud.RegionLabel.text, Does.EndWith(politics.IsIndependent ? "independent" : "governed by " + politics.GoverningFactionName));
 
             var player = Session.GetPlayer();
             Assert.That(player.SettlementId, Is.EqualTo(s.SettlementId));

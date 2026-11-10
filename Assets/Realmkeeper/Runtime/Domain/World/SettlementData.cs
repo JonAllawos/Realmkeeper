@@ -44,6 +44,12 @@ namespace Realmkeeper.Domain.World
         /// <summary>Owning faction; <see cref="FactionId.Empty"/> when independent.</summary>
         public FactionId FactionId { get; set; }
 
+        /// <summary>
+        /// Noble house administering the settlement on behalf of its governing authority; empty when
+        /// the governor rules directly. Requires a governor, and is never the governor itself.
+        /// </summary>
+        public FactionId AdministratorFactionId { get; set; }
+
         /// <summary>Simulation condition: food reserves have fallen below the shortage threshold.</summary>
         public bool IsInFoodShortage { get; set; }
 
@@ -66,6 +72,7 @@ namespace Realmkeeper.Domain.World
                 Stability = Stability,
                 ResourceInventory = ResourceInventory?.Clone(),
                 FactionId = FactionId,
+                AdministratorFactionId = AdministratorFactionId,
                 IsInFoodShortage = IsInFoodShortage,
                 Economy = Economy?.Clone(),
             };

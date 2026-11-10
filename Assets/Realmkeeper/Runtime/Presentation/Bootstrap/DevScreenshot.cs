@@ -10,7 +10,7 @@ namespace Realmkeeper.Presentation
     /// <summary>
     /// Development helper: F12 saves the Game view to Documentation/Screenshots (in the
     /// editor) or persistentDataPath/Screenshots (development builds). F10 runs the
-    /// documentation screenshot tour. Optionally captures once, automatically, a few
+    /// documentation screenshot tour (map, town, the village's politics, the political overlay, a faction inspector). Optionally captures once, automatically, a few
     /// seconds after start.
     /// </summary>
     public sealed class DevScreenshot : MonoBehaviour
@@ -87,6 +87,41 @@ namespace Realmkeeper.Presentation
             yield return WaitFrames(10);
             CaptureNamed("realmkeeper-settlement-selected");
             yield return WaitFrames(5);
+
+            // Phase 3: the settlement's political section (the village: governed and administered).
+            foreach (var view in bootstrap.WorldView.Settlements.Values)
+            {
+                if (view.SettlementType != Domain.World.SettlementType.Village) continue;
+                bootstrap.Selection.Select(view.SettlementId);
+                bootstrap.CameraController.FocusOn(view.Center);
+                break;
+            }
+
+            yield return WaitFrames(10);
+            CaptureNamed("realmkeeper-settlement-politics");
+            yield return WaitFrames(5);
+
+            // The political overlay over the whole region.
+            bootstrap.Selection.Clear();
+            bootstrap.Hud.SetPoliticalOverlay(true);
+            bootstrap.CameraController.FrameRegion(bootstrap.WorldView.Bounds, bootstrap.Session.Map.WaterWorldHeight);
+            yield return WaitFrames(10);
+            CaptureNamed("realmkeeper-political-overlay");
+            yield return WaitFrames(5);
+
+            // The kingdom's faction inspector, overlay still on.
+            foreach (var f in bootstrap.Session.GetFactions())
+            {
+                if (f.Type != Domain.World.FactionType.Kingdom) continue;
+                bootstrap.Hud.SelectFaction(f.FactionId);
+                break;
+            }
+
+            yield return WaitFrames(10);
+            CaptureNamed("realmkeeper-faction-inspector");
+            yield return WaitFrames(5);
+            bootstrap.Hud.SelectFaction(default);
+            bootstrap.Hud.SetPoliticalOverlay(false);
             _touring = false;
         }
 

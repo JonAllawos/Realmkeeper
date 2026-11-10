@@ -47,6 +47,9 @@ namespace Realmkeeper.Presentation
         /// <summary>Condition markers above settlements (food shortage, strong production, trade, declining stability).</summary>
         public MapIndicatorLayer Indicators { get; private set; }
 
+        /// <summary>Optional overlay: who governs each settlement, and open claims. Off until switched on in the HUD.</summary>
+        public PoliticalOverlayLayer PoliticalOverlay { get; private set; }
+
         public RealmkeeperHud Hud { get; private set; }
 
         public CommandResult LastCreateResult { get; private set; }
@@ -73,6 +76,7 @@ namespace Realmkeeper.Presentation
             WorldView = worldObject.AddComponent<WorldView>();
             WorldView.Initialize(_materials);
             Indicators = MapIndicatorLayer.Create(transform, WorldView, CameraController.Camera);
+            PoliticalOverlay = PoliticalOverlayLayer.Create(transform, WorldView, CameraController.Camera);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             var screenshots = gameObject.AddComponent<DevScreenshot>();
@@ -87,6 +91,7 @@ namespace Realmkeeper.Presentation
             Hud.Initialize(null, null, Selection, CameraController, WorldView);
             Hud.SaveHandler = () => Runtime.Save();
             Hud.LoadHandler = () => Runtime.Load();
+            Hud.PoliticalOverlayChanged += on => PoliticalOverlay.SetOn(on, Session);
             Selection.IsPointerOverUi = Hud.IsPointerOverUi;
             CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
 
@@ -130,6 +135,7 @@ namespace Realmkeeper.Presentation
             Selection.Bind(null);
             Hud.Bind(null, null);
             Indicators.Clear();
+            PoliticalOverlay.Clear();
             WorldView.Clear();
         }
 
@@ -155,12 +161,17 @@ namespace Realmkeeper.Presentation
             if (change.Reason == WorldChangeReason.Closed)
             {
                 Indicators.Clear();
+                PoliticalOverlay.Clear();
                 WorldView.Clear();
                 return;
             }
 
             if (change.GeographyChanged) RebuildWorld(); // rebuilds the views, then the indicators
-            else Indicators.Refresh(Session.GetSettlements()); // ratings, shortages and trade change daily
+            else
+            {
+                Indicators.Refresh(Session.GetSettlements()); // ratings, shortages and trade change daily
+                PoliticalOverlay.Refresh(Session);
+            }
         }
 
         private void RebuildWorld()
@@ -170,6 +181,7 @@ namespace Realmkeeper.Presentation
             WorldView.Rebuild(map, Session.GetSettlements());
             Indicators.Clear();
             Indicators.Refresh(Session.GetSettlements());
+            PoliticalOverlay.Refresh(Session);
             CameraController.FrameRegion(WorldView.Bounds, map.WaterWorldHeight);
             Debug.Log($"Realmkeeper: built '{Session.GetOverview().WorldName}' (seed {Session.GetOverview().Seed}): " +
                       $"{WorldView.TerrainChunkCount} terrain chunks, {WorldView.Settlements.Count} settlements, " +
@@ -203,6 +215,7 @@ namespace Realmkeeper.Presentation
             CameraController.gameObject.SetActive(visible);
             WorldView.gameObject.SetActive(visible);
             Indicators.gameObject.SetActive(visible);
+            PoliticalOverlay.gameObject.SetActive(visible);
             if (Environment.Sun != null) Environment.Sun.gameObject.SetActive(visible);
             if (Hud != null) Hud.SetVisible(visible); // hidden by style: re-enabling a UIDocument would rebuild its tree
             if (Selection != null)

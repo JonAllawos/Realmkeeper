@@ -86,15 +86,27 @@ namespace Realmkeeper.Application
             return _working ?? (_working = Committed.DeepClone());
         }
 
+        private int _idCount;
+
+        /// <summary>A deterministic new ID for an entity this command creates (world seed, date, event count, purpose, call order).</summary>
+        public Guid NextGuid(string purpose)
+        {
+            var world = Edit();
+            var seed = SeedMixer.Combine(SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), (ulong)world.CurrentSimulationDate.ToDayNumber()),
+                "command-id:" + purpose + ":" + world.HistoricalEvents.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + (_idCount++).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            return DeterministicGuid.Next(_random.Create(seed));
+        }
+
         /// <summary>Records a structured chronicle event with a deterministic ID (world seed, date, event count).</summary>
         public HistoricalEvent ReportEvent(HistoricalEventType type, EventSeverity severity, EventImportance importance,
-            IReadOnlyList<SettlementId> settlementIds, IEnumerable<KeyValuePair<string, string>> data)
+            IReadOnlyList<SettlementId> settlementIds, IEnumerable<KeyValuePair<string, string>> data,
+            IReadOnlyList<FactionId> factionIds = null)
         {
             var world = Edit();
             var seed = SeedMixer.Combine(SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), (ulong)world.CurrentSimulationDate.ToDayNumber()),
                 "command-event:" + (world.HistoricalEvents.Count + _events.Count).ToString(System.Globalization.CultureInfo.InvariantCulture));
             var e = new HistoricalEvent(new EventId(DeterministicGuid.Next(_random.Create(seed))), world.CurrentSimulationDate, type, severity,
-                importance, settlementIds, data);
+                importance, settlementIds, data, null, factionIds);
             _events.Add(e);
             return e;
         }

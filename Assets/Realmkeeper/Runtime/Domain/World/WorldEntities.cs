@@ -5,13 +5,87 @@ using Realmkeeper.Domain.Identifiers;
 
 namespace Realmkeeper.Domain.World
 {
-    /// <summary>Political grouping. Phase 1 carries identity only; behaviour arrives with the faction system.</summary>
+    /// <summary>
+    /// A political group (Phase 3). One shared model for every <see cref="FactionType"/>.
+    /// Identity is <see cref="FactionId"/>, never the name. A dissolved faction stays in
+    /// <see cref="WorldData.Factions"/> so chronicle references remain valid.
+    /// </summary>
     public sealed class FactionData
     {
+        public const int MaxNameLength = 64;
+
         public FactionId FactionId { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public FactionType Type { get; set; }
+        public WorldDate FoundedOn { get; set; }
+        public FactionStatus Status { get; set; }
 
-        public FactionData Clone() => new FactionData { FactionId = FactionId, Name = Name };
+        /// <summary>Date the faction dissolved; default while it exists.</summary>
+        public WorldDate DissolvedOn { get; set; }
+
+        /// <summary>Leader (an existing named resident). Empty means the leadership is vacant.</summary>
+        public NpcId LeaderNpcId { get; set; }
+
+        /// <summary>0..100. Moves gradually toward <see cref="InfluenceTarget"/> each political tick.</summary>
+        public int Influence { get; set; }
+
+        /// <summary>Target from the influence formula at the last political tick.</summary>
+        public int InfluenceTarget { get; set; }
+
+        /// <summary>The faction's own coin: dues paid by settlements, minus upkeep. Never negative.</summary>
+        public int Treasury { get; set; }
+
+        /// <summary>Consecutive political ticks spent dormant (dissolution follows a sustained period).</summary>
+        public int DormantTicks { get; set; }
+
+        /// <summary>Influence at the last chronicle report (milestones every 10 points).</summary>
+        public int LastReportedInfluence { get; set; }
+
+        public List<FactionPresenceData> Presence { get; set; } = new List<FactionPresenceData>();
+        public List<FactionGoalData> Goals { get; set; } = new List<FactionGoalData>();
+
+        public bool IsDissolved => Status == FactionStatus.Dissolved;
+
+        public FactionPresenceData FindPresence(SettlementId id)
+        {
+            foreach (var p in Presence)
+            {
+                if (p.SettlementId == id) return p;
+            }
+
+            return null;
+        }
+
+        public FactionGoalData FindGoal(GoalId id)
+        {
+            foreach (var g in Goals)
+            {
+                if (g.GoalId == id) return g;
+            }
+
+            return null;
+        }
+
+        public int TotalMembers
+        {
+            get
+            {
+                var n = 0;
+                foreach (var p in Presence) n += p.Members;
+                return n;
+            }
+        }
+
+        public FactionData Clone()
+        {
+            var copy = (FactionData)MemberwiseClone();
+            copy.Presence = new List<FactionPresenceData>(Presence.Count);
+            foreach (var p in Presence) copy.Presence.Add(p.Clone());
+            copy.Goals = new List<FactionGoalData>(Goals.Count);
+            foreach (var g in Goals) copy.Goals.Add(g.Clone());
+            return copy;
+        }
     }
 
     /// <summary>What a named resident does in their settlement. Persisted by name.</summary>
@@ -84,6 +158,25 @@ namespace Realmkeeper.Domain.World
         LabourNoticePosted = 16,
         TradeRouteSuspended = 17,
         TradeRouteResumed = 18,
+
+        // Phase 3: politics. Facts in Data; the factions involved in FactionIds.
+        FactionFounded = 19,
+        FactionDissolved = 20,
+        FactionStatusChanged = 21,
+        FactionInfluenceChanged = 22,
+        GovernanceChanged = 23,
+        TerritorialClaimFiled = 24,
+        TerritorialClaimContested = 25,
+        TerritorialClaimResolved = 26,
+        RelationshipChanged = 27,
+        AgreementEstablished = 28,
+        AgreementBroken = 29,
+        FactionGoalCompleted = 30,
+        FactionGoalAbandoned = 31,
+        AffiliationShifted = 32,
+        FactionPresenceEstablished = 33,
+        FactionPresenceWithdrawn = 34,
+        FactionGoalSet = 35,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>
@@ -133,8 +226,10 @@ namespace Realmkeeper.Domain.World
             EventImportance importance,
             IReadOnlyList<SettlementId> settlementIds,
             IEnumerable<KeyValuePair<string, string>> data,
-            string description = null)
+            string description = null,
+            IReadOnlyList<FactionId> factionIds = null)
         {
+            FactionIds = factionIds != null ? new List<FactionId>(factionIds) : (IReadOnlyList<FactionId>)Array.Empty<FactionId>();
             EventId = eventId;
             Date = date;
             EventType = eventType;
@@ -163,6 +258,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Settlements involved, primary first. Empty for world-wide events.</summary>
         public IReadOnlyList<SettlementId> SettlementIds { get; }
+
+        /// <summary>Factions involved (Phase 3), primary first. Empty for events without factions. Dissolved factions stay valid references.</summary>
+        public IReadOnlyList<FactionId> FactionIds { get; }
 
         /// <summary>Primary settlement; <see cref="SettlementId.Empty"/> for world-wide events.</summary>
         public SettlementId SettlementId => SettlementIds.Count > 0 ? SettlementIds[0] : SettlementId.Empty;

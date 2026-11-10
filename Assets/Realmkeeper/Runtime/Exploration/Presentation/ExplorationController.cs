@@ -326,7 +326,10 @@ namespace Realmkeeper.Exploration.Presentation
             if (player == null || !player.IsInSettlement) return;
             var settlement = _session.FindSettlement(player.SettlementId);
             var region = _session.FindRegion(player.RegionId);
-            Hud.SetLocation(settlement?.Name ?? "-", region != null ? region.Name : "-", _session.GetOverview().Date.ToString());
+            // The governing faction comes from the same world data the map shows; exploration keeps no political state.
+            var politics = _session.GetSettlementPolitics(player.SettlementId);
+            var authority = politics == null ? string.Empty : politics.IsIndependent ? " · independent" : " · governed by " + politics.GoverningFactionName;
+            Hud.SetLocation(settlement?.Name ?? "-", (region != null ? region.Name : "-") + authority, _session.GetOverview().Date.ToString());
         }
 
         private void OnDestroy()

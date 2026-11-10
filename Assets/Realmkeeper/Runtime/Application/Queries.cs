@@ -485,6 +485,8 @@ namespace Realmkeeper.Application
             Importance = e.Importance;
             SettlementId = e.SettlementId;
             SettlementIds = e.SettlementIds;
+            FactionIds = e.FactionIds;
+            IsManual = EventFormatter.IsManual(e);
             SettlementName = settlementName;
             Data = e.Data;
             Summary = summary;
@@ -497,6 +499,13 @@ namespace Realmkeeper.Application
         public EventImportance Importance { get; }
         public SettlementId SettlementId { get; }
         public IReadOnlyList<SettlementId> SettlementIds { get; }
+
+        /// <summary>Factions involved, primary first (still valid after a faction dissolves).</summary>
+        public IReadOnlyList<FactionId> FactionIds { get; }
+
+        /// <summary>True when a player command caused the event, false when the simulation did.</summary>
+        public bool IsManual { get; }
+
         public string SettlementName { get; }
         public IReadOnlyDictionary<string, string> Data { get; }
 

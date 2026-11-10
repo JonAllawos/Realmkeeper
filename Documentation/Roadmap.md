@@ -7,7 +7,8 @@
 | ADR-0009 prerequisites and exploration vertical slice | Accepted as a vertical slice (`0c7f60d`) | `Documentation/Architecture/DualPerspective.md` |
 | Pre-Phase-2 stabilization: session rebinding, save slots | Done in the Phase 2 completion commit | `DualPerspective.md`, `Systems/Persistence.md` |
 | Phase 2 completion | Done; see the test results for what was run | `Systems/Economy.md`, `Testing/TestResults.md` |
-| Phase 3 | **Not started.** It needs its own brief. | — |
+| Phase 3: factions and political engine | Done (this milestone); see the test results for what was run | `Documentation/Systems/Politics.md` |
+| Phase 4 | **Not started.** It needs its own brief. | — |
 
 ## Phase 2 completion: what it added
 
@@ -31,3 +32,20 @@
 - One save slot is active at a time. There is no save browser.
 - The map markers use `Universal Render Pipeline/Unlit` found by name. A player build must
   include that shader (editor runs are unaffected). Not yet verified in a build.
+## Phase 3: what it added
+
+- **Factions:** first-class factions of seven types. They have status, leaders (existing
+  residents), influence explained by its terms, a treasury funded by real dues, aggregate
+  membership, presence, and goals.
+- **Governance and claims:** governance and administration of settlements, and territorial
+  claims that never move borders by themselves.
+- **Relationships:** multi-dimensional, with readable states, causes and agreements.
+- **Simulation:** a weekly political tick inside the daily transaction, tied to stability,
+  prosperity and trade.
+- **Player actions:** nine typed political commands, each chronicled as the player's.
+- **UI:** the Factions list and inspector, a Politics section in the settlement inspector, and
+  an optional political map overlay. The exploration HUD names the governing faction.
+- **Saves:** schema v5, with a deterministic upgrade of older saves.
+
+Still out of scope: warfare, rebellion, diplomacy trees, NPC political AI, religion or crime
+detail, multiple regions.

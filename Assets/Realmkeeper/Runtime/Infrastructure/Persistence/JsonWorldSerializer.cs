@@ -62,10 +62,13 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5() };
 
         /// <summary>First schema with regions, the player character and named residents.</summary>
         public const int FirstSchemaWithRegions = 3;
+
+        /// <summary>First schema with first-class factions, relations, claims and goals.</summary>
+        public const int FirstSchemaWithPolitics = 5;
 
         public string Serialize(WorldData world)
         {
@@ -163,6 +166,12 @@ namespace Realmkeeper.Infrastructure.Persistence
                 {
                     return LoadResult.Failure(LoadStatus.Invalid, "The save could not be upgraded to regions: " + ex.Message);
                 }
+            }
+
+            // Saves older than v5 gain their political structure (deterministic, additive, once).
+            if (originalVersion < FirstSchemaWithPolitics)
+            {
+                Generation.PoliticalInitializer.Ensure(world, new Randomness.Xoshiro256RandomFactory());
             }
 
             var validation = WorldValidator.Validate(world);

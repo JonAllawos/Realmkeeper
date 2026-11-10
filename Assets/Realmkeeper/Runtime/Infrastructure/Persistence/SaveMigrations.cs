@@ -5,6 +5,40 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v4 → v5 (Phase 3: factions and politics). Structural only: adds empty <c>relations</c> and
+    /// <c>claims</c> arrays and enables the political system for worlds that run the standard
+    /// Phase 2 systems. Faction types, presence, leaders, relationships and goals cannot be
+    /// derived from JSON alone, so after mapping the serializer runs
+    /// <see cref="Generation.PoliticalInitializer"/>: the two existing factions keep their IDs
+    /// and names, and the new ones get the IDs a fresh world of that seed gets. No settlement,
+    /// resource, route or event is changed.
+    /// </summary>
+    public sealed class MigrationV4ToV5 : ISaveMigration
+    {
+        public int SourceVersion => 4;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["relations"] == null) world["relations"] = new JArray();
+            if (world["claims"] == null) world["claims"] = new JArray();
+
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken chronicle = null;
+            var hasPolitics = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == ChronicleSystem.Id) chronicle = id;
+                if ((string)id == PoliticalSystem.Id) hasPolitics = true;
+            }
+
+            // Listed where a fresh world lists it (the scheduler orders systems itself; this only keeps saves alike).
+            if (chronicle != null && !hasPolitics) chronicle.AddBeforeSelf(PoliticalSystem.Id);
+        }
+    }
+
+    /// <summary>
     /// v3 → v4 (Phase 2 completion): trade routes gain "isSuspended". Every route in an older
     /// save was trading, so the documented default is false (not suspended). Nothing else
     /// changes; resources, routes, shipments and history are kept exactly as saved.

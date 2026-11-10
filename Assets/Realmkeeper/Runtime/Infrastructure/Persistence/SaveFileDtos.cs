@@ -37,6 +37,12 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<HistoricalEventDto> HistoricalEvents { get; set; }
         public List<TradeRouteDto> TradeRoutes { get; set; }
         public List<ShipmentDto> Shipments { get; set; }
+
+        /// <summary>Schema v5.</summary>
+        public List<FactionRelationDto> Relations { get; set; }
+
+        /// <summary>Schema v5.</summary>
+        public List<TerritorialClaimDto> Claims { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -61,6 +67,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int Prosperity { get; set; }
         public int Stability { get; set; }
         public string FactionId { get; set; }
+
+        /// <summary>Schema v5. Noble house administering for the governor; absent when none.</summary>
+        public string AdministratorFactionId { get; set; }
+
         public bool IsInFoodShortage { get; set; }
         public List<ResourceStackDto> Resources { get; set; }
 
@@ -142,10 +152,74 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<ResourceStackDto> ProductionMilestoneIndex { get; set; }
     }
 
+    /// <summary>Schema v5 (Phase 3). Fields beyond ID and name are absent in older saves; the political initializer fills them on load.</summary>
     public sealed class FactionDto
     {
         public string FactionId { get; set; }
         public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; }
+        public string FoundedOn { get; set; }
+        public string Status { get; set; }
+        public string DissolvedOn { get; set; }
+        public string LeaderNpcId { get; set; }
+        public int Influence { get; set; }
+        public int InfluenceTarget { get; set; }
+        public int Treasury { get; set; }
+        public int DormantTicks { get; set; }
+        public int LastReportedInfluence { get; set; }
+        public List<FactionPresenceDto> Presence { get; set; }
+        public List<FactionGoalDto> Goals { get; set; }
+    }
+
+    public sealed class FactionPresenceDto
+    {
+        public string SettlementId { get; set; }
+        public int Strength { get; set; }
+        public int Members { get; set; }
+        public string Status { get; set; }
+        public string EstablishedOn { get; set; }
+        public int LastReportedSharePerMille { get; set; }
+    }
+
+    public sealed class FactionGoalDto
+    {
+        public string GoalId { get; set; }
+        public string Type { get; set; }
+        public string TargetSettlementId { get; set; }
+        public string TargetFactionId { get; set; }
+        public int TargetValue { get; set; }
+        public int Progress { get; set; }
+        public int Priority { get; set; }
+        public string Status { get; set; }
+        public string CreatedOn { get; set; }
+        public string ClosedOn { get; set; }
+        public string CloseReason { get; set; }
+        public bool IsManual { get; set; }
+    }
+
+    public sealed class FactionRelationDto
+    {
+        public string FactionA { get; set; }
+        public string FactionB { get; set; }
+        public int Opinion { get; set; }
+        public int Trust { get; set; }
+        public int Rivalry { get; set; }
+        public string Agreement { get; set; }
+        public string AgreementSince { get; set; }
+        public string LastCause { get; set; }
+        public string LastReportedState { get; set; }
+    }
+
+    public sealed class TerritorialClaimDto
+    {
+        public string ClaimId { get; set; }
+        public string ClaimantId { get; set; }
+        public string SettlementId { get; set; }
+        public string Status { get; set; }
+        public string FiledOn { get; set; }
+        public string UpdatedOn { get; set; }
+        public bool IsManual { get; set; }
     }
 
     public sealed class NpcDto
@@ -199,6 +273,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string SettlementId { get; set; }
 
         public List<string> SettlementIds { get; set; }
+
+        /// <summary>Schema v5. Factions involved; absent in older events.</summary>
+        public List<string> FactionIds { get; set; }
         public Dictionary<string, string> Data { get; set; }
         public string Description { get; set; }
     }

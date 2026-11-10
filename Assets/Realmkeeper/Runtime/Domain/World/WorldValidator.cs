@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Realmkeeper.Domain.Economy;
 using Realmkeeper.Domain.Identifiers;
@@ -145,8 +146,163 @@ namespace Realmkeeper.Domain.World
             }
 
             ValidateTrade(world, settlementIds, result);
+            ValidatePolitics(world, settlementIds, npcIds, result);
             return result;
         }
+
+        /// <summary>Phase 3: factions, presence, governance, relations, claims and goals.</summary>
+        private static void ValidatePolitics(WorldData world, HashSet<SettlementId> settlementIds, HashSet<NpcId> npcIds, ValidationResult result)
+        {
+            if (world.Relations == null || world.Claims == null)
+            {
+                result.AddError("Political collections must not be null.");
+                return;
+            }
+
+            var factions = new Dictionary<FactionId, FactionData>();
+            foreach (var f in world.Factions)
+            {
+                if (f != null && !f.FactionId.IsEmpty && !factions.ContainsKey(f.FactionId)) factions.Add(f.FactionId, f);
+            }
+
+            var population = new Dictionary<SettlementId, int>();
+            foreach (var s in world.Settlements)
+            {
+                if (s != null && !population.ContainsKey(s.SettlementId)) population.Add(s.SettlementId, s.Population);
+            }
+
+            var members = new Dictionary<SettlementId, long>();
+            var goalIds = new HashSet<GoalId>();
+            foreach (var f in world.Factions)
+            {
+                if (f == null) continue;
+                var label = $"Faction '{f.Name}'";
+                if (f.Name != null && f.Name.Length > FactionData.MaxNameLength) result.AddError($"{label} name is too long.");
+                if (f.Description != null && f.Description.Length > FactionRules.MaxDescriptionLength) result.AddError($"{label} description is too long.");
+                if (!Enum.IsDefined(typeof(FactionType), f.Type)) result.AddError($"{label} has an unknown faction type.");
+                if (!Enum.IsDefined(typeof(FactionStatus), f.Status)) result.AddError($"{label} has an unknown status.");
+                if (!f.FoundedOn.IsValidDate) result.AddError($"{label} has no valid founding date.");
+                if (f.Influence < FactionRules.MinInfluence || f.Influence > FactionRules.MaxInfluence) result.AddError($"{label} influence {f.Influence} is outside 0..100.");
+                if (f.InfluenceTarget < FactionRules.MinInfluence || f.InfluenceTarget > FactionRules.MaxInfluence) result.AddError($"{label} influence target is outside 0..100.");
+                if (f.Treasury < 0) result.AddError($"{label} has a negative treasury.");
+                if (f.DormantTicks < 0) result.AddError($"{label} has negative dormant ticks.");
+                if (!f.LeaderNpcId.IsEmpty && !npcIds.Contains(f.LeaderNpcId)) result.AddError($"{label} names a leader who does not exist.");
+                if (f.IsDissolved && !f.DissolvedOn.IsValidDate) result.AddError($"{label} is dissolved but has no dissolution date.");
+                if (f.Presence == null || f.Goals == null) { result.AddError($"{label} has null presence or goals."); continue; }
+                if (f.IsDissolved && f.Presence.Count > 0) result.AddError($"{label} is dissolved but still has a presence.");
+
+                var seen = new HashSet<SettlementId>();
+                foreach (var p in f.Presence)
+                {
+                    if (p == null) { result.AddError($"{label} has a null presence entry."); continue; }
+                    if (!population.TryGetValue(p.SettlementId, out var pop)) { result.AddError($"{label} has a presence in an unknown settlement."); continue; }
+                    if (!seen.Add(p.SettlementId)) result.AddError($"{label} has two presence records in one settlement.");
+                    if (p.Strength < 1 || p.Strength > 100) result.AddError($"{label} presence strength {p.Strength} is outside 1..100.");
+                    if (p.Members < 0 || p.Members > pop) result.AddError($"{label} has {p.Members} members in a settlement of {pop}.");
+                    if (!Enum.IsDefined(typeof(PresenceStatus), p.Status)) result.AddError($"{label} has an unknown presence status.");
+                    if (!p.EstablishedOn.IsValidDate) result.AddError($"{label} has a presence with no start date.");
+                    members.TryGetValue(p.SettlementId, out var total);
+                    members[p.SettlementId] = total + Math.Max(0, p.Members);
+                }
+
+                foreach (var g in f.Goals)
+                {
+                    if (g == null) { result.AddError($"{label} has a null goal."); continue; }
+                    if (g.GoalId.IsEmpty) result.AddError($"{label} has a goal with an empty ID.");
+                    else if (!goalIds.Add(g.GoalId)) result.AddError($"Duplicate GoalId {g.GoalId}.");
+                    if (!Enum.IsDefined(typeof(GoalType), g.Type)) result.AddError($"{label} has a goal of unknown type.");
+                    if (!Enum.IsDefined(typeof(GoalStatus), g.Status)) result.AddError($"{label} has a goal with unknown status.");
+                    if (g.Priority < FactionRules.MinPriority || g.Priority > FactionRules.MaxPriority) result.AddError($"{label} has a goal with priority {g.Priority} outside 1..5.");
+                    if (g.Progress < 0 || g.Progress > 100) result.AddError($"{label} has a goal with progress outside 0..100.");
+                    if (!g.CreatedOn.IsValidDate) result.AddError($"{label} has a goal with no creation date.");
+                    if (!g.TargetSettlementId.IsEmpty && !settlementIds.Contains(g.TargetSettlementId)) result.AddError($"{label} has a goal targeting an unknown settlement.");
+                    if (!g.TargetFactionId.IsEmpty && !factions.ContainsKey(g.TargetFactionId)) result.AddError($"{label} has a goal targeting an unknown faction.");
+                    if (g.Status == GoalStatus.Active)
+                    {
+                        if (g.CloseReason != GoalCloseReason.None) result.AddError($"{label} has an active goal with a close reason.");
+                        if (GoalNeedsSettlement(g.Type) && g.TargetSettlementId.IsEmpty) result.AddError($"{label} has a {g.Type} goal without a target settlement.");
+                        if (g.Type == GoalType.ImproveRelationship && (g.TargetFactionId.IsEmpty || g.TargetFactionId == f.FactionId))
+                            result.AddError($"{label} has an ImproveRelationship goal without another faction as target.");
+                        if (f.IsDissolved) result.AddError($"{label} is dissolved but still has an active goal.");
+                    }
+                    else if (g.CloseReason == GoalCloseReason.None || !g.ClosedOn.IsValidDate)
+                    {
+                        result.AddError($"{label} has a closed goal without a reason or date.");
+                    }
+                }
+            }
+
+            foreach (var pair in members)
+            {
+                if (pair.Value > population[pair.Key]) result.AddError($"Faction members in settlement {pair.Key} ({pair.Value}) exceed its population ({population[pair.Key]}).");
+            }
+
+            foreach (var s in world.Settlements)
+            {
+                if (s == null) continue;
+                if (!s.FactionId.IsEmpty && factions.TryGetValue(s.FactionId, out var governor))
+                {
+                    if (governor.IsDissolved) result.AddError($"Settlement '{s.Name}' is governed by dissolved faction '{governor.Name}'.");
+                    else if (!FactionRules.CanGovern(governor.Type)) result.AddError($"Settlement '{s.Name}' is governed by '{governor.Name}', but a {governor.Type} cannot govern.");
+                }
+
+                if (s.AdministratorFactionId.IsEmpty) continue;
+                if (s.FactionId.IsEmpty) result.AddError($"Settlement '{s.Name}' has an administrator but no governing authority.");
+                if (s.AdministratorFactionId == s.FactionId) result.AddError($"Settlement '{s.Name}' is administered by its own governor.");
+                if (!factions.TryGetValue(s.AdministratorFactionId, out var admin)) result.AddError($"Settlement '{s.Name}' references an unknown administrator.");
+                else if (admin.IsDissolved) result.AddError($"Settlement '{s.Name}' is administered by dissolved faction '{admin.Name}'.");
+                else if (!FactionRules.CanAdminister(admin.Type)) result.AddError($"Settlement '{s.Name}' is administered by '{admin.Name}', but a {admin.Type} cannot administer.");
+            }
+
+            var pairs = new HashSet<(FactionId, FactionId)>();
+            foreach (var r in world.Relations)
+            {
+                if (r == null) { result.AddError("Null relation entry."); continue; }
+                if (!factions.TryGetValue(r.FactionA, out var a) || !factions.TryGetValue(r.FactionB, out var b)) { result.AddError("A relation references an unknown faction."); continue; }
+                var label = $"Relation {a.Name} / {b.Name}";
+                if (r.FactionA == r.FactionB) result.AddError($"{label} relates a faction to itself.");
+                else if (r.FactionA.CompareTo(r.FactionB) > 0) result.AddError($"{label} is stored in the wrong order.");
+                if (!pairs.Add((r.FactionA, r.FactionB))) result.AddError($"{label} is recorded twice.");
+                if (r.Opinion < FactionRelationData.MinOpinion || r.Opinion > FactionRelationData.MaxOpinion) result.AddError($"{label} opinion {r.Opinion} is outside -100..100.");
+                if (r.Trust < 0 || r.Trust > FactionRelationData.MaxScore) result.AddError($"{label} trust is outside 0..100.");
+                if (r.Rivalry < 0 || r.Rivalry > FactionRelationData.MaxScore) result.AddError($"{label} rivalry is outside 0..100.");
+                if (!Enum.IsDefined(typeof(AgreementType), r.Agreement) || !Enum.IsDefined(typeof(RelationCause), r.LastCause) || !Enum.IsDefined(typeof(RelationState), r.LastReportedState))
+                    result.AddError($"{label} has an unknown agreement, cause or state.");
+                if (r.Agreement != AgreementType.None)
+                {
+                    if (!r.AgreementSince.IsValidDate) result.AddError($"{label} has an agreement with no start date.");
+                    if (a.IsDissolved || b.IsDissolved) result.AddError($"{label} has an agreement with a dissolved faction.");
+                }
+            }
+
+            var claimIds = new HashSet<ClaimId>();
+            var open = new HashSet<(FactionId, SettlementId)>();
+            foreach (var c in world.Claims)
+            {
+                if (c == null) { result.AddError("Null claim entry."); continue; }
+                if (c.ClaimId.IsEmpty) result.AddError("Claim has an empty ID.");
+                else if (!claimIds.Add(c.ClaimId)) result.AddError($"Duplicate ClaimId {c.ClaimId}.");
+                if (!Enum.IsDefined(typeof(ClaimStatus), c.Status)) result.AddError($"Claim {c.ClaimId} has an unknown status.");
+                if (!c.FiledOn.IsValidDate || !c.UpdatedOn.IsValidDate) result.AddError($"Claim {c.ClaimId} has an invalid date.");
+                if (!settlementIds.Contains(c.SettlementId)) result.AddError($"Claim {c.ClaimId} references an unknown settlement.");
+                if (!factions.TryGetValue(c.ClaimantId, out var claimant)) { result.AddError($"Claim {c.ClaimId} references an unknown faction."); continue; }
+                if (!c.IsOpen) continue;
+                if (claimant.IsDissolved) result.AddError($"Dissolved faction '{claimant.Name}' still has an open claim.");
+                if (!FactionRules.CanClaimTerritory(claimant.Type)) result.AddError($"'{claimant.Name}' has a claim, but a {claimant.Type} cannot claim territory.");
+                if (!open.Add((c.ClaimantId, c.SettlementId))) result.AddError($"'{claimant.Name}' has two open claims on the same settlement.");
+            }
+
+            foreach (var e in world.HistoricalEvents)
+            {
+                if (e == null) continue;
+                foreach (var id in e.FactionIds)
+                {
+                    if (id.IsEmpty || !factions.ContainsKey(id)) result.AddError($"Event {e.EventId} references unknown faction.");
+                }
+            }
+        }
+
+        public static bool GoalNeedsSettlement(GoalType type) => type == GoalType.EstablishPresence || type == GoalType.SecureClaim;
 
         private static void ValidatePlayer(WorldData world, HashSet<SettlementId> settlementIds, Dictionary<RegionId, RegionData> regions, ValidationResult result)
         {

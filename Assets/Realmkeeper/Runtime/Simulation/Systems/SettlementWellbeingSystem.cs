@@ -202,10 +202,12 @@ namespace Realmkeeper.Simulation.Systems
     public static class StandardSimulationSystems
     {
         /// <summary>All Phase 2 systems, in no particular order (the scheduler orders them).</summary>
-        public static IReadOnlyList<ISimulationSystem> Create(EconomyRules rules = null)
+        public static IReadOnlyList<ISimulationSystem> Create(EconomyRules rules = null, PoliticalRules politics = null)
         {
             rules = rules ?? new EconomyRules();
             rules.Validate();
+            politics = politics ?? new PoliticalRules();
+            politics.Validate();
             return new ISimulationSystem[]
             {
                 new LabourSystem(rules),
@@ -214,6 +216,7 @@ namespace Realmkeeper.Simulation.Systems
                 new ConsumptionSystem(rules),
                 new SettlementWellbeingSystem(rules),
                 new PopulationSystem(rules),
+                new PoliticalSystem(politics),
                 new ChronicleSystem(),
             };
         }
@@ -221,16 +224,16 @@ namespace Realmkeeper.Simulation.Systems
         public static IReadOnlyList<string> AllIds => new[]
         {
             LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, ConsumptionSystem.Id,
-            SettlementWellbeingSystem.Id, PopulationSystem.Id, ChronicleSystem.Id,
+            SettlementWellbeingSystem.Id, PopulationSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id,
         };
 
         /// <summary>System IDs used by Phase 1 saves; a world listing these is upgraded to <see cref="AllIds"/>.</summary>
         public static IReadOnlyList<string> LegacyIds => new[] { "realmkeeper.food", "realmkeeper.wellbeing" };
 
-        public static SimulationScheduler CreateScheduler(IRandomSourceFactory randomFactory, EconomyRules rules = null)
+        public static SimulationScheduler CreateScheduler(IRandomSourceFactory randomFactory, EconomyRules rules = null, PoliticalRules politics = null)
         {
             var scheduler = new SimulationScheduler(randomFactory);
-            foreach (var system in Create(rules)) scheduler.Register(system);
+            foreach (var system in Create(rules, politics)) scheduler.Register(system);
             return scheduler;
         }
     }

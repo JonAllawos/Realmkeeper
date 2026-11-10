@@ -18,7 +18,38 @@ namespace Realmkeeper.Tests.EditMode
               .Append(w.CurrentSimulationDate.ToIsoString()).Append('|')
               .Append(w.WorldSettings.SimulationSpeed).Append('|').Append(w.WorldSettings.StartingDate.ToIsoString()).Append('|')
               .Append(string.Join(",", w.WorldSettings.EnabledSimulationSystems)).AppendLine();
-            foreach (var f in w.Factions) sb.Append("F ").Append(f.FactionId).Append(' ').Append(f.Name).AppendLine();
+            foreach (var f in w.Factions)
+            {
+                sb.Append("F ").Append(f.FactionId).Append(' ').Append(f.Name).Append(' ').Append(f.Type).Append(' ').Append(f.Status)
+                  .Append(" founded=").Append(f.FoundedOn.IsValidDate ? f.FoundedOn.ToIsoString() : "-")
+                  .Append(" dissolved=").Append(f.DissolvedOn.IsValidDate ? f.DissolvedOn.ToIsoString() : "-")
+                  .Append(" leader=").Append(f.LeaderNpcId).Append(" inf=").Append(f.Influence).Append('/').Append(f.InfluenceTarget)
+                  .Append(" coin=").Append(f.Treasury).Append(" dormant=").Append(f.DormantTicks).Append(" rep=").Append(f.LastReportedInfluence)
+                  .Append(' ').Append(f.Description).AppendLine();
+                foreach (var p in f.Presence)
+                    sb.Append("  P ").Append(p.SettlementId).Append(' ').Append(p.Strength).Append(' ').Append(p.Members).Append(' ').Append(p.Status)
+                      .Append(' ').Append(p.EstablishedOn.ToIsoString()).Append(' ').Append(p.LastReportedSharePerMille).AppendLine();
+                foreach (var g in f.Goals)
+                    sb.Append("  O ").Append(g.GoalId).Append(' ').Append(g.Type).Append(' ').Append(g.TargetSettlementId).Append(' ').Append(g.TargetFactionId)
+                      .Append(' ').Append(g.TargetValue).Append(' ').Append(g.Progress).Append(' ').Append(g.Priority).Append(' ').Append(g.Status)
+                      .Append(' ').Append(g.CreatedOn.ToIsoString()).Append(' ').Append(g.ClosedOn.IsValidDate ? g.ClosedOn.ToIsoString() : "-")
+                      .Append(' ').Append(g.CloseReason).Append(' ').Append(g.IsManual).AppendLine();
+            }
+
+            foreach (var r in w.Relations)
+                sb.Append("R ").Append(r.FactionA).Append(' ').Append(r.FactionB).Append(' ').Append(r.Opinion).Append(' ').Append(r.Trust).Append(' ').Append(r.Rivalry)
+                  .Append(' ').Append(r.Agreement).Append(' ').Append(r.AgreementSince.IsValidDate ? r.AgreementSince.ToIsoString() : "-")
+                  .Append(' ').Append(r.LastCause).Append(' ').Append(r.LastReportedState).AppendLine();
+            foreach (var c in w.Claims)
+                sb.Append("C ").Append(c.ClaimId).Append(' ').Append(c.ClaimantId).Append(' ').Append(c.SettlementId).Append(' ').Append(c.Status)
+                  .Append(' ').Append(c.FiledOn.ToIsoString()).Append(' ').Append(c.UpdatedOn.ToIsoString()).Append(' ').Append(c.IsManual).AppendLine();
+            foreach (var s in w.Settlements) sb.Append("A ").Append(s.SettlementId).Append(' ').Append(s.AdministratorFactionId).AppendLine();
+            foreach (var e in w.HistoricalEvents)
+            {
+                if (e.FactionIds.Count > 0) sb.Append("EF ").Append(e.EventId).Append(' ').Append(string.Join(",", e.FactionIds)).AppendLine();
+            }
+
+            foreach (var n in w.Npcs) sb.Append("NF ").Append(n.NpcId).Append(' ').Append(n.FactionId).AppendLine();
             foreach (var r in w.Regions)
                 sb.Append("G ").Append(r.RegionId).Append(' ').Append(r.Name).Append(' ').Append(r.Origin).Append(' ').Append(r.Width).Append('x').Append(r.Depth).AppendLine();
             if (w.Player != null)

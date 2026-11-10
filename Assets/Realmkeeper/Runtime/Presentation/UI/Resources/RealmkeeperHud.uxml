@@ -14,6 +14,7 @@
             <ui:Button name="advance-week" text="+1 week" class="rk-button" />
             <ui:Button name="advance-month" text="+1 month" class="rk-button" />
             <ui:DropdownField name="speed" label="Speed" class="rk-speed" />
+            <ui:Button name="toggle-politics" text="Politics" tooltip="Show or hide who governs each settlement on the map." class="rk-button" />
             <ui:VisualElement class="rk-divider" />
             <ui:Button name="save" text="Save" class="rk-button" />
             <ui:Button name="load" text="Load" class="rk-button" />
@@ -26,6 +27,8 @@
                 <ui:Button name="nav-world" text="World" class="rk-nav-item rk-nav-item--active" />
                 <ui:Button name="nav-settlements" text="Settlements" class="rk-nav-item" />
                 <ui:ScrollView name="settlement-list" class="rk-settlement-list" />
+                <ui:Button name="nav-factions" text="Factions" class="rk-nav-item" />
+                <ui:ScrollView name="faction-list" class="rk-settlement-list rk-faction-list" />
                 <ui:VisualElement class="rk-nav-separator" />
                 <ui:VisualElement name="nav-later" class="rk-nav-later" />
             </ui:VisualElement>
@@ -64,6 +67,9 @@
                         <ui:Label text="Faction" class="rk-key" />
                         <ui:Label name="insp-faction" text="-" class="rk-value" />
                     </ui:VisualElement>
+
+                    <ui:Label text="Politics" class="rk-section" />
+                    <ui:VisualElement name="insp-politics" class="rk-resources" />
 
                     <ui:VisualElement class="rk-row rk-bar-label">
                         <ui:Label text="Prosperity" class="rk-key" />
@@ -127,6 +133,18 @@
                     <ui:Label text="Trade routes" class="rk-section" />
                     <ui:VisualElement name="insp-trade" class="rk-resources" />
                 </ui:ScrollView>
+            </ui:VisualElement>
+
+            <!-- Faction inspector (shown instead of the settlement inspector) -->
+            <ui:VisualElement name="faction-inspector" class="rk-panel rk-inspector rk-hidden">
+                <ui:VisualElement class="rk-inspector-header">
+                    <ui:VisualElement class="rk-grow">
+                        <ui:Label name="finsp-name" text="-" class="rk-insp-name" />
+                        <ui:Label name="finsp-type" text="-" class="rk-insp-type" />
+                    </ui:VisualElement>
+                    <ui:Button name="finsp-close" text="×" class="rk-close" />
+                </ui:VisualElement>
+                <ui:ScrollView name="finsp-body" class="rk-insp-body" mode="Vertical" horizontal-scroller-visibility="Hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
 

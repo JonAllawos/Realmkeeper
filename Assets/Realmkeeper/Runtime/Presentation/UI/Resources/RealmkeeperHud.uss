@@ -601,3 +601,49 @@
 .rk-trade-line--suspended {
     color: rgb(150, 142, 126);
 }
+
+/* ----- Phase 3: factions and politics -------------------------------------------------------- */
+
+.rk-faction-list {
+    max-height: 190px;
+}
+
+.rk-faction-item {
+    height: auto;
+    min-height: 28px;
+    flex-wrap: wrap;
+}
+
+.rk-faction-name {
+    flex-shrink: 1;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+
+.rk-faction-item--dissolved {
+    color: rgb(120, 114, 102);
+}
+
+.rk-swatch {
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 2px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+}
+
+.rk-route-row {
+    flex-wrap: wrap;
+}
+
+.rk-absent-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.rk-absent-row > .rk-route-toggle {
+    margin: 1px 4px 1px 0;
+}
