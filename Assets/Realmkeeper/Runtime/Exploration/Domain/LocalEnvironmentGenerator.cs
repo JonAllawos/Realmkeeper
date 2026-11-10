@@ -42,6 +42,7 @@ namespace Realmkeeper.Exploration.Domain
             {
                 SettlementId = settlementId,
                 RegionId = regionId,
+                Type = type,
                 HalfExtent = half,
                 PlazaRadius = type == SettlementType.Hamlet ? 8f : 11f,
                 HasWalls = type == SettlementType.Town || type == SettlementType.City || type == SettlementType.Fortress,

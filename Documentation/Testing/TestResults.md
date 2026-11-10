@@ -278,3 +278,30 @@ receives device input, it showed:
 | Unity PlayMode (batch) | 43/43 (+1: the real-scene test) |
 
 **Not verified by eye yet:** the new look in the editor.
+
+## Graphics pass (2026-11-10)
+
+Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8, RTX 4070 Laptop GPU.
+
+| Suite | Result |
+|---|---|
+| .NET harness (`dotnet test Tools/DotNet/Realmkeeper.Verification.sln -c Release`) | **297/297** (279 + 18 new: `BuildingKitTests` 11, `NpcAppearanceTests` 7) |
+| Unity EditMode (batch) | **297/297** |
+| Unity PlayMode (batch) | **48/48** (43 + `GraphicsPlayModeTests` 4 + `GraphicsCaptureTests` 1, run with `RK_CAPTURE_DIR` set) |
+
+**Defects the new tests found** (all fixed before the final runs):
+- **T-pose residents:** a body without a humanoid avatar (Female_Peasant) stood in a T-pose.
+- **Render settings on exit:** the strategic fog and ambient were overwritten when leaving a town.
+  The snapshot was taken after the exploration scene became active.
+- **Teleport as running:** a teleport was read as running in the animation driver.
+
+**Mutation checks** (.NET, reverted afterwards):
+- Turning the front-door slot into a window fails `EveryHouse_HasAFrontDoor_AndTheTavernAnOpenDoorway`.
+- Rounding footprints up fails `Plans_StayInsideTheirLayoutFootprint` and `Snap_RoundsToTheTwoMetreGrid`.
+
+**Performance:** the editor capture and the development-build probe are in
+`Documentation/Screenshots/GraphicsPass/*_stats.txt` and `devbuild-perf-*.txt`, summarised in
+`Documentation/Reports/GraphicsPass-Report.md`. In a town: at most 955 draw calls, and a
+1.2–1.7 ms mean frame at 1080p on the RTX 4070 Laptop GPU.
+
+**Not verified:** a GTX 1660-class GPU (estimated only); the owner's own review of the look in the editor.

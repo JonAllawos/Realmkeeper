@@ -1,0 +1,10 @@
+map              render CPU  10.67 ms (mean of 10)  visible renderers     9  materials    2  per render: draw calls   400  batches   400  set-pass   39  triangles   6136026  shadow casters   286
+gate             render CPU   2.06 ms (mean of 10)  visible renderers   260  materials   39  per render: draw calls   951  batches   951  set-pass  148  triangles   2758913  shadow casters   372
+street           render CPU   1.53 ms (mean of 10)  visible renderers   225  materials   38  per render: draw calls   859  batches   859  set-pass  128  triangles   2540521  shadow casters   364
+building         render CPU   0.99 ms (mean of 10)  visible renderers    70  materials   22  per render: draw calls   317  batches   317  set-pass   49  triangles   1268061  shadow casters   130
+character        render CPU   1.63 ms (mean of 10)  visible renderers   176  materials   36  per render: draw calls   684  batches   684  set-pass  136  triangles   1747226  shadow casters   271
+plaza_residents  render CPU   1.28 ms (mean of 10)  visible renderers   142  materials   37  per render: draw calls   599  batches   599  set-pass  107  triangles   1586499  shadow casters   262
+interior         render CPU   1.05 ms (mean of 10)  visible renderers    62  materials   23  per render: draw calls   279  batches   279  set-pass   63  triangles    912934  shadow casters   122
+overview         render CPU   1.60 ms (mean of 10)  visible renderers   311  materials   40  per render: draw calls   901  batches   901  set-pass  120  triangles   2500659  shadow casters   240
+scene total: renderers 314, triangles 885958, materials 40, colliders 81, residents 6, buildings 13
+graphics device: NVIDIA GeForce RTX 4070 Laptop GPU (Direct3D11)

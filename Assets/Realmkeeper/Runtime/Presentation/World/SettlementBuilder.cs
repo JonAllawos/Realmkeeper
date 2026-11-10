@@ -134,17 +134,20 @@ namespace Realmkeeper.Presentation
                 {
                     case HouseStyle.Town:
                         walls = pick < 0.45f ? Palette.Plaster : pick < 0.8f ? Palette.Limestone : Palette.Timber;
-                        roof = rng.Value() < 0.6f ? Palette.Slate : Palette.RoofTile;
+                        roof = rng.Value() < 0.6f ? Palette.RoofTile : Palette.RoofTileWarm;
                         break;
                     case HouseStyle.Village:
                         walls = pick < 0.55f ? Palette.Plaster : Palette.Timber;
-                        roof = rng.Value() < 0.7f ? Palette.Thatch : Palette.Slate;
+                        roof = rng.Value() < 0.7f ? Palette.RoofTileWarm : Palette.RoofTile;
                         break;
                     default:
                         walls = pick < 0.5f ? Palette.Timber : Palette.Plaster;
-                        roof = Palette.Thatch;
+                        roof = Palette.RoofTileWarm;
                         break;
                 }
+
+                // Roofs match the exploration kit (terracotta round tiles in every settlement type); the
+                // random draws are unchanged, so placement and every other colour stay as they were.
 
                 walls = Palette.Scale(walls, rng.Range(0.93f, 1.05f));
                 roof = Palette.Scale(roof, rng.Range(0.92f, 1.06f));

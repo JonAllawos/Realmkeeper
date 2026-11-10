@@ -34,6 +34,7 @@ namespace Realmkeeper.Exploration.Presentation
         private IExplorationInput _input;
         private bool _ownsInput;
         private SettlementEnvironmentBuilder.RenderSettingsSnapshot _renderSnapshot;
+        private ExplorationAtmosphere _atmosphere;
         private bool _cursorFree;
 
         public LocalEnvironmentStreamer Streamer => _streamer;
@@ -41,6 +42,9 @@ namespace Realmkeeper.Exploration.Presentation
         public ExplorationCameraRig CameraRig { get; private set; }
         public ExplorationHud Hud { get; private set; }
         public GameObject EnvironmentRoot { get; private set; }
+
+        /// <summary>The art catalog the current environment was built with, or null for the primitive fallback.</summary>
+        public ArtCatalog Catalog { get; private set; }
         public IReadOnlyDictionary<NpcId, ResidentView> Residents => _residents;
         public IReadOnlyList<EnvironmentInteractable> Interactables => _interactables;
         public InteractionDetector Detector => _detector;
@@ -149,16 +153,30 @@ namespace Realmkeeper.Exploration.Presentation
             var layout = ExplorationModule.LayoutFor(_session, settlement);
             _materials = new ExplorationMaterials();
             _renderSnapshot = SettlementEnvironmentBuilder.RenderSettingsSnapshot.Capture();
+            _atmosphere = new ExplorationAtmosphere();
+            _atmosphere.Capture(); // before the exploration scene becomes the active scene
             _streamer.Load(layout, settlement.Name); // creates and activates the exploration scene
 
-            SettlementEnvironmentBuilder.ApplyAtmosphere();
-            EnvironmentRoot = SettlementEnvironmentBuilder.Build(layout, _materials);
+            // The modular art kit when the art catalog is set up; the primitive vertical-slice builder otherwise.
+            var catalog = ArtCatalog.Load();
+            Catalog = catalog != null && catalog.Modules.Count > 0 ? catalog : null;
+            if (Catalog != null)
+            {
+                EnvironmentRoot = ModularEnvironmentBuilder.Build(layout, Catalog);
+                _atmosphere.Apply(EnvironmentRoot.transform, Catalog);
+            }
+            else
+            {
+                SettlementEnvironmentBuilder.ApplyAtmosphere();
+                EnvironmentRoot = SettlementEnvironmentBuilder.Build(layout, _materials);
+            }
 
-            Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)));
+            Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)), Catalog);
             Player.Input = _input;
             Player.Teleport(player.Pose);
             CameraRig = ExplorationCameraRig.Create(null, Player);
             CameraRig.Input = _input;
+            if (Catalog != null) ExplorationAtmosphere.ConfigureCamera(CameraRig.Camera);
             CameraRig.SetPerspective(player.Perspective);
             CameraRig.SetView(player.Pose.Yaw, 12f);
             CameraRig.Snap();
@@ -170,7 +188,7 @@ namespace Realmkeeper.Exploration.Presentation
                 if (_residents.ContainsKey(spot.NpcId)) continue; // one body per persistent identity
                 var npc = _session.FindNpc(spot.NpcId);
                 if (npc == null) continue;
-                var view = ResidentView.Create(residents, spot, npc, _session, Player.transform, _materials);
+                var view = ResidentView.Create(residents, spot, npc, _session, Player.transform, _materials, Catalog);
                 _residents.Add(spot.NpcId, view);
                 _detector.Register(view);
             }
@@ -213,6 +231,9 @@ namespace Realmkeeper.Exploration.Presentation
             CameraRig = null;
             Hud = null;
             EnvironmentRoot = null;
+            _atmosphere?.Restore();
+            _atmosphere = null;
+            Catalog = null;
             _renderSnapshot?.Restore();
             _renderSnapshot = null;
             _materials?.Dispose();
@@ -346,6 +367,8 @@ namespace Realmkeeper.Exploration.Presentation
 
             UnbindSession();
             if (_ownsInput && _input is InputSystemExplorationInput owned) owned.Dispose();
+            _atmosphere?.Restore(); // never leave street-level render settings (or the URP shadow distance) behind
+            _atmosphere = null;
             if (ManageCursor)
             {
                 Cursor.lockState = CursorLockMode.None;

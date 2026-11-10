@@ -17,7 +17,7 @@ namespace Realmkeeper.Exploration.Presentation
     /// </summary>
     public sealed class ResidentView : MonoBehaviour, IInteractable
     {
-        private const float WalkSpeed = 1.1f;
+        private const float WalkSpeed = 1.3f;
         private const float FacePlayerDistance = 3.2f;
 
         private Vector3 _anchor;
@@ -32,12 +32,18 @@ namespace Realmkeeper.Exploration.Presentation
         public NpcRole Role { get; private set; }
         public string DisplayName { get; private set; }
 
+        /// <summary>How the resident looks, resolved from its NPC ID, role and name (never stored).</summary>
+        public NpcAppearance Appearance { get; private set; }
+
+        /// <summary>The humanoid body's animation driver, or null for the primitive fallback.</summary>
+        public CharacterAnimationDriver Animation { get; private set; }
+
         public string Prompt => $"Talk to {DisplayName} ({RoleName(Role)})";
         public InteractionKind Kind => InteractionKind.StateChanging;
         public Vector3 InteractionPoint => transform.position;
 
         public static ResidentView Create(Transform parent, LayoutResidentSpot spot, NpcSummary npc, WorldSession session, Transform player,
-            ExplorationMaterials materials)
+            ExplorationMaterials materials, ArtCatalog catalog = null)
         {
             var go = new GameObject("Resident " + npc.NpcId);
             go.transform.SetParent(parent, false);
@@ -54,12 +60,18 @@ namespace Realmkeeper.Exploration.Presentation
             view._random = new System.Random(npc.NpcId.GetHashCode());
             view._wait = (float)view._random.NextDouble() * 3f;
 
-            var body = SettlementEnvironmentBuilder.Primitive(go.transform, PrimitiveType.Capsule, "Body",
-                new Vector3(0f, 0.85f, 0f), new Vector3(0.6f, 0.85f, 0.6f), materials.Get(RoleColour(npc.Role)));
-            SettlementEnvironmentBuilder.RemoveCollider(body);
-            var head = SettlementEnvironmentBuilder.Primitive(go.transform, PrimitiveType.Sphere, "Head",
-                new Vector3(0f, 1.62f, 0f), new Vector3(0.34f, 0.34f, 0.34f), materials.Get(new Color(0.80f, 0.64f, 0.52f)));
-            SettlementEnvironmentBuilder.RemoveCollider(head);
+            view.Appearance = NpcAppearanceResolver.Resolve(npc.NpcId, npc.Role, npc.Name);
+            view.Animation = HumanoidCharacterBuilder.Build(go.transform, view.Appearance, catalog);
+            if (view.Animation == null)
+            {
+                var body = SettlementEnvironmentBuilder.Primitive(go.transform, PrimitiveType.Capsule, "Body",
+                    new Vector3(0f, 0.85f, 0f), new Vector3(0.6f, 0.85f, 0.6f), materials.Get(RoleColour(npc.Role)));
+                SettlementEnvironmentBuilder.RemoveCollider(body);
+                var head = SettlementEnvironmentBuilder.Primitive(go.transform, PrimitiveType.Sphere, "Head",
+                    new Vector3(0f, 1.62f, 0f), new Vector3(0.34f, 0.34f, 0.34f), materials.Get(new Color(0.80f, 0.64f, 0.52f)));
+                SettlementEnvironmentBuilder.RemoveCollider(head);
+            }
+
             var collider = go.AddComponent<CapsuleCollider>();
             collider.center = new Vector3(0f, 0.9f, 0f);
             collider.height = 1.8f;
@@ -71,6 +83,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var result = session.Dispatch(new TalkToResidentCommand(NpcId));
             if (player != null) FaceTowards(player.position);
+            if (result.IsSuccess) Animation?.Talk(4f);
             return new InteractionResponse(DisplayName, result.IsSuccess ? result.Message : Describe(result), Kind, result);
         }
 

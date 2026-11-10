@@ -1,4 +1,5 @@
 using Realmkeeper.Domain.World;
+using Realmkeeper.Exploration.Domain;
 using Realmkeeper.Exploration.Interaction;
 using UnityEngine;
 
@@ -42,7 +43,10 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The visible body (hidden in first person so it does not block the view).</summary>
         public GameObject Body => _body;
 
-        public static PlayerCharacter Create(Transform parent, Material bodyMaterial, Material headMaterial)
+        /// <summary>The humanoid body's animation driver, or null when the body is the primitive fallback.</summary>
+        public CharacterAnimationDriver Animation { get; private set; }
+
+        public static PlayerCharacter Create(Transform parent, Material bodyMaterial, Material headMaterial, ArtCatalog catalog = null)
         {
             var go = new GameObject("Player Character");
             go.transform.SetParent(parent, false);
@@ -62,6 +66,9 @@ namespace Realmkeeper.Exploration.Presentation
 
             player._body = new GameObject("Body");
             player._body.transform.SetParent(go.transform, false);
+            player.Animation = HumanoidCharacterBuilder.Build(player._body.transform, NpcAppearanceResolver.Player(), catalog);
+            if (player.Animation != null) return player; // a humanoid body; the primitives below are the fallback
+
             var torso = SettlementEnvironmentBuilder.Primitive(player._body.transform, PrimitiveType.Capsule, "Torso",
                 new Vector3(0f, 0.8f, 0f), new Vector3(0.62f, 0.8f, 0.62f), bodyMaterial);
             SettlementEnvironmentBuilder.RemoveCollider(torso);

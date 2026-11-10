@@ -114,6 +114,9 @@ namespace Realmkeeper.Exploration.Domain
         public RegionId RegionId { get; set; }
 
         /// <summary>Half the side length of the walkable square, in metres.</summary>
+        /// <summary>The settlement's type, which selects its visual profile (building styles and sizes).</summary>
+        public SettlementType Type { get; set; }
+
         public float HalfExtent { get; set; }
 
         public float PlazaRadius { get; set; }

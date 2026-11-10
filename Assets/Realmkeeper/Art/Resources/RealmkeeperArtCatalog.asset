@@ -1,0 +1,488 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc22e8b8b94de03489916ded8a5ae296, type: 3}
+  m_Name: RealmkeeperArtCatalog
+  m_EditorClassIdentifier: 
+  Modules:
+  - Id: Balcony_Cross_Straight
+    Prefab: {fileID: 919132149155446097, guid: cfb82ebea4620cc479e11b7878290847, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 0.5098562, z: -1.0011113}
+      m_Extent: {x: 1.0000004, y: 0.61494327, z: 0.103141665}
+  - Id: Balcony_Simple_Straight
+    Prefab: {fileID: 919132149155446097, guid: 98f69a374d51ae04e8b6f66e925b19f0, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 0.5098562, z: -1.0011113}
+      m_Extent: {x: 1, y: 0.61494327, z: 0.103141665}
+  - Id: Corner_ExteriorWide_Brick
+    Prefab: {fileID: 919132149155446097, guid: dba4b3050314cf64f8ac7ed766706671, type: 3}
+    Bounds:
+      m_Center: {x: -0.13366246, y: 1.5028884, z: -0.15599951}
+      m_Extent: {x: 0.3561526, y: 1.5214033, z: 0.37821087}
+  - Id: Corner_ExteriorWide_Wood
+    Prefab: {fileID: 919132149155446097, guid: 4c6121cfccd84854cbbfa1dea43414aa, type: 3}
+    Bounds:
+      m_Center: {x: -0.00000086426735, y: 1.4999996, z: 0.000000044703484}
+      m_Extent: {x: 0.1452275, y: 1.4999999, z: 0.16558903}
+  - Id: Corner_Exterior_Brick
+    Prefab: {fileID: 919132149155446097, guid: d2f49b1572195774db2eba69c5638071, type: 3}
+    Bounds:
+      m_Center: {x: -0.08760637, y: 1.5007223, z: -0.08878255}
+      m_Extent: {x: 0.26533535, y: 1.5078133, z: 0.28791705}
+  - Id: Corner_Exterior_Wood
+    Prefab: {fileID: 919132149155446097, guid: ad856574a283ca940a08dc2f3eabd1f3, type: 3}
+    Bounds:
+      m_Center: {x: -0.00000011920929, y: 1.4999996, z: 0.00000016391277}
+      m_Extent: {x: 0.105087206, y: 1.4999999, z: 0.11982023}
+  - Id: DoorFrame_Flat_WoodDark
+    Prefab: {fileID: 919132149155446097, guid: 7f5bf0f1d042ec4449deaf466a42fc3e, type: 3}
+    Bounds:
+      m_Center: {x: 0.0007865429, y: 1.1475847, z: 0.049063876}
+      m_Extent: {x: 0.78699607, y: 1.1561296, z: 0.19422619}
+  - Id: DoorFrame_Round_Brick
+    Prefab: {fileID: 919132149155446097, guid: d622e0e62503111499b625595010cd93, type: 3}
+    Bounds:
+      m_Center: {x: -0.0025558472, y: 1.291393, z: 0.056548893}
+      m_Extent: {x: 0.8015599, y: 1.2930856, z: 0.23858511}
+  - Id: DoorFrame_Round_WoodDark
+    Prefab: {fileID: 919132149155446097, guid: 87d2e7007950061498af719b27aadbe0, type: 3}
+    Bounds:
+      m_Center: {x: -0.0000007748604, y: 1.2731518, z: -0.029453635}
+      m_Extent: {x: 0.70349216, y: 1.2816967, z: 0.2694821}
+  - Id: Door_1_Flat
+    Prefab: {fileID: 919132149155446097, guid: 1d0e422e51e8ee040bf7ed6647660f4f, type: 3}
+    Bounds:
+      m_Center: {x: 0.51267, y: 1.0850849, z: -0.0027924478}
+      m_Extent: {x: 0.5589331, y: 1.0498598, z: 0.060350254}
+  - Id: Door_1_Round
+    Prefab: {fileID: 919132149155446097, guid: 680ac44ac11049b4fa79efc601b84461, type: 3}
+    Bounds:
+      m_Center: {x: 0.51374334, y: 1.1922078, z: -0.0027924366}
+      m_Extent: {x: 0.5600064, y: 1.1591182, z: 0.060350265}
+  - Id: Door_2_Flat
+    Prefab: {fileID: 919132149155446097, guid: 4dc9862efa64dcf41b75ae672959e5cf, type: 3}
+    Bounds:
+      m_Center: {x: 0.51424515, y: 1.0898432, z: 0.0032318383}
+      m_Extent: {x: 0.55690956, y: 1.0502174, z: 0.1304503}
+  - Id: Door_2_Round
+    Prefab: {fileID: 919132149155446097, guid: 724d90b2cb23ada42a844a2d5fbe20eb, type: 3}
+    Bounds:
+      m_Center: {x: 0.51506, y: 1.1920836, z: 0.0032318532}
+      m_Extent: {x: 0.5577244, y: 1.1637447, z: 0.13045031}
+  - Id: Floor_Brick
+    Prefab: {fileID: 919132149155446097, guid: 000ebf04a40a33d45a61bed84d5c9580, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: -0.00000019650906, z: 0}
+      m_Extent: {x: 1, y: 0.010000305, z: 0.9999999}
+  - Id: Floor_RedBrick
+    Prefab: {fileID: 919132149155446097, guid: fa71efa0638e487498138221777130b7, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: -0.00000019650906, z: 0}
+      m_Extent: {x: 1, y: 0.010000305, z: 0.9999999}
+  - Id: Floor_UnevenBrick
+    Prefab: {fileID: 919132149155446097, guid: d740f5a67def2c245b00d5d854ba2bb2, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: -0.00000019650906, z: 0}
+      m_Extent: {x: 1, y: 0.010000305, z: 0.9999999}
+  - Id: Floor_WoodDark
+    Prefab: {fileID: 919132149155446097, guid: 8506260646d9a9347bfec05aff0d6160, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: -0.00000019650906, z: 0}
+      m_Extent: {x: 1, y: 0.010000305, z: 0.9999999}
+  - Id: Floor_WoodLight
+    Prefab: {fileID: 919132149155446097, guid: 7a361737bc3281543856cd86fe912aba, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: -0.00000019650906, z: 0}
+      m_Extent: {x: 1, y: 0.010000305, z: 0.9999999}
+  - Id: Prop_Brick1
+    Prefab: {fileID: 919132149155446097, guid: 80081d70721b0ef488fd01b117b49a71, type: 3}
+    Bounds:
+      m_Center: {x: 0.0049125403, y: -0.0063605607, z: 0.00034427643}
+      m_Extent: {x: 0.17281805, y: 0.10401417, z: 0.12508298}
+  - Id: Prop_Brick2
+    Prefab: {fileID: 919132149155446097, guid: c6def77fe1fd52247b81df51a876d400, type: 3}
+    Bounds:
+      m_Center: {x: 0.0073553026, y: 0.010418922, z: -0.00008466095}
+      m_Extent: {x: 0.19770488, y: 0.12244457, z: 0.108444}
+  - Id: Prop_Chimney
+    Prefab: {fileID: 919132149155446097, guid: e6d895778b2cd7648ad8246ea1178f18, type: 3}
+    Bounds:
+      m_Center: {x: -0.027110815, y: 1.5889374, z: 0.00000017881393}
+      m_Extent: {x: 0.47288924, y: 1.5889375, z: 0.5000002}
+  - Id: Prop_Chimney2
+    Prefab: {fileID: 919132149155446097, guid: a5790af624523fe41a38df284e107536, type: 3}
+    Bounds:
+      m_Center: {x: -0.027110815, y: 1.4999999, z: 0.00000014901161}
+      m_Extent: {x: 0.47288924, y: 1.4999999, z: 0.49400866}
+  - Id: Prop_Crate
+    Prefab: {fileID: 919132149155446097, guid: 3289ba883b0f14041a7c5b935b857ef6, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 0.5331518, z: 0.000000059604645}
+      m_Extent: {x: 0.5417912, y: 0.52979034, z: 0.54179114}
+  - Id: Prop_ExteriorBorder_Straight1
+    Prefab: {fileID: 919132149155446097, guid: c150dc454cb713f4d95b1e8482b3672b, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 0.067009054, z: -0.34999996}
+      m_Extent: {x: 1.0000001, y: 0.06700903, z: 0.34999996}
+  - Id: Prop_Support
+    Prefab: {fileID: 919132149155446097, guid: ca7e336ac33531f4caaeaf46ea47a6ca, type: 3}
+    Bounds:
+      m_Center: {x: -0.000000059604645, y: 2.0657077, z: -0.9000133}
+      m_Extent: {x: 0.09930177, y: 0.8543184, z: 1.0181366}
+  - Id: Prop_Vine1
+    Prefab: {fileID: 919132149155446097, guid: d3dbf3dda1a2ffa4c9b1f91950c06b17, type: 3}
+    Bounds:
+      m_Center: {x: -0.015259802, y: -0.81924653, z: -0.06477389}
+      m_Extent: {x: 0.7678795, y: 1.3012755, z: 0.1094819}
+  - Id: Prop_Vine2
+    Prefab: {fileID: 919132149155446097, guid: af18fd77910bd234e890cffbf6386736, type: 3}
+    Bounds:
+      m_Center: {x: 0.19900426, y: -0.8192464, z: -0.06221439}
+      m_Extent: {x: 0.6930567, y: 1.3012756, z: 0.1069224}
+  - Id: Prop_Vine4
+    Prefab: {fileID: 919132149155446097, guid: ac8db9aad89c87b42ab154e29f28b16b, type: 3}
+    Bounds:
+      m_Center: {x: -0.20983976, y: -0.21979636, z: -0.0482317}
+      m_Extent: {x: 0.50828636, y: 0.7940863, z: 0.075008355}
+  - Id: Prop_Wagon
+    Prefab: {fileID: 919132149155446097, guid: a10e1fea38277974a8941315e0e4c45f, type: 3}
+    Bounds:
+      m_Center: {x: -0.0036549568, y: 0.7677282, z: 1.1384239}
+      m_Extent: {x: 0.9757042, y: 0.7645987, z: 2.0120082}
+  - Id: Prop_WoodenFence_Extension1
+    Prefab: {fileID: 919132149155446097, guid: 9fa80ebb27a846f489b95017cad2134a, type: 3}
+    Bounds:
+      m_Center: {x: 0.010126352, y: 0.39080194, z: 0.000000074505806}
+      m_Extent: {x: 1.0225226, y: 0.41905445, z: 0.055178676}
+  - Id: Prop_WoodenFence_Single
+    Prefab: {fileID: 919132149155446097, guid: 5406bab126c2343408afdec0148113e1, type: 3}
+    Bounds:
+      m_Center: {x: 0.0005990267, y: 0.39080194, z: 0.000000011175871}
+      m_Extent: {x: 1.0320498, y: 0.41905445, z: 0.059910048}
+  - Id: Roof_Dormer_RoundTile
+    Prefab: {fileID: 919132149155446097, guid: fc1a36eefa706d748a12812e4a7a06f6, type: 3}
+    Bounds:
+      m_Center: {x: 0.916935, y: 1.3662173, z: -0.0000654459}
+      m_Extent: {x: 0.9831854, y: 1.3365574, z: 1.2195798}
+  - Id: Roof_Front_Brick4
+    Prefab: {fileID: 919132149155446097, guid: 7e53f6d936444fc4e8e8f4efcf7104f2, type: 3}
+    Bounds:
+      m_Center: {x: 0.016094446, y: 1.4024502, z: -0.2295878}
+      m_Extent: {x: 2.1999016, y: 1.5342523, z: 0.56455183}
+  - Id: Roof_Front_Brick6
+    Prefab: {fileID: 919132149155446097, guid: 3b516ce2ccf998343a30b20236cbd71d, type: 3}
+    Bounds:
+      m_Center: {x: 0.00067949295, y: 2.1260896, z: -0.22958809}
+      m_Extent: {x: 3.3471975, y: 2.2578917, z: 0.56455225}
+  - Id: Roof_Front_Brick8
+    Prefab: {fileID: 919132149155446097, guid: 88a199fe41def3348b1576cc1b3d1c3f, type: 3}
+    Bounds:
+      m_Center: {x: 0.00067949295, y: 2.5911317, z: -0.22958755}
+      m_Extent: {x: 4.2553973, y: 2.7229338, z: 0.56455183}
+  - Id: Roof_RoundTiles_4x4
+    Prefab: {fileID: 919132149155446097, guid: 70f7e02944c67344a875468399e3b921, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.6089777, z: -0.04082918}
+      m_Extent: {x: 2.7565382, y: 2.1246963, z: 2.7807374}
+  - Id: Roof_RoundTiles_4x6
+    Prefab: {fileID: 919132149155446097, guid: 37449e14c2e3d0c4e939b43680ed3fb0, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.6010749, z: -0.00010585785}
+      m_Extent: {x: 2.7565382, y: 2.1167936, z: 3.78614}
+  - Id: Roof_RoundTiles_4x8
+    Prefab: {fileID: 919132149155446097, guid: 23323efea8410f047b90e7373e232057, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.598864, z: -0.0126161575}
+      m_Extent: {x: 2.7565382, y: 2.114583, z: 4.84137}
+  - Id: Roof_RoundTiles_6x10
+    Prefab: {fileID: 919132149155446097, guid: 5bd3c4be0a024e04b9e2e88732a912f2, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.0539587, z: -0.028512001}
+      m_Extent: {x: 4.1248918, y: 2.8360863, z: 5.926093}
+  - Id: Roof_RoundTiles_6x12
+    Prefab: {fileID: 919132149155446097, guid: 737dfcc8bca5d3a4e864d37d6d9bb2ff, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.0539587, z: 0.00000047683716}
+      m_Extent: {x: 4.1248918, y: 2.8360863, z: 6.8287535}
+  - Id: Roof_RoundTiles_6x14
+    Prefab: {fileID: 919132149155446097, guid: 5b88960ecfbe5c142a443c4ca02c83b3, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.0539587, z: 0.024188042}
+      m_Extent: {x: 4.1248918, y: 2.8360865, z: 7.852941}
+  - Id: Roof_RoundTiles_6x6
+    Prefab: {fileID: 919132149155446097, guid: 3a5d26f28941f394e85de3dd52a4128d, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.0539587, z: -0.07789135}
+      m_Extent: {x: 4.1248918, y: 2.836086, z: 4.0160947}
+  - Id: Roof_RoundTiles_6x8
+    Prefab: {fileID: 919132149155446097, guid: 1f0a06899d16b504fa2db7800dfc3dc3, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.0539587, z: -0.0126161575}
+      m_Extent: {x: 4.1248918, y: 2.836086, z: 4.84137}
+  - Id: Roof_RoundTiles_8x10
+    Prefab: {fileID: 919132149155446097, guid: d3ab02cf42700474c8a104f58365951e, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.6107051, z: -0.0777235}
+      m_Extent: {x: 4.9759974, y: 3.3906622, z: 5.929722}
+  - Id: Roof_RoundTiles_8x12
+    Prefab: {fileID: 919132149155446097, guid: 245006c16d7761b4aa3589afcc499911, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.6107051, z: 0.051034927}
+      m_Extent: {x: 4.9759974, y: 3.3906624, z: 7.0660934}
+  - Id: Roof_RoundTiles_8x14
+    Prefab: {fileID: 919132149155446097, guid: 43b6f4b2727e15c4cacb7d3ca0c83ac6, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.6107051, z: 0.024188042}
+      m_Extent: {x: 4.9759974, y: 3.3906624, z: 7.852941}
+  - Id: Roof_RoundTiles_8x8
+    Prefab: {fileID: 919132149155446097, guid: 5c29ed030f283c74486d5ca37f70e6f9, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 2.6107051, z: -0.08135271}
+      m_Extent: {x: 4.9759974, y: 3.3906622, z: 5.1660933}
+  - Id: Roof_Tower_RoundTiles
+    Prefab: {fileID: 919132149155446097, guid: 80687492f3488e54188585892314c026, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 3.1084285, z: 0.00000047683716}
+      m_Extent: {x: 2.8252606, y: 3.680387, z: 2.71355}
+  - Id: Stair_Interior_Simple
+    Prefab: {fileID: 919132149155446097, guid: f2ae97fd996aef1428545469075f1ddc, type: 3}
+    Bounds:
+      m_Center: {x: 0.0032165647, y: 1.5070909, z: 2.2750406}
+      m_Extent: {x: 0.83808994, y: 1.5174968, z: 2.3097696}
+  - Id: Stairs_Exterior_Straight
+    Prefab: {fileID: 919132149155446097, guid: 7f6da361a0db62940b599a958da910a3, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 0.39815593, z: 0.038287282}
+      m_Extent: {x: 1.0000002, y: 0.601844, z: 1.0389588}
+  - Id: Wall_Arch
+    Prefab: {fileID: 919132149155446097, guid: 339443099e574eb45928b33727fafdec, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.4999998, z: -0.032022648}
+      m_Extent: {x: 1, y: 1.5, z: 0.032023035}
+  - Id: Wall_BottomCover
+    Prefab: {fileID: 919132149155446097, guid: 2283d2965e35ad647abe27bdfb3195b2, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 0.0019979626, z: 0.098232634}
+      m_Extent: {x: 1, y: 0.11876254, z: 0.21580271}
+  - Id: Wall_Plaster_Door_Flat
+    Prefab: {fileID: 919132149155446097, guid: 002dd59413c5e724aa57a9e74976f94e, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079448}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324117}
+  - Id: Wall_Plaster_Door_Round
+    Prefab: {fileID: 919132149155446097, guid: 5bd3a1b3e91d80a4faf39df420033ced, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079448}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324117}
+  - Id: Wall_Plaster_Straight
+    Prefab: {fileID: 919132149155446097, guid: 43a07f23a69c27641a1edc9af08ecde7, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5602962, z: 0.11079448}
+      m_Extent: {x: 1, y: 1.562392, z: 0.20324117}
+  - Id: Wall_Plaster_Window_Thin_Round
+    Prefab: {fileID: 919132149155446097, guid: 6b827088c5a2c3146893199f19a13497, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079448}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324117}
+  - Id: Wall_Plaster_Window_Wide_Flat
+    Prefab: {fileID: 919132149155446097, guid: 491fc279cb1061d48bbbfdf4b2308a9d, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079448}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324117}
+  - Id: Wall_Plaster_Window_Wide_Round
+    Prefab: {fileID: 919132149155446097, guid: 84e4a51d65ede5c4eaa5f7d214b966bc, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079448}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324117}
+  - Id: Wall_Plaster_WoodGrid
+    Prefab: {fileID: 919132149155446097, guid: 28c50adf7c264a342a6a1e3ff76bd73a, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079448}
+      m_Extent: {x: 1.0000002, y: 1.5613441, z: 0.20324117}
+  - Id: Wall_UnevenBrick_Door_Flat
+    Prefab: {fileID: 919132149155446097, guid: a454fa641a0eb4f4c880aff4500e6f65, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079465}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324102}
+  - Id: Wall_UnevenBrick_Door_Round
+    Prefab: {fileID: 919132149155446097, guid: 60feebc9ae25321479d3fadfda4c1fc2, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079465}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324102}
+  - Id: Wall_UnevenBrick_Straight
+    Prefab: {fileID: 919132149155446097, guid: 35cdffc260d9037438f0ec97097c6555, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079465}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324102}
+  - Id: Wall_UnevenBrick_Window_Thin_Round
+    Prefab: {fileID: 919132149155446097, guid: 7e75adffe6ab09e4f822d059464cb31f, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079465}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324102}
+  - Id: Wall_UnevenBrick_Window_Wide_Flat
+    Prefab: {fileID: 919132149155446097, guid: 058f276ef2e2266488ef1e756f9ba003, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079465}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324102}
+  - Id: Wall_UnevenBrick_Window_Wide_Round
+    Prefab: {fileID: 919132149155446097, guid: cbc005dec026d4541be09952830087fa, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.5613441, z: 0.11079465}
+      m_Extent: {x: 1, y: 1.5613441, z: 0.20324102}
+  - Id: WindowShutters_Thin_Round_Open
+    Prefab: {fileID: 919132149155446097, guid: 5f9ca2d72f239e04f98ccc7998831b91, type: 3}
+    Bounds:
+      m_Center: {x: -0.016433477, y: 1.8524554, z: -0.24726087}
+      m_Extent: {x: 0.8031391, y: 0.7592113, z: 0.1882441}
+  - Id: WindowShutters_Wide_Flat_Closed
+    Prefab: {fileID: 919132149155446097, guid: a7f1b67dd02cfd945b206b7973b86e50, type: 3}
+    Bounds:
+      m_Center: {x: -0.00000011920929, y: 1.8052597, z: -0.22034958}
+      m_Extent: {x: 0.67346764, y: 0.7120156, z: 0.06788486}
+  - Id: WindowShutters_Wide_Flat_Open
+    Prefab: {fileID: 919132149155446097, guid: b37dfe09ab0fbf645a32f88e8995f2fa, type: 3}
+    Bounds:
+      m_Center: {x: 0.0015757084, y: 1.8052597, z: -0.36491477}
+      m_Extent: {x: 1.2402847, y: 0.7120156, z: 0.22825944}
+  - Id: WindowShutters_Wide_Round_Open
+    Prefab: {fileID: 919132149155446097, guid: 053cbc0916aa3cc4db61aaef5bb7d5e5, type: 3}
+    Bounds:
+      m_Center: {x: -0.04821551, y: 1.9168377, z: -0.32697225}
+      m_Extent: {x: 1.1517419, y: 0.82359385, z: 0.2361777}
+  - Id: Window_Roof_Wide
+    Prefab: {fileID: 919132149155446097, guid: 6c2b44c437e53f343b4ed57cd6b25eec, type: 3}
+    Bounds:
+      m_Center: {x: 0.04745382, y: 1.9287436, z: -0.51172215}
+      m_Extent: {x: 0.7082429, y: 0.5905278, z: 0.5895271}
+  - Id: Window_Thin_Round1
+    Prefab: {fileID: 919132149155446097, guid: b921e13c427a56b49a616d50f3f300ec, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.8183863, z: 0.0798281}
+      m_Extent: {x: 0.44381028, y: 0.8023422, z: 0.17219451}
+  - Id: Window_Wide_Flat1
+    Prefab: {fileID: 919132149155446097, guid: 54a056f8f3f6b944882a9680265eba8c, type: 3}
+    Bounds:
+      m_Center: {x: -0.0000009536743, y: 1.7342331, z: -0.07513809}
+      m_Extent: {x: 0.80411816, y: 0.7900555, z: 0.3417192}
+  - Id: Window_Wide_Round1
+    Prefab: {fileID: 919132149155446097, guid: d547e3a2a85ca4c4f8718d687c5de060, type: 3}
+    Bounds:
+      m_Center: {x: 0, y: 1.8789124, z: -0.01250425}
+      m_Extent: {x: 0.6824577, y: 0.8628683, z: 0.2647876}
+  Materials:
+  - Id: Bark
+    Material: {fileID: 2100000, guid: c8d6a1193b7804f40b068055079e00c3, type: 2}
+  - Id: BodyFemale
+    Material: {fileID: 2100000, guid: bf270775daeaf2d4495c22dd9872e766, type: 2}
+  - Id: BodyMale
+    Material: {fileID: 2100000, guid: eabdf6d71131d234f8ccf2951c1c45a6, type: 2}
+  - Id: Brick
+    Material: {fileID: 2100000, guid: a42834ebbd96384489cbda0476e1ebae, type: 2}
+  - Id: Canvas
+    Material: {fileID: 2100000, guid: dc77e93d3b655af4b87df544aaf69d0e, type: 2}
+  - Id: CanvasBlue
+    Material: {fileID: 2100000, guid: 26701fb3b19787a4fa32a44c1ceec0fc, type: 2}
+  - Id: CanvasRed
+    Material: {fileID: 2100000, guid: 0b01dc47915bac94880ce1eb94b9e9f9, type: 2}
+  - Id: Cobble
+    Material: {fileID: 2100000, guid: e07d69775a98c31469e2ac70a4071fe5, type: 2}
+  - Id: Dirt
+    Material: {fileID: 2100000, guid: 0d097f5c3ecc46047969efa5acc63ebb, type: 2}
+  - Id: Ember
+    Material: {fileID: 2100000, guid: e1b89de61f9cca540b02f776615e65a5, type: 2}
+  - Id: Eyes
+    Material: {fileID: 2100000, guid: e473f66750dfb1141a3e94648c105852, type: 2}
+  - Id: Flowers
+    Material: {fileID: 2100000, guid: 0ae826765c4d2184f82e8fa5e184ff74, type: 2}
+  - Id: Foliage
+    Material: {fileID: 2100000, guid: 00f17b958a97c2e41a0ab6675f6f549b, type: 2}
+  - Id: Grass
+    Material: {fileID: 2100000, guid: 7420ac4f126bd384b9ae1156c18a2d9b, type: 2}
+  - Id: Gravel
+    Material: {fileID: 2100000, guid: 425e8596cdd030a41b563146f72aa330, type: 2}
+  - Id: Hair1
+    Material: {fileID: 2100000, guid: 5e9d2c80da93fa84481ebb89d94693bf, type: 2}
+  - Id: Hair2
+    Material: {fileID: 2100000, guid: 282e7418eef105e4baf50f9e7871ff22, type: 2}
+  - Id: HeadFemale
+    Material: {fileID: 2100000, guid: a4075b9b2af731e46a964fe5dcf45357, type: 2}
+  - Id: HeadMale
+    Material: {fileID: 2100000, guid: 7e35ae3c83baece449e4982cbcb65e87, type: 2}
+  - Id: LampGlow
+    Material: {fileID: 2100000, guid: 9fc535f37827f3d46a4a1500d98259ac, type: 2}
+  - Id: Metal
+    Material: {fileID: 2100000, guid: 01a311bc8172cc1438a5b3b77dd0aeb6, type: 2}
+  - Id: Peasant
+    Material: {fileID: 2100000, guid: ea5f380b05d2c1749828bbd9cbdfaf89, type: 2}
+  - Id: Peasant2
+    Material: {fileID: 2100000, guid: 23dfed4968a67d445a4975b2817fe439, type: 2}
+  - Id: Planks
+    Material: {fileID: 2100000, guid: 8fe7bc77e30835d46b9b5faa1379e6d1, type: 2}
+  - Id: Plaster
+    Material: {fileID: 2100000, guid: 8d9b9989e1548d74db719f126f2e63f1, type: 2}
+  - Id: Ranger
+    Material: {fileID: 2100000, guid: 917f8b3586f135a4a986300b4d612ed4, type: 2}
+  - Id: Ranger3
+    Material: {fileID: 2100000, guid: 5277bc4d087ab5a46a304873024d6b9b, type: 2}
+  - Id: RedBrick
+    Material: {fileID: 2100000, guid: d8860049a4ae265449d15cdcd8104748, type: 2}
+  - Id: RockTrim
+    Material: {fileID: 2100000, guid: b88f9d67b7d4dff44b8756d8d222928f, type: 2}
+  - Id: RoundTiles
+    Material: {fileID: 2100000, guid: f7163e3e3e4dfe34ca46cfbeb36b9e06, type: 2}
+  - Id: Sky
+    Material: {fileID: 2100000, guid: be6fbf2d86ba73549b7eed2c89f5def2, type: 2}
+  - Id: UnevenBrick
+    Material: {fileID: 2100000, guid: 3871fb5e5f3474a42aa2e18f4ce6d09c, type: 2}
+  - Id: Vine
+    Material: {fileID: 2100000, guid: 1994cb6be2f0a0b4298090932bd3b486, type: 2}
+  - Id: WallStone
+    Material: {fileID: 2100000, guid: daa6021b14493134dafb31042c6b7c39, type: 2}
+  - Id: WindowGlass
+    Material: {fileID: 2100000, guid: 8e44c43aa63d97e49a215b11a8866e73, type: 2}
+  - Id: Wood
+    Material: {fileID: 2100000, guid: ef2da563c38c8784ca8199a1629ca370, type: 2}
+  - Id: WoodTrim
+    Material: {fileID: 2100000, guid: d7e14db3e237f464d96e8d0078d3ab06, type: 2}
+  - Id: WoodTrimWear
+    Material: {fileID: 2100000, guid: 41ed81c9c6853134a869fe1b0439afab, type: 2}
+  Bodies:
+  - Id: Female_Peasant
+    Prefab: {fileID: 919132149155446097, guid: d66365a42c8ed204ebf852c7607382ea, type: 3}
+  - Id: Female_Ranger
+    Prefab: {fileID: 919132149155446097, guid: cca371d1f3608fa4e853f48132bec60b, type: 3}
+  - Id: Male_Peasant
+    Prefab: {fileID: 919132149155446097, guid: 33bf6a7fb4574af42bdfaa24cf5237ed, type: 3}
+  - Id: Male_Ranger
+    Prefab: {fileID: 919132149155446097, guid: 70bc91ddde54acb4a9d35e8276923c88, type: 3}
+  Parts:
+  - Id: Head_Male
+    Prefab: {fileID: 2626714339226513005, guid: 476f9f150f308fc4e8710e05e92cf677, type: 3}
+  - Id: Head_Female
+    Prefab: {fileID: 8113826440503248328, guid: 0e284197e51561c4a890a6f3aafe8b87, type: 3}
+  - Id: Eyebrows_Female
+    Prefab: {fileID: 919132149155446097, guid: 5de908775648a1d42962fc3b2faea617, type: 3}
+  - Id: Eyebrows_Regular
+    Prefab: {fileID: 919132149155446097, guid: 6f5475d965e92de49b253be81f496108, type: 3}
+  - Id: Hair_Beard
+    Prefab: {fileID: 919132149155446097, guid: 8d27d1187b26ecf4595ffd695e615509, type: 3}
+  - Id: Hair_Buns
+    Prefab: {fileID: 919132149155446097, guid: d0b15e6be75cddb479e270a3fb4eb6c7, type: 3}
+  - Id: Hair_Buzzed
+    Prefab: {fileID: 919132149155446097, guid: 4560ff1b0d11b80419962b8cccd8fa7d, type: 3}
+  - Id: Hair_BuzzedFemale
+    Prefab: {fileID: 919132149155446097, guid: 4c4b2911e15406e4bb949c9971e026d9, type: 3}
+  - Id: Hair_Long
+    Prefab: {fileID: 919132149155446097, guid: 88718d82720367d40aa43fd83090f0c3, type: 3}
+  - Id: Hair_SimpleParted
+    Prefab: {fileID: 919132149155446097, guid: 299af147aeafad64cbcc2d2da185018c, type: 3}
+  Locomotion: {fileID: 9100000, guid: 30e453f1d8536234fad3673dbc9ff159, type: 2}

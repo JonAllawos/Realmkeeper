@@ -40,6 +40,7 @@ namespace Realmkeeper.Presentation
         public static readonly Color Slate = Lin(0.33f, 0.35f, 0.39f);
         public static readonly Color Thatch = Lin(0.62f, 0.53f, 0.34f);
         public static readonly Color RoofTile = Lin(0.52f, 0.33f, 0.25f);
+        public static readonly Color RoofTileWarm = Lin(0.66f, 0.34f, 0.22f);
         public static readonly Color Stone = Lin(0.58f, 0.56f, 0.52f);
 
         // Fields

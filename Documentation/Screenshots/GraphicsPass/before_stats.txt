@@ -1,0 +1,10 @@
+map              render CPU  13.61 ms (mean of 10)  visible renderers     9  visible triangles     12780  materials    2
+gate             render CPU   0.92 ms (mean of 10)  visible renderers   149  visible triangles     14876  materials   24
+street           render CPU   1.44 ms (mean of 10)  visible renderers   121  visible triangles     11252  materials   21
+building         render CPU   0.75 ms (mean of 10)  visible renderers    41  visible triangles      4612  materials    9
+character        render CPU   0.63 ms (mean of 10)  visible renderers    56  visible triangles      8620  materials   21
+plaza_residents  render CPU   1.02 ms (mean of 10)  visible renderers    87  visible triangles      8580  materials   18
+interior         render CPU   1.08 ms (mean of 10)  visible renderers    20  visible triangles      1816  materials   10
+overview         render CPU   0.89 ms (mean of 10)  visible renderers   182  visible triangles     21040  materials   25
+scene total: renderers 184, triangles 21888, materials 25, colliders 158, residents 6, buildings 13
+graphics device: NVIDIA GeForce RTX 4070 Laptop GPU (Direct3D11)

@@ -1,0 +1,13 @@
+ambientCG materials used by Realmkeeper
+=======================================
+
+Grass004, Ground037, Ground054, PavingStones070, Planks021 and Wood049, from https://ambientcg.com
+(1K-JPG downloads, retrieved 2026-11-10; Color and NormalGL maps, re-encoded at 1024 px).
+
+License: Creative Commons CC0 1.0 Universal (public domain dedication).
+"All ambientCG assets are provided under the Creative Commons CC0 1.0 Universal License."
+Source of the licence statement: https://docs.ambientcg.com/license/
+Full text: https://creativecommons.org/publicdomain/zero/1.0/
+
+Credit (not required): Created using Grass004, Ground037, Ground054, PavingStones070, Planks021 and Wood049
+from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.

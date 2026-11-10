@@ -203,8 +203,10 @@ The core never references the module.
 
 ## 7. Temporary parts (vertical slice only)
 
-- **Art:** primitive shapes with flat-coloured URP Lit materials, at correct real-world scale.
-  There are no animations; residents slide and turn.
+- **Art:** replaced by the graphics pass (2026-11-10). Buildings come from the CC0 modular kit, planned by
+  `BuildingKitPlanner`; residents and the player are animated humanoids (ADR-0010 to ADR-0012,
+  [Exploration](../Systems/Exploration.md)). The primitive builder remains as the fallback when the art
+  catalog is missing.
 - **Layout generator:** one plaza-centred plan for every settlement type, scaled by type.
   Version 1, with no authored content.
 - **Region model:** one region per world.
@@ -221,6 +223,6 @@ The core never references the module.
   (ADR-0008 cost).
 - Simulated NPC tiers, with promotion and demotion that conserve identity and population.
 - Character inventory and conserving item transfers.
-- Authored or kit-based environment art, animation and navigation (each new package needs its own ADR).
+- Navigation for residents (kit art and animation are done; see ADR-0011 and ADR-0012).
 - Time of day in the domain.
 - Several save slots and a load menu.

@@ -1,8 +1,8 @@
 # REALMKEEPER — GRAPHICS PASS (brief for a future milestone)
 
-Status: **proposed, not started.** Written 2026-11-10, after Phase 3 (`d82a01b`). It's
-intended to be used as a milestone prompt. The owner answered the open decisions on
-2026-11-10 (see "Decisions"); two of those answers still have a detail to confirm.
+Status: **done**, 2026-11-10 (see `Documentation/Reports/GraphicsPass-Report.md`). Written after Phase 3
+(`d82a01b`). The owner answered the open decisions and later confirmed the budget (60 fps at 1080p on a
+mid-range GPU, at most 1,500 draw calls) and the art direction (warm stylized realism, from reference images).
 
 ## Mission
 

@@ -1,0 +1,14 @@
+Realmkeeper performance probe (development build)
+date 2026-11-10 14:17, device NVIDIA GeForce RTX 4070 Laptop GPU (Direct3D11), CPU Intel(R) Core(TM) i9-14900HX
+resolution 1920x1080, quality PC, art primitives
+
+map (strategic)  frame mean   2.33 ms (  429 fps)  p95   3.89 ms  draw calls   153  batches   153  set-pass   47  triangles    203984  system mem   428 MB  gfx mem   168 MB
+enter Bramhaven: Success
+gate             frame mean   2.01 ms (  498 fps)  p95   3.33 ms  draw calls   544  batches   544  set-pass   31  triangles     57382  system mem   437 MB  gfx mem   136 MB
+street           frame mean   2.09 ms (  479 fps)  p95   3.31 ms  draw calls   458  batches   458  set-pass   31  triangles     39553  system mem   437 MB  gfx mem   136 MB
+building         frame mean   2.09 ms (  478 fps)  p95   3.38 ms  draw calls   185  batches   185  set-pass   31  triangles     14936  system mem   449 MB  gfx mem   136 MB
+plaza            frame mean   2.07 ms (  483 fps)  p95   3.28 ms  draw calls   333  batches   333  set-pass   31  triangles     31845  system mem   438 MB  gfx mem   136 MB
+interior         frame mean   2.06 ms (  486 fps)  p95   3.52 ms  draw calls   121  batches   121  set-pass   32  triangles      9883  system mem   438 MB  gfx mem   136 MB
+overview         frame mean   2.06 ms (  486 fps)  p95   3.40 ms  draw calls   637  batches   637  set-pass   31  triangles     68416  system mem   438 MB  gfx mem   136 MB
+
+residents 6, renderers 184

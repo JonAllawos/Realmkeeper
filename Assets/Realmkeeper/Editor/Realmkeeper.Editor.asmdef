@@ -1,0 +1,14 @@
+{
+    "name": "Realmkeeper.Editor",
+    "rootNamespace": "Realmkeeper.Editor",
+    "references": ["Realmkeeper.Exploration.Presentation", "Realmkeeper.Exploration.Domain", "Realmkeeper.Domain"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
