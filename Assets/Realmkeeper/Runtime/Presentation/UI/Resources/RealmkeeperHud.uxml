@@ -68,9 +68,6 @@
                         <ui:Label name="insp-faction" text="-" class="rk-value" />
                     </ui:VisualElement>
 
-                    <ui:Label text="Politics" class="rk-section" />
-                    <ui:VisualElement name="insp-politics" class="rk-resources" />
-
                     <ui:VisualElement class="rk-row rk-bar-label">
                         <ui:Label text="Prosperity" class="rk-key" />
                         <ui:Label name="insp-prosperity-trend" text="-" class="rk-trend" />
@@ -132,6 +129,12 @@
 
                     <ui:Label text="Trade routes" class="rk-section" />
                     <ui:VisualElement name="insp-trade" class="rk-resources" />
+
+                    <ui:VisualElement class="rk-section-row">
+                        <ui:Label text="Politics" class="rk-section rk-grow" />
+                        <ui:Button name="insp-politics-manage" text="Manage" tooltip="Show the political actions you can take here." class="rk-button rk-route-toggle" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="insp-politics" class="rk-resources" />
                 </ui:ScrollView>
             </ui:VisualElement>
 

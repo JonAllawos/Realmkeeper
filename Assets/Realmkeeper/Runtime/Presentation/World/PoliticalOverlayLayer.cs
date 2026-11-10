@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Realmkeeper.Application;
+using Realmkeeper.Domain.Geography;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using UnityEngine;
@@ -7,15 +8,21 @@ using UnityEngine;
 namespace Realmkeeper.Presentation
 {
     /// <summary>
-    /// Optional political overlay for the strategic map. Above each settlement it draws a square
-    /// banner in the colour of the governing faction (grey when independent), then one smaller
-    /// marker per open territorial claim in the claimant's colour: a square for an unresolved or
-    /// recognized claim, a diamond for a contested one. Read from query snapshots only. No
-    /// colliders, so selection and the camera are unaffected. Off by default; the economic
-    /// markers (<see cref="MapIndicatorLayer"/>) are separate and keep working.
+    /// Optional political overlay for the strategic map, drawn on the ground in the map's own
+    /// vertex-coloured style:
+    /// - a thin ring around each governed settlement, in its governor's colour (none when independent);
+    /// - a dashed ring just outside it for each open territorial claim, in the claimant's colour.
+    ///   Contested claims use short, tight dashes; unresolved or recognized ones use long dashes.
+    /// The rings follow the terrain, have no colliders (selection and the camera are unaffected) and
+    /// are read from query snapshots only. Off by default; the economic markers are separate.
     /// </summary>
     public sealed class PoliticalOverlayLayer : MonoBehaviour
     {
+        public const int Segments = 72;
+        public const float RingWidth = 0.45f;
+        public const float ClaimGap = 1.1f;
+        public const float HeightOffset = 0.3f;
+
         /// <summary>What the overlay shows for one settlement (for tests and tooltips).</summary>
         public readonly struct Shown
         {
@@ -31,44 +38,32 @@ namespace Realmkeeper.Presentation
             public int Contested { get; }
         }
 
-        private readonly Dictionary<SettlementId, List<Transform>> _markers = new Dictionary<SettlementId, List<Transform>>();
-        private readonly Dictionary<SettlementId, List<bool>> _diamond = new Dictionary<SettlementId, List<bool>>();
+        private readonly List<GameObject> _rings = new List<GameObject>();
+        private readonly List<Mesh> _meshes = new List<Mesh>();
         private readonly Dictionary<SettlementId, Shown> _shown = new Dictionary<SettlementId, Shown>();
-        private readonly Dictionary<Color, Material> _materials = new Dictionary<Color, Material>();
         private WorldView _worldView;
-        private Camera _camera;
-        private Shader _shader;
-
-        /// <summary>Banner size as a fraction of the orthographic camera's half-height.</summary>
-        public float ScreenFraction { get; set; } = 0.03f;
+        private Material _material;
 
         public bool IsOn { get; private set; }
 
-        public int MarkerCount
-        {
-            get
-            {
-                var n = 0;
-                foreach (var list in _markers.Values) n += list.Count;
-                return n;
-            }
-        }
+        /// <summary>Number of ring objects drawn (governor rings plus claim rings).</summary>
+        public int MarkerCount => _rings.Count;
 
-        public static PoliticalOverlayLayer Create(Transform parent, WorldView worldView, Camera camera)
+        /// <param name="material">A vertex-colour material (the map's opaque material), so rings match the terrain's lighting.</param>
+        public static PoliticalOverlayLayer Create(Transform parent, WorldView worldView, Material material)
         {
             var go = new GameObject("Political Overlay");
             go.transform.SetParent(parent, false);
             var layer = go.AddComponent<PoliticalOverlayLayer>();
             layer._worldView = worldView;
-            layer._camera = camera;
-            layer._shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Universal Render Pipeline/Lit");
+            layer._material = material;
             return layer;
         }
 
         /// <summary>What is drawn for a settlement; false when nothing is (overlay off, or unknown settlement).</summary>
         public bool TryGetShown(SettlementId id, out Shown shown) => _shown.TryGetValue(id, out shown);
 
-        /// <summary>The colour used for a faction's banner.</summary>
+        /// <summary>The colour used for a faction (by its position in the world's faction list).</summary>
         public static Color ColorOf(IReadOnlyList<FactionSummary> factions, FactionId id)
         {
             for (var i = 0; i < factions.Count; i++)
@@ -79,7 +74,6 @@ namespace Realmkeeper.Presentation
             return FactionPalette.Independent;
         }
 
-        /// <summary>Switches the overlay on or off and redraws it from the session.</summary>
         public void SetOn(bool on, WorldSession session)
         {
             IsOn = on;
@@ -90,7 +84,8 @@ namespace Realmkeeper.Presentation
         public void Refresh(WorldSession session)
         {
             Clear();
-            if (!IsOn || session == null || !session.HasWorld || _worldView == null) return;
+            var map = _worldView != null ? _worldView.Map : null;
+            if (!IsOn || session == null || !session.HasWorld || map == null) return;
             var factions = session.GetFactions();
             foreach (var s in session.GetSettlements())
             {
@@ -98,96 +93,69 @@ namespace Realmkeeper.Presentation
                 var politics = session.GetSettlementPolitics(s.SettlementId);
                 if (view == null || politics == null) continue;
 
-                var list = new List<Transform>();
-                var diamonds = new List<bool>();
-                list.Add(Marker($"Governor {s.Name}", ColorOf(factions, politics.GoverningFactionId)));
-                diamonds.Add(false);
+                var radius = view.HighlightRadius + 0.9f;
+                if (!politics.IsIndependent) Ring($"Governed {s.Name}", map, view.Center, radius, ColorOf(factions, politics.GoverningFactionId), 0);
+
                 var contested = 0;
+                var index = 0;
                 foreach (var c in politics.OpenClaims)
                 {
+                    index++;
                     var isContested = c.Status == ClaimStatus.Contested;
                     if (isContested) contested++;
-                    list.Add(Marker($"Claim {c.ClaimantName} on {s.Name}", ColorOf(factions, c.ClaimantId)));
-                    diamonds.Add(isContested);
+                    Ring($"Claim {c.ClaimantName} on {s.Name}", map, view.Center, radius + ClaimGap * index, ColorOf(factions, c.ClaimantId), isContested ? 2 : 4);
                 }
 
-                _markers[s.SettlementId] = list;
-                _diamond[s.SettlementId] = diamonds;
                 _shown[s.SettlementId] = new Shown(politics.GoverningFactionId, politics.OpenClaims.Count, contested);
-                Place(s.SettlementId);
             }
         }
 
         public void Clear()
         {
-            foreach (var list in _markers.Values)
+            foreach (var go in _rings)
             {
-                foreach (var t in list)
-                {
-                    if (t != null) PresentationMaterials.DestroyObject(t.gameObject);
-                }
+                if (go != null) PresentationMaterials.DestroyObject(go);
             }
 
-            _markers.Clear();
-            _diamond.Clear();
+            foreach (var mesh in _meshes) PresentationMaterials.DestroyObject(mesh);
+            _rings.Clear();
+            _meshes.Clear();
             _shown.Clear();
         }
 
-        private Transform Marker(string name, Color color)
+        /// <param name="dash">0: solid. Otherwise segments drawn per gap (2 = short, 4 = long dashes).</param>
+        private void Ring(string name, RegionMap map, Vector3 center, float radius, Color color, int dash)
         {
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            marker.name = name;
-            Object.DestroyImmediate(marker.GetComponent<Collider>()); // never in the way of a selection raycast
-            marker.transform.SetParent(transform, false);
-            var renderer = marker.GetComponent<MeshRenderer>();
-            renderer.sharedMaterial = MaterialFor(color);
+            var builder = new MeshBuilder();
+            var c = color.linear;
+            Vector3 Point(int i, float r)
+            {
+                var angle = 2f * Mathf.PI * i / Segments;
+                var x = center.x + Mathf.Cos(angle) * r;
+                var z = center.z + Mathf.Sin(angle) * r;
+                return new Vector3(x, MapSampling.HeightAt(map, x, z) + HeightOffset, z);
+            }
+
+            var inner = radius - RingWidth * 0.5f;
+            var outer = radius + RingWidth * 0.5f;
+            for (var i = 0; i < Segments; i++)
+            {
+                if (dash > 0 && i % (dash + 1) == dash) continue; // the gaps
+                builder.AddQuad(Point(i, inner), Point(i, outer), Point(i + 1, outer), Point(i + 1, inner), Vector3.up, c);
+            }
+
+            var mesh = builder.ToMesh(name);
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var renderer = go.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = _material;
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            return marker.transform;
+            _rings.Add(go);
+            _meshes.Add(mesh);
         }
 
-        private Material MaterialFor(Color color)
-        {
-            if (_materials.TryGetValue(color, out var m)) return m;
-            m = new Material(_shader) { name = "Political " + ColorUtility.ToHtmlStringRGB(color) };
-            m.SetColor("_BaseColor", color);
-            _materials[color] = m;
-            return m;
-        }
-
-        private void LateUpdate()
-        {
-            foreach (var id in _markers.Keys) Place(id);
-        }
-
-        /// <summary>Banner first, claims to its right, all facing the camera at a constant screen size, below the economic markers.</summary>
-        private void Place(SettlementId id)
-        {
-            if (_camera == null || _worldView == null || !_markers.TryGetValue(id, out var list) || list.Count == 0) return;
-            var view = _worldView.FindSettlementView(id);
-            if (view == null) return;
-
-            var size = (_camera.orthographic ? _camera.orthographicSize : 40f) * ScreenFraction * 2f;
-            var top = view.GetComponent<Collider>() is Collider c ? c.bounds.max.y : view.Center.y;
-            var right = _camera.transform.right;
-            var up = _camera.transform.up;
-            var anchor = new Vector3(view.Center.x, top, view.Center.z) + up * (size * 0.45f) - right * (size * 1.6f);
-            var facing = Quaternion.LookRotation(_camera.transform.forward, up);
-            var diamonds = _diamond[id];
-            for (var i = 0; i < list.Count; i++)
-            {
-                var scale = i == 0 ? size : size * 0.6f;
-                var offset = i == 0 ? 0f : size * (0.35f + 0.75f * i);
-                list[i].SetPositionAndRotation(anchor + right * offset, diamonds[i] ? facing * Quaternion.Euler(0f, 0f, 45f) : facing);
-                list[i].localScale = Vector3.one * scale;
-            }
-        }
-
-        private void OnDestroy()
-        {
-            Clear();
-            foreach (var m in _materials.Values) PresentationMaterials.DestroyObject(m);
-            _materials.Clear();
-        }
+        private void OnDestroy() => Clear();
     }
 }

@@ -76,7 +76,7 @@ namespace Realmkeeper.Presentation
             WorldView = worldObject.AddComponent<WorldView>();
             WorldView.Initialize(_materials);
             Indicators = MapIndicatorLayer.Create(transform, WorldView, CameraController.Camera);
-            PoliticalOverlay = PoliticalOverlayLayer.Create(transform, WorldView, CameraController.Camera);
+            PoliticalOverlay = PoliticalOverlayLayer.Create(transform, WorldView, _materials.Opaque);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             var screenshots = gameObject.AddComponent<DevScreenshot>();

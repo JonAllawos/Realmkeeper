@@ -35,7 +35,7 @@ namespace Realmkeeper.Presentation
         private Camera _camera;
 
         /// <summary>Marker size as a fraction of the orthographic camera's half-height.</summary>
-        public float ScreenFraction { get; set; } = 0.022f;
+        public float ScreenFraction { get; set; } = 0.013f;
 
         public int MarkerCount
         {

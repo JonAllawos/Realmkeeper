@@ -65,9 +65,21 @@ namespace Realmkeeper.Tests.PlayMode
 
             var politics = Session.GetSettlementPolitics(village.SettlementId);
             var lines = Bootstrap.Hud.SettlementPolitics.Query<Label>().ToList().Select(l => l.text).ToList();
-            Assert.That(lines[0], Is.EqualTo($"Governed by {politics.GoverningFactionName}, administered by {politics.AdministratorFactionName}"));
-            foreach (var p in politics.Presence) Assert.That(lines.Any(l => l.StartsWith(p.FactionName + ": strength " + p.Strength)), Is.True, p.FactionName);
-            Assert.That(lines.Any(l => l.StartsWith($"Affiliated: {politics.AffiliatedPopulation:N0} of {politics.Population:N0}")), Is.True);
+            Assert.That(lines.Take(4), Is.EqualTo(new[] { "Governed by", politics.GoverningFactionName, "Administered by", politics.AdministratorFactionName }));
+            foreach (var p in politics.Presence)
+            {
+                var row = Bootstrap.Hud.SettlementPolitics.Q<VisualElement>("faction-link-" + p.FactionId);
+                Assert.That(row, Is.Not.Null, p.FactionName);
+                Assert.That(row.Q<Label>(className: "rk-faction-row-name").text, Is.EqualTo(p.FactionName));
+                StringAssert.EndsWith($"{p.SharePerMille / 10}%", row.Q<Label>(className: "rk-value").text);
+            }
+
+            Assert.That(lines, Has.Member("Affiliated"));
+            Assert.That(Bootstrap.Hud.SettlementPolitics.Query<Button>().ToList(), Is.Empty, "No action buttons until Manage is pressed.");
+            Bootstrap.Hud.SetManagingPolitics(true);
+            yield return null;
+            Assert.That(Bootstrap.Hud.SettlementPolitics.Query<Button>().ToList().Count, Is.GreaterThan(0));
+            Bootstrap.Hud.SetManagingPolitics(false);
             Assert.That(Bootstrap.Hud.EconomyTable.childCount, Is.EqualTo(5), "The Phase 2 economy table is still there.");
             Assert.That(Bootstrap.Hud.InspectorFood.text, Is.Not.Empty);
         }
@@ -151,6 +163,7 @@ namespace Realmkeeper.Tests.PlayMode
             // From the settlement inspector: invite the guild into the hamlet, then remove it again.
             var hamlet = Of(SettlementType.Hamlet);
             Bootstrap.Selection.Select(hamlet.SettlementId);
+            Bootstrap.Hud.SetManagingPolitics(true);
             yield return null;
             Click(Bootstrap.Hud.SettlementPolitics.Q<Button>("presence-add-" + guild.FactionId));
             yield return null;

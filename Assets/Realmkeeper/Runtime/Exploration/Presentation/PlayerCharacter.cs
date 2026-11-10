@@ -53,6 +53,10 @@ namespace Realmkeeper.Exploration.Presentation
             cc.stepOffset = 0.4f;
             cc.slopeLimit = 50f;
             cc.skinWidth = 0.04f;
+            // Unity ignores moves shorter than minMoveDistance (default 0.001 m). At high frame rates (a light
+            // scene can render thousands of frames a second) every step is shorter than that and the
+            // character would not move at all. Unity recommends 0.
+            cc.minMoveDistance = 0f;
             var player = go.AddComponent<PlayerCharacter>();
             player._controller = cc;
 

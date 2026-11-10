@@ -245,3 +245,36 @@ routes) took 7.2–9.3 ms in the .NET harness. Nothing was measured in Unity or 
 **Not executed:**
 - manual gameplay with the new UI;
 - the F10 screenshot tour (it needs the Game view in the editor).
+
+### Phase 3 follow-up: playtest fixes (2026-11-10)
+
+**What the user reported:** "the graphics look horrendous", and cities could no longer be
+entered or walked.
+
+**What the new test found:** `RealScenePlayModeTests` loads the shipped `Realmkeeper.unity` and
+sends a real mouse click through the Input System. With focus ignored, so that a headless run
+receives device input, it showed:
+- Clicking a city selects it, with or without the political overlay.
+- Entering succeeds.
+- **The character did not walk: 0.39 m in 1.5 s.** The run reached about 5,900 frames a second,
+  so each step was shorter than `CharacterController.minMoveDistance` (0.001 m), which Unity
+  silently ignores. Fixed by setting it to 0, as Unity recommends. Now 5.25 m in 1.5 s at about
+  9,000 frames a second. The earlier exploration tests fixed frame time at 1/30 s, which hid this.
+
+**Graphics changes:**
+- The political overlay is now thin rings on the ground in the governor's colour, plus dashed
+  rings for claims, instead of floating squares.
+- Economic markers are 40% smaller.
+- The faction list shows one line per faction with a colour swatch.
+- The settlement Politics section sits below the economy as compact rows, with actions behind "Manage".
+- Long faction names wrap in the inspector.
+
+**Runs after the fixes:**
+
+| Suite | Result |
+|---|---|
+| .NET harness | 279/279 |
+| Unity EditMode (batch) | 279/279 |
+| Unity PlayMode (batch) | 43/43 (+1: the real-scene test) |
+
+**Not verified by eye yet:** the new look in the editor.

@@ -41,6 +41,10 @@ namespace Realmkeeper.Presentation
 
         private readonly Dictionary<FactionId, Button> _factionButtons = new Dictionary<FactionId, Button>();
         private FactionId _selectedFaction;
+        private bool _managePolitics;
+
+        /// <summary>True while the settlement inspector shows its political action buttons.</summary>
+        public bool ManagingPolitics => _managePolitics;
 
         /// <summary>The faction whose inspector is open (empty: none).</summary>
         public FactionId SelectedFactionId => _selectedFaction;
@@ -72,6 +76,17 @@ namespace Realmkeeper.Presentation
             Root.Q<Button>("nav-factions").clicked += () => list.ToggleInClassList("rk-hidden");
             Root.Q<Button>("finsp-close").clicked += () => SelectFaction(default);
             PoliticsToggle.clicked += () => SetPoliticalOverlay(!PoliticalOverlayEnabled);
+            var manage = Root.Q<Button>("insp-politics-manage");
+            manage.clicked += () => SetManagingPolitics(!_managePolitics);
+        }
+
+        /// <summary>Shows or hides the political action buttons in the settlement inspector.</summary>
+        public void SetManagingPolitics(bool manage)
+        {
+            _managePolitics = manage;
+            var button = Root?.Q<Button>("insp-politics-manage");
+            if (button != null) button.text = manage ? "Done" : "Manage";
+            RefreshInspector();
         }
 
         public void SetPoliticalOverlay(bool enabled)
@@ -135,12 +150,15 @@ namespace Realmkeeper.Presentation
                 item.AddToClassList("rk-settlement-item");
                 item.AddToClassList("rk-faction-item");
                 item.Add(Swatch(i));
+                var text = new VisualElement();
+                text.AddToClassList("rk-faction-text");
                 var name = new Label(f.Name);
                 name.AddToClassList("rk-faction-name");
-                item.Add(name);
-                var detail = new Label(f.IsDissolved ? "Dissolved" : $"{PoliticalText.TypeName(f.Type)} · {f.Influence}");
-                detail.AddToClassList("rk-settlement-type");
-                item.Add(detail);
+                text.Add(name);
+                var detail = new Label(f.IsDissolved ? "Dissolved" : $"{PoliticalText.TypeName(f.Type)} · influence {f.Influence}");
+                detail.AddToClassList("rk-faction-detail");
+                text.Add(detail);
+                item.Add(text);
                 item.EnableInClassList("rk-faction-item--dissolved", f.IsDissolved);
                 item.EnableInClassList("rk-settlement-item--selected", id == _selectedFaction);
                 item.tooltip = $"{f.Status}. Leader: {f.LeaderName ?? "vacant"}. Goal: {f.PrimaryGoal?.Description ?? "none"}. Holds: {(f.HoldingNames.Count > 0 ? string.Join(", ", f.HoldingNames) : "nothing")}.";
@@ -281,67 +299,104 @@ namespace Realmkeeper.Presentation
             var politics = _session.GetSettlementPolitics(s.SettlementId);
             if (politics == null) return;
             var settlementId = s.SettlementId;
+            var manage = _managePolitics;
+            var factions = Factions();
 
-            var authority = politics.IsIndependent ? "Independent: no governing authority"
-                : politics.AdministratorFactionId.IsEmpty ? $"Governed by {politics.GoverningFactionName}"
-                : $"Governed by {politics.GoverningFactionName}, administered by {politics.AdministratorFactionName}";
-            var authorityRow = RouteRow(Cell(authority, "rk-trade-line"));
-            if (!politics.IsIndependent) authorityRow.Add(SmallButton("Set independent", "gov-independent", () => Do(new SetSettlementGovernanceCommand(settlementId, default))));
-            box.Add(authorityRow);
+            // Who holds it: one row, like the economy rows above.
+            box.Add(Row("Governed by", politics.IsIndependent ? "Independent" : politics.GoverningFactionName));
+            if (!politics.AdministratorFactionId.IsEmpty) box.Add(Row("Administered by", politics.AdministratorFactionName));
+            var share = politics.Population > 0 ? politics.AffiliatedPopulation * 100 / politics.Population : 0;
+            box.Add(Row("Affiliated", $"{N(politics.AffiliatedPopulation)} ({share}%)"));
+            if (manage && !politics.IsIndependent)
+                box.Add(Actions(SmallButton("Set independent", "gov-independent", () => Do(new SetSettlementGovernanceCommand(settlementId, default)))));
 
-            var unaffiliated = politics.Population - politics.AffiliatedPopulation;
-            box.Add(Cell($"Affiliated: {N(politics.AffiliatedPopulation)} of {N(politics.Population)} people ({N(unaffiliated)} with no faction). Stability {politics.Stability}.", "rk-why"));
-
+            // Factions present: name (with its colour) on the left, standing on the right.
             var present = new HashSet<FactionId>();
             var claimants = new HashSet<FactionId>();
             foreach (var c in politics.OpenClaims) claimants.Add(c.ClaimantId);
             foreach (var p in politics.Presence)
             {
                 present.Add(p.FactionId);
-                var role = p.IsGovernor ? " · governs" : p.IsAdministrator ? " · administers" : string.Empty;
-                var line = Cell($"{p.FactionName}: strength {p.Strength}, {N(p.Members)} people ({p.SharePerMille / 10}%){role}", "rk-trade-line");
-                line.EnableInClassList("rk-trade-line--suspended", p.Status == PresenceStatus.Waning);
+                var role = p.IsGovernor ? "governs · " : p.IsAdministrator ? "administers · " : string.Empty;
+                var row = FactionRow(FactionIndexIn(factions, p.FactionId), p.FactionName, $"{role}{p.SharePerMille / 10}%");
+                row.name = "faction-link-" + p.FactionId;
+                row.tooltip = $"{p.FactionName}: strength {p.Strength} ({p.Status.ToString().ToLowerInvariant()}), {N(p.Members)} people.";
                 var factionId = p.FactionId;
-                var name = "faction-link-" + factionId;
-                line.name = name;
-                var row = RouteRow(line);
-                row.Add(SmallButton("View", "presence-view-" + factionId, () => SelectFaction(factionId)));
-                if (!p.IsGovernor && FactionRules.CanGovern(p.FactionType))
-                    row.Add(SmallButton("Make governor", "gov-make-" + factionId, () => Do(new SetSettlementGovernanceCommand(settlementId, factionId))));
-                if (!p.IsGovernor && FactionRules.CanClaimTerritory(p.FactionType) && !claimants.Contains(factionId))
-                    row.Add(SmallButton("Claim", "claim-file-" + factionId, () => Do(new FileTerritorialClaimCommand(factionId, settlementId))));
-                if (!p.IsGovernor && !p.IsAdministrator)
-                    row.Add(SmallButton("Remove", "presence-remove-" + factionId, () => Do(new RemoveFactionPresenceCommand(factionId, settlementId))));
+                row.RegisterCallback<ClickEvent>(_ => SelectFaction(factionId));
+                row.EnableInClassList("rk-faction-row--waning", p.Status == PresenceStatus.Waning);
                 box.Add(row);
+
+                if (!manage) continue;
+                var actions = new List<Button>();
+                if (!p.IsGovernor && FactionRules.CanGovern(p.FactionType))
+                    actions.Add(SmallButton("Make governor", "gov-make-" + factionId, () => Do(new SetSettlementGovernanceCommand(settlementId, factionId))));
+                if (!p.IsGovernor && FactionRules.CanClaimTerritory(p.FactionType) && !claimants.Contains(factionId))
+                    actions.Add(SmallButton("Claim", "claim-file-" + factionId, () => Do(new FileTerritorialClaimCommand(factionId, settlementId))));
+                if (!p.IsGovernor && !p.IsAdministrator)
+                    actions.Add(SmallButton("Remove", "presence-remove-" + factionId, () => Do(new RemoveFactionPresenceCommand(factionId, settlementId))));
+                if (actions.Count > 0) box.Add(Actions(actions.ToArray()));
             }
 
             foreach (var c in politics.OpenClaims)
             {
-                var line = Cell($"Claimed by {c.ClaimantName}: {c.Status.ToString().ToLowerInvariant()}{(c.IsManual ? " · filed by you" : string.Empty)}", "rk-trade-line");
-                line.EnableInClassList("rk-trade-line--blocked", c.Status == ClaimStatus.Contested);
-                var claimId = c.ClaimId;
-                var row = RouteRow(line);
-                if (c.Status != ClaimStatus.Recognized) row.Add(SmallButton("Recognize", "claim-recognize-" + claimId, () => Do(new ResolveTerritorialClaimCommand(claimId, ClaimStatus.Recognized))));
-                if (c.Status != ClaimStatus.Contested) row.Add(SmallButton("Contest", "claim-contest-" + claimId, () => Do(new ResolveTerritorialClaimCommand(claimId, ClaimStatus.Contested))));
-                row.Add(SmallButton("Withdraw", "claim-withdraw-" + claimId, () => Do(new ResolveTerritorialClaimCommand(claimId, ClaimStatus.Relinquished))));
+                var row = Row("Claimed by " + c.ClaimantName, c.Status.ToString() + (c.IsManual ? " (you)" : string.Empty));
+                row.EnableInClassList("rk-row--contested", c.Status == ClaimStatus.Contested);
                 box.Add(row);
+                if (!manage) continue;
+                var claimId = c.ClaimId;
+                var actions = new List<Button>();
+                if (c.Status != ClaimStatus.Recognized) actions.Add(SmallButton("Recognize", "claim-recognize-" + claimId, () => Do(new ResolveTerritorialClaimCommand(claimId, ClaimStatus.Recognized))));
+                if (c.Status != ClaimStatus.Contested) actions.Add(SmallButton("Contest", "claim-contest-" + claimId, () => Do(new ResolveTerritorialClaimCommand(claimId, ClaimStatus.Contested))));
+                actions.Add(SmallButton("Withdraw", "claim-withdraw-" + claimId, () => Do(new ResolveTerritorialClaimCommand(claimId, ClaimStatus.Relinquished))));
+                box.Add(Actions(actions.ToArray()));
             }
 
+            if (!manage) return;
+
             // Factions with no presence here can be invited in.
-            var absent = new VisualElement();
-            absent.AddToClassList("rk-absent-row");
-            foreach (var f in Factions())
+            var invite = new List<Button>();
+            foreach (var f in factions)
             {
                 if (f.IsDissolved || present.Contains(f.FactionId)) continue;
                 var factionId = f.FactionId;
-                absent.Add(SmallButton("+ " + f.Name, "presence-add-" + factionId, () => Do(new EstablishFactionPresenceCommand(factionId, settlementId))));
+                invite.Add(SmallButton("Invite " + f.Name, "presence-add-" + factionId, () => Do(new EstablishFactionPresenceCommand(factionId, settlementId))));
             }
 
-            if (absent.childCount > 0)
+            if (invite.Count > 0) box.Add(Actions(invite.ToArray()));
+        }
+
+        private static int FactionIndexIn(IReadOnlyList<FactionSummary> factions, FactionId id)
+        {
+            for (var i = 0; i < factions.Count; i++)
             {
-                box.Add(Cell("Not present (click to establish):", "rk-why"));
-                box.Add(absent);
+                if (factions[i].FactionId == id) return i;
             }
+
+            return -1;
+        }
+
+        /// <summary>A key/value row whose key starts with the faction's colour swatch.</summary>
+        private static VisualElement FactionRow(int colorIndex, string name, string value)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("rk-row");
+            row.AddToClassList("rk-faction-row");
+            var left = new VisualElement();
+            left.AddToClassList("rk-faction-key");
+            left.Add(Swatch(colorIndex));
+            left.Add(Cell(name, "rk-key", "rk-faction-row-name"));
+            row.Add(left);
+            row.Add(Cell(value, "rk-value"));
+            return row;
+        }
+
+        /// <summary>A wrapping row of small action buttons under the line they act on.</summary>
+        private static VisualElement Actions(params Button[] buttons)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("rk-actions");
+            foreach (var b in buttons) row.Add(b);
+            return row;
         }
 
         // ----- Small building blocks --------------------------------------------------------------

@@ -605,20 +605,93 @@
 /* ----- Phase 3: factions and politics -------------------------------------------------------- */
 
 .rk-faction-list {
-    max-height: 190px;
+    max-height: 260px;
 }
 
 .rk-faction-item {
-    height: auto;
-    min-height: 28px;
-    flex-wrap: wrap;
+    height: 38px;
+    align-items: center;
+}
+
+.rk-faction-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
 }
 
 .rk-faction-name {
-    flex-shrink: 1;
-    white-space: normal;
     margin: 0;
     padding: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -unity-text-align: middle-left;
+}
+
+.rk-faction-detail {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    color: rgb(150, 142, 126);
+    -unity-text-align: middle-left;
+}
+
+.rk-section-row {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.rk-section-row > .rk-route-toggle {
+    margin-bottom: 3px;
+}
+
+.rk-faction-row {
+    align-items: center;
+}
+
+.rk-faction-key {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.rk-faction-row-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rk-faction-row:hover .rk-faction-row-name {
+    color: rgb(240, 214, 160);
+}
+
+.rk-faction-row--waning .rk-faction-row-name {
+    color: rgb(130, 124, 112);
+}
+
+.rk-row--contested > .rk-value {
+    color: rgb(230, 190, 100);
+}
+
+.rk-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 0 4px 16px;
+}
+
+.rk-actions > .rk-route-toggle {
+    margin: 1px 4px 1px 0;
+}
+
+#faction-inspector .rk-insp-name {
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+#faction-inspector .rk-inspector-header > .rk-grow {
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .rk-faction-item--dissolved {
