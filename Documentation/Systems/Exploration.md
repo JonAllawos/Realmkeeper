@@ -108,6 +108,18 @@ Performance in a player: build with `-executeMethod Realmkeeper.Editor.PerfBuild
 (output folder in `RK_BUILD_OUT`), then run
 `Realmkeeper.exe -rkPerfProbe report.txt [-rkPrimitives]`.
 
+## People in exploration (Phase 4)
+
+- **Who is shown:** the people present today, meaning living people whose current location is in this
+  settlement (`WorldSession.GetPeoplePresent`). Each stands at the layout site of their location
+  (`ResidentInput.SiteKey`): inside the tavern, among the stalls, by the gate, or at a building's door.
+- **Body:** the body frame follows the person's recorded sex, with the name as a fallback.
+- **Talking:** press E to greet; the greeting chronicles the first meeting. Then six topics are
+  offered (click, or press 1–6), each an `AskNpcCommand` answered from the person's own knowledge
+  (see [NPCs](NPCs.md)). The resident plays the talking animation, and the conversation ends
+  when you walk away.
+- **Presence:** talking to someone who is not in the settlement today is refused.
+
 ## Known limits
 
 - **Characters:** two outfits per body frame. There is no turn clip, so turning in place shows

@@ -5,6 +5,38 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v5 → v6 (Phase 4: NPC Intelligence Engine). Structural only: adds empty <c>locations</c> and
+    /// <c>npcRelations</c> arrays and enables the NPC system for worlds that run the political system
+    /// (listed before it, where a fresh world lists it). People keep their IDs, names, homes, factions,
+    /// roles and meetings with the player. Their new state cannot come from JSON, so after mapping the
+    /// serializer runs <see cref="Simulation.Npcs.NpcGenesis.EnsurePeople"/>, which derives it from the seed
+    /// and IDs, once, and invents no memories or past events.
+    /// </summary>
+    public sealed class MigrationV5ToV6 : ISaveMigration
+    {
+        public int SourceVersion => 5;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["locations"] == null) world["locations"] = new JArray();
+            if (world["npcRelations"] == null) world["npcRelations"] = new JArray();
+
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken politics = null;
+            var hasNpcs = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == PoliticalSystem.Id) politics = id;
+                if ((string)id == Simulation.Npcs.NpcSystem.Id) hasNpcs = true;
+            }
+
+            if (politics != null && !hasNpcs) politics.AddBeforeSelf(Simulation.Npcs.NpcSystem.Id);
+        }
+    }
+
+    /// <summary>
     /// v4 → v5 (Phase 3: factions and politics). Structural only: adds empty <c>relations</c> and
     /// <c>claims</c> arrays and enables the political system for worlds that run the standard
     /// Phase 2 systems. Faction types, presence, leaders, relationships and goals cannot be

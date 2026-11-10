@@ -29,6 +29,8 @@
                 <ui:ScrollView name="settlement-list" class="rk-settlement-list" />
                 <ui:Button name="nav-factions" text="Factions" class="rk-nav-item" />
                 <ui:ScrollView name="faction-list" class="rk-settlement-list rk-faction-list" />
+                <ui:Button name="nav-people" text="People" tooltip="Named people: filter, inspect, and (as DM) edit them." class="rk-nav-item" />
+                <ui:VisualElement name="people-panel" class="rk-people-panel rk-hidden" />
                 <ui:VisualElement class="rk-nav-separator" />
                 <ui:VisualElement name="nav-later" class="rk-nav-later" />
             </ui:VisualElement>
@@ -130,6 +132,9 @@
                     <ui:Label text="Trade routes" class="rk-section" />
                     <ui:VisualElement name="insp-trade" class="rk-resources" />
 
+                    <ui:Label text="Residents" class="rk-section" tooltip="Named people who live here. Click one to inspect them." />
+                    <ui:VisualElement name="insp-residents" class="rk-resources" />
+
                     <ui:VisualElement class="rk-section-row">
                         <ui:Label text="Politics" class="rk-section rk-grow" />
                         <ui:Button name="insp-politics-manage" text="Manage" tooltip="Show the political actions you can take here." class="rk-button rk-route-toggle" />
@@ -148,6 +153,19 @@
                     <ui:Button name="finsp-close" text="×" class="rk-close" />
                 </ui:VisualElement>
                 <ui:ScrollView name="finsp-body" class="rk-insp-body" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+            </ui:VisualElement>
+
+            <!-- NPC inspector (shown instead of the other inspectors) -->
+            <ui:VisualElement name="npc-inspector" class="rk-panel rk-inspector rk-hidden">
+                <ui:VisualElement class="rk-inspector-header">
+                    <ui:VisualElement class="rk-grow">
+                        <ui:Label name="ninsp-name" text="-" class="rk-insp-name" />
+                        <ui:Label name="ninsp-type" text="-" class="rk-insp-type" />
+                    </ui:VisualElement>
+                    <ui:Button name="ninsp-manage" text="Manage" tooltip="Show the DM's tools for this person." class="rk-button rk-route-toggle" />
+                    <ui:Button name="ninsp-close" text="×" class="rk-close" />
+                </ui:VisualElement>
+                <ui:ScrollView name="ninsp-body" class="rk-insp-body" mode="Vertical" horizontal-scroller-visibility="Hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
 

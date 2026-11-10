@@ -15,7 +15,7 @@ namespace Realmkeeper.Infrastructure.Persistence
     }
 
     /// <summary>Explicit, field-by-field mapping between domain models and save DTOs.</summary>
-    public static class WorldSaveMapper
+    public static partial class WorldSaveMapper
     {
         // ----- Domain → DTO -----------------------------------------------------------------
 
@@ -175,7 +175,7 @@ namespace Realmkeeper.Infrastructure.Persistence
 
             foreach (var n in w.Npcs)
             {
-                dto.Npcs.Add(new NpcDto
+                var npcDto = new NpcDto
                 {
                     NpcId = n.NpcId.ToString(),
                     Name = n.Name,
@@ -184,7 +184,9 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Role = n.Role.ToString(),
                     MetPlayerOn = n.HasMetPlayer ? n.MetPlayerOn.ToIsoString() : null,
                     ConversationCount = n.ConversationCount,
-                });
+                };
+                WriteNpc(n, npcDto);
+                dto.Npcs.Add(npcDto);
             }
 
             foreach (var e in w.HistoricalEvents)
@@ -203,6 +205,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     SettlementId = e.SettlementId.IsEmpty ? null : e.SettlementId.ToString(),
                     SettlementIds = ids,
                     FactionIds = factionIds.Count > 0 ? factionIds : null,
+                    NpcIds = e.NpcIds.Count > 0 ? NpcIdStrings(e.NpcIds) : null,
                     Data = ToDictionary(e.Data),
                     Description = e.Description,
                 });
@@ -253,6 +256,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 });
             }
 
+            WriteNpcWorld(w, dto);
             return dto;
         }
 
@@ -502,7 +506,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             foreach (var nd in dto.Npcs ?? new List<NpcDto>())
             {
                 if (nd == null) throw new SaveDataException("Null NPC entry.");
-                world.Npcs.Add(new NpcData
+                var npc = new NpcData
                 {
                     NpcId = new NpcId(RequiredGuid(nd.NpcId, "npcId")),
                     Name = nd.Name,
@@ -511,7 +515,9 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Role = string.IsNullOrEmpty(nd.Role) ? NpcRole.Resident : ParseEnum<NpcRole>(nd.Role, "npc role"),
                     MetPlayerOn = string.IsNullOrEmpty(nd.MetPlayerOn) ? default(WorldDate) : ParseDate(nd.MetPlayerOn, "npc metPlayerOn"),
                     ConversationCount = nd.ConversationCount,
-                });
+                };
+                ReadNpc(nd, npc);
+                world.Npcs.Add(npc);
             }
 
             foreach (var ed in dto.HistoricalEvents ?? new List<HistoricalEventDto>())
@@ -542,7 +548,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                     ids,
                     ed.Data,
                     ed.Description,
-                    eventFactions));
+                    eventFactions,
+                    ParseNpcIds(ed.NpcIds, "event npcIds")));
             }
 
             foreach (var rd in dto.TradeRoutes ?? new List<TradeRouteDto>())
@@ -592,6 +599,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 });
             }
 
+            ReadNpcWorld(dto, world);
             return world;
         }
 

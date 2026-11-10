@@ -14,5 +14,7 @@
 | [0010](ADR-0010-third-party-art.md) | Third-party art: CC0 only, used subset committed, licences on file | Accepted (graphics pass) |
 | [0011](ADR-0011-modular-kit-assembly.md) | Buildings assembled from engine-free kit plans, merged for the draw budget | Accepted (graphics pass) |
 | [0012](ADR-0012-humanoid-characters.md) | Humanoid characters whose look derives from identity | Accepted (graphics pass) |
+| [0013](ADR-0013-tiered-npc-simulation.md) | Tiered NPC simulation inside the day; named people counted in the population | Accepted (Phase 4) |
+| [0014](ADR-0014-npc-knowledge-and-dialogue.md) | Knowledge separate from truth; dialogue only from knowledge | Accepted (Phase 4) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -100,13 +100,13 @@ namespace Realmkeeper.Application
         /// <summary>Records a structured chronicle event with a deterministic ID (world seed, date, event count).</summary>
         public HistoricalEvent ReportEvent(HistoricalEventType type, EventSeverity severity, EventImportance importance,
             IReadOnlyList<SettlementId> settlementIds, IEnumerable<KeyValuePair<string, string>> data,
-            IReadOnlyList<FactionId> factionIds = null)
+            IReadOnlyList<FactionId> factionIds = null, IReadOnlyList<NpcId> npcIds = null)
         {
             var world = Edit();
             var seed = SeedMixer.Combine(SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), (ulong)world.CurrentSimulationDate.ToDayNumber()),
                 "command-event:" + (world.HistoricalEvents.Count + _events.Count).ToString(System.Globalization.CultureInfo.InvariantCulture));
             var e = new HistoricalEvent(new EventId(DeterministicGuid.Next(_random.Create(seed))), world.CurrentSimulationDate, type, severity,
-                importance, settlementIds, data, null, factionIds);
+                importance, settlementIds, data, null, factionIds, npcIds);
             _events.Add(e);
             return e;
         }

@@ -60,7 +60,8 @@ namespace Realmkeeper.Exploration.Presentation
             view._random = new System.Random(npc.NpcId.GetHashCode());
             view._wait = (float)view._random.NextDouble() * 3f;
 
-            view.Appearance = NpcAppearanceResolver.Resolve(npc.NpcId, npc.Role, npc.Name);
+            view.Appearance = NpcAppearanceResolver.Resolve(npc.NpcId, npc.Role, npc.Name,
+                npc.Sex == NpcSex.Female ? BodyFrame.Female : npc.Sex == NpcSex.Male ? BodyFrame.Male : (BodyFrame?)null);
             view.Animation = HumanoidCharacterBuilder.Build(go.transform, view.Appearance, catalog);
             if (view.Animation == null)
             {

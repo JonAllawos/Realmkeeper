@@ -454,8 +454,15 @@ namespace Realmkeeper.Application
 
     public sealed class NpcSummary
     {
-        internal NpcSummary(NpcData n)
+        internal NpcSummary(NpcData n, LocationData location = null)
         {
+            Sex = n.Sex;
+            Tier = n.Tier;
+            IsAlive = n.IsAlive;
+            CurrentLocationId = n.CurrentLocationId;
+            LocationKind = location?.Kind;
+            LocationKey = location?.LayoutKey;
+            LocationName = location?.Name;
             NpcId = n.NpcId;
             Name = n.Name;
             HomeSettlementId = n.HomeSettlementId;
@@ -472,6 +479,17 @@ namespace Realmkeeper.Application
         public bool HasMetPlayer { get; }
         public WorldDate MetPlayerOn { get; }
         public int ConversationCount { get; }
+
+        // Phase 4.
+        public NpcSex Sex { get; }
+        public NpcTier Tier { get; }
+        public bool IsAlive { get; }
+        public LocationId CurrentLocationId { get; }
+        public LocationKind? LocationKind { get; }
+
+        /// <summary>The layout site of today's location (e.g. "hall", "plaza"), when known.</summary>
+        public string LocationKey { get; }
+        public string LocationName { get; }
     }
 
     public sealed class EventSummary

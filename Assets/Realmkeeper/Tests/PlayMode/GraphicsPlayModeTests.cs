@@ -115,7 +115,8 @@ namespace Realmkeeper.Tests.PlayMode
                 Assert.That(view.Animation, Is.Not.Null, "A humanoid body, not the capsule fallback.");
                 Assert.That(view.Animation.Animator.avatar != null && view.Animation.Animator.avatar.isHuman, Is.True);
                 var npc = bootstrap.Session.FindNpc(pair.Key);
-                Assert.That(view.Appearance.Signature, Is.EqualTo(NpcAppearanceResolver.Resolve(npc.NpcId, npc.Role, npc.Name).Signature),
+                Assert.That(view.Appearance.Signature, Is.EqualTo(NpcAppearanceResolver.Resolve(npc.NpcId, npc.Role, npc.Name,
+                    npc.Sex == NpcSex.Female ? BodyFrame.Female : npc.Sex == NpcSex.Male ? BodyFrame.Male : (BodyFrame?)null).Signature),
                     "The body shows the appearance resolved from the resident's identity.");
                 Assert.That(view.GetComponentsInChildren<SkinnedMeshRenderer>().Length, Is.GreaterThanOrEqualTo(4), "Body, head and hair parts.");
             }

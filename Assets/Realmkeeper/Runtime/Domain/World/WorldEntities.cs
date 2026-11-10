@@ -124,16 +124,72 @@ namespace Realmkeeper.Domain.World
 
         public bool HasMetPlayer => MetPlayerOn.IsValidDate;
 
-        public NpcData Clone() => new NpcData
+        // ----- Phase 4: identity, inner life and whereabouts -----------------------------------
+
+        public NpcSex Sex { get; set; }
+
+        /// <summary>Date of birth (invalid when unknown).</summary>
+        public WorldDate BirthDate { get; set; }
+
+        public NpcTier Tier { get; set; }
+        public NpcPersonality Personality { get; set; } = new NpcPersonality();
+        public NpcSkills Skills { get; set; } = new NpcSkills();
+        public NpcCondition Condition { get; set; } = new NpcCondition();
+
+        /// <summary>Where they live, work and are today (locations in <see cref="WorldData.Locations"/>).</summary>
+        public LocationId ResidenceId { get; set; }
+        public LocationId WorkplaceId { get; set; }
+        public LocationId CurrentLocationId { get; set; }
+        public NpcScheduleData Schedule { get; set; } = new NpcScheduleData();
+
+        public List<NpcGoalData> Goals { get; set; } = new List<NpcGoalData>();
+        public List<NpcMemoryData> Memories { get; set; } = new List<NpcMemoryData>();
+        public List<NpcKnowledgeData> Knowledge { get; set; } = new List<NpcKnowledgeData>();
+
+        public bool IsDeceased { get; set; }
+        public WorldDate DiedOn { get; set; }
+
+        /// <summary>Last day the simulation updated this person (tier 2 skips days).</summary>
+        public WorldDate LastUpdatedOn { get; set; }
+
+        public bool IsAlive => !IsDeceased;
+
+        /// <summary>Whole years of age on a date (0 when the birth date is unknown).</summary>
+        public int AgeOn(WorldDate date) => BirthDate.IsValidDate && date.IsValidDate ? Math.Max(0, (int)((date.ToDayNumber() - BirthDate.ToDayNumber()) / WorldDate.DaysPerYear)) : 0;
+
+        public NpcData Clone()
         {
-            NpcId = NpcId,
-            Name = Name,
-            HomeSettlementId = HomeSettlementId,
-            FactionId = FactionId,
-            Role = Role,
-            MetPlayerOn = MetPlayerOn,
-            ConversationCount = ConversationCount,
-        };
+            var c = new NpcData
+            {
+                NpcId = NpcId,
+                Name = Name,
+                HomeSettlementId = HomeSettlementId,
+                FactionId = FactionId,
+                Role = Role,
+                MetPlayerOn = MetPlayerOn,
+                ConversationCount = ConversationCount,
+                Sex = Sex,
+                BirthDate = BirthDate,
+                Tier = Tier,
+                Personality = Personality?.Clone() ?? new NpcPersonality(),
+                Skills = Skills?.Clone() ?? new NpcSkills(),
+                Condition = Condition?.Clone() ?? new NpcCondition(),
+                ResidenceId = ResidenceId,
+                WorkplaceId = WorkplaceId,
+                CurrentLocationId = CurrentLocationId,
+                Schedule = Schedule?.Clone() ?? new NpcScheduleData(),
+                Goals = new List<NpcGoalData>(Goals.Count),
+                Memories = new List<NpcMemoryData>(Memories.Count),
+                Knowledge = new List<NpcKnowledgeData>(Knowledge.Count),
+                IsDeceased = IsDeceased,
+                DiedOn = DiedOn,
+                LastUpdatedOn = LastUpdatedOn,
+            };
+            foreach (var g in Goals) c.Goals.Add(g.Clone());
+            foreach (var m in Memories) c.Memories.Add(m.Clone());
+            foreach (var k in Knowledge) c.Knowledge.Add(k.Clone());
+            return c;
+        }
     }
 
     /// <summary>Event kinds. Persisted by name; append new values, never reorder.</summary>
@@ -177,6 +233,22 @@ namespace Realmkeeper.Domain.World
         FactionPresenceEstablished = 33,
         FactionPresenceWithdrawn = 34,
         FactionGoalSet = 35,
+
+        // Phase 4: named people.
+        NpcDied = 36,
+        NpcGoalSet = 37,
+        NpcGoalAchieved = 38,
+        NpcRelationshipFormed = 39,
+        NpcRelationshipChanged = 40,
+        NpcMoved = 41,
+        NpcIdentityChanged = 42,
+        NpcOccupationChanged = 43,
+        NpcScheduleChanged = 44,
+        NpcMemoryAdded = 45,
+        NpcKnowledgeAdded = 46,
+        NpcAffiliationChanged = 47,
+        NpcConversation = 48,
+        NpcGoalAbandoned = 49,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>
@@ -227,8 +299,10 @@ namespace Realmkeeper.Domain.World
             IReadOnlyList<SettlementId> settlementIds,
             IEnumerable<KeyValuePair<string, string>> data,
             string description = null,
-            IReadOnlyList<FactionId> factionIds = null)
+            IReadOnlyList<FactionId> factionIds = null,
+            IReadOnlyList<NpcId> npcIds = null)
         {
+            NpcIds = npcIds != null ? new List<NpcId>(npcIds) : (IReadOnlyList<NpcId>)Array.Empty<NpcId>();
             FactionIds = factionIds != null ? new List<FactionId>(factionIds) : (IReadOnlyList<FactionId>)Array.Empty<FactionId>();
             EventId = eventId;
             Date = date;
@@ -261,6 +335,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Factions involved (Phase 3), primary first. Empty for events without factions. Dissolved factions stay valid references.</summary>
         public IReadOnlyList<FactionId> FactionIds { get; }
+
+        /// <summary>Named people involved (Phase 4), primary first. Empty for events without people.</summary>
+        public IReadOnlyList<NpcId> NpcIds { get; }
 
         /// <summary>Primary settlement; <see cref="SettlementId.Empty"/> for world-wide events.</summary>
         public SettlementId SettlementId => SettlementIds.Count > 0 ? SettlementIds[0] : SettlementId.Empty;

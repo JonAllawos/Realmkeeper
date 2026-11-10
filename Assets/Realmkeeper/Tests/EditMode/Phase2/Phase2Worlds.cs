@@ -25,6 +25,26 @@ namespace Realmkeeper.Tests.EditMode.Phase2
             return new RegionGenerator(new Xoshiro256RandomFactory()).Generate(new WorldGenerationRequest("Phaseland", seed, settings, FixedId));
         }
 
+        /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
+        public static void StripToV5(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 5;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            w.Remove("locations");
+            w.Remove("npcRelations");
+            foreach (Newtonsoft.Json.Linq.JObject n in (Newtonsoft.Json.Linq.JArray)w["npcs"])
+            {
+                foreach (var field in new[] { "sex", "birthDate", "tier", "personality", "skills", "condition", "residenceId", "workplaceId",
+                             "currentLocationId", "schedule", "goals", "memories", "knowledge", "isDeceased", "diedOn", "lastUpdatedOn" })
+                    n.Remove(field);
+            }
+
+            foreach (Newtonsoft.Json.Linq.JObject e in (Newtonsoft.Json.Linq.JArray)w["historicalEvents"]) e.Remove("npcIds");
+            var systems = (Newtonsoft.Json.Linq.JArray)w["settings"]["enabledSimulationSystems"];
+            foreach (var t in new System.Collections.Generic.List<Newtonsoft.Json.Linq.JToken>(systems))
+                if ((string)t == Realmkeeper.Simulation.Npcs.NpcSystem.Id) t.Remove();
+        }
+
         public static string TempDirectory() => Path.Combine(Path.GetTempPath(), "realmkeeper-phase2-" + Guid.NewGuid().ToString("N"));
 
         public static WorldSession Session(string directory, long seed = 123456789)

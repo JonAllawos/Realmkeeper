@@ -30,6 +30,7 @@
                     <ui:Label name="xk-response-kind" text="Informational" class="xk-kind" />
                 </ui:VisualElement>
                 <ui:Label name="xk-response-text" text="-" class="xk-response-text" />
+                <ui:VisualElement name="xk-topics" class="xk-topics xk-hidden" />
             </ui:VisualElement>
             <ui:VisualElement name="xk-prompt" class="xk-panel xk-prompt xk-hidden">
                 <ui:Label text="E" class="xk-key" />

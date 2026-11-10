@@ -62,13 +62,15 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6() };
 
         /// <summary>First schema with regions, the player character and named residents.</summary>
         public const int FirstSchemaWithRegions = 3;
 
         /// <summary>First schema with first-class factions, relations, claims and goals.</summary>
         public const int FirstSchemaWithPolitics = 5;
+
+        public const int FirstSchemaWithNpcEngine = 6;
 
         public string Serialize(WorldData world)
         {
@@ -172,6 +174,13 @@ namespace Realmkeeper.Infrastructure.Persistence
             if (originalVersion < FirstSchemaWithPolitics)
             {
                 Generation.PoliticalInitializer.Ensure(world, new Randomness.Xoshiro256RandomFactory());
+            }
+
+            // Saves older than v6 gain the NPC engine's state: locations, identity, inner life (deterministic,
+            // additive, once: people already initialised are never touched again; no history is invented).
+            if (originalVersion < FirstSchemaWithNpcEngine)
+            {
+                Simulation.Npcs.NpcGenesis.EnsurePeople(world);
             }
 
             var validation = WorldValidator.Validate(world);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Exploration.Interaction;
@@ -134,6 +135,31 @@ namespace Realmkeeper.Exploration.Presentation
             Response.EnableInClassList("xk-response--failed", !response.Succeeded);
             Response.RemoveFromClassList("xk-hidden");
             _responseTimer = ResponseSeconds;
+        }
+
+        /// <summary>The conversation topics on offer (Phase 4), shown under the response; empty hides them.</summary>
+        public VisualElement Topics => Root?.Q<VisualElement>("xk-topics");
+
+        public bool TopicsVisible => Topics != null && !Topics.ClassListContains("xk-hidden");
+
+        public void ShowTopics(IReadOnlyList<(string label, Action ask)> topics)
+        {
+            var box = Topics;
+            if (box == null) return;
+            box.Clear();
+            var shown = topics != null && topics.Count > 0;
+            box.EnableInClassList("xk-hidden", !shown);
+            if (!shown) return;
+            for (var i = 0; i < topics.Count; i++)
+            {
+                var (label, ask) = topics[i];
+                var button = new Button(() => { ask(); _responseTimer = ResponseSeconds; }) { text = (i + 1) + "  " + label, name = "xk-topic-" + i };
+                button.AddToClassList("xk-button");
+                button.AddToClassList("xk-topic");
+                box.Add(button);
+            }
+
+            _responseTimer = ResponseSeconds * 2f;
         }
 
         public void ShowMessage(CommandResult result)

@@ -7,9 +7,10 @@
 | ADR-0009 prerequisites and exploration vertical slice | Accepted as a vertical slice (`0c7f60d`) | `Documentation/Architecture/DualPerspective.md` |
 | Pre-Phase-2 stabilization: session rebinding, save slots | Done in the Phase 2 completion commit | `DualPerspective.md`, `Systems/Persistence.md` |
 | Phase 2 completion | Done; see the test results for what was run | `Systems/Economy.md`, `Testing/TestResults.md` |
-| Phase 3: factions and political engine | Done (this milestone); see the test results for what was run | `Documentation/Systems/Politics.md` |
-| Phase 4 | **Not started.** It needs its own brief. | — |
-| Graphics pass | **Done** (2026-11-10): CC0 modular kit buildings, humanoid animated residents, street-level lighting, tavern interior; within budget | `Documentation/Reports/GraphicsPass-Report.md`, `Documentation/Systems/Exploration.md` |
+| Phase 3: factions and political engine | Done (`5c89f8a`, playtest fixes `d82a01b`) | `Documentation/Systems/Politics.md` |
+| Graphics pass | Done (`b0545b5`): CC0 modular kit, humanoid residents, street-level lighting | `Reports/GraphicsPass-Report.md` |
+| Phase 4: NPC Intelligence Engine | Done (this milestone); see the test results for what was run | `Systems/NPCs.md`, `Systems/Relationships.md`, `Reports/Phase4-NPC-Intelligence.md` |
+| Phase 5 | **Not started.** It needs its own brief. | — |
 
 ## Phase 2 completion: what it added
 

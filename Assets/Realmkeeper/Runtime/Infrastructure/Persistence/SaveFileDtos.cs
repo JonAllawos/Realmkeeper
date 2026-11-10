@@ -43,6 +43,12 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v5.</summary>
         public List<TerritorialClaimDto> Claims { get; set; }
+
+        /// <summary>Schema v6. Persistent places in settlements.</summary>
+        public List<LocationDto> Locations { get; set; }
+
+        /// <summary>Schema v6. Relationships between named people.</summary>
+        public List<NpcRelationDto> NpcRelations { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -234,6 +240,105 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string MetPlayerOn { get; set; }
 
         public int ConversationCount { get; set; }
+
+        // Schema v6 (Phase 4). Absent in older saves; the migration and initializer fill them.
+        public string Sex { get; set; }
+        public string BirthDate { get; set; }
+        public string Tier { get; set; }
+        public Dictionary<string, int> Personality { get; set; }
+        public Dictionary<string, int> Skills { get; set; }
+        public NpcConditionDto Condition { get; set; }
+        public string ResidenceId { get; set; }
+        public string WorkplaceId { get; set; }
+        public string CurrentLocationId { get; set; }
+
+        /// <summary>Seven location IDs, one per weekday (day number mod 7); null entries are empty.</summary>
+        public List<string> Schedule { get; set; }
+        public List<NpcGoalDto> Goals { get; set; }
+        public List<NpcMemoryDto> Memories { get; set; }
+        public List<NpcKnowledgeDto> Knowledge { get; set; }
+        public bool IsDeceased { get; set; }
+        public string DiedOn { get; set; }
+        public string LastUpdatedOn { get; set; }
+    }
+
+    public sealed class NpcConditionDto
+    {
+        public int Health { get; set; }
+        public int Satiation { get; set; }
+        public int Energy { get; set; }
+        public int Morale { get; set; }
+        public int Safety { get; set; }
+        public int Wealth { get; set; }
+    }
+
+    public sealed class NpcGoalDto
+    {
+        public string GoalId { get; set; }
+        public string Type { get; set; }
+        public int Priority { get; set; }
+        public int Progress { get; set; }
+        public string Status { get; set; }
+        public string CreatedOn { get; set; }
+        public string ClosedOn { get; set; }
+        public string Source { get; set; }
+        public string TargetSkill { get; set; }
+        public string TargetNpcId { get; set; }
+    }
+
+    public sealed class NpcMemoryDto
+    {
+        public string MemoryId { get; set; }
+        public string EventId { get; set; }
+        public string Date { get; set; }
+        public string Category { get; set; }
+        public string Subject { get; set; }
+        public string SettlementId { get; set; }
+        public string FactionId { get; set; }
+        public List<string> NpcIds { get; set; }
+        public int Salience { get; set; }
+        public int Confidence { get; set; }
+        public string Source { get; set; }
+    }
+
+    public sealed class NpcKnowledgeDto
+    {
+        public string KnowledgeId { get; set; }
+        public string Topic { get; set; }
+        public string SubjectId { get; set; }
+        public string Value { get; set; }
+        public string Status { get; set; }
+        public int Confidence { get; set; }
+        public string LearnedOn { get; set; }
+        public string SourceNpcId { get; set; }
+        public int Hops { get; set; }
+        public string EventId { get; set; }
+    }
+
+    public sealed class LocationDto
+    {
+        public string LocationId { get; set; }
+        public string SettlementId { get; set; }
+        public string Kind { get; set; }
+        public string Name { get; set; }
+        public string LayoutKey { get; set; }
+    }
+
+    public sealed class NpcRelationDto
+    {
+        public string NpcA { get; set; }
+        public string NpcB { get; set; }
+        public string Kind { get; set; }
+        public int Affinity { get; set; }
+        public int Trust { get; set; }
+        public int Respect { get; set; }
+        public int Fear { get; set; }
+        public int Rivalry { get; set; }
+        public string Origin { get; set; }
+        public string LastCause { get; set; }
+        public string Since { get; set; }
+        public string LastChanged { get; set; }
+        public int Interactions { get; set; }
     }
 
     public sealed class RegionDto
@@ -276,6 +381,9 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v5. Factions involved; absent in older events.</summary>
         public List<string> FactionIds { get; set; }
+
+        /// <summary>Schema v6. Named people involved; absent in older events.</summary>
+        public List<string> NpcIds { get; set; }
         public Dictionary<string, string> Data { get; set; }
         public string Description { get; set; }
     }

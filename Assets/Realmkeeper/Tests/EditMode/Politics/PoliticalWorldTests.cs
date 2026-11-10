@@ -221,6 +221,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
             var fresh = Phase2Worlds.Generated(777);
             var serializer = new JsonWorldSerializer();
             var doc = JObject.Parse(serializer.Serialize(fresh));
+            Phase2Worlds.StripToV5(doc);
 
             // Rebuild the v4 layout: two bare factions, no relations, claims, administrators or political system.
             doc["schemaVersion"] = 4;

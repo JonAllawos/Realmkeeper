@@ -103,6 +103,7 @@ namespace Realmkeeper.Presentation
             if (!id.IsEmpty && (_session == null || _session.FindFaction(id) == null)) id = default;
             _selectedFaction = id;
             if (!id.IsEmpty) _selection.Clear();
+            if (!id.IsEmpty) CloseNpcInspectorForOtherSelection();
             foreach (var pair in _factionButtons) pair.Value.EnableInClassList("rk-settlement-item--selected", pair.Key == id);
             RefreshFactionInspector();
         }

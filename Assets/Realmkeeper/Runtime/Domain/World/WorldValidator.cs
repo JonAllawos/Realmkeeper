@@ -116,14 +116,14 @@ namespace Realmkeeper.Domain.World
                 if (npc.ConversationCount < 0) result.AddError($"NPC {npc.NpcId} has a negative conversation count.");
                 if (!npc.HomeSettlementId.IsEmpty && !settlementIds.Contains(npc.HomeSettlementId))
                     result.AddError($"NPC {npc.NpcId} references unknown settlement.");
-                if (!npc.HomeSettlementId.IsEmpty)
+                if (!npc.HomeSettlementId.IsEmpty && npc.IsAlive)
                 {
                     namedPerSettlement.TryGetValue(npc.HomeSettlementId, out var count);
                     namedPerSettlement[npc.HomeSettlementId] = count + 1;
                 }
             }
 
-            // Named people are part of the population, never extra to it.
+            // Named (living) people are part of the population, never extra to it: tier 3 is the rest.
             foreach (var settlement in world.Settlements)
             {
                 if (settlement != null && namedPerSettlement.TryGetValue(settlement.SettlementId, out var named) && named > settlement.Population)
@@ -147,7 +147,70 @@ namespace Realmkeeper.Domain.World
 
             ValidateTrade(world, settlementIds, result);
             ValidatePolitics(world, settlementIds, npcIds, result);
+            ValidateNpcs(world, settlementIds, npcIds, result);
             return result;
+        }
+
+        /// <summary>Phase 4: locations, whereabouts, inner-life bounds and relationships.</summary>
+        private static void ValidateNpcs(WorldData world, HashSet<SettlementId> settlementIds, HashSet<NpcId> npcIds, ValidationResult result)
+        {
+            var locations = new Dictionary<LocationId, LocationData>();
+            foreach (var l in world.Locations)
+            {
+                if (l == null) { result.AddError("Null location entry."); continue; }
+                if (l.LocationId.IsEmpty) result.AddError("Location has empty ID.");
+                else if (locations.ContainsKey(l.LocationId)) result.AddError($"Duplicate LocationId {l.LocationId}.");
+                else locations.Add(l.LocationId, l);
+                if (!settlementIds.Contains(l.SettlementId)) result.AddError($"Location {l.Name} references unknown settlement.");
+                if (!Enum.IsDefined(typeof(LocationKind), l.Kind)) result.AddError($"Location {l.Name} has an unknown kind.");
+            }
+
+            void CheckLocation(NpcData n, LocationId id, string what)
+            {
+                if (!id.IsEmpty && !locations.ContainsKey(id)) result.AddError($"NPC {n.Name} has an unknown {what}.");
+            }
+
+            foreach (var n in world.Npcs)
+            {
+                if (n == null) continue;
+                CheckLocation(n, n.ResidenceId, "residence");
+                CheckLocation(n, n.WorkplaceId, "workplace");
+                CheckLocation(n, n.CurrentLocationId, "current location");
+                for (var d = 0; d < NpcScheduleData.Days; d++) CheckLocation(n, n.Schedule[d], "scheduled location");
+                if (n.Memories.Count > NpcBounds.MaxMemories) result.AddError($"NPC {n.Name} remembers more than {NpcBounds.MaxMemories} things.");
+                if (n.Knowledge.Count > NpcBounds.MaxKnowledge) result.AddError($"NPC {n.Name} holds more than {NpcBounds.MaxKnowledge} pieces of knowledge.");
+                var goalIds = new HashSet<GoalId>();
+                foreach (var g in n.Goals) if (g.GoalId.IsEmpty || !goalIds.Add(g.GoalId)) result.AddError($"NPC {n.Name} has a goal with a missing or duplicate ID.");
+                if (n.IsDeceased && !n.DiedOn.IsValidDate) result.AddError($"NPC {n.Name} is dead but has no date of death.");
+            }
+
+            var pairs = new HashSet<(NpcId, NpcId)>();
+            var perNpc = new Dictionary<NpcId, int>();
+            foreach (var r in world.NpcRelations)
+            {
+                if (r == null) { result.AddError("Null NPC relationship entry."); continue; }
+                if (r.NpcA == r.NpcB) result.AddError("An NPC relationship links a person to themselves.");
+                if (r.NpcA.CompareTo(r.NpcB) > 0) result.AddError("An NPC relationship is not stored in ID order.");
+                if (!npcIds.Contains(r.NpcA) || !npcIds.Contains(r.NpcB)) result.AddError("An NPC relationship references an unknown person.");
+                if (!pairs.Add((r.NpcA, r.NpcB))) result.AddError("Duplicate NPC relationship.");
+                foreach (var id in new[] { r.NpcA, r.NpcB })
+                {
+                    perNpc.TryGetValue(id, out var c);
+                    perNpc[id] = c + 1;
+                }
+            }
+
+            foreach (var pair in perNpc)
+            {
+                if (pair.Value > NpcBounds.MaxRelationsPerNpc) result.AddError($"An NPC has more than {NpcBounds.MaxRelationsPerNpc} relationships.");
+            }
+
+            foreach (var f in world.Factions)
+            {
+                if (f == null || f.LeaderNpcId.IsEmpty) continue;
+                var leader = world.FindNpc(f.LeaderNpcId);
+                if (leader != null && leader.IsDeceased) result.AddError($"Faction {f.Name} is led by a dead person.");
+            }
         }
 
         /// <summary>Phase 3: factions, presence, governance, relations, claims and goals.</summary>

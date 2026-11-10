@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.Identifiers;
@@ -278,8 +279,47 @@ namespace Realmkeeper.Exploration.Presentation
             if (!IsExploring || CurrentTarget == null) return null;
             LastResponse = CurrentTarget.Interact(_session, Player.transform);
             Hud?.ShowResponse(LastResponse);
+            TalkingTo = LastResponse != null && LastResponse.Succeeded ? CurrentTarget as ResidentView : null;
+            Hud?.ShowTopics(TalkingTo == null ? null : TopicButtons());
             RefreshHud();
             return LastResponse;
+        }
+
+        /// <summary>The resident in conversation (Phase 4), or null.</summary>
+        public ResidentView TalkingTo { get; private set; }
+
+        /// <summary>Topics a player can raise; answers come from the resident's own knowledge.</summary>
+        public static readonly IReadOnlyList<(ConversationTopic topic, string label)> Topics = new[]
+        {
+            (ConversationTopic.Themselves, "About you"),
+            (ConversationTopic.Settlement, "This place"),
+            (ConversationTopic.Governor, "Who governs"),
+            (ConversationTopic.FactionLeader, "Your leader"),
+            (ConversationTopic.News, "Any news?"),
+            (ConversationTopic.Rumours, "Rumours"),
+        };
+
+        private IReadOnlyList<(string, Action)> TopicButtons()
+        {
+            var list = new List<(string, Action)>();
+            foreach (var (topic, label) in Topics)
+            {
+                var t = topic;
+                list.Add((label, () => AskResident(t)));
+            }
+
+            return list;
+        }
+
+        /// <summary>Asks the resident in conversation about a topic (typed command; the answer is theirs).</summary>
+        public CommandResult AskResident(ConversationTopic topic, NpcId aboutPerson = default)
+        {
+            if (TalkingTo == null || _session == null) return CommandResult.InvalidState("You are not talking to anyone.");
+            var result = _session.Dispatch(new AskNpcCommand(TalkingTo.NpcId, topic, aboutPerson));
+            LastResponse = new InteractionResponse(TalkingTo.DisplayName, result.IsSuccess ? result.Message : ResidentView.Describe(result), InteractionKind.StateChanging, result);
+            Hud?.ShowResponse(LastResponse);
+            if (result.IsSuccess) TalkingTo.Animation?.Talk(4f);
+            return result;
         }
 
         public CommandResult ReturnToWorldMap()
@@ -309,6 +349,18 @@ namespace Realmkeeper.Exploration.Presentation
             var forward = CameraRig != null ? CameraRig.transform.forward : Player.transform.forward;
             CurrentTarget = _detector.FindTarget(Player.transform.position, forward);
             Hud?.SetPrompt(CurrentTarget);
+            if (TalkingTo != null && !ReferenceEquals(CurrentTarget, TalkingTo))
+            {
+                TalkingTo = null; // walked away: the conversation ends
+                Hud?.ShowTopics(null);
+            }
+
+            var keys = UnityEngine.InputSystem.Keyboard.current;
+            if (TalkingTo != null && keys != null)
+            {
+                for (var i = 0; i < Topics.Count && i < 9; i++)
+                    if (keys[UnityEngine.InputSystem.Key.Digit1 + i].wasPressedThisFrame) AskResident(Topics[i].topic);
+            }
 
             if (_input == null) return;
             if (_input.InteractPressed) Interact();

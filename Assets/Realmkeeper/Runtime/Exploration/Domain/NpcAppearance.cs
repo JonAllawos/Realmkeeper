@@ -92,14 +92,14 @@ namespace Realmkeeper.Exploration.Domain
             "Agnes", "Merry", "Ottilie", "Sabine",
         };
 
-        public static NpcAppearance Resolve(NpcId npcId, NpcRole role, string name)
+        public static NpcAppearance Resolve(NpcId npcId, NpcRole role, string name, BodyFrame? frameFromIdentity = null)
         {
             if (npcId.IsEmpty) throw new ArgumentException("A persistent NPC ID is required.", nameof(npcId));
             var seed = SeedMixer.Combine(SeedMixer.HashString("appearance"), npcId.ToString());
             ulong Pick(int stream) => SeedMixer.Combine(seed, (ulong)stream);
             int Index(int stream, int count) => (int)(Pick(stream) % (ulong)count);
 
-            var frame = FrameFor(name, seed);
+            var frame = frameFromIdentity ?? FrameFor(name, seed); // Phase 4 identity (sex) wins over the name hint
             var sex = frame == BodyFrame.Female ? "Female" : "Male";
             var (outfit, material) = OutfitFor(role, Index(1, 2));
             var appearance = new NpcAppearance

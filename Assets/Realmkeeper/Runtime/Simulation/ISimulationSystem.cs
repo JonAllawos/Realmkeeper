@@ -109,6 +109,16 @@ namespace Realmkeeper.Simulation
             return e;
         }
 
+        /// <summary>Records a structured event that involves named people (Phase 4), and optionally factions.</summary>
+        public HistoricalEvent ReportEvent(HistoricalEventType type, EventSeverity severity, EventImportance importance,
+            IReadOnlyList<SettlementId> settlementIds, EventData data, IReadOnlyList<NpcId> npcIds, IReadOnlyList<FactionId> factionIds = null)
+        {
+            var e = new HistoricalEvent(new EventId(DeterministicGuid.Next(_eventIdRandom)), Date, type, severity, importance,
+                settlementIds, data?.Values, null, factionIds, npcIds);
+            _events.Add(e);
+            return e;
+        }
+
         internal void BeginSystem(ISimulationSystem system)
         {
             CurrentSystemId = system.SystemId ?? throw new InvalidOperationException("System ID is null.");

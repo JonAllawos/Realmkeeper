@@ -8,14 +8,21 @@ namespace Realmkeeper.Exploration.Domain
     /// <summary>One named resident to place in the environment (persistent ID and role only).</summary>
     public readonly struct ResidentInput
     {
-        public ResidentInput(NpcId npcId, NpcRole role)
+        public ResidentInput(NpcId npcId, NpcRole role, string siteKey = null, LocationKind? locationKind = null)
         {
             NpcId = npcId;
             Role = role;
+            SiteKey = siteKey;
+            LocationKind = locationKind;
         }
 
         public NpcId NpcId { get; }
         public NpcRole Role { get; }
+
+        /// <summary>Phase 4: the layout site of where the world says they are today (null: place by role).</summary>
+        public string SiteKey { get; }
+
+        public LocationKind? LocationKind { get; }
     }
 
     /// <summary>
@@ -58,17 +65,17 @@ namespace Realmkeeper.Exploration.Domain
             // Landmarks around the plaza: the enterable hall (north), the granary (east), the tower (far north).
             layout.Buildings.Add(new LayoutBuilding
             {
-                Key = "hall", Kind = BuildingKind.Hall, Center = new LocalPoint(0f, plaza + 8f),
+                Key = SettlementSites.Hall, Kind = BuildingKind.Hall, Center = new LocalPoint(0f, plaza + 8f),
                 Width = 12f, Depth = 10f, Height = 6f, Yaw = 0f, Style = 0,
             });
             layout.Buildings.Add(new LayoutBuilding
             {
-                Key = "granary", Kind = BuildingKind.Granary, Center = new LocalPoint(plaza + 9f, 9f),
+                Key = SettlementSites.Granary, Kind = BuildingKind.Granary, Center = new LocalPoint(plaza + 9f, 9f),
                 Width = 9f, Depth = 7f, Height = 5f, Yaw = 270f, Style = 1,
             });
             layout.Buildings.Add(new LayoutBuilding
             {
-                Key = "landmark", Kind = BuildingKind.Landmark, Center = new LocalPoint(0f, half - 9f),
+                Key = SettlementSites.Landmark, Kind = BuildingKind.Landmark, Center = new LocalPoint(0f, half - 9f),
                 Width = 6f, Depth = 6f, Height = type == SettlementType.Hamlet ? 9f : layout.HasWalls ? 18f : 13f, Yaw = 0f, Style = 2,
             });
 
@@ -93,7 +100,7 @@ namespace Realmkeeper.Exploration.Domain
                 var lot = lots[i];
                 layout.Buildings.Add(new LayoutBuilding
                 {
-                    Key = "house-" + (layout.Buildings.Count - 3).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    Key = SettlementSites.House(layout.Buildings.Count - 3),
                     Kind = BuildingKind.House,
                     Center = lot.center,
                     Width = rng.Range(6.5f, 8.5f),
@@ -172,19 +179,7 @@ namespace Realmkeeper.Exploration.Domain
             }
         }
 
-        private static int HouseCountFor(SettlementType type)
-        {
-            switch (type)
-            {
-                case SettlementType.City:
-                case SettlementType.Town:
-                    return 14;
-                case SettlementType.Village:
-                    return 9;
-                default:
-                    return 6;
-            }
-        }
+        private static int HouseCountFor(SettlementType type) => SettlementSites.HouseCount(type);
 
         private static void PlaceResidents(LocalEnvironmentLayout layout, IReadOnlyList<ResidentInput> residents, LayoutRandom rng)
         {
@@ -192,11 +187,26 @@ namespace Realmkeeper.Exploration.Domain
             var hall = layout.Buildings[0].Center;
             var used = new HashSet<NpcId>();
             var index = 0;
+            var siteIndex = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (var r in residents)
             {
                 if (r.NpcId.IsEmpty || !used.Add(r.NpcId)) continue; // one spot per persistent identity
                 LocalPoint anchor;
                 float wander;
+                if (SiteAnchor(layout, r, siteIndex, out anchor, out wander))
+                {
+                    layout.Residents.Add(new LayoutResidentSpot
+                    {
+                        NpcId = r.NpcId,
+                        Role = r.Role,
+                        SiteKey = r.SiteKey,
+                        Position = new LocalPoint(anchor.X + rng.Range(-0.4f, 0.4f), anchor.Z + rng.Range(-0.4f, 0.4f)),
+                        WanderRadius = wander,
+                    });
+                    siteIndex[r.SiteKey + "|" + r.LocationKind] = (siteIndex.TryGetValue(r.SiteKey + "|" + r.LocationKind, out var c) ? c : 0) + 1;
+                    continue;
+                }
+
                 switch (r.Role)
                 {
                     case NpcRole.Innkeeper: anchor = new LocalPoint(hall.X + 1.5f, hall.Z + 1f); wander = 1.2f; break;
@@ -217,6 +227,55 @@ namespace Realmkeeper.Exploration.Domain
                 });
                 index++;
             }
+        }
+
+        /// <summary>
+        /// Where someone stands at a site (Phase 4): inside the tavern, among the plaza stalls, by the
+        /// gate, or in front of a building's door. Several people at one site stand side by side.
+        /// </summary>
+        private static bool SiteAnchor(LocalEnvironmentLayout layout, ResidentInput r, Dictionary<string, int> siteIndex, out LocalPoint anchor, out float wander)
+        {
+            anchor = default;
+            wander = 1.5f;
+            if (string.IsNullOrEmpty(r.SiteKey)) return false;
+            var n = siteIndex.TryGetValue(r.SiteKey + "|" + r.LocationKind, out var c) ? c : 0;
+            var side = (n % 2 == 0 ? 1f : -1f) * (0.9f + 1.3f * (n / 2));
+            var plaza = layout.PlazaRadius;
+            if (r.SiteKey == SettlementSites.Plaza)
+            {
+                var market = r.LocationKind == LocationKind.Market;
+                var angle = (market ? 0.6f : 3.6f) + n * 0.55f;
+                var radius = market ? plaza - 4.5f : plaza - 2.5f;
+                anchor = new LocalPoint((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius);
+                wander = 1.5f;
+                return true;
+            }
+
+            if (r.SiteKey == SettlementSites.Gate)
+            {
+                anchor = new LocalPoint(side * 1.4f + 2.5f, -layout.HalfExtent + 6f);
+                wander = 1.5f;
+                return true;
+            }
+
+            LayoutBuilding b = null;
+            foreach (var candidate in layout.Buildings) if (candidate.Key == r.SiteKey) b = candidate;
+            if (b == null) return false;
+            if (b.Kind == BuildingKind.Hall)
+            {
+                // Inside the tavern, between the tables and the hearth.
+                anchor = new LocalPoint(b.Center.X + 1.5f + side * 0.8f, b.Center.Z + 0.6f);
+                wander = 0.5f;
+                return true;
+            }
+
+            var rad = b.Yaw * Math.PI / 180.0;
+            var doorX = (float)Math.Sin(rad);
+            var doorZ = -(float)Math.Cos(rad);
+            var out_ = b.Depth / 2f + 1.8f;
+            anchor = new LocalPoint(b.Center.X + doorX * out_ - doorZ * side, b.Center.Z + doorZ * out_ + doorX * side);
+            wander = 1.2f;
+            return true;
         }
 
         /// <summary>Small xorshift stream seeded by world seed and settlement ID. Layout only.</summary>

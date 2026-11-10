@@ -96,6 +96,10 @@ namespace Realmkeeper.Exploration.Domain
     {
         public NpcId NpcId { get; set; }
         public NpcRole Role { get; set; }
+
+        /// <summary>Phase 4: the layout site they are at today (null when placed by role).</summary>
+        public string SiteKey { get; set; }
+
         public LocalPoint Position { get; set; }
 
         /// <summary>Radius of the resident's idle wander, in metres.</summary>

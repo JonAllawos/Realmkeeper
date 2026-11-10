@@ -45,8 +45,9 @@ namespace Realmkeeper.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator LoadScene()
         {
+            // (Ignoring is decided in the test body: Assert.Ignore inside a UnitySetUp coroutine can stall the runner.)
             _dir = Environment.GetEnvironmentVariable("RK_CAPTURE_DIR");
-            if (string.IsNullOrEmpty(_dir)) Assert.Ignore("Set RK_CAPTURE_DIR to capture screenshots.");
+            if (string.IsNullOrEmpty(_dir)) yield break;
             _tag = Environment.GetEnvironmentVariable("RK_CAPTURE_TAG") ?? "capture";
             Directory.CreateDirectory(_dir);
             _background = InputSystem.settings.backgroundBehavior;
@@ -59,6 +60,7 @@ namespace Realmkeeper.Tests.PlayMode
         [UnityTearDown]
         public IEnumerator Unload()
         {
+            if (string.IsNullOrEmpty(_dir)) yield break; // nothing was loaded: never touch the runner's scene
             InputSystem.settings.backgroundBehavior = _background;
             var runtime = Object.FindAnyObjectByType<RealmkeeperRuntime>();
             if (runtime != null) Object.Destroy(runtime.gameObject);
@@ -69,6 +71,7 @@ namespace Realmkeeper.Tests.PlayMode
         [UnityTest]
         public IEnumerator CaptureTownSet()
         {
+            if (string.IsNullOrEmpty(_dir)) Assert.Ignore("Set RK_CAPTURE_DIR to capture screenshots.");
             var bootstrap = Object.FindAnyObjectByType<RealmkeeperBootstrap>();
             var installer = Object.FindAnyObjectByType<ExplorationInstaller>();
             installer.Controller.ManageCursor = false;

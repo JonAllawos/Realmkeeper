@@ -305,3 +305,37 @@ Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8, RTX 4070 La
 1.2–1.7 ms mean frame at 1080p on the RTX 4070 Laptop GPU.
 
 **Not verified:** a GTX 1660-class GPU (estimated only); the owner's own review of the look in the editor.
+
+## Phase 4: NPC Intelligence Engine (2026-11-10)
+
+Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8.
+
+| Suite | Result |
+|---|---|
+| .NET harness | **323/323** (297 + `NpcEngineTests` 14, `NpcCommandTests` 9, `NpcPerformanceTests` 3) |
+| Unity EditMode (batch) | **323/323** |
+| Unity PlayMode (batch) | **50 passed, 0 failed**, 2 skipped (the evidence-capture fixtures, which run only with `RK_CAPTURE_DIR`) |
+
+**Mutation checks** (reverted afterwards):
+- Dialogue reading the world's truth instead of the person's knowledge: caught by
+  `Answers_ComeFromWhatThePersonKnows_NotFromTheWorld`.
+- Population reconciliation disabled: caught by
+  `Tier3_IsTheRestOfThePopulation_AndNamedPeopleDieBeforeTheyCanBeCountedTwice`.
+
+**Defects found by the new tests and fixed:**
+- Re-telling news the listener already held, so new facts never spread.
+- Needs crowded out by ambitions at the goal cap.
+- Daily "goal achieved" spam (717 events a year).
+- Execution-order clash with a test system.
+- A full PlayMode run stalled. A capture fixture skipped inside `UnitySetUp`, and its teardown
+  then destroyed the runner's scene objects.
+
+**Performance** (60 simulated days, all systems):
+
+| World | ms per day, .NET 8 | ms per day, Unity Mono |
+|---|---|---|
+| 15 people | 0.58 | 0.39 |
+| ~100 people | 0.82 | 2.48 |
+| ~300 people, 10 settlements | 10.4 | 14.6 |
+
+Load time at 300 people was 0.3–0.46 s.

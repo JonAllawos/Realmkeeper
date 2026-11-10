@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 5;
+        public const int CurrentSchemaVersion = 6;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -70,6 +70,12 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Territorial claims, open and closed (closed ones are history).</summary>
         public List<TerritorialClaimData> Claims { get; set; } = new List<TerritorialClaimData>();
+
+        /// <summary>Phase 4: persistent places in settlements (homes, workplaces, gathering places).</summary>
+        public List<LocationData> Locations { get; set; } = new List<LocationData>();
+
+        /// <summary>Phase 4: relationships between named people, one record per related pair (NpcA &lt; NpcB).</summary>
+        public List<NpcRelationData> NpcRelations { get; set; } = new List<NpcRelationData>();
 
         public static WorldData CreateNew(WorldId worldId, string worldName, long seed, int generatorVersion, WorldSettings settings)
         {
@@ -141,6 +147,8 @@ namespace Realmkeeper.Domain.World
             if (Shipments != null) foreach (var s in Shipments) copy.Shipments.Add(s?.Clone());
             if (Relations != null) foreach (var r in Relations) copy.Relations.Add(r?.Clone());
             if (Claims != null) foreach (var c in Claims) copy.Claims.Add(c?.Clone());
+            if (Locations != null) foreach (var l in Locations) copy.Locations.Add(l?.Clone());
+            if (NpcRelations != null) foreach (var r in NpcRelations) copy.NpcRelations.Add(r?.Clone());
             return copy;
         }
 
@@ -192,6 +200,28 @@ namespace Realmkeeper.Domain.World
             for (var i = 0; i < Npcs.Count; i++)
             {
                 if (Npcs[i].NpcId == id) return Npcs[i];
+            }
+
+            return null;
+        }
+
+        public LocationData FindLocation(LocationId id)
+        {
+            for (var i = 0; i < Locations.Count; i++)
+            {
+                if (Locations[i].LocationId == id) return Locations[i];
+            }
+
+            return null;
+        }
+
+        /// <summary>The relationship between two named people (order does not matter), or null.</summary>
+        public NpcRelationData FindNpcRelation(NpcId a, NpcId b)
+        {
+            for (var i = 0; i < NpcRelations.Count; i++)
+            {
+                var r = NpcRelations[i];
+                if (r.NpcA == a && r.NpcB == b || r.NpcA == b && r.NpcB == a) return r;
             }
 
             return null;

@@ -720,3 +720,142 @@
 .rk-absent-row > .rk-route-toggle {
     margin: 1px 4px 1px 0;
 }
+
+/* ----- Phase 4: people --------------------------------------------------------------------------- */
+
+.rk-people-panel {
+    margin: 2px 0 2px 10px;
+}
+
+.rk-people-filters {
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.rk-people-filters > DropdownField,
+.rk-people-filters > TextField {
+    margin: 1px 0;
+    font-size: 11px;
+}
+
+.rk-people-filters .unity-base-field__label {
+    min-width: 54px;
+    font-size: 11px;
+    color: rgb(170, 160, 140);
+}
+
+.rk-people-list {
+    max-height: 300px;
+}
+
+.rk-person-item {
+    height: 34px;
+    align-items: center;
+}
+
+.rk-person-sub {
+    font-size: 10px;
+    color: rgb(160, 150, 130);
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.rk-npc-explain {
+    font-size: 10px;
+    color: rgb(165, 155, 135);
+    -unity-font-style: italic;
+    white-space: normal;
+    margin: 0 4px 4px 4px;
+}
+
+.rk-npc-line {
+    flex-direction: column;
+    margin: 1px 4px 3px 4px;
+}
+
+.rk-npc-line-main {
+    flex-direction: row;
+}
+
+.rk-npc-line-key {
+    min-width: 96px;
+    max-width: 150px;
+    color: rgb(190, 180, 160);
+    font-size: 11px;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+
+.rk-npc-line-value {
+    flex-grow: 1;
+    flex-shrink: 1;
+    color: rgb(232, 224, 206);
+    font-size: 11px;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+}
+
+.rk-npc-line-why {
+    font-size: 10px;
+    color: rgb(150, 142, 126);
+    white-space: normal;
+    margin: 0 0 0 96px;
+    padding: 0;
+}
+
+.rk-npc-tools {
+    border-top-width: 1px;
+    border-color: rgba(201, 164, 101, 0.3);
+    margin-top: 6px;
+    padding-top: 4px;
+}
+
+.rk-npc-tool-row {
+    flex-direction: row;
+    align-items: center;
+    margin: 2px 0;
+}
+
+.rk-npc-tool-row > DropdownField,
+.rk-npc-tool-row > TextField,
+.rk-npc-tool-row > SliderInt {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0 2px;
+    font-size: 11px;
+}
+
+.rk-resident-link {
+    height: 22px;
+    margin: 1px 0;
+    font-size: 11px;
+    -unity-text-align: middle-left;
+}
+
+/* Dark inputs in the people filters and the DM tools */
+.rk-people-filters .unity-base-field__input,
+.rk-npc-tools .unity-base-field__input,
+.rk-npc-tools .unity-base-text-field__input,
+.rk-people-filters .unity-base-text-field__input {
+    background-color: rgb(38, 34, 29);
+    border-color: rgba(201, 164, 101, 0.45);
+    color: rgb(232, 224, 206);
+}
+
+.rk-people-filters .unity-base-popup-field__text,
+.rk-npc-tools .unity-base-popup-field__text,
+.rk-npc-tools .unity-text-element,
+.rk-people-filters .unity-text-element {
+    color: rgb(232, 224, 206);
+}
+
+.rk-npc-tools .unity-base-slider__dragger {
+    background-color: rgb(201, 164, 101);
+}
+
+.rk-npc-tools .unity-base-slider__tracker {
+    background-color: rgb(70, 62, 52);
+}

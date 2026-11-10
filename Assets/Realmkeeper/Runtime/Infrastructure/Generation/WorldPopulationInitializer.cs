@@ -27,6 +27,7 @@ namespace Realmkeeper.Infrastructure.Generation
             EnsurePlayer(world, random);
             EnsureNpcs(world, random);
             PoliticalInitializer.Ensure(world, random); // needs the residents (leaders) to exist
+            Simulation.Npcs.NpcGenesis.EnsurePeople(world); // needs residents and leaders: locations, identity, inner life
         }
 
         /// <summary>

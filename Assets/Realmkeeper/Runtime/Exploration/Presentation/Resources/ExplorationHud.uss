@@ -190,3 +190,16 @@
     padding: 2px 8px;
     border-radius: 3px;
 }
+
+/* Phase 4: conversation topics */
+.xk-topics {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.xk-topic {
+    margin: 2px 4px 2px 0;
+    padding: 2px 8px;
+    font-size: 12px;
+}

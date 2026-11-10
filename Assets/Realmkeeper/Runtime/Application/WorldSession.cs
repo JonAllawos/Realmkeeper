@@ -49,7 +49,7 @@ namespace Realmkeeper.Application
     /// Execute(command); presentation reads through queries and listens to WorldChanged.
     /// Single-threaded by design: call from one thread (Unity's main thread).
     /// </summary>
-    public sealed class WorldSession
+    public sealed partial class WorldSession
     {
         private readonly SimulationScheduler _scheduler;
         private readonly IWorldGenerator _generator;
@@ -74,12 +74,16 @@ namespace Realmkeeper.Application
             _commands.Register<SetSimulationSpeedCommand>(new SetSpeedHandler());
             _commands.Register<SetTradeRouteSuspendedCommand>(new SetTradeRouteSuspendedHandler());
             PoliticalCommandHandlers.Register(_commands);
+            NpcCommandHandlers.Register(_commands);
         }
 
         public EconomyRules Rules => _rules;
 
         /// <summary>Political constants used by queries and commands (the scheduler holds its own copy for the simulation).</summary>
         public PoliticalRules PoliticalRules { get; set; } = new PoliticalRules();
+
+        /// <summary>Phase 4: the NPC engine's tunables, as commands see them.</summary>
+        public Simulation.Npcs.NpcRules NpcRules { get; set; } = new Simulation.Npcs.NpcRules();
 
         /// <summary>Command handlers for this session. Modules register theirs at composition time.</summary>
         public CommandRegistry Commands => _commands;

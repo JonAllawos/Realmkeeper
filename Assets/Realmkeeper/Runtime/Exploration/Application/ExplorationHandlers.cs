@@ -29,10 +29,14 @@ namespace Realmkeeper.Exploration.Application
         /// <summary>The local environment of a settlement, derived from authoritative world data (never saved).</summary>
         public static LocalEnvironmentLayout LayoutFor(WorldData world, SettlementData settlement)
         {
+            // The people who are here today, each at the site of their authoritative location (Phase 4).
             var residents = new List<ResidentInput>();
             foreach (var n in world.Npcs)
             {
-                if (n.HomeSettlementId == settlement.SettlementId) residents.Add(new ResidentInput(n.NpcId, n.Role));
+                if (n.IsDeceased) continue;
+                var place = n.CurrentLocationId.IsEmpty ? null : world.FindLocation(n.CurrentLocationId);
+                var here = place?.SettlementId ?? n.HomeSettlementId;
+                if (here == settlement.SettlementId) residents.Add(new ResidentInput(n.NpcId, n.Role, place?.LayoutKey, place?.Kind));
             }
 
             return LocalEnvironmentGenerator.Generate(world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents);
@@ -42,7 +46,7 @@ namespace Realmkeeper.Exploration.Application
         public static LocalEnvironmentLayout LayoutFor(WorldSession session, SettlementSummary settlement)
         {
             var residents = new List<ResidentInput>();
-            foreach (var n in session.GetResidents(settlement.SettlementId)) residents.Add(new ResidentInput(n.NpcId, n.Role));
+            foreach (var n in session.GetPeoplePresent(settlement.SettlementId)) residents.Add(new ResidentInput(n.NpcId, n.Role, n.LocationKey, n.LocationKind));
             return LocalEnvironmentGenerator.Generate(session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents);
         }
 
@@ -151,7 +155,9 @@ namespace Realmkeeper.Exploration.Application
             var world = context.Committed;
             var npc = world.FindNpc(command.NpcId);
             if (npc == null) return CommandResult.NotFound($"No resident has ID {command.NpcId}.");
-            if (npc.HomeSettlementId != player.SettlementId) return CommandResult.Invalid($"{npc.Name} does not live in this settlement.");
+            if (npc.IsDeceased) return CommandResult.InvalidState($"{npc.Name} is dead.");
+            var at = npc.CurrentLocationId.IsEmpty ? null : world.FindLocation(npc.CurrentLocationId);
+            if ((at?.SettlementId ?? npc.HomeSettlementId) != player.SettlementId) return CommandResult.Invalid($"{npc.Name} is not in this settlement today.");
             var settlement = world.FindSettlement(player.SettlementId);
 
             var edit = context.Edit().FindNpc(npc.NpcId);

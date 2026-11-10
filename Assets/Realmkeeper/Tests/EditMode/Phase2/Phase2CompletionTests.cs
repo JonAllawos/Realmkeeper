@@ -44,7 +44,7 @@ namespace Realmkeeper.Tests.EditMode.Phase2
             Assert.That(ids, Is.EqualTo(new[]
             {
                 LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, ConsumptionSystem.Id,
-                SettlementWellbeingSystem.Id, PopulationSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id,
+                SettlementWellbeingSystem.Id, PopulationSystem.Id, Realmkeeper.Simulation.Npcs.NpcSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id,
             }), "The order documented in Documentation/Systems/Economy.md (politics added in Phase 3).");
             var orders = TestWorlds.Scheduler().Systems.Select(s => s.ExecutionOrder).ToArray();
             Assert.That(orders, Is.Ordered.Ascending);

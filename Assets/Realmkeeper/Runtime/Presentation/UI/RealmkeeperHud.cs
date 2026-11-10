@@ -222,6 +222,7 @@ namespace Realmkeeper.Presentation
             EnterSettlementButton = Root.Q<Button>("insp-enter");
             EnterSettlementButton.clicked += () => EnterSelectedSettlement();
             BindPolitics();
+            BindPeople();
 
             PlayPauseButton.clicked += () => { if (_playback != null) _playback.Toggle(); else ShowMessage(NoSession()); };
             AdvanceDayButton.clicked += () => Advance(1);
@@ -339,6 +340,7 @@ namespace Realmkeeper.Presentation
             RefreshInspector();
             RefreshActivity();
             RefreshPolitics();
+            RefreshPeople();
         }
 
         private void OnPlayStateChanged(bool playing)
@@ -351,6 +353,7 @@ namespace Realmkeeper.Presentation
         {
             foreach (var pair in _settlementButtons) pair.Value.EnableInClassList("rk-settlement-item--selected", pair.Key == id);
             OnSettlementSelectedForPolitics(id);
+            if (!id.IsEmpty) CloseNpcInspectorForOtherSelection();
             RefreshInspector();
         }
 
@@ -364,6 +367,7 @@ namespace Realmkeeper.Presentation
             RefreshInspector();
             RefreshActivity();
             RefreshPolitics();
+            RefreshPeople();
         }
 
         private void RefreshTopBar()
@@ -456,6 +460,7 @@ namespace Realmkeeper.Presentation
             RefreshProduction(s);
             RefreshTrade(s);
             RefreshSettlementPolitics(s);
+            RefreshSettlementResidents(s);
         }
 
         /// <summary>Shortage warnings, one line each, most urgent first.</summary>

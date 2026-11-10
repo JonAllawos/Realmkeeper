@@ -29,6 +29,8 @@ namespace Realmkeeper.Application
                 return factionNameOf?.Invoke(e.FactionIds[index]) ?? "a faction";
             }
 
+            string F2(FactionId id) => factionNameOf?.Invoke(id) ?? "a faction";
+
             var s = Name(0);
             switch (e.EventType)
             {
@@ -113,6 +115,33 @@ namespace Realmkeeper.Application
                     return $"{By(e)}{F(0)} established itself in {s}.";
                 case HistoricalEventType.FactionPresenceWithdrawn:
                     return $"{By(e)}{F(0)} withdrew from {s}.";
+                case HistoricalEventType.NpcDied:
+                    return $"{e.Get("name") ?? "A resident"}, {(e.Get("role") ?? "resident").ToLowerInvariant()} of {s}, died.";
+                case HistoricalEventType.NpcGoalSet:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} set out to {NpcText.Goal(e.Get("goal"))}.";
+                case HistoricalEventType.NpcGoalAchieved:
+                    return $"{e.Get("name") ?? "A resident"} achieved their goal: {NpcText.Goal(e.Get("goal"))}.";
+                case HistoricalEventType.NpcGoalAbandoned:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} gave up trying to {NpcText.Goal(e.Get("goal"))}.";
+                case HistoricalEventType.NpcRelationshipFormed:
+                case HistoricalEventType.NpcRelationshipChanged:
+                    return $"{By(e)}{e.Get("nameA") ?? "Two residents"} and {e.Get("nameB") ?? "another"} are now {NpcText.Relation(e.Get("to"))}{NpcText.Cause(e.Get("cause"))}.";
+                case HistoricalEventType.NpcMoved:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} moved to {e.Get("place") ?? s}.";
+                case HistoricalEventType.NpcIdentityChanged:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"}'s identity was changed ({e.Get("fields") ?? "details"}).";
+                case HistoricalEventType.NpcOccupationChanged:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} is now a {(e.Get("role") ?? "resident").ToLowerInvariant()}.";
+                case HistoricalEventType.NpcScheduleChanged:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"}'s weekly routine changed.";
+                case HistoricalEventType.NpcMemoryAdded:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} now remembers {e.Get("subject") ?? "something"}.";
+                case HistoricalEventType.NpcKnowledgeAdded:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} was told something ({NpcText.Topic(e.Get("topic"))}).";
+                case HistoricalEventType.NpcAffiliationChanged:
+                    return $"{By(e)}{e.Get("name") ?? "A resident"} now belongs to {(e.Get("faction") is string fid && Guid.TryParse(fid, out var g) ? F2(new FactionId(g)) : "no faction")}.";
+                case HistoricalEventType.NpcConversation:
+                    return $"{e.Get("player") ?? "A traveller"} spoke with {e.Get("name") ?? "a resident"} about {NpcText.Topic(e.Get("topic"))}.";
                 default:
                     return string.IsNullOrEmpty(e.Description) ? e.EventType.ToString() : e.Description;
             }
@@ -126,10 +155,10 @@ namespace Realmkeeper.Application
         }
 
         /// <summary>"By your hand, " for events a player command caused; empty for the simulation's.</summary>
-        private static string By(HistoricalEvent e) => IsManual(e) ? "By your hand: " : string.Empty;
+        private static string By(HistoricalEvent e) => e.Get("source") == "dm" ? "By the DM: " : IsManual(e) ? "By your hand: " : string.Empty;
 
         /// <summary>True when a player command caused the event (its "source" fact is "player").</summary>
-        public static bool IsManual(HistoricalEvent e) => e.Get("source") == "player";
+        public static bool IsManual(HistoricalEvent e) => e.Get("source") == "player" || e.Get("source") == "dm";
 
         private static string Because(HistoricalEvent e)
         {

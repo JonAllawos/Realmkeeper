@@ -22,6 +22,7 @@ that does not fit is recorded as **wasted**; unmet demand is recorded as **short
 | 200 | `realmkeeper.consumption` | Demand: food ⌈pop/10⌉, timber ⌈pop/80⌉, stone ⌊pop/500⌋, iron ⌊workers/300⌋, coin ⌊pop/100⌋. Consumes what is available and records the shortfall. Shortages: see below. |
 | 300 | `realmkeeper.wellbeing` | Prosperity and stability move toward explainable targets, at most 1 point a day. |
 | 400 | `realmkeeper.population` | Slow growth or emigration, carried in thousandths of a person. |
+| 425 | `realmkeeper.npcs` | Phase 4. Reconciles named people with the population (tier 3 is the rest); updates tier-1 people daily and tier-2 weekly; moves people, runs conversations and rumours, and records reactions to the day's events; weekly forgetting and staleness (see [NPCs](NPCs.md)). |
 | 450 | `realmkeeper.politics` | Phase 3. Every day keeps faction membership within the population; on weekly ticks it runs the political evaluation (see [Politics](Politics.md)). Faction dues move coin out of settlements above a 30-day reserve. |
 | 500 | `realmkeeper.chronicle` | Milestone events (ratings, population, treasury, production). |
 
