@@ -22,7 +22,7 @@ namespace Realmkeeper.Domain.World
     /// day, after loading a save, and after generation. Collects all errors instead of
     /// stopping at the first one.
     /// </summary>
-    public static class WorldValidator
+    public static partial class WorldValidator
     {
         public static ValidationResult Validate(WorldData world)
         {
@@ -148,6 +148,7 @@ namespace Realmkeeper.Domain.World
             ValidateTrade(world, settlementIds, result);
             ValidatePolitics(world, settlementIds, npcIds, result);
             ValidateNpcs(world, settlementIds, npcIds, result);
+            ValidateCommerce(world, settlementIds, npcIds, result);
             return result;
         }
 

@@ -62,6 +62,7 @@ namespace Realmkeeper.Infrastructure.Generation
             if (world == null) throw new ArgumentNullException(nameof(world));
             WorldPopulationInitializer.EnsureAll(world, map.Width, map.Depth, _randomFactory);
             _economy.Initialize(world, map, _randomFactory.Create(SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "trade-routes")));
+            WorldPopulationInitializer.EnsureCommerce(world);
         }
 
         public int GeneratorVersion => Version;
@@ -73,7 +74,7 @@ namespace Realmkeeper.Infrastructure.Generation
             if (world == null) throw new ArgumentNullException(nameof(world));
             if (!SupportsVersion(world.GeneratorVersion))
                 throw new NotSupportedException($"Generator version {world.GeneratorVersion} is not supported (this build: {Version}).");
-            return Generate(new WorldGenerationRequest(world.WorldName, world.Seed, world.WorldSettings, world.WorldId)).Map;
+            return Generate(new WorldGenerationRequest(world.WorldName, world.Seed, world.WorldSettings, world.WorldId) { IncludeCommerce = false }).Map;
         }
 
         public GeneratedWorld Generate(WorldGenerationRequest request)
@@ -104,6 +105,7 @@ namespace Realmkeeper.Infrastructure.Generation
             BuildRoads(map, world.Settlements);
             WorldPopulationInitializer.EnsureAll(world, map.Width, map.Depth, _randomFactory);
             _economy.Initialize(world, map, Stream("trade-routes"));
+            if (request.IncludeCommerce) WorldPopulationInitializer.EnsureCommerce(world);
 
             var worldValidation = WorldValidator.Validate(world);
             var mapValidation = RegionMapValidator.Validate(map, world.Settlements);

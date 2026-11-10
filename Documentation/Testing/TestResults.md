@@ -339,3 +339,82 @@ Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8.
 | ~300 people, 10 settlements | 10.4 | 14.6 |
 
 Load time at 300 people was 0.3–0.46 s.
+
+## Phase 5: Living World, Player Hub & Commerce (2026-11-10)
+
+Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8.0.427. All results are at the
+final Phase 5 code.
+
+| Suite | Result |
+|---|---|
+| .NET harness (Release, 0 warnings) | **346/346** (323 + `CommerceTests` 20, `CommercePerformanceTests` 3) |
+| Unity EditMode (batch) | **346/346** |
+| Unity PlayMode (batch) | **57/57**, 0 failed, 0 skipped |
+
+The Phase 5 capture fixture ran with `RK_CAPTURE_DIR` set, together with the Phase 4 and
+graphics-pass captures.
+
+**New PlayMode tests in the shipped scene** (`Phase5PlayModeTests`):
+- Purchase at a shop counter: shelves equal stock; the keeper behind the counter; the trade window;
+  coin, goods, stock and shelf; the chronicle; save and load.
+- Player Hub: eight sections; equipping shows on the body and in the preview; underclothes when
+  unequipped; the female frame rebuilds.
+- Light and residents follow the clock: morning sun, night with lamps and moon, residents indoors
+  asleep, a keeper walking from home to the counter.
+- A shut shop: the keeper asleep, nobody standing in, and the window says why.
+
+**Earlier tests updated to intended Phase 5 behaviour** (none weakened):
+- Schema 7; the shop system in the daily order; old-save helpers that strip v7 fields and build
+  sources pre-commerce.
+- Hourly presence instead of daily; the hall plus house shops as enterable buildings.
+- Three PlayMode tests now choose a resident who is outdoors, because residents indoors this hour
+  cannot be approached.
+
+**Mutation checks** (introduced, run, reverted):
+
+| Mutant | Result |
+|---|---|
+| Currency duplication | Caught |
+| Item duplication | Caught (the validator rejects the shared stack) |
+| Invalid equipment (command check only) | Survived, because the validator independently rejects the world; caught when both layers were removed |
+| Stock not decreasing | Caught |
+| Partial transaction | Caught |
+| Detached shopkeeper | Caught |
+| Light not following the clock | Caught in PlayMode |
+| Inventory not saved | Caught (the purchase test now checks the pack after reload) |
+
+**Defects found and fixed during Phase 5:**
+- Shop restocking took materials without booking them in the economy, caught by the 200-day
+  conservation test.
+- Generation stocked shops before the economy set the starting stores.
+- The hourly plan could put a DM-moved keeper back at their counter.
+
+**Performance, .NET** (`CommercePerformanceTests`; 30 simulated days, all systems including shops):
+
+| World | Day | One hour of all whereabouts + shop availability | All prices |
+|---|---|---|---|
+| Default (15 people, 7 shops) | 0.44 ms | 0.021 ms | 0.04 ms |
+| ~100 people, 7 shops | 2.54 ms | 0.138 ms | 0.68 ms |
+| ~300 people, 10 settlements, 25 shops | 8.24 ms | 0.508 ms | 0.43 ms |
+
+**Performance, development build** (Windows, RTX 4070 Laptop GPU, i9-14900HX, 1920×1080, kit art,
+probe `-rkPerfProbe`):
+
+| Pose | Mean frame | p95 | Draw calls |
+|---|---|---|---|
+| Map | 2.13 ms | 4.35 ms | 153 |
+| Gate | 2.82 ms | 4.46 ms | 874 |
+| Street | 2.77 ms | 4.78 ms | 693 |
+| Building | 2.70 ms | 4.63 ms | 821 |
+| Plaza | 2.65 ms | 4.90 ms | 477 |
+| Tavern interior | 2.57 ms | 4.87 ms | 236 |
+| Overview | 2.77 ms | 4.26 ms | 1150 |
+| **Shop interior** | 2.77 ms | 4.87 ms | 871 |
+| **Street, clock ×30** (08:11 → 09:23, residents re-planning and walking) | 3.90 ms | 7.46 ms | 703 |
+| **Street, night** (16 lamps) | 2.74 ms | 4.78 ms | 649 |
+| **Plaza, night** | 2.45 ms | 4.71 ms | 443 |
+
+Memory: 545 MB system, 253 MB graphics.
+
+**Not verified:** hardware other than this machine; rendered scenes with 100 or 300 residents
+(only one settlement is rendered at a time; their simulation cost is above).

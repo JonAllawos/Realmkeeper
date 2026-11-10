@@ -118,7 +118,7 @@ namespace Realmkeeper.Tests.PlayMode
                 Assert.That(view.Appearance.Signature, Is.EqualTo(NpcAppearanceResolver.Resolve(npc.NpcId, npc.Role, npc.Name,
                     npc.Sex == NpcSex.Female ? BodyFrame.Female : npc.Sex == NpcSex.Male ? BodyFrame.Male : (BodyFrame?)null).Signature),
                     "The body shows the appearance resolved from the resident's identity.");
-                Assert.That(view.GetComponentsInChildren<SkinnedMeshRenderer>().Length, Is.GreaterThanOrEqualTo(4), "Body, head and hair parts.");
+                Assert.That(view.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, Is.GreaterThanOrEqualTo(4), "Body, head and hair parts (Phase 5: also for those indoors this hour).");
             }
 
             Assert.That(controller.Player.Animation, Is.Not.Null, "The player has a humanoid body too.");
@@ -193,7 +193,7 @@ namespace Realmkeeper.Tests.PlayMode
 
             Assert.That(driver.Speed, Is.LessThan(0.1f), "Stopping returns to idle.");
 
-            var resident = controller.Residents.Values.First();
+            var resident = controller.Residents.Values.First(v => !v.IsHidden); // Phase 5: someone out in the street
             controller.Player.Teleport(new LocalPose(resident.transform.position.x + 1.2f, 0.1f, resident.transform.position.z, 270f));
             var response = resident.Interact(bootstrap.Session, controller.Player.transform);
             Assert.That(response.Succeeded, Is.True, response.Text);

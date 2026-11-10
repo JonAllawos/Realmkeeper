@@ -128,3 +128,44 @@ Performance in a player: build with `-executeMethod Realmkeeper.Editor.PerfBuild
 - **Ground:** the town ground is flat. The kit has no plank or thatch walls, so hamlets use plaster.
 - **Female_Peasant:** Unity's auto-mapping rejects its rig, so it uses the Female_Ranger avatar
   (same skeleton).
+
+## The living settlement (Phase 5)
+
+- **Time runs while the player walks.**
+  - Minutes advance at Normal (2 game minutes a second); the HUD shows the clock with pause (P),
+    speed, wait an hour (T) and the Hub (H).
+  - On leaving, the realm map's whole-day pacing returns, and its play state is restored.
+- **Light follows the clock** (`ExplorationAtmosphere.SetTime`).
+  - The sun climbs from 06:15 to 19:30 on an east–west arc, warm and low at golden hour.
+  - After sunset the sun sinks below the horizon and the procedural sky darkens with it; a faint
+    cool moon takes over.
+  - Ambient light, haze and exposure follow.
+  - From dusk, real point lights come on at every street lamp and door lantern, and windows glow.
+  - Window, lantern and sky materials are copied per visit, so the art assets are never edited.
+- **People move.**
+  - Each resident's place and activity come from `GetPresenceIn` this hour.
+  - When their place changes, they walk a street route (`LocalPaths.Route`): out of the door, along
+    the nearest street, round the crossing (never through the well), in at the destination.
+  - At home or asleep, they go indoors: not drawn and not approachable.
+  - After a jump in time (waiting, a fast clock) they are placed directly.
+  - Poses come from the activity: kneeling at work, kneeling at the shrine, chatting at the tavern,
+    standing at a counter, walking. The prompt names the activity.
+- **Shops are entered.**
+  - The town's Outfitters and Smithy (house-0 and house-1) are built with an open archway, a plank
+    floor, a ceiling and doorway-aware collision.
+  - Inside are a counter, shelves, a rack and, in the smithy, a forge and an anvil.
+  - Every unit of stock stands on the shelves as its own model, rebuilt when stock changes.
+  - The keeper stands behind the counter when the world says they are working there.
+  - Trade at the counter (E), or with "Trade" in conversation (`Commerce.md`).
+- **The player's body is built from what they wear** (`Equipment.md`). Speed follows encumbrance and
+  hunger.
+- **The Player Hub** (H) has eight sections and a live preview (`Player.md`). While it or the trade
+  window is open, the character does not move and the cursor is free.
+
+Tested in PlayMode:
+- the full purchase flow, including save and load;
+- the hub and equipment on the body;
+- day and night lighting with lamps;
+- residents hidden indoors at night;
+- a keeper walking from home to the counter;
+- a shut shop whose keeper is asleep, with nobody in their place.

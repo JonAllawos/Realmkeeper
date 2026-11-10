@@ -133,6 +133,12 @@ namespace Realmkeeper.Exploration.Domain
         /// <summary>The walkable opening in the front wall, if the building is entered (the tavern); else 0.</summary>
         public float DoorwayWidth { get; set; }
 
+        /// <summary>Centre of that opening along the front (local X; the tavern's is 0).</summary>
+        public float DoorwayX { get; set; }
+
+        /// <summary>Height of the interior ceiling (a shop has one storey under its roof).</summary>
+        public float InteriorHeight { get; set; }
+
         public List<ModulePlacement> Pieces { get; } = new List<ModulePlacement>();
     }
 
@@ -167,7 +173,7 @@ namespace Realmkeeper.Exploration.Domain
         };
 
         /// <summary>Procedural pieces the presentation builds itself (no kit model).</summary>
-        public static readonly IReadOnlyList<string> ProceduralIds = new[] { "@Awning", "@FlowerBox", "@Barrel", "@Sign", "@Lantern", "@Counter", "@Gallery" };
+        public static readonly IReadOnlyList<string> ProceduralIds = new[] { "@Awning", "@FlowerBox", "@Barrel", "@Sign", "@Lantern", "@Counter", "@Gallery", "@Ceiling" };
 
         private static readonly int[] RoofWidths = { 4, 6, 8 };
 
@@ -191,6 +197,7 @@ namespace Realmkeeper.Exploration.Domain
             switch (building.Kind)
             {
                 case BuildingKind.Hall: return Tavern(building, profile);
+                case BuildingKind.House when building.Fit != ShopFit.None: return Shop(building, profile, rng);
                 case BuildingKind.Granary: return Granary(building, profile, rng);
                 case BuildingKind.Landmark: return Tower(building, rng);
                 default: return House(building, profile, rng);
@@ -280,6 +287,7 @@ namespace Realmkeeper.Exploration.Domain
             var plan = Footprint(b, BuildingArchetype.Tavern);
             plan.Storeys = 2;
             plan.DoorwayWidth = 1.6f;
+            plan.InteriorHeight = 2 * StoreyHeight;
             var family = profile.GroundFloor;
             for (var s = 0; s < plan.Storeys; s++)
             {
@@ -324,6 +332,60 @@ namespace Realmkeeper.Exploration.Domain
             plan.Pieces.Add(new ModulePlacement("@Sign", 1.7f, 3.4f, -plan.Depth / 2f - 0.3f, 0f));
             plan.Pieces.Add(new ModulePlacement("@Lantern", -1.25f, 2.6f, -plan.Depth / 2f - 0.25f, 0f));
             plan.Pieces.Add(new ModulePlacement("@Lantern", 1.25f, 2.6f, -plan.Depth / 2f - 0.25f, 0f));
+            return plan;
+        }
+
+        /// <summary>Where a shop's open doorway sits along its front (its door slot, chosen without randomness).</summary>
+        public static float ShopDoorX(LayoutBuilding b)
+        {
+            var modulesX = Snap(b.Width);
+            return SlotX(modulesX, (modulesX - 1) / 2);
+        }
+
+        /// <summary>
+        /// An enterable shop (Phase 5): one storey with an open archway at the door slot, windows on the
+        /// front, a plank floor, a ceiling under the roof, a sign and lanterns. A smithy is brick with a
+        /// workshop chimney; a merchant's has an awning. The counter, shelves and wares are not part of
+        /// the plan: they show the shop's live stock and are built by the presentation.
+        /// </summary>
+        private static BuildingPlan Shop(LayoutBuilding b, SettlementVisualProfile profile, PlanRandom rng)
+        {
+            var smithy = b.Fit == ShopFit.Smithy;
+            var plan = Footprint(b, smithy ? BuildingArchetype.Workshop : BuildingArchetype.MerchantHouse);
+            plan.Storeys = 1;
+            plan.DoorwayWidth = 1.6f;
+            plan.InteriorHeight = StoreyHeight;
+            var doorSlot = (plan.ModulesX - 1) / 2;
+            plan.DoorwayX = SlotX(plan.ModulesX, doorSlot);
+            var family = smithy ? WallFamily.UnevenBrick : profile.GroundFloor;
+            var mid = (plan.ModulesZ - 1) / 2;
+            Ring(plan, 0, family, (side, slot) =>
+            {
+                if (side == Side.Front) return slot == doorSlot ? Opening.Archway : Opening.Window;
+                if (side == Side.Back) return Opening.Plain;
+                return slot == mid ? Opening.Window : Opening.Plain;
+            }, profile.RoundOpenings, null, 0);
+
+            for (var ix = 0; ix < plan.ModulesX; ix++)
+            for (var iz = 0; iz < plan.ModulesZ; iz++)
+                plan.Pieces.Add(new ModulePlacement(smithy ? "Floor_WoodDark" : "Floor_WoodLight", SlotX(plan.ModulesX, ix), 0.02f, SlotX(plan.ModulesZ, iz), 0f));
+            plan.Pieces.Add(new ModulePlacement("@Ceiling", 0f, plan.InteriorHeight - 0.06f, 0f, 0f, plan.Width - 0.3f, 0.12f, plan.Depth - 0.3f));
+
+            Roof(plan, rng);
+            Chimney(plan, smithy ? "Prop_Chimney2" : "Prop_Chimney", rng);
+            var front = -plan.Depth / 2f;
+            plan.Pieces.Add(new ModulePlacement("@Sign", plan.DoorwayX - 1.15f, 2.55f, front - 0.3f, 0f));
+            plan.Pieces.Add(new ModulePlacement("@Lantern", plan.DoorwayX + 1.0f, 2.45f, front - 0.25f, 0f));
+            if (!smithy && plan.ModulesX > 2)
+            {
+                var awningSlot = doorSlot == 0 ? 1 : doorSlot - 1;
+                plan.Pieces.Add(new ModulePlacement("@Awning", SlotX(plan.ModulesX, awningSlot), 2.5f, front, 0f));
+            }
+            else
+            {
+                plan.Pieces.Add(new ModulePlacement("@Barrel", plan.Width / 2f - 0.5f, 0f, front - 0.6f, 0f));
+            }
+
             return plan;
         }
 
@@ -411,6 +473,7 @@ namespace Realmkeeper.Exploration.Domain
             BalconyDoor,
             ShopFront,
             Skip,
+            Archway,
         }
 
         private static BuildingPlan Footprint(LayoutBuilding b, BuildingArchetype archetype) => new BuildingPlan
@@ -491,6 +554,9 @@ namespace Realmkeeper.Exploration.Domain
                 case Opening.BarnDoor:
                     plan.Pieces.Add(new ModulePlacement(WallId(family, "Door_Round"), x, y, z, yaw));
                     plan.Pieces.Add(Offset("Door_2_Round", x, y, z, yaw, -0.53f, 0f));
+                    break;
+                case Opening.Archway:
+                    plan.Pieces.Add(new ModulePlacement("Wall_Arch", x, y, z, yaw));
                     break;
                 case Opening.ShopFront:
                     plan.Pieces.Add(new ModulePlacement("Wall_Arch", x, y, z, yaw));

@@ -10,7 +10,8 @@
 | Phase 3: factions and political engine | Done (`5c89f8a`, playtest fixes `d82a01b`) | `Documentation/Systems/Politics.md` |
 | Graphics pass | Done (`b0545b5`): CC0 modular kit, humanoid residents, street-level lighting | `Reports/GraphicsPass-Report.md` |
 | Phase 4: NPC Intelligence Engine | Done (this milestone); see the test results for what was run | `Systems/NPCs.md`, `Systems/Relationships.md`, `Reports/Phase4-NPC-Intelligence.md` |
-| Phase 5 | **Not started.** It needs its own brief. | — |
+| Phase 5: Living World, Player Hub & Commerce | Done (this milestone); see the test results for what was run | `Systems/WorldTime.md`, `Systems/Player.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Systems/Commerce.md`, `Reports/Phase5-Living-World.md` |
+| Phase 6 | **Not started.** It needs its own brief. | — |
 
 ## Phase 2 completion: what it added
 
@@ -51,3 +52,36 @@
 
 Still out of scope: warfare, rebellion, diplomacy trees, NPC political AI, religion or crime
 detail, multiple regions.
+
+## Phase 5: what it added
+
+- **A clock:** a minute of the day on top of the date. Each midnight crossed runs one simulated day.
+  - The realm map keeps whole-day pacing.
+  - Settlements run in minutes, with pause, speed and wait.
+- **Light that follows the clock:** sun, golden hour, moon, sky, haze, lit lamps and windows.
+- **Residents who walk** to where the world says they are each hour. Their poses match what they
+  are doing, and they go indoors at home or asleep.
+- **A full player character:** identity, renderable appearance, purse, hunger, an inventory of
+  stacks with one owner each, and eight equipment slots shown on the body.
+- **The Player Hub:** eight sections and a live 3D preview.
+- **Shops kept by existing residents:**
+  - stocked from the settlement's stores through the existing ledger, paid for by the keeper;
+  - atomic buying and selling, with explained prices and no arbitrage;
+  - reputation that grows once a day;
+  - trades in the ledger and the chronicle;
+  - keepers remember notable trades.
+- **Walk-in Outfitters and Smithy** whose shelves show every unit of stock.
+- **Knowledge-bound talk** about work, shops, goods, prices and factions.
+- **Save schema v7**, with a once-only migration that matches a fresh world.
+
+Known limitations are listed in `Reports/Phase5-Living-World.md` §15. The main ones:
+
+| Area | Limitation |
+|---|---|
+| Combat | None |
+| Props | Procedural |
+| Clothing | Two outfit families |
+| Walking | Street routes rather than a navmesh |
+| Shop stock | Counts, not item instances |
+| Loose items | None in the world |
+| Map advances | Leave the time of day and hunger unchanged |

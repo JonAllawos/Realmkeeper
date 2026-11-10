@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 6;
+        public const int CurrentSchemaVersion = 7;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -76,6 +76,17 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 4: relationships between named people, one record per related pair (NpcA &lt; NpcB).</summary>
         public List<NpcRelationData> NpcRelations { get; set; } = new List<NpcRelationData>();
+
+        /// <summary>Phase 5: the minute of the current day (0–1439). The daily simulation runs once per midnight.</summary>
+        public int MinuteOfDay { get; set; } = Calendar.WorldTime.DefaultStartMinute;
+
+        /// <summary>Phase 5: shops, each kept by a named person and owning its stock.</summary>
+        public List<ShopData> Shops { get; set; } = new List<ShopData>();
+
+        /// <summary>Phase 5: trades with the player, newest last (bounded by <see cref="TransactionData.MaxHistory"/>).</summary>
+        public List<TransactionData> Transactions { get; set; } = new List<TransactionData>();
+
+        public Calendar.WorldTime CurrentTime => new Calendar.WorldTime(CurrentSimulationDate, MinuteOfDay);
 
         public static WorldData CreateNew(WorldId worldId, string worldName, long seed, int generatorVersion, WorldSettings settings)
         {
@@ -149,6 +160,9 @@ namespace Realmkeeper.Domain.World
             if (Claims != null) foreach (var c in Claims) copy.Claims.Add(c?.Clone());
             if (Locations != null) foreach (var l in Locations) copy.Locations.Add(l?.Clone());
             if (NpcRelations != null) foreach (var r in NpcRelations) copy.NpcRelations.Add(r?.Clone());
+            copy.MinuteOfDay = MinuteOfDay;
+            if (Shops != null) foreach (var s in Shops) copy.Shops.Add(s?.Clone());
+            if (Transactions != null) foreach (var t in Transactions) copy.Transactions.Add(t?.Clone());
             return copy;
         }
 
@@ -200,6 +214,16 @@ namespace Realmkeeper.Domain.World
             for (var i = 0; i < Npcs.Count; i++)
             {
                 if (Npcs[i].NpcId == id) return Npcs[i];
+            }
+
+            return null;
+        }
+
+        public ShopData FindShop(ShopId id)
+        {
+            for (var i = 0; i < Shops.Count; i++)
+            {
+                if (Shops[i].ShopId == id) return Shops[i];
             }
 
             return null;

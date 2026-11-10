@@ -29,25 +29,44 @@ namespace Realmkeeper.Exploration.Application
         /// <summary>The local environment of a settlement, derived from authoritative world data (never saved).</summary>
         public static LocalEnvironmentLayout LayoutFor(WorldData world, SettlementData settlement)
         {
-            // The people who are here today, each at the site of their authoritative location (Phase 4).
+            // The people who are here this hour (Phase 5), each at the site of where they are; shops fitted out.
             var residents = new List<ResidentInput>();
             foreach (var n in world.Npcs)
             {
                 if (n.IsDeceased) continue;
-                var place = n.CurrentLocationId.IsEmpty ? null : world.FindLocation(n.CurrentLocationId);
+                var now = Simulation.Npcs.NpcActivityPlan.Now(world, n);
+                var placeId = now.IsKnown ? now.Location : n.CurrentLocationId;
+                var place = placeId.IsEmpty ? null : world.FindLocation(placeId);
                 var here = place?.SettlementId ?? n.HomeSettlementId;
                 if (here == settlement.SettlementId) residents.Add(new ResidentInput(n.NpcId, n.Role, place?.LayoutKey, place?.Kind));
             }
 
-            return LocalEnvironmentGenerator.Generate(world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents);
+            var shops = new Dictionary<string, ShopFit>(StringComparer.Ordinal);
+            foreach (var s in world.Shops)
+            {
+                if (s.SettlementId != settlement.SettlementId) continue;
+                var key = world.FindLocation(s.LocationId)?.LayoutKey;
+                if (key != null) shops[key] = FitFor(s.Categories);
+            }
+
+            return LocalEnvironmentGenerator.Generate(world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
         }
 
         /// <summary>Same as <see cref="LayoutFor(WorldData, SettlementData)"/>, through session queries (for presentation).</summary>
         public static LocalEnvironmentLayout LayoutFor(WorldSession session, SettlementSummary settlement)
         {
             var residents = new List<ResidentInput>();
-            foreach (var n in session.GetPeoplePresent(settlement.SettlementId)) residents.Add(new ResidentInput(n.NpcId, n.Role, n.LocationKey, n.LocationKind));
-            return LocalEnvironmentGenerator.Generate(session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents);
+            foreach (var n in session.GetPresenceIn(settlement.SettlementId)) residents.Add(new ResidentInput(n.NpcId, n.Role, n.LayoutKey, n.LocationKind));
+            var shops = new Dictionary<string, ShopFit>(StringComparer.Ordinal);
+            foreach (var s in session.GetShops(settlement.SettlementId)) if (s.LayoutKey != null) shops[s.LayoutKey] = FitFor(s.Categories);
+            return LocalEnvironmentGenerator.Generate(session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+        }
+
+        /// <summary>How a shop is fitted out: a smithy for arms and armour, a merchant's counter otherwise.</summary>
+        public static ShopFit FitFor(IEnumerable<ShopCategory> categories)
+        {
+            foreach (var c in categories) if (c == ShopCategory.WeaponsAndArmour) return ShopFit.Smithy;
+            return ShopFit.General;
         }
 
         internal static PlayerCharacterData RequirePlayer(CommandContext context, out CommandResult failure)

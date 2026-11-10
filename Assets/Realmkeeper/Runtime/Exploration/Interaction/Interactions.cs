@@ -36,6 +36,12 @@ namespace Realmkeeper.Exploration.Interaction
     }
 
     /// <summary>Something in the local environment the player can interact with.</summary>
+    /// <summary>An interactable that is sometimes unavailable (Phase 5: a resident indoors or asleep cannot be approached).</summary>
+    public interface IConditionalInteractable
+    {
+        bool IsAvailable { get; }
+    }
+
     public interface IInteractable
     {
         /// <summary>Prompt text, e.g. "Talk to Aldric Ashby (Elder)".</summary>
@@ -81,6 +87,7 @@ namespace Realmkeeper.Exploration.Interaction
             var bestDistance = float.MaxValue;
             foreach (var i in _interactables)
             {
+                if (i is IConditionalInteractable c && !c.IsAvailable) continue;
                 var to = i.InteractionPoint - position;
                 to.y = 0f;
                 var distance = to.magnitude;

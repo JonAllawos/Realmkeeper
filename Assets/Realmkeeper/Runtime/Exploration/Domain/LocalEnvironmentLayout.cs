@@ -49,6 +49,14 @@ namespace Realmkeeper.Exploration.Domain
         public float Z { get; }
     }
 
+    /// <summary>How an enterable shop is fitted out (Phase 5): its counter, shelves and displays.</summary>
+    public enum ShopFit
+    {
+        None = 0,
+        General = 1,
+        Smithy = 2,
+    }
+
     public sealed class LayoutBuilding
     {
         public string Key { get; set; }
@@ -67,7 +75,10 @@ namespace Realmkeeper.Exploration.Domain
         /// <summary>Palette index for walls and roof (presentation decides the colours).</summary>
         public int Style { get; set; }
 
-        public bool IsEnterable => Kind == BuildingKind.Hall;
+        /// <summary>Phase 5: the house is a shop people walk into (set from world data when the layout is made).</summary>
+        public ShopFit Fit { get; set; }
+
+        public bool IsEnterable => Kind == BuildingKind.Hall || Fit != ShopFit.None;
     }
 
     public sealed class LayoutProp

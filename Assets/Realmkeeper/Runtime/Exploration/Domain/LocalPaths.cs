@@ -1,0 +1,167 @@
+using System;
+using System.Collections.Generic;
+using Realmkeeper.Domain.World;
+
+namespace Realmkeeper.Exploration.Domain
+{
+    /// <summary>
+    /// Where people stand and how they walk in a settlement's local environment (Phase 5). Engine-free
+    /// and deterministic. Spots come from the place the world says a person is this hour: in front of a
+    /// building's door, inside the tavern, behind a shop's counter, among the stalls, by the gate. Routes
+    /// follow the streets: out of a door, onto the nearest street, round the corner of the crossing (never
+    /// through the well), and in at the other door.
+    /// </summary>
+    public static class LocalPaths
+    {
+        /// <summary>Metres a door's outside point stands in front of the wall.</summary>
+        public const float DoorStandOff = 1.8f;
+
+        /// <summary>A point in a building's own frame (door on local −Z) in settlement coordinates.</summary>
+        public static LocalPoint ToWorld(LayoutBuilding b, float localX, float localZ)
+        {
+            var r = b.Yaw * Math.PI / 180.0;
+            var cos = (float)Math.Cos(r);
+            var sin = (float)Math.Sin(r);
+            return new LocalPoint(b.Center.X + localX * cos - localZ * sin, b.Center.Z + localX * sin + localZ * cos);
+        }
+
+        /// <summary>The facing (degrees, Unity yaw about +Y) of someone looking out of a building's door.</summary>
+        public static float FacingOut(LayoutBuilding b) => 180f - b.Yaw;
+
+        public static LayoutBuilding Find(LocalEnvironmentLayout layout, string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            foreach (var b in layout.Buildings) if (b.Key == key) return b;
+            return null;
+        }
+
+        /// <summary>The point outside a building's door, offset sideways for the n-th person there.</summary>
+        public static LocalPoint DoorOutside(LayoutBuilding b, float side = 0f) => ToWorld(b, side, -(b.Depth / 2f + DoorStandOff));
+
+        /// <summary>Just inside an enterable building's doorway.</summary>
+        public static LocalPoint DoorInside(LayoutBuilding b) => ToWorld(b, DoorwayX(b), -(b.Depth / 2f - 1.2f));
+
+        /// <summary>Where the doorway of an enterable building is along its front (the tavern's is centred; a shop's at its door slot).</summary>
+        public static float DoorwayX(LayoutBuilding b) => b.Fit == ShopFit.None ? 0f : BuildingKitPlanner.ShopDoorX(b);
+
+        /// <summary>Behind a shop's counter (the keeper's place), the n-th person further along.</summary>
+        public static LocalPoint BehindCounter(LayoutBuilding b, int n = 0) => ToWorld(b, -0.6f + n * 1.1f, b.Depth / 2f - 1.15f);
+
+        /// <summary>In a shop, on the customers' side of the counter.</summary>
+        public static LocalPoint ShopFloor(LayoutBuilding b, int n = 0) => ToWorld(b, (n % 2 == 0 ? 1.2f : -1.2f) * (1 + n / 2), -0.4f);
+
+        /// <summary>Slot spacing for several people at one door.</summary>
+        public static float Side(int n) => (n % 2 == 0 ? 1f : -1f) * (0.9f + 1.3f * (n / 2));
+
+        /// <summary>
+        /// Where someone at a place stands, and how far they may wander: the same rules the layout uses
+        /// for people present when the environment is built, plus shop interiors. Null when the place has
+        /// no site in this environment (the caller then uses the role's default spot).
+        /// </summary>
+        public static (LocalPoint spot, float wander, bool indoors)? SpotAt(LocalEnvironmentLayout layout, string siteKey, LocationKind? kind, int n, bool keeper)
+        {
+            if (string.IsNullOrEmpty(siteKey)) return null;
+            var plaza = layout.PlazaRadius;
+            if (siteKey == SettlementSites.Plaza)
+            {
+                var market = kind == LocationKind.Market;
+                var angle = (market ? 0.6f : 3.6f) + n * 0.55f;
+                var radius = market ? plaza - 4.5f : plaza - 2.5f;
+                return (new LocalPoint((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius), 1.5f, false);
+            }
+
+            if (siteKey == SettlementSites.Gate) return (new LocalPoint(Side(n) * 1.4f + 2.5f, -layout.HalfExtent + 6f), 1.5f, false);
+
+            var b = Find(layout, siteKey);
+            if (b == null) return null;
+            if (b.Kind == BuildingKind.Hall)
+                return (new LocalPoint(b.Center.X + 1.5f + Side(n) * 0.8f, b.Center.Z + 0.6f), 0.5f, true);
+            if (b.Fit != ShopFit.None)
+                return keeper ? (BehindCounter(b, 0), 0.4f, true) : (ShopFloor(b, n), 0.6f, true);
+            return (DoorOutside(b, Side(n)), 1.2f, false);
+        }
+
+        /// <summary>
+        /// A walking route between two points along the streets. Each end may be inside an enterable
+        /// building (then the route passes its doorway). The first point is <paramref name="from"/>,
+        /// the last <paramref name="to"/>.
+        /// </summary>
+        public static List<LocalPoint> Route(LocalEnvironmentLayout layout, LocalPoint from, LayoutBuilding fromInside, LocalPoint to, LayoutBuilding toInside)
+        {
+            var path = new List<LocalPoint> { from };
+            if (fromInside != null)
+            {
+                path.Add(DoorInside(fromInside));
+                path.Add(ToWorld(fromInside, DoorwayX(fromInside), -(fromInside.Depth / 2f + DoorStandOff)));
+            }
+
+            var start = path[path.Count - 1];
+            var end = toInside != null ? ToWorld(toInside, DoorwayX(toInside), -(toInside.Depth / 2f + DoorStandOff)) : to;
+            if (Distance(start, end) > 3f)
+            {
+                var a = Project(layout, start, out var streetA);
+                var b = Project(layout, end, out var streetB);
+                if (Distance(start, a) > 0.5f) path.Add(a);
+                if (streetA != streetB && streetA >= 0 && streetB >= 0)
+                {
+                    // Round the corner of the crossing on the side the walk turns, clear of the plaza's centre.
+                    var corner = 3.2f;
+                    var cx = Math.Abs(a.X) > Math.Abs(b.X) ? Math.Sign(a.X) : Math.Sign(b.X);
+                    var cz = Math.Abs(a.Z) > Math.Abs(b.Z) ? Math.Sign(a.Z) : Math.Sign(b.Z);
+                    path.Add(new LocalPoint((cx == 0 ? 1 : cx) * corner, (cz == 0 ? 1 : cz) * corner));
+                }
+
+                if (Distance(b, end) > 0.5f) path.Add(b);
+            }
+
+            if (toInside != null)
+            {
+                path.Add(end);
+                path.Add(DoorInside(toInside));
+            }
+
+            path.Add(to);
+            return path;
+        }
+
+        /// <summary>The nearest point on any street's centre line, and that street's index (−1 if there are none).</summary>
+        public static LocalPoint Project(LocalEnvironmentLayout layout, LocalPoint p, out int street)
+        {
+            street = -1;
+            var best = p;
+            var bestD = float.MaxValue;
+            for (var i = 0; i < layout.Streets.Count; i++)
+            {
+                var s = layout.Streets[i];
+                var dx = s.To.X - s.From.X;
+                var dz = s.To.Z - s.From.Z;
+                var len2 = dx * dx + dz * dz;
+                var t = len2 <= 0f ? 0f : Math.Max(0f, Math.Min(1f, ((p.X - s.From.X) * dx + (p.Z - s.From.Z) * dz) / len2));
+                var q = new LocalPoint(s.From.X + t * dx, s.From.Z + t * dz);
+                var d = Distance(p, q);
+                if (d < bestD)
+                {
+                    bestD = d;
+                    best = q;
+                    street = i;
+                }
+            }
+
+            return best;
+        }
+
+        public static float Distance(LocalPoint a, LocalPoint b)
+        {
+            var dx = a.X - b.X;
+            var dz = a.Z - b.Z;
+            return (float)Math.Sqrt(dx * dx + dz * dz);
+        }
+
+        public static float Length(IReadOnlyList<LocalPoint> path)
+        {
+            var total = 0f;
+            for (var i = 1; i < path.Count; i++) total += Distance(path[i - 1], path[i]);
+            return total;
+        }
+    }
+}

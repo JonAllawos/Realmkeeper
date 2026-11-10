@@ -1,0 +1,16 @@
+Town: Bramhaven. Clock 08:00 · Morning · 1 Seedtide, Year 412.
+p5_01_town_morning: Bramhaven at 08:00 (Morning): sun elevation 22°, lamps off.
+p5_02_resident_walking: Edda Thorne walking to Keep (Working hours.) at 09:00.
+p5_03_resident_working: Ulric Dunmore (Labourer) working at the Granary: Working hours. Until 17:00.
+p5_04_shop_interior: Brooke's Outfitters (08:00–18:00, open): 18 wares on the shelves = stock 18.
+p5_05_shopkeeper_conversation: Asking Elric Brooke what is for sale; the Trade option opens the shop.
+p5_06_trade_window: Before: Linen sleeves ×2 at 4 coin. Linen sleeves: Base 3: Shop markup +20%, Keeper's haggling +2% → 4 coin. Loose linen sleeves with cuffs.
+p5_07_purchase_complete: Bought Linen sleeves for 4 coin. Purse 150 → 146; stock 2 → 1; ledger updated.
+p5_08_reduced_stock: After the purchase: Linen sleeves on the shelves 1 (stock 1); 17 wares in all.
+p5_09_hub_inventory: Player Hub, Inventory: 3 stacks, 95 coin.
+p5_10_hub_equipment: Player Hub, Equipment: Chest=Linen tunic, Hands=Linen sleeves, Legs=Wool trousers, Feet=Simple shoes, MainHand=Arming sword; preview props sword_arming@hand_r.
+p5_11_hub_weapons_zoomed: Player Hub, Weapons, preview zoomed.
+p5_12_player_equipped: The character as equipped: Chest:Peasant:Body:Peasant, Hands:Peasant:Arms:Peasant, Legs:Peasant:Legs:Peasant, Feet:Peasant:Feet:Peasant; sword_arming@hand_r.
+p5_13_town_golden_hour: Bramhaven at 19:15: sun elevation 3°, lamps 28 %.
+p5_14_town_night: Bramhaven at 22:40: moonlight, 16 lamps lit, windows glowing; 0 residents out, the rest indoors.
+p5_15_plaza_night: The plaza at night.

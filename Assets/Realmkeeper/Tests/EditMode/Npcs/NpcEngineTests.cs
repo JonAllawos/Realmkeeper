@@ -280,10 +280,13 @@ namespace Realmkeeper.Tests.EditMode.Npcs
             var w = Advance(Phase2Worlds.Generated(91), 2);
             var s = w.Settlements.First(x => x.SettlementType == SettlementType.Town);
             var layout = Realmkeeper.Exploration.Application.ExplorationModule.LayoutFor(w, s);
-            var present = w.Npcs.Where(n => n.IsAlive && w.FindLocation(n.CurrentLocationId)?.SettlementId == s.SettlementId).ToList();
+            // Phase 5: where they are this hour (the hourly plan over the day's routine), not just today.
+            LocationData Now(NpcData n) => w.FindLocation(NpcActivityPlan.Now(w, n).Location);
+            var present = w.Npcs.Where(n => n.IsAlive && Now(n)?.SettlementId == s.SettlementId).ToList();
+            Assert.That(present, Is.Not.Empty);
             Assert.That(layout.Residents.Select(r => r.NpcId), Is.EquivalentTo(present.Select(n => n.NpcId)));
             foreach (var spot in layout.Residents)
-                Assert.That(spot.SiteKey, Is.EqualTo(w.FindLocation(w.FindNpc(spot.NpcId).CurrentLocationId).LayoutKey));
+                Assert.That(spot.SiteKey, Is.EqualTo(Now(w.FindNpc(spot.NpcId)).LayoutKey));
         }
     }
 }

@@ -70,6 +70,10 @@ namespace Realmkeeper.Application
                     return $"The treasury of {s} has passed {N(e, "treasury")} coin.";
                 case HistoricalEventType.PlayerMetResident:
                     return $"{e.Get("player") ?? "A traveller"} met {e.Get("name") ?? "a resident"}, {(e.Get("role") ?? "resident").ToLowerInvariant()} of {s}.";
+                case HistoricalEventType.PlayerPurchase:
+                    return $"{e.Get("player") ?? "A traveller"} bought {Qty(e)} from {e.Get("keeper") ?? "a merchant"} at {e.Get("shop") ?? "a shop"} in {s} for {N(e, "total")} coin.";
+                case HistoricalEventType.PlayerSale:
+                    return $"{e.Get("player") ?? "A traveller"} sold {Qty(e)} to {e.Get("keeper") ?? "a merchant"} at {e.Get("shop") ?? "a shop"} in {s} for {N(e, "total")} coin.";
                 case HistoricalEventType.LabourNoticePosted:
                     return $"{e.Get("player") ?? "A traveller"} posted a notice in {s} calling for more {(e.Get("focus") ?? "work").ToLowerInvariant()}.";
                 case HistoricalEventType.TradeRouteSuspended:
@@ -188,6 +192,13 @@ namespace Realmkeeper.Application
         }
 
         private static string Resource(HistoricalEvent e) => e.Get("resource") ?? "goods";
+
+        private static string Qty(HistoricalEvent e)
+        {
+            var q = e.GetInt("quantity");
+            var item = e.Get("itemName") ?? e.Get("item") ?? "goods";
+            return q > 1 ? q.ToString(System.Globalization.CultureInfo.InvariantCulture) + " × " + item : item;
+        }
 
         private static string N(HistoricalEvent e, string key)
         {

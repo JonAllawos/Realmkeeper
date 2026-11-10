@@ -262,8 +262,11 @@ namespace Realmkeeper.Application
                 if (!Enum.IsDefined(typeof(ConversationTopic), command.Topic)) return CommandResult.Invalid("Unknown topic.");
                 var npc = Living(world, command.NpcId, out failure);
                 if (npc == null) return failure;
-                var here = NpcMind.SettlementAt(world, npc.CurrentLocationId)?.SettlementId ?? npc.HomeSettlementId;
-                if (here != player.SettlementId) return CommandResult.Invalid($"{npc.Name} is not here today.");
+                // Where they are this hour (Phase 5), not just today.
+                var now = NpcActivityPlan.Now(world, npc);
+                var here = NpcMind.SettlementAt(world, now.IsKnown ? now.Location : npc.CurrentLocationId)?.SettlementId ?? npc.HomeSettlementId;
+                if (here != player.SettlementId) return CommandResult.Invalid($"{npc.Name} is not here just now.");
+                if (now.Activity == ActivityKind.Sleeping) return CommandResult.InvalidState($"{npc.Name} is asleep.");
                 if (command.Topic == ConversationTopic.Person && world.FindNpc(command.AboutPerson) == null)
                     return CommandResult.Invalid("Ask about whom? That person is unknown.");
 
@@ -273,6 +276,7 @@ namespace Realmkeeper.Application
                 var today = edit.CurrentSimulationDate;
                 var first = !e.HasMetPlayer;
                 e.ConversationCount++;
+                PlayerCommandHandlers.Acquaint(e, today, false);
                 if (first)
                 {
                     e.MetPlayerOn = today;
@@ -711,6 +715,16 @@ namespace Realmkeeper.Application
                     if (seen == null) return (tie == null ? "Never met " + who.Name + "." : "I know " + who.Name + ", but I couldn't say where they are.") + opinion;
                     var place = Guid.TryParse(seen.Value, out var pl) ? world.FindLocation(new LocationId(pl))?.Name : null;
                     return "Last I saw " + who.Name + ", they were at the " + (place ?? "usual place") + " — " + Ago(world, seen.LearnedOn) + "." + opinion;
+                case ConversationTopic.Shops:
+                    return TradeTalk.Shops(world, npc, here);
+                case ConversationTopic.Goods:
+                    return TradeTalk.Goods(world, npc, here);
+                case ConversationTopic.Prices:
+                    return TradeTalk.Prices(world, npc, here);
+                case ConversationTopic.Factions:
+                    return TradeTalk.Factions(world, npc, here);
+                case ConversationTopic.Work:
+                    return TradeTalk.Work(world, npc);
                 default:
                     return Greeting(world, npc, playerName);
             }
@@ -734,10 +748,10 @@ namespace Realmkeeper.Application
                    (top != null ? " Mostly I'm trying to " + NpcText.Goal(top.Type.ToString()) + "." : string.Empty);
         }
 
-        private static string Hedge(NpcKnowledgeData k) =>
+        internal static string Hedge(NpcKnowledgeData k) =>
             k.Status == KnowledgeStatus.Known ? string.Empty : k.Status == KnowledgeStatus.Believed ? "last I knew, " : "I've heard ";
 
-        private static string NewsText(WorldData world, NpcMemoryData m)
+        internal static string NewsText(WorldData world, NpcMemoryData m)
         {
             var place = world.FindSettlement(m.SettlementId)?.Name ?? "these parts";
             switch (m.Subject)
@@ -775,7 +789,7 @@ namespace Realmkeeper.Application
             }
         }
 
-        private static string FactionName(WorldData world, string id) => Guid.TryParse(id, out var g) ? world.FindFaction(new FactionId(g))?.Name ?? "some faction" : "some faction";
+        internal static string FactionName(WorldData world, string id) => Guid.TryParse(id, out var g) ? world.FindFaction(new FactionId(g))?.Name ?? "some faction" : "some faction";
 
         private static string PersonName(WorldData world, string id) => Guid.TryParse(id, out var g) ? world.FindNpc(new NpcId(g))?.Name ?? "someone" : "someone";
 
@@ -787,6 +801,6 @@ namespace Realmkeeper.Application
 
         private static string Article(string noun) => ("aeiou".IndexOf(char.ToLowerInvariant(noun[0])) >= 0 ? "an " : "a ") + noun;
 
-        private static string Capital(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
+        internal static string Capital(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
     }
 }

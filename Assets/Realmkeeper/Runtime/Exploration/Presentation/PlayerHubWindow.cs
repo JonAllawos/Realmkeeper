@@ -1,0 +1,410 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Realmkeeper.Application;
+using Realmkeeper.Domain.Identifiers;
+using Realmkeeper.Domain.World;
+using Realmkeeper.Exploration.Domain;
+using UnityEngine;
+using UnityEngine.UIElements;
+using static Realmkeeper.Exploration.Presentation.TradeWindow;
+
+namespace Realmkeeper.Exploration.Presentation
+{
+    /// <summary>
+    /// The Player Hub (Phase 5): eight sections — Character, Appearance, Inventory, Equipment, Weapons,
+    /// Clothing &amp; armour, Currency &amp; possessions, Info — beside a live 3D view of the character
+    /// (drag to turn, wheel to zoom). It shows a <see cref="PlayerHub"/> snapshot and raises an event for
+    /// every action; the controller dispatches the command and refreshes it. Nothing here changes the world.
+    /// </summary>
+    public sealed class PlayerHubWindow
+    {
+        public static readonly IReadOnlyList<string> Sections = new[]
+        {
+            "Character", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Currency & possessions", "Info",
+        };
+
+        private readonly Dictionary<string, Button> _tabs = new Dictionary<string, Button>(StringComparer.Ordinal);
+        private readonly VisualElement _content;
+        private readonly VisualElement _preview;
+        private readonly Label _summary;
+        private readonly Label _message;
+        private bool _dragging;
+        private Vector2 _last;
+
+        public PlayerHubWindow(VisualElement hudRoot)
+        {
+            Root = new VisualElement { name = "xk-hub" };
+            Root.AddToClassList("xk-window");
+            Root.AddToClassList("xk-hub");
+            Root.AddToClassList("xk-hidden");
+
+            var head = Row("xk-w-head");
+            var title = Text("Character", "xk-w-title");
+            title.name = "xk-hub-title";
+            title.style.flexGrow = 1;
+            head.Add(title);
+            _summary = Text("-", "xk-w-purse");
+            _summary.name = "xk-hub-summary";
+            head.Add(_summary);
+            var close = new Button(() => CloseRequested?.Invoke()) { text = "Close (H)", name = "xk-hub-close" };
+            close.AddToClassList("xk-button");
+            head.Add(close);
+            Root.Add(head);
+
+            var body = Row("xk-hub-body");
+            var nav = Column("xk-hub-nav");
+            foreach (var s in Sections)
+            {
+                var section = s;
+                var tab = new Button(() => Select(section)) { text = section, name = "xk-hub-tab-" + section };
+                tab.AddToClassList("xk-hub-tab");
+                _tabs[s] = tab;
+                nav.Add(tab);
+            }
+
+            body.Add(nav);
+            _content = new ScrollView { name = "xk-hub-content" };
+            _content.AddToClassList("xk-hub-content");
+            body.Add(_content);
+
+            _preview = new VisualElement { name = "xk-hub-preview" };
+            _preview.AddToClassList("xk-hub-preview");
+            _preview.Add(Text("Drag to turn · wheel to zoom", "xk-hub-preview-hint"));
+            _preview.RegisterCallback<PointerDownEvent>(e =>
+            {
+                _dragging = true;
+                _last = e.position;
+                _preview.CapturePointer(e.pointerId);
+            });
+            _preview.RegisterCallback<PointerMoveEvent>(e =>
+            {
+                if (!_dragging) return;
+                var dx = e.position.x - _last.x;
+                _last = e.position;
+                PreviewTurned?.Invoke(-dx * 0.6f);
+            });
+            _preview.RegisterCallback<PointerUpEvent>(e =>
+            {
+                _dragging = false;
+                _preview.ReleasePointer(e.pointerId);
+            });
+            _preview.RegisterCallback<WheelEvent>(e => PreviewZoomed?.Invoke(-e.delta.y * 0.08f));
+            body.Add(_preview);
+            Root.Add(body);
+
+            _message = Text(string.Empty, "xk-w-message");
+            _message.name = "xk-hub-message";
+            Root.Add(_message);
+            hudRoot.Add(Root);
+            Section = Sections[0];
+        }
+
+        public VisualElement Root { get; }
+        public bool IsOpen => !Root.ClassListContains("xk-hidden");
+        public string Section { get; private set; }
+        public PlayerHub Hub { get; private set; }
+        public VisualElement Content => _content;
+        public string LastMessage => _message.text;
+
+        public event Action CloseRequested;
+        public event Action<ItemStackId> EquipRequested;
+        public event Action<EquipmentSlot> UnequipRequested;
+        public event Action<ItemStackId> UseRequested;
+        public event Action<ItemStackId, int> SplitRequested;
+        public event Action<ItemStackId, ItemStackId> CombineRequested;
+        public event Action<ItemStackId, int> DiscardRequested;
+        public event Action<string, int?, string, string> ProfileSaved;
+        public event Action<PlayerAppearanceData> AppearanceChosen;
+        public event Action<float> PreviewTurned;
+        public event Action<float> PreviewZoomed;
+
+        public void SetPreview(Texture texture)
+        {
+            _preview.style.backgroundImage = texture is RenderTexture rt ? Background.FromRenderTexture(rt) : new StyleBackground(StyleKeyword.None);
+        }
+
+        public void Show(PlayerHub hub, WorldTimeSummary time, string message = null, bool failed = false)
+        {
+            Hub = hub;
+            _time = time;
+            Root.RemoveFromClassList("xk-hidden");
+            if (message != null)
+            {
+                _message.text = message;
+                _message.EnableInClassList("xk-message--error", failed);
+            }
+
+            Render();
+        }
+
+        public void Hide() => Root.AddToClassList("xk-hidden");
+
+        public void Select(string section)
+        {
+            if (!_tabs.ContainsKey(section)) return;
+            Section = section;
+            Render();
+        }
+
+        private WorldTimeSummary _time;
+
+        private void Render()
+        {
+            foreach (var pair in _tabs) pair.Value.EnableInClassList("xk-hub-tab--active", pair.Key == Section);
+            Root.Q<Label>("xk-hub-title").text = Section;
+            _content.Clear();
+            var h = Hub;
+            if (h == null) return;
+            _summary.text = $"{h.Name} · {h.Purse} coin · {h.FedText} · {Kg(h.CarriedGrams)} carried";
+            switch (Section)
+            {
+                case "Character": Character(h); break;
+                case "Appearance": Appearance(h); break;
+                case "Inventory": Inventory(h); break;
+                case "Equipment": Equipment(h); break;
+                case "Weapons": Filtered(h, i => i.Category == ItemCategory.Weapon || i.Category == ItemCategory.Shield, true); break;
+                case "Clothing & armour": Filtered(h, i => i.Category == ItemCategory.Clothing || i.Category == ItemCategory.Armour || i.Category == ItemCategory.Headwear, false); break;
+                case "Currency & possessions": Possessions(h); break;
+                default: Info(h); break;
+            }
+        }
+
+        // ----- Sections ---------------------------------------------------------------------------------
+
+        private void Character(PlayerHub h)
+        {
+            _content.Add(Pair("Name", h.Name));
+            _content.Add(Pair("Species", h.Species));
+            _content.Add(Pair("Age", h.Age.ToString(CultureInfo.InvariantCulture)));
+            _content.Add(Pair("Background", h.Background));
+            _content.Add(Pair("Where", h.Location));
+            _content.Add(Pair("Condition", $"{h.FedText} (fed {h.Fed}/100)"));
+            _content.Add(Pair("Pace", $"{h.SpeedReason} ({Mathf.RoundToInt(h.SpeedFactor * 100)}% speed)"));
+            _content.Add(Pair("Arms", $"{h.Weapon} (damage {h.Damage}) · protection {h.Protection}"));
+            _content.Add(Text("Edit", "xk-w-heading"));
+            var name = new TextField("Name") { value = h.Name, name = "xk-hub-name", maxLength = PlayerCharacterData.MaxNameLength };
+            var age = new IntegerField("Age") { value = h.Age, name = "xk-hub-age" };
+            var background = new TextField("Background") { value = h.Background, name = "xk-hub-background", maxLength = PlayerCommandHandlers.MaxBackgroundLength };
+            var description = new TextField("Description") { value = h.Description, multiline = true, name = "xk-hub-description", maxLength = PlayerCommandHandlers.MaxDescriptionLength };
+            foreach (var f in new VisualElement[] { name, age, background, description }) f.AddToClassList("xk-hub-field");
+            _content.Add(name);
+            _content.Add(age);
+            _content.Add(background);
+            _content.Add(description);
+            var save = new Button(() => ProfileSaved?.Invoke(name.value, age.value, background.value, description.value)) { text = "Save character", name = "xk-hub-save" };
+            save.AddToClassList("xk-button");
+            save.AddToClassList("xk-button--primary");
+            _content.Add(save);
+        }
+
+        private void Appearance(PlayerHub h)
+        {
+            var a = h.Appearance;
+            _content.Add(Text("Only what the character art can show is offered.", "xk-w-note"));
+            _content.Add(Choices("Frame", new[] { "Male", "Female" }, a.Frame == NpcSex.Female ? 1 : 0, i =>
+            {
+                var frame = i == 1 ? NpcSex.Female : NpcSex.Male;
+                Choose(new PlayerAppearanceData
+                {
+                    Frame = frame, HairId = PlayerAppearanceOptions.HairFor(frame)[0], BeardId = null, SkinTone = a.SkinTone, HairColour = a.HairColour, ClothTint = a.ClothTint,
+                });
+            }));
+            var hair = PlayerAppearanceOptions.HairFor(a.Frame);
+            var labels = new List<string>();
+            var current = 0;
+            for (var i = 0; i < hair.Count; i++)
+            {
+                labels.Add(hair[i] == null ? "None" : hair[i].Replace("Hair_", string.Empty));
+                if (hair[i] == a.HairId) current = i;
+            }
+
+            _content.Add(Choices("Hair", labels, current, i => Choose(With(a, hairId: hair[i], keepHair: false))));
+            if (a.Frame == NpcSex.Male) _content.Add(Choices("Beard", new[] { "Beard", "Clean-shaven" }, a.BeardId == null ? 1 : 0, i => Choose(With(a, beard: i == 0 ? "Hair_Beard" : null, keepBeard: false))));
+            _content.Add(Swatches("Skin", NpcAppearanceResolver.SkinTones, a.SkinTone, i => Choose(With(a, skin: i))));
+            _content.Add(Swatches("Hair colour", NpcAppearanceResolver.HairColours, a.HairColour, i => Choose(With(a, hairColour: i))));
+            _content.Add(Swatches("Cloth tint", NpcAppearanceResolver.OutfitTints, a.ClothTint, i => Choose(With(a, tint: i))));
+        }
+
+        private void Choose(PlayerAppearanceData data) => AppearanceChosen?.Invoke(data);
+
+        private static PlayerAppearanceData With(PlayerAppearanceData a, string hairId = null, bool keepHair = true, string beard = null, bool keepBeard = true,
+            int? skin = null, int? hairColour = null, int? tint = null) => new PlayerAppearanceData
+        {
+            Frame = a.Frame,
+            HairId = keepHair ? a.HairId : hairId,
+            BeardId = keepBeard ? a.BeardId : beard,
+            SkinTone = skin ?? a.SkinTone,
+            HairColour = hairColour ?? a.HairColour,
+            ClothTint = tint ?? a.ClothTint,
+        };
+
+        private void Inventory(PlayerHub h)
+        {
+            _content.Add(Text($"{h.InventoryStacks} of {h.MaxInventoryStacks} stacks · {Kg(h.CarriedGrams)} carried (unburdened up to {Kg(h.EncumbranceGrams)}). Sell at a shop's counter.", "xk-w-note"));
+            if (h.Inventory.Count == 0) _content.Add(Text("Your pack is empty.", "xk-w-empty"));
+            foreach (var item in h.Inventory)
+            {
+                var i = item;
+                var row = Row("xk-w-row");
+                row.name = "xk-hub-item-" + i.ItemId;
+                row.Add(Text(i.Name, "xk-w-name"));
+                row.Add(Text("×" + i.Quantity, "xk-w-qty"));
+                row.Add(Text(i.Weight, "xk-w-price"));
+                if (i.CanEquip) row.Add(Act("Equip", () => EquipRequested?.Invoke(i.StackId)));
+                if (i.CanUse) row.Add(Act("Eat", () => UseRequested?.Invoke(i.StackId)));
+                if (i.Quantity > 1) row.Add(Act("Split", () => SplitRequested?.Invoke(i.StackId, i.Quantity / 2)));
+                foreach (var other in h.Inventory)
+                {
+                    if (other.StackId == i.StackId || other.ItemId != i.ItemId || !i.Stackable || other.Quantity >= other.MaxStack) continue;
+                    var into = other.StackId;
+                    row.Add(Act("Combine", () => CombineRequested?.Invoke(i.StackId, into)));
+                    break;
+                }
+
+                row.Add(Act("Drop 1", () => DiscardRequested?.Invoke(i.StackId, 1)));
+                _content.Add(row);
+                _content.Add(Text(i.Description, "xk-w-desc"));
+            }
+        }
+
+        private void Equipment(PlayerHub h)
+        {
+            foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))
+            {
+                if (slot == EquipmentSlot.None) continue;
+                var s = slot;
+                var row = Row("xk-w-row");
+                row.name = "xk-hub-slot-" + slot;
+                row.Add(Text(PlayerCommandHandlers.Slot(slot), "xk-w-slot"));
+                if (h.Equipment.TryGetValue(slot, out var item))
+                {
+                    row.Add(Text(item.Name, "xk-w-name"));
+                    row.Add(Text(item.Damage > 0 ? "dmg " + item.Damage : item.Protection > 0 ? "prot " + item.Protection : string.Empty, "xk-w-price"));
+                    row.Add(Act("Unequip", () => UnequipRequested?.Invoke(s)));
+                }
+                else
+                {
+                    var none = Text(slot == EquipmentSlot.MainHand ? "Bare hands" : "—", "xk-w-name");
+                    none.AddToClassList("xk-w-faint");
+                    row.Add(none);
+                }
+
+                _content.Add(row);
+            }
+
+            _content.Add(Text($"Total protection {h.Protection} · {h.Weapon} (damage {h.Damage}). Equipment shows on your character.", "xk-w-note"));
+        }
+
+        private void Filtered(PlayerHub h, Func<ItemView, bool> which, bool weapons)
+        {
+            var any = false;
+            foreach (var pair in h.Equipment)
+            {
+                if (!which(pair.Value)) continue;
+                any = true;
+                var i = pair.Value;
+                var slot = pair.Key;
+                var row = Row("xk-w-row");
+                row.AddToClassList("xk-w-row--worn");
+                row.Add(Text(i.Name + " (" + PlayerCommandHandlers.Slot(slot) + ")", "xk-w-name"));
+                row.Add(Text(Stats(i, weapons), "xk-w-price"));
+                row.Add(Act("Unequip", () => UnequipRequested?.Invoke(slot)));
+                _content.Add(row);
+            }
+
+            foreach (var item in h.Inventory)
+            {
+                if (!which(item)) continue;
+                any = true;
+                var i = item;
+                var row = Row("xk-w-row");
+                row.Add(Text(i.Name + (i.Quantity > 1 ? " ×" + i.Quantity : string.Empty), "xk-w-name"));
+                row.Add(Text(Stats(i, weapons), "xk-w-price"));
+                if (i.CanEquip) row.Add(Act("Equip", () => EquipRequested?.Invoke(i.StackId)));
+                _content.Add(row);
+            }
+
+            if (!any) _content.Add(Text(weapons ? "You carry no weapons or shields." : "You have no clothing or armour beyond what is listed.", "xk-w-empty"));
+        }
+
+        private static string Stats(ItemView i, bool weapons) =>
+            weapons ? (i.Damage > 0 ? $"{i.WeaponClass} · dmg {i.Damage}{(i.TwoHanded ? " · two-handed" : string.Empty)}" : $"prot {i.Protection}") : $"prot {i.Protection} · {i.Weight}";
+
+        private void Possessions(PlayerHub h)
+        {
+            _content.Add(Pair("Purse", h.Purse + " coin"));
+            _content.Add(Pair("Possessions worth", h.PossessionsValue + " coin (base value)"));
+            _content.Add(Pair("Carried", $"{Kg(h.CarriedGrams)} of {Kg(h.EncumbranceGrams)} before it slows you"));
+            _content.Add(Text("Recent trades", "xk-w-heading"));
+            if (h.RecentTrades.Count == 0) _content.Add(Text("None yet.", "xk-w-empty"));
+            foreach (var t in h.RecentTrades) _content.Add(Text(t.Text, "xk-w-ledger-line"));
+        }
+
+        private void Info(PlayerHub h)
+        {
+            if (_time != null) _content.Add(Pair("Time", _time.Text));
+            _content.Add(Text("People who know you", "xk-w-heading"));
+            if (h.KnownBy.Count == 0) _content.Add(Text("Nobody yet. Talk and trade to become known.", "xk-w-empty"));
+            foreach (var k in h.KnownBy) _content.Add(Pair(k.Name, $"{k.Role} · familiarity {k.Familiarity}, regard {k.Affinity} · {k.Why}"));
+            _content.Add(Text("How regard grows: once a day per person, from talking (+2 familiarity) and trading (+3 familiarity, +1 regard). Repeating it the same day adds nothing.", "xk-w-note"));
+            _content.Add(Text("Controls", "xk-w-heading"));
+            _content.Add(Text("H hub · E talk / trade at a counter · T wait an hour · P pause time · Esc free the cursor or close a window", "xk-w-note"));
+        }
+
+        // ----- Bits -------------------------------------------------------------------------------------
+
+        private static VisualElement Pair(string key, string value)
+        {
+            var row = Row("xk-w-pair");
+            row.Add(Text(key, "xk-w-key"));
+            row.Add(Text(value ?? "-", "xk-w-value"));
+            return row;
+        }
+
+        private static Button Act(string label, Action act)
+        {
+            var b = new Button(act) { text = label };
+            b.AddToClassList("xk-button");
+            b.AddToClassList("xk-w-act");
+            return b;
+        }
+
+        private static VisualElement Choices(string label, IReadOnlyList<string> options, int selected, Action<int> pick)
+        {
+            var row = Row("xk-w-pair");
+            row.Add(Text(label, "xk-w-key"));
+            for (var i = 0; i < options.Count; i++)
+            {
+                var index = i;
+                var b = new Button(() => pick(index)) { text = options[i], name = "xk-hub-" + label.ToLowerInvariant().Replace(' ', '-') + "-" + i };
+                b.AddToClassList("xk-button");
+                b.AddToClassList("xk-w-choice");
+                b.EnableInClassList("xk-w-choice--on", i == selected);
+                row.Add(b);
+            }
+
+            return row;
+        }
+
+        private static VisualElement Swatches(string label, IReadOnlyList<(float r, float g, float b)> colours, int selected, Action<int> pick)
+        {
+            var row = Row("xk-w-pair");
+            row.Add(Text(label, "xk-w-key"));
+            for (var i = 0; i < colours.Count; i++)
+            {
+                var index = i;
+                var c = colours[i];
+                var b = new Button(() => pick(index)) { text = string.Empty, name = "xk-hub-" + label.ToLowerInvariant().Replace(' ', '-') + "-" + i };
+                b.AddToClassList("xk-w-swatch");
+                b.EnableInClassList("xk-w-swatch--on", i == selected);
+                b.style.backgroundColor = new Color(Mathf.Pow(c.r, 0.6f), Mathf.Pow(c.g, 0.6f), Mathf.Pow(c.b, 0.6f));
+                row.Add(b);
+            }
+
+            return row;
+        }
+
+        private static string Kg(int grams) => (grams / 1000f).ToString("0.#", CultureInfo.InvariantCulture) + " kg";
+    }
+}

@@ -31,6 +31,16 @@ namespace Realmkeeper.Infrastructure.Generation
         }
 
         /// <summary>
+        /// Shops and the player's starting kit (Phase 5). Runs after the economy is initialised, because a
+        /// shop's opening stock is made from the settlement's stores and paid for into its treasury.
+        /// </summary>
+        public static void EnsureCommerce(WorldData world)
+        {
+            Simulation.Commerce.CommerceGenesis.EnsureShops(world); // needs locations, keepers and stores
+            Simulation.Commerce.CommerceGenesis.EnsurePlayer(world);
+        }
+
+        /// <summary>
         /// Adds the world's single region if it has none, then assigns every settlement without a
         /// region to the region containing it. A settlement no region contains is an error: it is
         /// never silently attached to the wrong region.

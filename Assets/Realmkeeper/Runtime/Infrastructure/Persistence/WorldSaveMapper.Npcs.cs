@@ -104,10 +104,12 @@ namespace Realmkeeper.Infrastructure.Persistence
             d.IsDeceased = n.IsDeceased;
             d.DiedOn = Date(n.DiedOn);
             d.LastUpdatedOn = Date(n.LastUpdatedOn);
+            d.PlayerRegard = RegardDto(n.PlayerRegard);
         }
 
         private static void WriteNpcWorld(WorldData w, WorldDto dto)
         {
+            WriteCommerceWorld(w, dto);
             dto.Locations = new List<LocationDto>();
             foreach (var l in w.Locations)
             {
@@ -226,10 +228,12 @@ namespace Realmkeeper.Infrastructure.Persistence
             n.IsDeceased = d.IsDeceased;
             n.DiedOn = OptionalDate(d.DiedOn, "npc diedOn");
             n.LastUpdatedOn = OptionalDate(d.LastUpdatedOn, "npc lastUpdatedOn");
+            n.PlayerRegard = Regard(d.PlayerRegard);
         }
 
         private static void ReadNpcWorld(WorldDto dto, WorldData world)
         {
+            ReadCommerceWorld(dto, world);
             foreach (var l in dto.Locations ?? new List<LocationDto>())
             {
                 if (l == null) throw new SaveDataException("Null location entry.");

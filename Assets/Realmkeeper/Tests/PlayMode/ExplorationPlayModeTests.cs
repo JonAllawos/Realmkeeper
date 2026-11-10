@@ -257,7 +257,7 @@ namespace Realmkeeper.Tests.PlayMode
         public IEnumerator TalkingToAResident_IsRecordedThroughTheRegistry()
         {
             yield return Enter(FirstSettlement);
-            var resident = Controller.Residents.Values.First();
+            var resident = Controller.Residents.Values.First(v => !v.IsHidden); // Phase 5: someone out in the street, not indoors
             var target = resident.transform.position;
             var from = target + new Vector3(0f, 0f, -1.5f);
             Controller.Player.Teleport(new LocalPose(from.x, 0f, from.z, 0f));

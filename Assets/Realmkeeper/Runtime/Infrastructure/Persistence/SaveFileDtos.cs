@@ -49,6 +49,12 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v6. Relationships between named people.</summary>
         public List<NpcRelationDto> NpcRelations { get; set; }
+
+        /// <summary>Schema v7. Minute of the day (absent: 08:00).</summary>
+        public int? MinuteOfDay { get; set; }
+
+        public List<ShopDto> Shops { get; set; }
+        public List<TransactionDto> Transactions { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -260,6 +266,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public bool IsDeceased { get; set; }
         public string DiedOn { get; set; }
         public string LastUpdatedOn { get; set; }
+
+        /// <summary>Schema v7. How they regard the player.</summary>
+        public PlayerRegardDto PlayerRegard { get; set; }
     }
 
     public sealed class NpcConditionDto
@@ -364,6 +373,78 @@ namespace Realmkeeper.Infrastructure.Persistence
         public float Yaw { get; set; }
         public string Perspective { get; set; }
         public string LastSettlementId { get; set; }
+
+        // Schema v7 (Phase 5). Absent in older saves.
+        public string Species { get; set; }
+        public int Age { get; set; }
+        public string Background { get; set; }
+        public string Description { get; set; }
+        public PlayerAppearanceDto Appearance { get; set; }
+        public int Purse { get; set; }
+        public int Fed { get; set; }
+        public bool IsOutfitted { get; set; }
+        public List<ItemStackDto> Inventory { get; set; }
+
+        /// <summary>Slot name → stack.</summary>
+        public Dictionary<string, ItemStackDto> Equipment { get; set; }
+    }
+
+    public sealed class PlayerAppearanceDto
+    {
+        public string Frame { get; set; }
+        public string HairId { get; set; }
+        public string BeardId { get; set; }
+        public int SkinTone { get; set; }
+        public int HairColour { get; set; }
+        public int ClothTint { get; set; }
+    }
+
+    public sealed class ItemStackDto
+    {
+        public string StackId { get; set; }
+        public string ItemId { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public sealed class ShopDto
+    {
+        public string ShopId { get; set; }
+        public string SettlementId { get; set; }
+        public string LocationId { get; set; }
+        public string Name { get; set; }
+        public List<string> Categories { get; set; }
+        public string ShopkeeperNpcId { get; set; }
+        public Dictionary<string, int> Stock { get; set; }
+        public int OpensAt { get; set; }
+        public int ClosesAt { get; set; }
+        public string LastRestockedOn { get; set; }
+        public int TotalSales { get; set; }
+        public int TotalPurchases { get; set; }
+    }
+
+    public sealed class TransactionDto
+    {
+        public string TransactionId { get; set; }
+        public string Date { get; set; }
+        public int MinuteOfDay { get; set; }
+        public string Kind { get; set; }
+        public string ShopId { get; set; }
+        public string ShopkeeperNpcId { get; set; }
+        public string ItemId { get; set; }
+        public int Quantity { get; set; }
+        public int UnitPrice { get; set; }
+        public int Total { get; set; }
+        public string Source { get; set; }
+    }
+
+    public sealed class PlayerRegardDto
+    {
+        public int Familiarity { get; set; }
+        public int Affinity { get; set; }
+        public int Trades { get; set; }
+        public int Conversations { get; set; }
+        public long LastTradeDay { get; set; }
+        public long LastTalkDay { get; set; }
     }
 
     public sealed class HistoricalEventDto

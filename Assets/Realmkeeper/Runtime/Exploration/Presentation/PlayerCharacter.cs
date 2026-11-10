@@ -46,7 +46,16 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The humanoid body's animation driver, or null when the body is the primitive fallback.</summary>
         public CharacterAnimationDriver Animation { get; private set; }
 
-        public static PlayerCharacter Create(Transform parent, Material bodyMaterial, Material headMaterial, ArtCatalog catalog = null)
+        /// <summary>Walking speed multiplier from world state (Phase 5: encumbrance and hunger); 1 = unburdened.</summary>
+        public float SpeedMultiplier { get; set; } = 1f;
+
+        /// <summary>The look the body was last built from (Phase 5), or null for the fixed Phase 4 body.</summary>
+        public string LookSignature { get; private set; }
+
+        /// <summary>What the current body shows (clothing per slot, props), when built from a look.</summary>
+        public PlayerBodyReport BodyReport { get; private set; }
+
+        public static PlayerCharacter Create(Transform parent, Material bodyMaterial, Material headMaterial, ArtCatalog catalog = null, PlayerLook look = null, GeneratedAssets assets = null)
         {
             var go = new GameObject("Player Character");
             go.transform.SetParent(parent, false);
@@ -66,7 +75,8 @@ namespace Realmkeeper.Exploration.Presentation
 
             player._body = new GameObject("Body");
             player._body.transform.SetParent(go.transform, false);
-            player.Animation = HumanoidCharacterBuilder.Build(player._body.transform, NpcAppearanceResolver.Player(), catalog);
+            if (look != null) player.RebuildBody(look, catalog, assets);
+            else player.Animation = HumanoidCharacterBuilder.Build(player._body.transform, NpcAppearanceResolver.Player(), catalog);
             if (player.Animation != null) return player; // a humanoid body; the primitives below are the fallback
 
             var torso = SettlementEnvironmentBuilder.Primitive(player._body.transform, PrimitiveType.Capsule, "Torso",
@@ -79,6 +89,25 @@ namespace Realmkeeper.Exploration.Presentation
                 new Vector3(0f, 1.05f, -0.28f), new Vector3(0.4f, 0.45f, 0.2f), headMaterial);
             SettlementEnvironmentBuilder.RemoveCollider(pack);
             return player;
+        }
+
+        /// <summary>Rebuilds the humanoid body from what the player wears and how they look (Phase 5).</summary>
+        public void RebuildBody(PlayerLook look, ArtCatalog catalog, GeneratedAssets assets)
+        {
+            if (look == null || catalog == null || !catalog.HasCharacters) return;
+            var visible = _body == null || _body.activeSelf;
+            if (_body != null)
+            {
+                if (UnityEngine.Application.isPlaying) Destroy(_body);
+                else DestroyImmediate(_body);
+            }
+
+            _body = new GameObject("Body");
+            _body.transform.SetParent(transform, false);
+            _body.SetActive(visible);
+            Animation = PlayerBodyBuilder.Build(_body.transform, look, catalog, assets, out var report);
+            BodyReport = report;
+            LookSignature = look.Signature;
         }
 
         private void Awake()
@@ -121,7 +150,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             var heading = Quaternion.Euler(0f, Heading, 0f);
             var planar = heading * new Vector3(move.x, 0f, move.y);
-            var speed = sprint ? SprintSpeed : WalkSpeed;
+            var speed = (sprint ? SprintSpeed : WalkSpeed) * Mathf.Clamp(SpeedMultiplier, 0.3f, 1.5f);
 
             IsGrounded = _controller.isGrounded;
             if (IsGrounded && _verticalVelocity < 0f) _verticalVelocity = -2f; // keep contact on slopes and steps

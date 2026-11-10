@@ -215,14 +215,14 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         {
             var fresh = Phase2Worlds.Generated(555);
             var serializer = new JsonWorldSerializer();
-            var doc = JObject.Parse(serializer.Serialize(fresh));
+            var doc = JObject.Parse(serializer.Serialize(Phase2Worlds.GeneratedBeforeCommerce(555)));
             Phase2Worlds.StripToV5(doc);
             var eventsBefore = ((JArray)doc["world"]["historicalEvents"]).Count;
 
             var loaded = serializer.Deserialize(doc.ToString());
             Assert.That(loaded.IsSuccess, Is.True, string.Join("; ", loaded.Errors));
             var w = loaded.World;
-            Assert.That(w.SchemaVersion, Is.EqualTo(6));
+            Assert.That(w.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
             Assert.That(w.WorldSettings.EnabledSimulationSystems, Has.Member(NpcSystem.Id));
             Assert.That(w.HistoricalEvents.Count, Is.EqualTo(eventsBefore), "No events are invented.");
             Assert.That(w.Npcs.All(n => n.Memories.Count == 0), Is.True, "No memories are invented.");

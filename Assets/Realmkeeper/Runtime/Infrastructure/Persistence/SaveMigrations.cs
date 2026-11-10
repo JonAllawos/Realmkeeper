@@ -5,6 +5,38 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v6 → v7 (Phase 5: living world, player hub, commerce). Structural only: adds the minute of the
+    /// day (08:00), empty <c>shops</c> and <c>transactions</c>, and enables the shop system after the NPC
+    /// system. Shops and the player's belongings cannot come from JSON, so after mapping the serializer
+    /// runs <see cref="Simulation.Commerce.CommerceGenesis"/> once: shops kept by existing residents and
+    /// stocked from the settlement's own stores (paid for by the keeper), and the player's starting
+    /// clothes, knife, bread and purse, the same as a new world's (the player had no belongings before).
+    /// </summary>
+    public sealed class MigrationV6ToV7 : ISaveMigration
+    {
+        public int SourceVersion => 6;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["minuteOfDay"] == null) world["minuteOfDay"] = Domain.Calendar.WorldTime.DefaultStartMinute;
+            if (world["shops"] == null) world["shops"] = new JArray();
+            if (world["transactions"] == null) world["transactions"] = new JArray();
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken npcs = null;
+            var hasShops = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == Simulation.Npcs.NpcSystem.Id) npcs = id;
+                if ((string)id == Simulation.Commerce.ShopSystem.Id) hasShops = true;
+            }
+
+            if (npcs != null && !hasShops) npcs.AddAfterSelf(Simulation.Commerce.ShopSystem.Id);
+        }
+    }
+
+    /// <summary>
     /// v5 → v6 (Phase 4: NPC Intelligence Engine). Structural only: adds empty <c>locations</c> and
     /// <c>npcRelations</c> arrays and enables the NPC system for worlds that run the political system
     /// (listed before it, where a fresh world lists it). People keep their IDs, names, homes, factions,

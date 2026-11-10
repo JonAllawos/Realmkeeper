@@ -72,7 +72,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         }
 
         /// <summary>Adds named people to every settlement (raising its population so they are members of it).</summary>
-        private static WorldData WithPeople(WorldData world, int perSettlement)
+        internal static WorldData WithPeople(WorldData world, int perSettlement)
         {
             var roles = (NpcRole[])Enum.GetValues(typeof(NpcRole));
             var given = new[] { "Aldric", "Edda", "Godric", "Maud", "Osric", "Petra", "Ulric", "Wenna", "Brand", "Sabine" };
@@ -101,7 +101,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         }
 
         /// <summary>Copies settlements (economy, governor and faction presence included) until there are <paramref name="count"/>.</summary>
-        private static WorldData WithSettlements(WorldData world, int count)
+        internal static WorldData WithSettlements(WorldData world, int count)
         {
             var originals = world.Settlements.ToList();
             var n = 0;

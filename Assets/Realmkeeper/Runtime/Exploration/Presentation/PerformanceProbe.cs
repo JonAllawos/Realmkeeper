@@ -96,8 +96,42 @@ namespace Realmkeeper.Exploration.Presentation
                 yield return Measure(name, report);
             }
 
+            // Phase 5: inside a shop; the street with the clock running fast (people re-planned and walking);
+            // the street and plaza at night with every lamp lit.
+            var shop = controller.Shops.Values.FirstOrDefault(v => v.Building.Fit == ShopFit.General);
+            if (shop != null)
+            {
+                var t = shop.transform;
+                var from = t.TransformPoint(new Vector3(-1.2f, 1.7f, -shop.Building.Depth / 2f + 1.0f));
+                var at = t.TransformPoint(new Vector3(0.4f, 1.1f, shop.Building.Depth / 2f - 0.5f));
+                camera.transform.SetPositionAndRotation(from, Quaternion.LookRotation(at - from, Vector3.up));
+                yield return Measure("shop interior", report);
+            }
+
+            var playback = installer.Runtime.Playback;
+            session.Dispatch(new Realmkeeper.Application.SetSimulationSpeedCommand(SimulationSpeed.VeryFast));
+            playback.Play();
+            var streetFrom = new Vector3(1.2f, 1.75f, -half + 12f);
+            var streetAt = new Vector3(-0.5f, 2.6f, 0f);
+            camera.transform.SetPositionAndRotation(streetFrom, Quaternion.LookRotation(streetAt - streetFrom, Vector3.up));
+            var before = session.GetWorldTime();
+            yield return Measure("street, clock x30", report);
+            var after = session.GetWorldTime();
+            report.AppendLine($"  clock {before.Clock} -> {after.Clock}, walking now {controller.Residents.Values.Count(v => v.IsWalking)}");
+            playback.Pause();
+            session.Dispatch(new Realmkeeper.Application.SetSimulationSpeedCommand(SimulationSpeed.Normal));
+
+            var minute = session.GetWorldTime().MinuteOfDay;
+            controller.WaitHour(minute < 22 * 60 + 30 ? 22 * 60 + 30 - minute : 1440 - minute + 22 * 60 + 30);
+            camera.transform.SetPositionAndRotation(streetFrom, Quaternion.LookRotation(streetAt - streetFrom, Vector3.up));
+            yield return Measure("street, night", report);
+            var plazaFrom = new Vector3(-9f, 4.5f, -layout.PlazaRadius - 9f);
+            camera.transform.SetPositionAndRotation(plazaFrom, Quaternion.LookRotation(new Vector3(2f, 1f, 2f) - plazaFrom, Vector3.up));
+            yield return Measure("plaza, night", report);
+            report.AppendLine($"  {session.GetWorldTime().Text}: lamps lit {controller.Atmosphere.Lamps.Count(l => l.enabled)}, residents out {controller.Residents.Values.Count(v => !v.IsHidden)}");
+
             report.AppendLine();
-            report.AppendLine($"residents {controller.Residents.Count}, renderers {FindObjectsByType<Renderer>(FindObjectsSortMode.None).Length}");
+            report.AppendLine($"residents {controller.Residents.Count}, shops {controller.Shops.Count}, renderers {FindObjectsByType<Renderer>(FindObjectsSortMode.None).Length}");
             controller.ReturnToWorldMap();
             Finish(report);
         }

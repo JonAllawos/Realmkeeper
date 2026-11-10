@@ -162,6 +162,14 @@ namespace Realmkeeper.Exploration.Presentation
             _responseTimer = ResponseSeconds * 2f;
         }
 
+        /// <summary>Dismisses the last interaction response and its topics (a window opened, or time moved on).</summary>
+        public void HideResponse()
+        {
+            Response?.AddToClassList("xk-hidden");
+            Topics?.AddToClassList("xk-hidden");
+            _responseTimer = 0f;
+        }
+
         public void ShowMessage(CommandResult result)
         {
             if (MessageLabel == null || result == null) return;

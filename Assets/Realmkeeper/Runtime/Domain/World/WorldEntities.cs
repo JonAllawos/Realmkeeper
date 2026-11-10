@@ -152,6 +152,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>Last day the simulation updated this person (tier 2 skips days).</summary>
         public WorldDate LastUpdatedOn { get; set; }
 
+        /// <summary>Phase 5: how this person regards the player, with its causes.</summary>
+        public PlayerRegardData PlayerRegard { get; set; } = new PlayerRegardData();
+
         public bool IsAlive => !IsDeceased;
 
         /// <summary>Whole years of age on a date (0 when the birth date is unknown).</summary>
@@ -184,6 +187,7 @@ namespace Realmkeeper.Domain.World
                 IsDeceased = IsDeceased,
                 DiedOn = DiedOn,
                 LastUpdatedOn = LastUpdatedOn,
+                PlayerRegard = PlayerRegard?.Clone() ?? new PlayerRegardData(),
             };
             foreach (var g in Goals) c.Goals.Add(g.Clone());
             foreach (var m in Memories) c.Memories.Add(m.Clone());
@@ -249,6 +253,10 @@ namespace Realmkeeper.Domain.World
         NpcAffiliationChanged = 47,
         NpcConversation = 48,
         NpcGoalAbandoned = 49,
+
+        // Phase 5: the player's trade with shops (Minor; structured facts: player, item, quantity, total, shop, keeper).
+        PlayerPurchase = 50,
+        PlayerSale = 51,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

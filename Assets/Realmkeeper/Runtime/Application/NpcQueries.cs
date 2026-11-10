@@ -125,6 +125,13 @@ namespace Realmkeeper.Application
         News = 5,
         Rumours = 6,
         Person = 7,
+
+        // Phase 5
+        Shops = 8,
+        Goods = 9,
+        Prices = 10,
+        Factions = 11,
+        Work = 12,
     }
 
     /// <summary>Display text for NPC enums and facts.</summary>
@@ -188,6 +195,11 @@ namespace Realmkeeper.Application
                 case nameof(ConversationTopic.News): return "the news";
                 case nameof(ConversationTopic.Rumours): return "rumours";
                 case nameof(ConversationTopic.Person): return "someone";
+                case nameof(ConversationTopic.Shops): return "the shops";
+                case nameof(ConversationTopic.Goods): return "what's for sale";
+                case nameof(ConversationTopic.Prices): return "prices";
+                case nameof(ConversationTopic.Factions): return "the factions";
+                case nameof(ConversationTopic.Work): return "their work";
                 default: return "this and that";
             }
         }

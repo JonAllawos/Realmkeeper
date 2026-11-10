@@ -62,7 +62,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7() };
 
         /// <summary>First schema with regions, the player character and named residents.</summary>
         public const int FirstSchemaWithRegions = 3;
@@ -71,6 +71,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         public const int FirstSchemaWithPolitics = 5;
 
         public const int FirstSchemaWithNpcEngine = 6;
+        public const int FirstSchemaWithCommerce = 7;
 
         public string Serialize(WorldData world)
         {
@@ -181,6 +182,14 @@ namespace Realmkeeper.Infrastructure.Persistence
             if (originalVersion < FirstSchemaWithNpcEngine)
             {
                 Simulation.Npcs.NpcGenesis.EnsurePeople(world);
+            }
+
+            // Saves older than v7 gain shops (kept by existing residents, stocked from their own settlement's
+            // stores) and the player's starting belongings, once.
+            if (originalVersion < FirstSchemaWithCommerce)
+            {
+                Simulation.Commerce.CommerceGenesis.EnsureShops(world);
+                Simulation.Commerce.CommerceGenesis.EnsurePlayer(world);
             }
 
             var validation = WorldValidator.Validate(world);

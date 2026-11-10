@@ -20,7 +20,7 @@ namespace Realmkeeper.Exploration.Presentation
     /// must persist (entering, leaving, position, perspective, conversations, notices) is a
     /// command dispatched through the session's registry.
     /// </summary>
-    public sealed class ExplorationController : MonoBehaviour
+    public sealed partial class ExplorationController : MonoBehaviour
     {
 
         private readonly LocalEnvironmentStreamer _streamer = new LocalEnvironmentStreamer();
@@ -36,6 +36,7 @@ namespace Realmkeeper.Exploration.Presentation
         private bool _ownsInput;
         private SettlementEnvironmentBuilder.RenderSettingsSnapshot _renderSnapshot;
         private ExplorationAtmosphere _atmosphere;
+        private Transform _residentsRoot;
         private bool _cursorFree;
 
         public LocalEnvironmentStreamer Streamer => _streamer;
@@ -112,6 +113,7 @@ namespace Realmkeeper.Exploration.Presentation
             // A loaded save may put the character somewhere else (or in the same place, with
             // different residents' state): rebuild from world data instead of trusting the scene.
             Sync(forceReload: change.GeographyChanged);
+            if (!change.GeographyChanged) RefreshLiving(snap: false);
         }
 
         /// <summary>Makes the presentation match world data: environment loaded if and only if the character is in a settlement.</summary>
@@ -172,7 +174,8 @@ namespace Realmkeeper.Exploration.Presentation
                 EnvironmentRoot = SettlementEnvironmentBuilder.Build(layout, _materials);
             }
 
-            Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)), Catalog);
+            Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)), Catalog,
+                Catalog != null ? CurrentLook() : null, Catalog != null ? Assets() : null);
             Player.Input = _input;
             Player.Teleport(player.Pose);
             CameraRig = ExplorationCameraRig.Create(null, Player);
@@ -184,6 +187,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             _detector.Clear();
             var residents = new GameObject("Residents").transform;
+            _residentsRoot = residents;
             foreach (var spot in layout.Residents)
             {
                 if (_residents.ContainsKey(spot.NpcId)) continue; // one body per persistent identity
@@ -206,6 +210,7 @@ namespace Realmkeeper.Exploration.Presentation
             Hud.ReturnRequested += OnReturnRequested;
             Hud.SaveRequested += OnSaveRequested;
             Hud.SetPerspective(player.Perspective);
+            SetupLiving(layout);
 
             _input?.Enable();
             SetCursorFree(false);
@@ -216,6 +221,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void UnloadEnvironment()
         {
             if (!_streamer.IsLoaded) return;
+            TeardownLiving();
             _input?.Disable();
             if (Hud != null)
             {
@@ -297,6 +303,11 @@ namespace Realmkeeper.Exploration.Presentation
             (ConversationTopic.FactionLeader, "Your leader"),
             (ConversationTopic.News, "Any news?"),
             (ConversationTopic.Rumours, "Rumours"),
+            (ConversationTopic.Work, "Your work"),
+            (ConversationTopic.Shops, "Where to buy"),
+            (ConversationTopic.Goods, "What's for sale"),
+            (ConversationTopic.Prices, "Prices"),
+            (ConversationTopic.Factions, "The factions"),
         };
 
         private IReadOnlyList<(string, Action)> TopicButtons()
@@ -306,6 +317,14 @@ namespace Realmkeeper.Exploration.Presentation
             {
                 var t = topic;
                 list.Add((label, () => AskResident(t)));
+            }
+
+            // Phase 5: a shopkeeper can be asked to trade (the window opens on their shop here).
+            var kept = TalkingTo != null ? _session?.GetShopKeptBy(TalkingTo.NpcId) : null;
+            if (kept != null && _streamer.Current != null && kept.SettlementId == _streamer.Current.SettlementId)
+            {
+                var id = kept.ShopId;
+                list.Add(("Trade", () => OpenTrade(id)));
             }
 
             return list;
@@ -345,6 +364,13 @@ namespace Realmkeeper.Exploration.Presentation
             if (!IsExploring || Player == null) return;
             HandleCursor();
             if (CameraRig != null) CameraRig.LookEnabled = !_cursorFree || !ManageCursor;
+
+            UpdateLivingInput();
+            if (WindowOpen)
+            {
+                Hud?.SetPrompt(null);
+                return;
+            }
 
             var forward = CameraRig != null ? CameraRig.transform.forward : Player.transform.forward;
             CurrentTarget = _detector.FindTarget(Player.transform.position, forward);

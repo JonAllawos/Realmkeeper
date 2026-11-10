@@ -92,17 +92,28 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         /// <summary>Copies each skinned renderer of a part onto the body's skeleton (bones matched by name).</summary>
-        private static void Attach(GameObject part, Transform body, Dictionary<string, Transform> bones, Func<SkinnedMeshRenderer, int, Material, Color> colour)
+        private static void Attach(GameObject part, Transform body, Dictionary<string, Transform> bones, Func<SkinnedMeshRenderer, int, Material, Color> colour) =>
+            Attach(part, body, bones, colour, null, null);
+
+        /// <summary>
+        /// Copies the skinned renderers of <paramref name="part"/> accepted by <paramref name="include"/> onto the body's
+        /// skeleton, optionally with every material replaced by <paramref name="material"/>. Returns the copies.
+        /// </summary>
+        internal static List<SkinnedMeshRenderer> Attach(GameObject part, Transform body, Dictionary<string, Transform> bones,
+            Func<SkinnedMeshRenderer, int, Material, Color> colour, Func<SkinnedMeshRenderer, bool> include, Material material)
         {
-            if (part == null) return;
+            var made = new List<SkinnedMeshRenderer>();
+            if (part == null) return made;
             foreach (var src in part.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
-                if (src.sharedMesh == null) continue;
+                if (src.sharedMesh == null || include != null && !include(src)) continue;
                 var go = new GameObject(part.name + " " + src.name);
                 go.transform.SetParent(body, false);
                 var r = go.AddComponent<SkinnedMeshRenderer>();
                 r.sharedMesh = src.sharedMesh;
-                r.sharedMaterials = src.sharedMaterials;
+                var materials = src.sharedMaterials;
+                if (material != null) for (var m = 0; m < materials.Length; m++) if (materials[m] == null || !materials[m].name.StartsWith("M_Body", StringComparison.Ordinal)) materials[m] = material;
+                r.sharedMaterials = materials;
                 var mapped = new Transform[src.bones.Length];
                 for (var i = 0; i < mapped.Length; i++)
                 {
@@ -115,8 +126,15 @@ namespace Realmkeeper.Exploration.Presentation
                 r.localBounds = src.localBounds;
                 for (var i = 0; i < r.sharedMaterials.Length; i++) SetColour(r, i, colour(r, i, r.sharedMaterials[i]));
                 Tune(r);
+                made.Add(r);
             }
+
+            return made;
         }
+
+        internal static void Colour(Renderer r, int index, Color colour) => SetColour(r, index, colour);
+
+        internal static Color TintOf((float r, float g, float b) c) => Tint(c);
 
         private static void Tune(SkinnedMeshRenderer r)
         {
@@ -146,6 +164,7 @@ namespace Realmkeeper.Exploration.Presentation
     {
         private static readonly int SpeedId = Animator.StringToHash("Speed");
         private static readonly int TalkingId = Animator.StringToHash("Talking");
+        private static readonly int ActivityId = Animator.StringToHash("Activity");
 
         private Animator _animator;
         private Transform _owner;
@@ -153,6 +172,7 @@ namespace Realmkeeper.Exploration.Presentation
         private float _lastYaw;
         private float _talkTimer;
         private bool _initialised;
+        private bool _hasActivity;
 
         public Animator Animator => _animator;
 
@@ -161,10 +181,17 @@ namespace Realmkeeper.Exploration.Presentation
 
         public bool Talking => _talkTimer > 0f;
 
+        /// <summary>
+        /// The pose held while standing still (Phase 5): 0 idle, 1 working (kneeling at a task), 2 kneeling in
+        /// prayer, 3 chatting. Set by the owner from what the person is doing; walking always wins.
+        /// </summary>
+        public int Pose { get; set; }
+
         public void Initialize(Animator animator)
         {
             _animator = animator;
             _owner = transform.parent != null ? transform.parent : transform;
+            foreach (var p in animator.parameters) if (p.nameHash == ActivityId) _hasActivity = true;
             _lastPosition = _owner.position;
             _lastYaw = _owner.eulerAngles.y;
             _initialised = true;
@@ -195,6 +222,7 @@ namespace Realmkeeper.Exploration.Presentation
             _animator.SetFloat(SpeedId, Speed);
             if (_talkTimer > 0f) _talkTimer -= dt;
             _animator.SetBool(TalkingId, _talkTimer > 0f && Speed < 0.3f);
+            if (_hasActivity) _animator.SetInteger(ActivityId, Speed < 0.3f && _talkTimer <= 0f ? Pose : 0);
         }
     }
 }

@@ -159,3 +159,77 @@ running.
 | 3 settlements, 15 people | 0.58 / 0.23 | 49 ms | 54 ms | 206 KB |
 | 3 settlements, ~100 people | 0.82 / 0.95 (noise) | 40 ms | 126 ms | 1.9 MB |
 | 10 settlements, ~300 people | 10.4 / 1.7 | 133 ms | 460 ms | 6.3 MB |
+
+## Hour by hour (Phase 5)
+
+The daily engine is unchanged. Phase 5 adds an hourly layer on top, `NpcActivityPlan.At(world,
+npc, date, minute)`. It is a pure function: nothing is stored, it is deterministic, and it is shared
+by shops, dialogue, queries and exploration (ADR-0019).
+
+**The day's main place:**
+- today: the location the day committed (`CurrentLocationId`): the routine, a pressing need, or a
+  DM move;
+- other days: the weekly routine.
+
+**Rhythm.** Each person wakes between 06:00 and 07:00 and sleeps between 21:30 and 23:00. Both are
+hashed from their ID. Innkeepers rise an hour later and stay up past 23:00.
+
+**Order of precedence:**
+1. Unwell and resting (a strong Recover need): at home all day.
+2. Night: asleep at home.
+3. Another pressing need: where that need takes them (e.g. to market to find food).
+4. Breakfast at home for 45 minutes after waking.
+5. Work days, in working hours:
+   - at the workplace, with a 30-minute midday meal around noon (guards skip it);
+   - before work, at home.
+
+   | Role | Hours |
+   |---|---|
+   | Shopkeeper | The shop's own hours |
+   | Guard | 07–19 |
+   | Innkeeper | 10–22 |
+   | Farmer | 07–17 |
+   | Elder | 09–16 |
+   | Others | 08–17 |
+
+6. Rest days, or a DM move: at that place until evening.
+7. Evenings: at the tavern if sociable (sociability ≥ 55) or the innkeeper, otherwise at home.
+
+**Activities:**
+
+| Activity | When |
+|---|---|
+| Sleeping | Night |
+| Eating | Breakfast and the midday meal |
+| Working | Workshops, granary, farm |
+| Trading | Shop, market |
+| Guarding | Guard post |
+| Sitting | Administration |
+| Worshipping | Shrine |
+| Socialising | Tavern |
+| Resting, Standing | Elsewhere |
+
+Each comes with a reason ("Working hours.", "Night: asleep at home.") and the time it lasts until.
+
+**Presence.** `GetPresenceIn(settlement)` and `GetNpcPresence(id)` give where everyone is this hour.
+Exploration uses these to place people, and talking to someone requires them to be here and awake
+this hour. Tests check:
+- the layout puts people at the sites of their hourly locations;
+- shopkeepers are at the counter in shop hours;
+- everyone is asleep at home at night.
+
+**Regard for the player (Phase 5).** Each person holds a `PlayerRegard`: familiarity, affinity, and
+counts of trades and talks. It rises once per day per person (`Commerce.md`). The Hub lists who
+knows the player and why.
+
+**New conversation topics (Phase 5).** Answers are bound to knowledge, from fixed templates:
+
+| Topic | Answer |
+|---|---|
+| Your work | Role, workplace, hours, whether they are at it now |
+| Where to buy | The local shops and their hours (residents only; visitors "couldn't tell you") |
+| What's for sale | A keeper lists their own stock; others say which shop deals in what, and that you'd have to ask |
+| Prices | Only a keeper names numbers; others speak from what they know of food and fortunes |
+| The factions | Who holds the place as they know it, their own allegiance, and the last political news they remember |
+
+"Where is someone" remains the Person topic.

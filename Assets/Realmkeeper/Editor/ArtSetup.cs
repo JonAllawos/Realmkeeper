@@ -281,7 +281,7 @@ namespace Realmkeeper.Editor
             {
                 var name = ClipName(c.name);
                 c.name = name;
-                c.loopTime = name.EndsWith("_Loop", StringComparison.Ordinal);
+                c.loopTime = name.EndsWith("_Loop", StringComparison.Ordinal) || name == "Fixing_Kneeling"; // held as a working pose (Phase 5)
                 c.loopPose = false;
                 c.lockRootRotation = true; // the in-place library: rotation, height and position come from code
                 c.lockRootHeightY = true;
@@ -315,6 +315,7 @@ namespace Realmkeeper.Editor
             var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
             controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
             controller.AddParameter("Talking", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("Activity", AnimatorControllerParameterType.Int);
             var sm = controller.layers[0].stateMachine;
 
             var locomotion = controller.CreateBlendTreeInController("Locomotion", out var tree, 0);
@@ -337,10 +338,30 @@ namespace Realmkeeper.Editor
             back.AddCondition(AnimatorConditionMode.IfNot, 0f, "Talking");
             back.hasExitTime = false;
             back.duration = 0.25f;
+
+            // Phase 5: poses held while standing still, chosen by what the person is doing (Activity).
+            Pose(sm, locomotion, "Work", "Fixing_Kneeling", 1);
+            Pose(sm, locomotion, "Pray", "Crouch_Idle_Loop", 2);
+            Pose(sm, locomotion, "Chat", "Idle_Talking_Loop", 3);
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
-            report.AppendLine("Animator controller: Locomotion (idle/walk/jog/sprint blend on Speed) + Talk.");
+            report.AppendLine("Animator controller: Locomotion (idle/walk/jog/sprint blend on Speed) + Talk + Work/Pray/Chat poses (Activity).");
             return controller;
+        }
+
+        /// <summary>A held pose entered from locomotion while Activity equals <paramref name="value"/>, left when it changes.</summary>
+        private static void Pose(AnimatorStateMachine sm, AnimatorState locomotion, string name, string clip, int value)
+        {
+            var state = sm.AddState(name);
+            state.motion = Require(clip);
+            var enter = locomotion.AddTransition(state);
+            enter.AddCondition(AnimatorConditionMode.Equals, value, "Activity");
+            enter.hasExitTime = false;
+            enter.duration = 0.35f;
+            var leave = state.AddTransition(locomotion);
+            leave.AddCondition(AnimatorConditionMode.NotEqual, value, "Activity");
+            leave.hasExitTime = false;
+            leave.duration = 0.3f;
         }
 
         private static AnimationClip Require(string name) =>

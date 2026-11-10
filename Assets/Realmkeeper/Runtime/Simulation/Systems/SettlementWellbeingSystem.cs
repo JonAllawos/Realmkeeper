@@ -217,6 +217,7 @@ namespace Realmkeeper.Simulation.Systems
                 new SettlementWellbeingSystem(rules),
                 new PopulationSystem(rules),
                 new Npcs.NpcSystem(),
+                new Commerce.ShopSystem(),
                 new PoliticalSystem(politics),
                 new ChronicleSystem(),
             };
@@ -225,7 +226,7 @@ namespace Realmkeeper.Simulation.Systems
         public static IReadOnlyList<string> AllIds => new[]
         {
             LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, ConsumptionSystem.Id,
-            SettlementWellbeingSystem.Id, PopulationSystem.Id, Npcs.NpcSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id,
+            SettlementWellbeingSystem.Id, PopulationSystem.Id, Npcs.NpcSystem.Id, Commerce.ShopSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id,
         };
 
         /// <summary>System IDs used by Phase 1 saves; a world listing these is upgraded to <see cref="AllIds"/>.</summary>

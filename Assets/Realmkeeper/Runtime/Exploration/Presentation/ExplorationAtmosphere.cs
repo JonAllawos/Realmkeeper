@@ -11,7 +11,7 @@ namespace Realmkeeper.Exploration.Presentation
     /// a procedural sky, light exponential haze, and a street-level post-processing volume
     /// (ACES tonemapping, gentle warm grade, mild bloom and vignette) that overrides the global one.
     /// </summary>
-    public sealed class ExplorationAtmosphere
+    public sealed partial class ExplorationAtmosphere
     {
         public static readonly Color SunColour = new Color(1f, 0.9f, 0.76f);
         public static readonly Color AmbientSky = new Color(0.56f, 0.62f, 0.72f);
@@ -88,6 +88,7 @@ namespace Realmkeeper.Exploration.Presentation
             var tone = _profile.Add<Tonemapping>(true);
             tone.mode.Override(TonemappingMode.ACES);
             var colour = _profile.Add<ColorAdjustments>(true);
+            _colour = colour;
             colour.postExposure.Override(0.35f);
             colour.contrast.Override(10f);
             colour.saturation.Override(6f);
@@ -120,6 +121,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         public void Restore()
         {
+            RestoreNight();
             _snapshot?.Restore();
             _snapshot = null;
             if (_profile != null)

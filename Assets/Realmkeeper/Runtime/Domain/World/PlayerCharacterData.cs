@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Realmkeeper.Domain.Identifiers;
 
 namespace Realmkeeper.Domain.World
@@ -74,8 +75,35 @@ namespace Realmkeeper.Domain.World
 
         public bool IsInSettlement => LocationKind == CharacterLocationKind.Settlement;
 
-        public PlayerCharacterData Clone() => new PlayerCharacterData
+        // ----- Phase 5: the player as a person with looks, belongings and standing -----------------
+
+        public string Species { get; set; } = "Human";
+        public int Age { get; set; } = 28;
+        public string Background { get; set; } = "Wanderer";
+        public string Description { get; set; } = string.Empty;
+        public PlayerAppearanceData Appearance { get; set; } = new PlayerAppearanceData();
+
+        /// <summary>Coin carried (never negative).</summary>
+        public int Purse { get; set; }
+
+        /// <summary>0–100: how well fed the player is. Falls with time; eating restores it. Below 25 the player is slowed.</summary>
+        public int Fed { get; set; } = 80;
+
+        /// <summary>Carried items (not worn).</summary>
+        public List<ItemStackData> Inventory { get; set; } = new List<ItemStackData>();
+
+        /// <summary>Worn and held items, one per slot.</summary>
+        public Dictionary<EquipmentSlot, ItemStackData> Equipment { get; set; } = new Dictionary<EquipmentSlot, ItemStackData>();
+
+        /// <summary>True once the Phase 5 belongings were set up (new worlds, or once on migration).</summary>
+        public bool IsOutfitted { get; set; }
+
+        public ItemStackData Equipped(EquipmentSlot slot) => Equipment.TryGetValue(slot, out var s) ? s : null;
+
+        public PlayerCharacterData Clone()
         {
+            var c = new PlayerCharacterData
+            {
             CharacterId = CharacterId,
             Name = Name,
             LocationKind = LocationKind,
@@ -84,6 +112,18 @@ namespace Realmkeeper.Domain.World
             Pose = Pose,
             Perspective = Perspective,
             LastSettlementId = LastSettlementId,
-        };
+                Species = Species,
+                Age = Age,
+                Background = Background,
+                Description = Description,
+                Appearance = Appearance?.Clone() ?? new PlayerAppearanceData(),
+                Purse = Purse,
+                Fed = Fed,
+                IsOutfitted = IsOutfitted,
+            };
+            foreach (var s in Inventory) c.Inventory.Add(s.Clone());
+            foreach (var pair in Equipment) c.Equipment[pair.Key] = pair.Value.Clone();
+            return c;
+        }
     }
 }

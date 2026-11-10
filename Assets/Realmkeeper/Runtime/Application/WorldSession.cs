@@ -23,6 +23,9 @@ namespace Realmkeeper.Application
 
         /// <summary>The session was closed; there is no world any more.</summary>
         Closed = 5,
+
+        /// <summary>Only the clock (and the player's hunger) moved; no day was simulated (Phase 5).</summary>
+        TimeAdvanced = 6,
     }
 
     public sealed class WorldChange
@@ -75,6 +78,7 @@ namespace Realmkeeper.Application
             _commands.Register<SetTradeRouteSuspendedCommand>(new SetTradeRouteSuspendedHandler());
             PoliticalCommandHandlers.Register(_commands);
             NpcCommandHandlers.Register(_commands);
+            PlayerCommandHandlers.Register(_commands);
         }
 
         public EconomyRules Rules => _rules;

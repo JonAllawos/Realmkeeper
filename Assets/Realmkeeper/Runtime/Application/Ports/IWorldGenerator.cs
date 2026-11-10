@@ -21,6 +21,12 @@ namespace Realmkeeper.Application.Ports
 
         /// <summary>Optional. When empty a new random world identity is assigned.</summary>
         public WorldId WorldId { get; }
+
+        /// <summary>
+        /// False generates the world as schema v6 did: no shops and no starting belongings. Only for building
+        /// faithful pre-Phase-5 saves in migration tests; the game always generates with commerce.
+        /// </summary>
+        public bool IncludeCommerce { get; set; } = true;
     }
 
     /// <summary>Generation output: authoritative world data plus the derived geography it sits on.</summary>

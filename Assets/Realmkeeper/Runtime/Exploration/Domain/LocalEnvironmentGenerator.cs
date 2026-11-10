@@ -37,7 +37,7 @@ namespace Realmkeeper.Exploration.Domain
         public const int Version = 1;
 
         public static LocalEnvironmentLayout Generate(long worldSeed, SettlementId settlementId, RegionId regionId, SettlementType type,
-            IReadOnlyList<ResidentInput> residents)
+            IReadOnlyList<ResidentInput> residents, IReadOnlyDictionary<string, ShopFit> shops = null)
         {
             if (settlementId.IsEmpty) throw new ArgumentException("A settlement ID is required.", nameof(settlementId));
             if (regionId.IsEmpty) throw new ArgumentException("A region ID is required.", nameof(regionId));
@@ -160,6 +160,11 @@ namespace Realmkeeper.Exploration.Domain
             layout.Interactables.Add(new LayoutInteractable { Kind = InteractableKind.GranaryLedger, Position = new LocalPoint(plaza + 4.2f, 6f), Yaw = 270f });
             layout.Interactables.Add(new LayoutInteractable { Kind = InteractableKind.LabourNoticeBoard, Position = new LocalPoint(-4f, -plaza + 2f), Yaw = 0f });
 
+            // Phase 5: houses that are shops are fitted out and entered (only houses: the tavern is already open).
+            if (shops != null)
+                foreach (var b in layout.Buildings)
+                    if (b.Kind == BuildingKind.House && shops.TryGetValue(b.Key, out var fit)) b.Fit = fit;
+
             PlaceResidents(layout, residents, rng);
             return layout;
         }
@@ -261,6 +266,14 @@ namespace Realmkeeper.Exploration.Domain
             LayoutBuilding b = null;
             foreach (var candidate in layout.Buildings) if (candidate.Key == r.SiteKey) b = candidate;
             if (b == null) return false;
+            if (b.Fit != ShopFit.None)
+            {
+                var inside = LocalPaths.SpotAt(layout, r.SiteKey, r.LocationKind, n, n == 0).Value;
+                anchor = inside.spot;
+                wander = inside.wander;
+                return true;
+            }
+
             if (b.Kind == BuildingKind.Hall)
             {
                 // Inside the tavern, between the tables and the hearth.

@@ -132,25 +132,29 @@ namespace Realmkeeper.Exploration.Presentation
             var colliders = new GameObject(b.Key + " colliders").transform;
             colliders.SetParent(ctx.Colliders, false);
             colliders.SetPositionAndRotation(go.transform.position, go.transform.rotation);
-            if (plan.Archetype == BuildingArchetype.Tavern) TavernColliders(colliders, plan);
+            if (plan.DoorwayWidth > 0f) OpenColliders(colliders, plan); // the tavern and the shops
             else ColliderBox(colliders, "Walls", new Vector3(0f, plan.WallHeight / 2f, 0f), new Vector3(plan.Width + 0.1f, plan.WallHeight, plan.Depth + 0.1f));
         }
 
-        private static void TavernColliders(Transform t, BuildingPlan plan)
+        /// <summary>Walls with the doorway left open, and a ceiling: an enterable building's collision.</summary>
+        private static void OpenColliders(Transform t, BuildingPlan plan)
         {
             const float thick = 0.4f;
             var w = plan.Width;
             var d = plan.Depth;
             var h = plan.WallHeight;
+            var dx = plan.DoorwayX;
+            var ceiling = plan.InteriorHeight > 0f ? plan.InteriorHeight : h;
             ColliderBox(t, "Back wall", new Vector3(0f, h / 2f, d / 2f), new Vector3(w, h, thick));
             ColliderBox(t, "West wall", new Vector3(-w / 2f, h / 2f, 0f), new Vector3(thick, h, d));
             ColliderBox(t, "East wall", new Vector3(w / 2f, h / 2f, 0f), new Vector3(thick, h, d));
             var gap = plan.DoorwayWidth;
-            var side = (w - gap) / 2f;
-            ColliderBox(t, "Front wall W", new Vector3(-(gap / 2f + side / 2f), h / 2f, -d / 2f), new Vector3(side, h, thick));
-            ColliderBox(t, "Front wall E", new Vector3(gap / 2f + side / 2f, h / 2f, -d / 2f), new Vector3(side, h, thick));
-            ColliderBox(t, "Lintel", new Vector3(0f, (2.7f + h) / 2f, -d / 2f), new Vector3(gap, h - 2.7f, thick));
-            ColliderBox(t, "Ceiling", new Vector3(0f, h + 0.1f, 0f), new Vector3(w, 0.2f, d));
+            var west = (w / 2f + dx) - gap / 2f;  // wall from the west corner to the doorway
+            var east = (w / 2f - dx) - gap / 2f;
+            if (west > 0.01f) ColliderBox(t, "Front wall W", new Vector3(-w / 2f + west / 2f, h / 2f, -d / 2f), new Vector3(west, h, thick));
+            if (east > 0.01f) ColliderBox(t, "Front wall E", new Vector3(w / 2f - east / 2f, h / 2f, -d / 2f), new Vector3(east, h, thick));
+            ColliderBox(t, "Lintel", new Vector3(dx, (2.7f + h) / 2f, -d / 2f), new Vector3(gap, h - 2.7f, thick));
+            ColliderBox(t, "Ceiling", new Vector3(0f, ceiling + 0.1f, 0f), new Vector3(w, 0.2f, d));
         }
 
         // ----- Pieces --------------------------------------------------------------------------------
@@ -179,6 +183,10 @@ namespace Realmkeeper.Exploration.Presentation
                     awning.transform.localRotation = Quaternion.Euler(-18f, 0f, 0f);
                     Mesh(ctx, t, "Post L", MetreMeshes.Box(new Vector3(0.08f, 2.3f, 0.08f), ctx.Assets), ctx.Mat("Wood"), new Vector3(-1.05f, -1.35f, -1.35f));
                     Mesh(ctx, t, "Post R", MetreMeshes.Box(new Vector3(0.08f, 2.3f, 0.08f), ctx.Assets), ctx.Mat("Wood"), new Vector3(1.05f, -1.35f, -1.35f));
+                    break;
+                case "@Ceiling":
+                    var ceiling = Mesh(ctx, t, "Ceiling", MetreMeshes.Box(new Vector3(p.ScaleX, p.ScaleY, p.ScaleZ), ctx.Assets), ctx.Mat("Planks"), Vector3.zero);
+                    ceiling.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.TwoSided;
                     break;
                 case "@Counter":
                     Mesh(ctx, t, "Counter", MetreMeshes.Box(new Vector3(1.7f, 1f, 0.5f), ctx.Assets), ctx.Mat("Planks"), new Vector3(0f, 0.5f, 0f));

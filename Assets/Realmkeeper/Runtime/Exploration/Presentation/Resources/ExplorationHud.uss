@@ -203,3 +203,307 @@
     padding: 2px 8px;
     font-size: 12px;
 }
+
+/* Phase 5: clock and time controls */
+.xk-clock-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.xk-clock {
+    font-size: 17px;
+    -unity-font-style: bold;
+    color: rgb(240, 214, 160);
+    margin-right: 8px;
+    min-width: 150px;
+}
+
+.xk-time-button {
+    height: 24px;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+/* Phase 5: game windows (trade, player hub) */
+.xk-window {
+    position: absolute;
+    background-color: rgba(18, 16, 13, 0.985);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.55);
+    border-radius: 8px;
+    padding: 14px 18px;
+    color: rgb(232, 223, 204);
+}
+
+.xk-trade {
+    left: 12%;
+    right: 12%;
+    top: 9%;
+    bottom: 9%;
+}
+
+.xk-hub {
+    left: 5%;
+    right: 5%;
+    top: 6%;
+    bottom: 6%;
+}
+
+.xk-w-head {
+    flex-direction: row;
+    align-items: center;
+    border-bottom-width: 1px;
+    border-color: rgba(201, 164, 101, 0.3);
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+}
+
+.xk-w-title {
+    font-size: 24px;
+    -unity-font-style: bold;
+    color: rgb(240, 214, 160);
+}
+
+.xk-w-subtitle {
+    color: rgb(190, 181, 163);
+}
+
+.xk-w-purse {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: rgb(226, 196, 120);
+    margin: 0 14px;
+}
+
+.xk-w-status {
+    padding: 4px 8px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    background-color: rgba(70, 96, 64, 0.6);
+}
+
+.xk-w-status--closed {
+    background-color: rgba(120, 56, 44, 0.7);
+}
+
+.xk-w-columns {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.xk-w-col {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 10px;
+}
+
+.xk-w-heading {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(214, 180, 116);
+    margin: 6px 0 4px 0;
+}
+
+.xk-w-list {
+    flex-grow: 1;
+    background-color: rgba(34, 31, 26, 0.7);
+    border-radius: 4px;
+}
+
+.xk-w-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 6px;
+    border-bottom-width: 1px;
+    border-color: rgba(201, 164, 101, 0.12);
+}
+
+.xk-w-row:hover {
+    background-color: rgba(84, 75, 60, 0.45);
+}
+
+.xk-w-row--selected {
+    background-color: rgba(120, 92, 48, 0.4);
+}
+
+.xk-w-row--refused .xk-w-name {
+    color: rgb(150, 142, 126);
+}
+
+.xk-w-row--worn {
+    background-color: rgba(70, 96, 64, 0.35);
+}
+
+.xk-w-name {
+    flex-grow: 1;
+}
+
+.xk-w-faint {
+    color: rgb(150, 142, 126);
+}
+
+.xk-w-qty {
+    width: 44px;
+    color: rgb(190, 181, 163);
+}
+
+.xk-w-price {
+    width: 120px;
+    -unity-text-align: middle-right;
+    color: rgb(226, 196, 120);
+    margin-right: 8px;
+}
+
+.xk-w-slot {
+    width: 110px;
+    -unity-font-style: bold;
+    color: rgb(214, 180, 116);
+}
+
+.xk-w-act {
+    height: 24px;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+.xk-w-detail {
+    white-space: normal;
+    margin-top: 8px;
+    padding: 6px 8px;
+    background-color: rgba(34, 31, 26, 0.7);
+    border-radius: 4px;
+    min-height: 40px;
+}
+
+.xk-w-message {
+    margin-top: 6px;
+    color: rgb(214, 180, 116);
+}
+
+.xk-w-ledger-line {
+    font-size: 12px;
+    color: rgb(190, 181, 163);
+}
+
+.xk-w-empty {
+    color: rgb(150, 142, 126);
+    padding: 6px;
+}
+
+.xk-w-note {
+    white-space: normal;
+    font-size: 12px;
+    color: rgb(190, 181, 163);
+    margin: 6px 0;
+}
+
+.xk-w-desc {
+    white-space: normal;
+    font-size: 11px;
+    color: rgb(150, 142, 126);
+    margin: 0 6px 4px 6px;
+}
+
+.xk-w-pair {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.xk-w-key {
+    width: 170px;
+    -unity-font-style: bold;
+    color: rgb(214, 180, 116);
+}
+
+.xk-w-value {
+    flex-grow: 1;
+    white-space: normal;
+}
+
+.xk-w-choice {
+    height: 26px;
+}
+
+.xk-w-choice--on {
+    background-color: rgba(142, 110, 58, 1);
+    border-color: rgba(240, 214, 160, 0.9);
+}
+
+.xk-w-swatch {
+    width: 30px;
+    height: 26px;
+    margin: 0 4px;
+    border-width: 2px;
+    border-radius: 4px;
+    border-color: rgba(0, 0, 0, 0.5);
+}
+
+.xk-w-swatch--on {
+    border-color: rgb(240, 214, 160);
+}
+
+.xk-hub-body {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.xk-hub-nav {
+    width: 210px;
+    margin-right: 12px;
+}
+
+.xk-hub-tab {
+    height: 38px;
+    margin: 2px 0;
+    -unity-text-align: middle-left;
+    padding-left: 12px;
+    font-size: 14px;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: rgba(201, 164, 101, 0.2);
+    background-color: rgba(44, 40, 33, 0.9);
+    color: rgb(222, 212, 192);
+}
+
+.xk-hub-tab:hover {
+    background-color: rgba(84, 75, 60, 0.95);
+}
+
+.xk-hub-tab--active {
+    background-color: rgba(120, 92, 48, 0.95);
+    border-color: rgba(240, 214, 160, 0.7);
+    color: rgb(250, 236, 206);
+    -unity-font-style: bold;
+}
+
+.xk-hub-content {
+    flex-grow: 1;
+    flex-basis: 0;
+    background-color: rgba(34, 31, 26, 0.7);
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+.xk-hub-preview {
+    width: 400px;
+    margin-left: 12px;
+    border-width: 1px;
+    border-radius: 6px;
+    border-color: rgba(201, 164, 101, 0.35);
+    background-color: rgb(28, 25, 22);
+    -unity-background-scale-mode: scale-and-crop;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.xk-hub-preview-hint {
+    font-size: 11px;
+    color: rgba(232, 223, 204, 0.7);
+    margin-bottom: 6px;
+}
+
+.xk-hub-field {
+    margin: 3px 0;
+}

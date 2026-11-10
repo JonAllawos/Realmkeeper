@@ -16,5 +16,10 @@
 | [0012](ADR-0012-humanoid-characters.md) | Humanoid characters whose look derives from identity | Accepted (graphics pass) |
 | [0013](ADR-0013-tiered-npc-simulation.md) | Tiered NPC simulation inside the day; named people counted in the population | Accepted (Phase 4) |
 | [0014](ADR-0014-npc-knowledge-and-dialogue.md) | Knowledge separate from truth; dialogue only from knowledge | Accepted (Phase 4) |
+| [0015](ADR-0015-player-identity.md) | The player is one persistent domain entity, extended rather than replaced | Accepted (Phase 5) |
+| [0016](ADR-0016-item-ownership.md) | Item definitions are data; instances are stacks with exactly one owner | Accepted (Phase 5) |
+| [0017](ADR-0017-equipment-presentation.md) | Equipment shown from world data with the outfit kit's own parts and procedural props | Accepted (Phase 5) |
+| [0018](ADR-0018-shop-economy-integration.md) | Shops kept by residents and stocked from the settlement economy, without double counting | Accepted (Phase 5) |
+| [0019](ADR-0019-time-cadence.md) | Minutes on top of daily simulation; hourly behaviour derived, not stored | Accepted (Phase 5) |
 
 Template: Context · Decision · Consequences · Alternatives considered.
