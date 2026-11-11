@@ -33,8 +33,9 @@ The validator rejects:
 
 ## What equipment does now
 
-There is no combat in this phase, but equipment has real effects:
+Equipment has these effects (Phase 8 added combat):
 
+- **Armour and weapons follow the SRD** (Phase 8, ADR-0033). Worn armour sets the armour class by its category; a shield adds 2 if trained; weapons give their SRD damage, properties and ranges in combat. See `Systems/Combat.md` for the item-to-SRD table. The older Protection and Damage numbers still drive prices and the Hub's equipment summary.
 - **Protection** of everything worn and the **damage and class** of the wielded weapon are computed
   and shown in the Hub. Bare hands count as damage 1.
 - **Weight** counts toward encumbrance and slows the player.

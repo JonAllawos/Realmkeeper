@@ -561,3 +561,74 @@ held 60 fps.
 - the other six classes' level-ups, all 12 classes to level 20, and the rules milestones;
 - feats' edge cases, every validator rejection, resources and rests, damage and healing;
 - non-player sheets.
+
+## Phase 8: Combat Foundation, Encounter Engine & Settlement Structures (2026-11-11)
+
+| Suite | Environment | Result |
+|---|---|---|
+| .NET harness (`dotnet test Tools/DotNet/Realmkeeper.Verification.sln -c Release`) | Windows 11, .NET 8 | **470 passed, 0 failed, 0 skipped** (424 before Phase 8 + 46 new); build 0 warnings, 0 errors |
+| Unity EditMode (batch, `-runTests -testPlatform EditMode`) | Unity 6000.0.47f1 | **470 passed, 0 failed, 0 skipped** (171 s) |
+| Unity PlayMode (batch, `-runTests -testPlatform PlayMode`) | Unity 6000.0.47f1 | **66 passed, 0 failed, 6 skipped** (48 s). The six skipped are the capture sets, which run only with `RK_CAPTURE_DIR` |
+| Phase 8 capture (`Phase8CaptureTests`, `RK_CAPTURE_DIR` set) | Unity 6000.0.47f1 | 1 passed; 10 screenshots in `Documentation/Screenshots/Phase8/` |
+
+**New .NET / EditMode tests (46):**
+
+| Fixture | Tests | Covers |
+|---|---|---|
+| `CombatTests` | 28 | SRD armour classes, the Strength requirement, untrained armour and shields, item profiles; encounter refusals (duplicates, no hostility, a second fight); initiative order and tie-breaks; reinforcements; the action economy, Dash, Disengage, Dodge, Second Wind; movement costs, difficult terrain, blocking, opportunity attacks; prone, grappled; the d20 rules over 400 attacks (natural 1 and 20, criticals), advantage, disadvantage and cancelling; range and reach; grapple and shove; resistance and temporary HP; creature death; the player dying, death saves over 16 seeds, massive damage, non-lethal knock-outs, stabilizing at the end; healing and Stabilize; the 15 conditions and their mechanics; timed conditions; the AI (valid, deterministic, never against allies, finishes a fight; retreats when hurt); the dice stream reproducible |
+| `CombatIntegrationTests` | 12 | The practice encounter with the town's guard; time standing still; stale and duplicate actions refused; a fight played to its end with few chronicle entries; a resident killed through the shared death routine; a dead player; non-lethal fights; an active fight saved, loaded and played on identically; finished encounters bounded; v9, v8 and v7 saves migrating; tampered saves refused |
+| `StructureTests` | 5 | Catalog classification; every place one structure and every shop housed once; distribution by size; determinism and once-only; ordering |
+| `CombatPerformanceTests` | 1 | Benchmarks below |
+
+**Earlier tests updated to intended Phase 8 behaviour** (none weakened, none removed):
+- `ProgressionTests`: the armour-class assertion follows the SRD chain shirt (13 + Dex, max 2) instead of the provisional protection value. The schema assertion uses `CurrentSchemaVersion` instead of 9.
+- `Phase2Worlds.StripToV7` and `ProgressionTests.StripToV8` first strip the v10 fields (`StripToV9`), so old-save fixtures stay faithful.
+- `WorldFingerprint` now covers structures and encounters.
+
+**New PlayMode tests in the shipped scene** (`Phase8PlayModeTests`, all passed):
+1. `PracticeFight_PlaysThroughThePanel_ToItsEnd`:
+   - the HUD button starts the fight;
+   - the panel, grid and markers appear;
+   - the clock and leaving are refused;
+   - a far attack shows its reason on screen;
+   - inspecting a bandit shows AC 12;
+   - the whole fight is played by clicking attacks, grid squares, End turn and Continue;
+   - the end state, the log and the chronicle are checked;
+   - Close frees the character and the clock.
+2. `AFightInProgress_SurvivesSaveAndLoad_AndThePanelReturns`.
+3. `Withdraw_IsRefusedNextToAnEnemy_AndEndsTheFightOtherwise`.
+4. `Structures_AreListedInTheInspector_SignsStandInTheStreet_AndTheHubShowsTheCredits`.
+
+**Mutation checks** (introduced, run against the full .NET suite, reverted; the source was verified clean afterwards):
+
+| Mutant | Result |
+|---|---|
+| A natural 1 no longer misses automatically | **Survived at first**: a natural 1 never reached AC 12 anyway. The attack test now also asserts the stated reason ("a natural 1 always misses"); the mutant is now caught |
+| Critical hits no longer double the dice | Caught |
+| Resistance no longer halves | Caught |
+| Opportunity attacks never provoked | Caught (the first form was rejected by the compiler, a second form was caught by the test) |
+| Difficult terrain costs normal movement | Caught |
+| Initiative ordered lowest first | Caught |
+| Damage at 0 HP from a critical counts one failure | Caught |
+| Massive damage never kills | Caught |
+| The shield ignored in AC | Caught by 2 tests |
+| The validator allows two active encounters | Caught |
+| The action sequence not checked | Caught |
+| The AI never retreats | Caught |
+| Structures ignore the largest settlement size | Caught |
+
+**Bug found by the new tests and fixed:** in a non-lethal fight, a large hit on someone already knocked out could still kill them. Damage at 0 hit points now never kills in a non-lethal fight.
+
+**Performance** (`CombatPerformanceTests`):
+
+| Operation | .NET | Unity EditMode |
+|---|---|---|
+| Encounter snapshot for the UI | 0.08 ms | 0.19 ms |
+| A turn command (validated commit), practice fight | 0.3 ms | 0.6 ms |
+| Large encounter: 40 combatants, AI-only, to the end | 7 ms for 495 actions over 8 rounds (13 µs per action) | 11 ms (22 µs per action) |
+| World save / load with an active encounter | 2.7 / 10.4 ms | 2.4 / 49.6 ms |
+| Structure generation, world generation included | 18.8 ms | 57.7 ms |
+
+**Not measured:** a development-build frame-time probe with the encounter panel open. The panel is UI Toolkit, and the markers add a few primitives per combatant.
+
+**After the PlayMode run:** the marker labels were made smaller, and the player's own label was removed (they overlapped in the first capture). This is a presentation-only change. The capture set was re-run after it and passed; the PlayMode suite was not re-run.

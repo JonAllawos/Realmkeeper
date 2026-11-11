@@ -1,0 +1,115 @@
+using System;
+using System.Collections.Generic;
+using Realmkeeper.Domain.Rpg;
+using Realmkeeper.Domain.World;
+
+namespace Realmkeeper.Domain.Combat
+{
+    /// <summary>A creature's natural or carried attack (from its stat block).</summary>
+    public sealed class CreatureAttack
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int AttackBonus { get; set; }
+        public Dice Damage { get; set; }
+        public DamageType DamageType { get; set; }
+
+        /// <summary>Melee reach in feet (0 for a ranged-only attack).</summary>
+        public int Reach { get; set; }
+
+        /// <summary>Range and long range in feet (0 for melee-only).</summary>
+        public int Range { get; set; }
+        public int LongRange { get; set; }
+
+        /// <summary>A condition a hit inflicts (the wolf's bite knocks a Medium or smaller target prone).</summary>
+        public ConditionType? OnHit { get; set; }
+    }
+
+    /// <summary>
+    /// The combat statistics of a creature that has no character sheet (SRD 5.2.1 stat blocks, verified for Phase 8;
+    /// descriptions are Realmkeeper's own). Named residents fight with the profile their role suggests: guards as
+    /// Guards, everyone else as Commoners. Their identity stays the resident's.
+    /// </summary>
+    public sealed class CreatureDefinition
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public CreatureSize Size { get; set; } = CreatureSize.Medium;
+        public string Type { get; set; } = "Humanoid";
+        public int ArmorClass { get; set; }
+        public string ArmorNote { get; set; }
+        public Dice HitDice { get; set; }
+        public int MaxHp { get; set; }
+        public int Speed { get; set; } = 30;
+
+        /// <summary>Ability scores in <see cref="Ability"/> order.</summary>
+        public int[] Scores { get; set; } = { 10, 10, 10, 10, 10, 10 };
+
+        public IReadOnlyList<Ability> SaveProficiencies { get; set; } = Array.Empty<Ability>();
+        public int ProficiencyBonus { get; set; } = 2;
+        public IReadOnlyList<CreatureAttack> Attacks { get; set; } = Array.Empty<CreatureAttack>();
+
+        /// <summary>Advantage on attacks against a creature that one of its allies stands next to (wolves).</summary>
+        public bool PackTactics { get; set; }
+
+        public int Darkvision { get; set; }
+        public IReadOnlyList<DamageType> Resistances { get; set; } = Array.Empty<DamageType>();
+        public IReadOnlyList<DamageType> Vulnerabilities { get; set; } = Array.Empty<DamageType>();
+        public IReadOnlyList<DamageType> Immunities { get; set; } = Array.Empty<DamageType>();
+        public IReadOnlyList<ConditionType> ConditionImmunities { get; set; } = Array.Empty<ConditionType>();
+        public ContentSource Source { get; set; } = ContentSource.Srd521;
+
+        public int Modifier(Ability a) => AbilityRules.Modifier(Scores[(int)a]);
+    }
+
+    public static class CreatureCatalog
+    {
+        private static readonly Lazy<IReadOnlyList<CreatureDefinition>> List = new Lazy<IReadOnlyList<CreatureDefinition>>(Build);
+
+        public static IReadOnlyList<CreatureDefinition> All => List.Value;
+
+        public static CreatureDefinition Find(string id)
+        {
+            if (id == null) return null;
+            foreach (var c in All) if (c.Id == id) return c;
+            return null;
+        }
+
+        /// <summary>The profile a resident of this role fights with.</summary>
+        public static string ProfileFor(NpcRole role) => role == NpcRole.Guard ? "guard" : "commoner";
+
+        private static IReadOnlyList<CreatureDefinition> Build() => new[]
+        {
+            new CreatureDefinition
+            {
+                Id = "commoner", Name = "Commoner", Description = "An ordinary person with no training in arms.",
+                ArmorClass = 10, ArmorNote = "no armour", HitDice = new Dice(1, 8), MaxHp = 4, Scores = new[] { 10, 10, 10, 10, 10, 10 },
+                Attacks = new[] { new CreatureAttack { Id = "club", Name = "Club", AttackBonus = 2, Damage = new Dice(1, 4), DamageType = DamageType.Bludgeoning, Reach = 5 } },
+            },
+            new CreatureDefinition
+            {
+                Id = "bandit", Name = "Bandit", Description = "A robber who works the roads in a loose band.",
+                ArmorClass = 12, ArmorNote = "leather armour", HitDice = new Dice(2, 8, 2), MaxHp = 11, Scores = new[] { 11, 12, 12, 10, 10, 10 },
+                Attacks = new[]
+                {
+                    new CreatureAttack { Id = "scimitar", Name = "Scimitar", AttackBonus = 3, Damage = new Dice(1, 6, 1), DamageType = DamageType.Slashing, Reach = 5 },
+                    new CreatureAttack { Id = "light_crossbow", Name = "Light crossbow", AttackBonus = 3, Damage = new Dice(1, 8, 1), DamageType = DamageType.Piercing, Range = 80, LongRange = 320 },
+                },
+            },
+            new CreatureDefinition
+            {
+                Id = "guard", Name = "Guard", Description = "A watch keeper in a chain shirt, with spear and shield.",
+                ArmorClass = 16, ArmorNote = "chain shirt, shield", HitDice = new Dice(2, 8, 2), MaxHp = 11, Scores = new[] { 13, 12, 12, 10, 11, 10 },
+                Attacks = new[] { new CreatureAttack { Id = "spear", Name = "Spear", AttackBonus = 3, Damage = new Dice(1, 6, 1), DamageType = DamageType.Piercing, Reach = 5, Range = 20, LongRange = 60 } },
+            },
+            new CreatureDefinition
+            {
+                Id = "wolf", Name = "Wolf", Description = "A lean grey hunter that runs in packs.", Type = "Beast",
+                ArmorClass = 12, ArmorNote = "natural", HitDice = new Dice(2, 8, 2), MaxHp = 11, Speed = 40, Scores = new[] { 14, 15, 12, 3, 12, 6 },
+                PackTactics = true, Darkvision = 60,
+                Attacks = new[] { new CreatureAttack { Id = "bite", Name = "Bite", AttackBonus = 4, Damage = new Dice(1, 6, 2), DamageType = DamageType.Piercing, Reach = 5, OnHit = ConditionType.Prone } },
+            },
+        };
+    }
+}

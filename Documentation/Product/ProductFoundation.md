@@ -122,3 +122,17 @@ and appears in the chronicle. This must be verified by automated tests, not only
   multiplayer or cloud infrastructure.
 - Preserve the existing Unity 6 project and all functioning systems.
 - Realmkeeper remains completely independent of Living Realms and The Tavern Table (P1).
+
+## Status note (Phase 8, 2026-11-11)
+
+This note does not change any requirement.
+- **Exploration.** Addendum A's exploration has been implemented since this document was written:
+  the line above saying "not implemented" describes the time of adoption.
+- **RPG systems.** Phases 6–8 have added systems from the Game Design Bible: character creation,
+  progression and, in Phase 8, turn-based combat inside the exploration view.
+- **Binding requirements.** These systems respect them:
+  - one persistent, deterministic world model;
+  - every change goes through application commands;
+  - no state lives only in the scene.
+- **Open owner decision.** Whether the Bible supersedes parts of §1 is still for the owner to
+  decide (see `GameDesignBible.md`).

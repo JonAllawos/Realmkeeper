@@ -118,6 +118,7 @@ namespace Realmkeeper.Exploration.Application
             var player = ExplorationModule.RequirePlayer(context, out var failure);
             if (player == null) return failure;
             if (!player.IsInSettlement) return CommandResult.InvalidState($"{player.Name} is not in a settlement.");
+            if (context.Committed.ActiveEncounter != null) return CommandResult.InvalidState("A fight is going on: withdraw from it or finish it before leaving."); // Phase 8
 
             var name = context.Committed.FindSettlement(player.SettlementId)?.Name;
             var p = context.Edit().Player;

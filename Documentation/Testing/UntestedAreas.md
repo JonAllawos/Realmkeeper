@@ -12,3 +12,13 @@
 | Very long histories (10,000+ events) | Performance only: each day deep-copies the settlement lists, and event lists are copied by reference | Profile once history pruning or chronicle paging exists |
 | Concurrent access to `WorldSession` | Not supported by design | Keep all calls on Unity's main thread |
 | Generator relaxation fallback (spacing below 34 cells) | Exercised only if some seed needs it; no test forces it | Add a test with a tiny map setting |
+
+## Phase 8 (combat and structures)
+
+| Area | Risk | How to cover it |
+|---|---|---|
+| Ground markers and labels in a player build | Low. Primitives and the built-in runtime font, checked only in captures | Make a standalone build and look |
+| AI with a resident on the hostile side | Only creatures and allied guards were exercised in play; the engine path is shared and unit-tested | Add a scripted encounter with a hostile resident |
+| Very long fights (log over 500 entries) | Bounded by design and validated; no test plays one that long | Add a test that trims the log |
+| Frame time with the encounter panel open | Not profiled | Run the performance probe in a development build |
+| Free mouse-driven play (clicks on markers in the 3D scene) | Moves are made on the panel's grid only; the markers are not clickable | Decide in a later phase whether to add picking |

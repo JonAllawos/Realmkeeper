@@ -127,6 +127,19 @@ namespace Realmkeeper.Tests.EditMode
                 sb.AppendLine();
             }
 
+            foreach (var s in w.Structures)
+                sb.Append("ST ").Append(s.StructureId).Append(' ').Append(s.DefinitionId).Append(' ').Append(s.Name).Append(' ').Append(s.SettlementId).Append(' ').Append(s.LocationId)
+                  .Append(' ').Append(s.ShopId).Append(' ').Append(s.OwnerNpcId).Append(' ').Append(s.FactionId).Append(' ').Append(s.LayoutKey).Append(' ').Append(s.Condition)
+                  .Append(' ').Append(s.EstablishedOn.IsValidDate ? s.EstablishedOn.ToIsoString() : "-").AppendLine();
+            foreach (var e in w.Encounters)
+            {
+                sb.Append("EN ").Append(e.EncounterId).Append(' ').Append(e.Name).Append(' ').Append(e.Status).Append(' ').Append(e.Outcome).Append(' ').Append(e.Round)
+                  .Append(' ').Append(e.TurnIndex).Append(' ').Append(e.Seed).Append(' ').Append(e.RollCount).Append(' ').Append(e.ActionSequence).Append(' ').Append(e.Log.Count).AppendLine();
+                foreach (var c in e.Combatants)
+                    sb.Append("  C ").Append(c.CombatantId).Append(' ').Append(c.Name).Append(' ').Append(c.Side).Append(' ').Append(c.CurrentHp).Append('/').Append(c.MaxHp)
+                      .Append(' ').Append(c.State).Append(' ').Append(c.Position).Append(' ').Append(c.Initiative).Append(' ').Append(c.Conditions.Count).AppendLine();
+            }
+
             return sb.ToString();
         }
     }

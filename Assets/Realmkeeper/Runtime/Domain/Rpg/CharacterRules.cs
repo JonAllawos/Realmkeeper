@@ -20,13 +20,24 @@ namespace Realmkeeper.Domain.Rpg
             return this;
         }
 
+        private readonly List<string> _notes = new List<string>();
+
+        /// <summary>Phase 8: restrictions and remarks that explain the number without changing it.</summary>
+        public IReadOnlyList<string> Notes => _notes;
+
+        public Breakdown Note(string note)
+        {
+            if (!string.IsNullOrEmpty(note) && !_notes.Contains(note)) _notes.Add(note);
+            return this;
+        }
+
         public string Text
         {
             get
             {
                 var parts = new List<string>();
                 foreach (var (label, value) in _parts) parts.Add(label + " " + (value >= 0 ? "+" : string.Empty) + value.ToString(CultureInfo.InvariantCulture));
-                return string.Join(", ", parts);
+                return string.Join(", ", parts) + (_notes.Count > 0 ? "; " + string.Join("; ", _notes) : string.Empty);
             }
         }
 
@@ -428,8 +439,23 @@ namespace Realmkeeper.Domain.Rpg
                 if (!list.Contains(se.Source)) list.Add(se.Source);
             }
 
+            // Phase 8 (SRD 5.2.1 Armor Training): untrained armour gives disadvantage on every D20 test that uses
+            // Strength or Dexterity; armour with a stealth penalty gives disadvantage on Stealth.
+            if (UntrainedArmor)
+                foreach (var t in targets)
+                    if ((t.EndsWith(":Strength", StringComparison.Ordinal) || t.EndsWith(":Dexterity", StringComparison.Ordinal)) && !r.Disadvantage.Contains("untrained armour"))
+                        r.Disadvantage.Add("untrained armour");
+            if (_loadout.BodyArmor != null && _loadout.BodyArmor.StealthDisadvantage && Array.IndexOf(targets, "skill:" + Skill.Stealth) >= 0)
+                r.Disadvantage.Add((ItemCatalog.Find(_loadout.BodyArmorId)?.Name ?? "armour") + " (stealth)");
             return r;
         }
+
+        /// <summary>
+        /// Phase 8: advantage and disadvantage on any roll target the engine knows ("attack:Strength",
+        /// "save:Dexterity", "initiative" …), from features, conditions in effects, and armour training. Combat uses
+        /// it for attack rolls; conditions on a combatant add their own sources on top.
+        /// </summary>
+        public RollMode RollFor(params string[] targets) => Roll(targets);
 
         /// <summary>Effects of a kind with each source counted once (the same feature never stacks with itself).</summary>
         private IEnumerable<SourcedEffect> Once(EffectKind kind)
@@ -474,6 +500,7 @@ namespace Realmkeeper.Domain.Rpg
                 if (v != 0) b.Add(se.Source, v);
             }
 
+            if (ArmorTooHeavy) b.Add($"{ItemCatalog.Find(_loadout.BodyArmorId)?.Name ?? "armour"} (Strength below {_loadout.BodyArmor.StrengthRequirement})", -10);
             return b;
         }
 
@@ -540,41 +567,57 @@ namespace Realmkeeper.Domain.Rpg
             }
         }
 
-        /// <summary>The loadout a player's equipment gives (body armour in the chest slot, a shield anywhere).</summary>
+        /// <summary>The loadout a player's equipment gives: the suit of armour in the chest slot and a shield in the off hand.</summary>
         public static Loadout LoadoutOf(PlayerCharacterData player)
         {
             if (player == null) return Loadout.Unarmored;
-            var armoured = false;
-            var shield = false;
-            foreach (var pair in player.Equipment)
-            {
-                var d = ItemCatalog.Find(pair.Value.ItemId);
-                if (d == null) continue;
-                if (d.Category == ItemCategory.Armour && pair.Key == EquipmentSlot.Chest) armoured = true;
-                if (d.Category == ItemCategory.Shield) shield = true;
-            }
-
-            return new Loadout(armoured, shield, false);
+            var body = player.Equipped(EquipmentSlot.Chest)?.ItemId;
+            var shield = player.Equipped(EquipmentSlot.OffHand)?.ItemId;
+            return new Loadout(body, shield);
         }
 
+        /// <summary>The armour training the character has ("light", "medium", "heavy", "shields").</summary>
+        public bool TrainedIn(string training)
+        {
+            foreach (var a in ArmorProficiencies) if (a == training) return true;
+            return false;
+        }
+
+        /// <summary>True when the worn suit of armour is one the character is not trained in (SRD 5.2.1 Armor Training).</summary>
+        public bool UntrainedArmor => _loadout.BodyArmor != null && !TrainedIn(_loadout.BodyArmor.Training);
+
+        /// <summary>True when the worn armour's Strength requirement is not met (speed −10 ft).</summary>
+        public bool ArmorTooHeavy => _loadout.BodyArmor != null && _loadout.BodyArmor.StrengthRequirement > 0 && Score(Ability.Strength) < _loadout.BodyArmor.StrengthRequirement;
+
         /// <summary>
-        /// Armour class (provisional until combat defines armour types): 10 + Dexterity, or the best unarmoured
-        /// defence when no armour is worn (only one base formula applies), plus the protection of everything worn,
-        /// plus armour-class bonuses whose conditions hold (Defense).
+        /// Armour class (Phase 8; SRD 5.2.1). Exactly one base formula applies:
+        /// <list type="bullet">
+        /// <item>a suit of armour: its base AC plus Dexterity up to its cap (none for heavy armour);</item>
+        /// <item>no armour: 10 + Dexterity, or the best unarmoured defence (10 + Dexterity + an ability), whichever is
+        /// higher (a monk's needs no shield);</item>
+        /// </list>
+        /// plus a shield's +2 when trained with shields (none otherwise), plus armour-class bonuses whose
+        /// conditions hold (Defense). Restrictions — untrained armour, an unmet Strength requirement, stealth
+        /// disadvantage — are listed as notes. Accessory pieces (bracers, leggings, pauldrons, caps) add nothing.
         /// </summary>
         public Breakdown ArmorClass(PlayerCharacterData player)
         {
             var loadout = player != null ? LoadoutOf(player) : _loadout;
-            var b = new Breakdown().Add("base", 10).Add("Dexterity", Modifier(Ability.Dexterity));
-            var protection = 0;
-            if (player != null)
-                foreach (var pair in player.Equipment)
-                {
-                    var d = ItemCatalog.Find(pair.Value.ItemId);
-                    if (d != null) protection += d.Protection;
-                }
-
-            if (!loadout.Armor)
+            var dex = Modifier(Ability.Dexterity);
+            var b = new Breakdown();
+            var body = loadout.BodyArmor;
+            if (body != null)
+            {
+                var name = ItemCatalog.Find(loadout.BodyArmorId)?.Name ?? "armour";
+                b.Add(name + " (" + body.Category.ToString().ToLowerInvariant() + ")", body.BaseAc);
+                var dexPart = body.DexCap < 0 ? dex : Math.Min(dex, body.DexCap);
+                if (body.DexCap == 0) b.Note("Dexterity does not apply to heavy armour");
+                else b.Add("Dexterity" + (body.DexCap > 0 && dex > body.DexCap ? $" (max {body.DexCap})" : string.Empty), dexPart);
+                if (!TrainedIn(body.Training)) b.Note($"untrained in {body.Training} armour: disadvantage on Strength and Dexterity rolls, and no spellcasting");
+                if (body.StrengthRequirement > 0 && Score(Ability.Strength) < body.StrengthRequirement) b.Note($"Strength below {body.StrengthRequirement}: speed −10 ft");
+                if (body.StealthDisadvantage) b.Note("disadvantage on Stealth");
+            }
+            else
             {
                 var best = 0;
                 string from = null;
@@ -584,13 +627,20 @@ namespace Realmkeeper.Domain.Rpg
                     if (!Enum.TryParse<Ability>(se.Effect.Key, out var a)) continue;
                     if (a == Ability.Wisdom && loadout.Shield) continue; // a monk's defence needs both hands free of shields
                     var m = Modifier(a);
-                    if (from == null || m > best) { best = m; from = a + " (" + se.Source + ")"; }
+                    if (m > best) { best = m; from = a + " (" + se.Source + ")"; }
                 }
 
+                b.Add(from != null ? "unarmoured defence: 10" : "no armour: 10", 10).Add("Dexterity", dex);
                 if (from != null) b.Add(from, best);
             }
 
-            if (protection != 0) b.Add("worn protection", protection);
+            var shield = loadout.ShieldArmor;
+            if (shield != null)
+            {
+                if (TrainedIn("shields")) b.Add(ItemCatalog.Find(loadout.ShieldId)?.Name ?? "shield", shield.BaseAc);
+                else b.Note("untrained with shields: the shield gives no AC");
+            }
+
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var se in _effects)
                 if (se.Effect.Kind == EffectKind.ArmorClassBonus && loadout.Allows(se.Effect.Condition) && seen.Add(se.Source))

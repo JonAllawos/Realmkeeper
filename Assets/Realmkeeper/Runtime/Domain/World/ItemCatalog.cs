@@ -198,6 +198,18 @@ namespace Realmkeeper.Domain.World
                 Visual = "prop:lute", Materials = M((timber, 1)), Description = "A round-backed stringed instrument." });
             Add(new ItemDefinition { Id = "dice_set", Name = "Dice set", Category = ItemCategory.Tool, BaseValue = 1, WeightGrams = 50, SoldBy = general,
                 Visual = "prop:dice", Description = "Bone dice in a little bag." });
+
+            // ----- Phase 8: heavy armour (data only: not stocked by shops yet, so shop generation is unchanged) -----
+            Add(new ItemDefinition { Id = "chain_mail", Name = "Chain mail", Category = ItemCategory.Armour, Slot = EquipmentSlot.Chest,
+                BaseValue = 75, WeightGrams = 25000, Protection = 6, Visual = "outfit:Ranger:Body:Ranger3", Materials = M((iron, 8)),
+                Description = "A full coat of riveted rings over padding. Heavy and loud. (Shown with the forester's jerkin model until armour art exists.)" });
+
+            // ----- Phase 8: combat data (SRD 5.2.1) on the existing items, by ID -----
+            foreach (var d in All)
+            {
+                if (ItemCombat.Weapons.TryGetValue(d.Id, out var w)) { d.Weapon = w; d.RulesSource = ItemCombat.Srd; }
+                if (ItemCombat.Armor.TryGetValue(d.Id, out var a)) { d.Armor = a; d.RulesSource = ItemCombat.Srd; }
+            }
         }
     }
 }

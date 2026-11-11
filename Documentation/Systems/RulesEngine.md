@@ -77,7 +77,7 @@ Every number comes with its breakdown.
 | Initiative | Dexterity and bonuses; advantage |
 | Maximum hit points | Hit die maximum, average levels, Constitution × level, each per-level bonus by source |
 | Speed | Species and each applicable bonus |
-| Armour class | Base, Dexterity, the unarmoured defence used and its source, worn protection, conditional bonuses |
+| Armour class | Phase 8: the worn armour (SRD category, base, Dex cap) or the better of 10 + Dex and the unarmoured defence, the shield if trained, conditional bonuses, and notes for untrained armour or shields and missing Strength (ADR-0033) |
 | Spell save DC and attack | Base, proficiency, ability |
 
 **Equipment bonuses.** The armour-class breakdown already reads equipment. No item grants a skill
@@ -100,14 +100,12 @@ pact of the blade invocation"). The level-up window shows that text beside each 
 
 ## What the engine does not do yet
 
-These are deliberately deferred (Phase 8 onwards):
+Phase 8 added dice, attacks, damage, the conditions' combat mechanics and SRD armour (`Systems/Combat.md`). The engine's roll modes now include untrained-armour disadvantage on Strength and Dexterity tests and armour Stealth disadvantage. Still deferred:
 
-- dice rolls;
-- attacks, damage and conditions;
 - spells;
 - concentration;
 - rests that pass time;
-- armour categories (AC stays provisional).
+- most class combat features (see `Systems/Combat.md`, Deferred).
 
 Features whose effects need these systems are acquired, validated and shown. Each carries an
 `IntegrationNeed` (combat, magic, rest, dialogue, exploration), so the sheet says what each waits

@@ -257,6 +257,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             }
 
             WriteNpcWorld(w, dto);
+            WriteCombatWorld(w, dto);
             return dto;
         }
 
@@ -600,6 +601,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             }
 
             ReadNpcWorld(dto, world);
+            ReadCombatWorld(dto, world);
             return world;
         }
 

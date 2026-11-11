@@ -641,7 +641,9 @@ namespace Realmkeeper.Tests.EditMode.Character
             var unarmoured = new CharacterRules(fighter).ArmorClass(p).Total;
             p.Equipment[EquipmentSlot.Chest] = new ItemStackData { ItemId = "chain_shirt", Quantity = 1 };
             var armoured = new CharacterRules(fighter).ArmorClass(p);
-            Assert.That(armoured.Total, Is.EqualTo(unarmoured + ItemCatalog.Find("chain_shirt").Protection + 1), armoured.Text);
+            var dexMod = new CharacterRules(fighter).Modifier(Ability.Dexterity);
+            Assert.That(armoured.Total, Is.EqualTo(13 + Math.Min(dexMod, 2) + 1), "Phase 8 armour: chain shirt 13 + Dexterity (max 2) + Defence. " + armoured.Text);
+            Assert.That(unarmoured, Is.EqualTo(10 + dexMod), "No armour: 10 + Dexterity, and Defence needs armour.");
             Assert.That(armoured.Text, Does.Contain("Fighting Style"));
 
             // Stacking: the same feature never counts twice; two sources of advantage plus one disadvantage cancel.
@@ -677,7 +679,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             Assert.That(s.ExperienceLog.Sum(a => a.Amount), Is.EqualTo(s.Experience));
             var doc = JObject.Parse(json);
             Assert.That(doc["world"]["player"]["rpg"]["maxHp"], Is.Null, "Derived values are not saved.");
-            Assert.That(doc["schemaVersion"].Value<int>(), Is.EqualTo(9));
+            Assert.That(doc["schemaVersion"].Value<int>(), Is.EqualTo(WorldData.CurrentSchemaVersion)); // v9 when written (Phase 7); the current schema since
 
             var tampered = JObject.Parse(json);
             ((JArray)tampered["world"]["player"]["rpg"]["experienceLog"]).RemoveAt(0);
@@ -687,6 +689,7 @@ namespace Realmkeeper.Tests.EditMode.Character
         /// <summary>Rewrites a current save of a created character to the v8 (Phase 6) layout.</summary>
         public static void StripToV8(JObject doc)
         {
+            Phase2Worlds.StripToV9(doc);
             doc["schemaVersion"] = 8;
             var rpg = (JObject)doc["world"]["player"]["rpg"];
             rpg.Remove("rulesVersion");

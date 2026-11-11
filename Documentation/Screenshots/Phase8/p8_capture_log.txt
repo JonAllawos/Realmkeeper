@@ -1,0 +1,12 @@
+p8_01_inspector_structures: Bramhaven: the settlement inspector's Structures section — 24 structures, functional ones built on existing places and shops, informational and decorative ones marked as such.
+p8_02_structure_sign: A placeholder sign above the door of Fairweather's Smithy (a functional structure: the Smithy shop and the smith's workplace).
+Initiative: Bandit archer 17, Neville Wade 12, Bandit 11, Tamsin Vale 3
+p8_03_fight_start: The practice fight begins: initiative order with HP, AC and state; the 5-ft tactical grid; ground markers in the street (placeholders: no bandit models exist); time is paused.
+p8_04_ai_turn: A computer-controlled turn resolved by the engine (Continue): the result and the log explain each roll.
+p8_05_player_turn_reasons: The player's turn: the action economy, every option, and why each unavailable one is unavailable (range, used action, not prone …).
+p8_06_inspect_bandit: Inspecting a bandit: AC 12 (leather), hit points, attacks with their bonuses and damage, scores (SRD 5.2.1 statistics).
+p8_07_attack_result: An attack explained: d20 (and both dice with advantage or disadvantage), bonus, total against AC, hit or miss, damage dice and modifiers, hit points before and after.
+Ended after 5 rounds: Victory player; player 12 HP
+p8_08_fight_over: The fight is over: the outcome, the full log, and the state of everyone; time resumes when the panel closes.
+p8_09_hub_sheet_after_fight: The sheet after the fight: hit points as the fight left them, armour class from the SRD armour rules.
+p8_10_hub_credits: The Hub's Info section: the SRD 5.2.1 and 5.1 attribution (CC BY 4.0) and the CC0 art credits, as in CREDITS.md.

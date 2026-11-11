@@ -49,7 +49,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The shop whose window is open, or null.</summary>
         public ShopInteriorView TradingAt { get; private set; }
 
-        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen) || (Advancement != null && Advancement.IsOpen);
+        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen) || (Advancement != null && Advancement.IsOpen) || (Combat != null && Combat.IsOpen);
 
         /// <summary>The atmosphere (lighting) of the current visit.</summary>
         public ExplorationAtmosphere Atmosphere => _atmosphere;
@@ -119,6 +119,8 @@ namespace Realmkeeper.Exploration.Presentation
                 Advancement.CloseRequested += CloseWindows;
                 Advancement.ConfirmRequested += c => ConfirmAdvancement(c);
                 AddClock();
+                SetupCombat(); // Phase 8
+                SetupStructureSigns(layout); // Phase 8
             }
 
             if (CameraRig != null) CameraRig.Camera.cullingMask &= ~(1 << CharacterPreview.Layer);
@@ -157,6 +159,8 @@ namespace Realmkeeper.Exploration.Presentation
             TradingAt = null;
             _assets = null;
             _clock = null;
+            TeardownCombat(); // Phase 8
+            _signs.Clear();
         }
 
         private void AddClock()
@@ -201,6 +205,8 @@ namespace Realmkeeper.Exploration.Presentation
             RefreshShops();
             RefreshPlayerBody();
             RefreshClock(time);
+            RefreshCombat(); // Phase 8: a loaded save may be mid-fight
+            if (Player != null && PlayerIsDead) Player.MovementEnabled = false;
             if (Trade != null && Trade.IsOpen && TradingAt != null) Trade.Show(_session.GetShopDetail(TradingAt.ShopId));
         }
 
@@ -457,6 +463,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         public void CloseWindows()
         {
+            if (Combat != null && Combat.IsOpen && !InFight) CloseFight(); // a finished fight's panel; an active one stays
             Creator?.Hide();
             Advancement?.Hide();
             Trade?.Hide();
@@ -468,7 +475,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void SetWindowMode(bool open)
         {
-            if (Player != null) Player.MovementEnabled = !open;
+            if (Player != null) Player.MovementEnabled = !open && !InFight && !PlayerIsDead; // Phase 8: no walking off mid-fight, or when dead
             if (open) SetCursorFree(true);
         }
 

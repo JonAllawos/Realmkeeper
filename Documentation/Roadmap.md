@@ -12,8 +12,9 @@
 | Phase 4: NPC Intelligence Engine | Done (this milestone); see the test results for what was run | `Systems/NPCs.md`, `Systems/Relationships.md`, `Reports/Phase4-NPC-Intelligence.md` |
 | Phase 5: Living World, Player Hub & Commerce | Done (`1f37bb6`) | `Systems/WorldTime.md`, `Systems/Player.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Systems/Commerce.md`, `Reports/Phase5-Living-World.md` |
 | Phase 6: Character Creation & Core RPG Foundation | Done (`f2682a2`) | `Systems/Characters.md`, `Systems/Species.md`, `Systems/Backgrounds.md`, `Systems/Classes.md`, `Systems/SkillsAndAbilities.md`, `Systems/CharacterCreation.md`, `Reports/Phase6-Character-Creation.md` |
-| Phase 7: Character Progression & Core Rules Engine | Done (this milestone); awaiting review. See the test results for what was run | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
-| Phase 8 (Combat, per the Bible's roadmap) | **Not started.** Waits for review of Phase 7 and its own brief. | — |
+| Phase 7: Character Progression & Core Rules Engine | Done (`a3cd9f5`) | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
+| Phase 8: Combat Foundation, Encounter Engine & Settlement Structures | Done (this milestone); awaiting review. See the test results for what was run | `Systems/Combat.md`, `Systems/SettlementStructures.md`, `Phase8/Phase8-Report.md`, ADR-0030…0036 |
+| Phase 9 | **Not started.** Waits for review of Phase 8 and its own brief. | — |
 
 ## Phase 2 completion: what it added
 
@@ -145,3 +146,48 @@ Main limitations (full list in `Phase7/Phase7-Report.md`):
 | Multiclassing | Not supported |
 | NPCs and companions | The services take any sheet, but no NPC holds one yet |
 | Species art | Unchanged placeholders (Phase 6) |
+
+## Phase 8: what it added
+
+- **A combat engine in the domain** (ADR-0030), driven by commands:
+  - encounters with any number of sides and reinforcements;
+  - deterministic initiative and dice (ADR-0032);
+  - the action economy;
+  - a 5-ft grid with difficult terrain and opportunity attacks;
+  - SRD attacks with advantage and disadvantage, natural 1 and 20, critical hits;
+  - grapple and shove;
+  - damage with resistance, vulnerability and temporary hit points;
+  - all 15 conditions;
+  - death saves, stabilizing and death (ADR-0034).
+- **SRD armour and weapons replace the provisional armour class** (ADR-0033):
+  - armour categories, Dex caps, shields;
+  - training penalties and Strength requirements;
+  - the AC breakdown;
+  - weapon profiles on the existing items, plus chain mail.
+- **Participants.** Residents fight as themselves, never copied (ADR-0031). Their deaths go through
+  the shared NPC death routine.
+- **A deterministic AI** that proposes; the engine decides.
+- **A practice encounter** from the settlement HUD (F): two bandits, with the local guard on the
+  player's side. It uses the encounter panel (initiative, a tactical grid, actions with reasons,
+  results, inspector, log) and placeholder ground markers. Time stands still during the fight.
+- **The chronicle** gets the start, the end, people downed and deaths only (ADR-0036).
+- **Settlement structures** (ADR-0035):
+  - every existing place is a functional structure, housing its shop;
+  - informational and decorative structures are added by size;
+  - shown in the settlement inspector and as signs in the street.
+- **Save schema v10:** Phase 5, 6 and 7 saves load. Older worlds gain their structures, and no
+  encounter.
+- **Shipped credits:** `CREDITS.md`, the Hub's Info section and the README (the SRD CC BY 4.0
+  attribution and the CC0 art).
+
+Main limitations (full list in `Phase8/Phase8-Report.md`):
+
+| Area | Limitation |
+|---|---|
+| Encounters | The labelled practice fight is the only way to start one in play; no encounter generator |
+| Class features | Second Wind and Cunning Action only; Sneak Attack, Rage, Action Surge, Smite and the rest wait |
+| Spells, concentration | Not started (Phase 9 per the Bible) |
+| Presentation | Placeholder ground markers and stand-in figures; no creature models or animations; the grid lives in the panel |
+| NPC statistics | Residents use SRD Guard or Commoner profiles until NPCs have character sheets |
+| Rewards, recovery | No experience from combat; no resurrection or medical system |
+| Structures | Informational ones simulate nothing yet; no construction or upkeep |

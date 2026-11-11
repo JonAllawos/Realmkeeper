@@ -5,6 +5,31 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v9 → v10 (Phase 8: combat foundation, settlement structures). Adds an empty encounter list and the
+    /// character's dying state (no death saves, not stable, not dead). Structures are not written here: the loader
+    /// builds them from the save's own locations and shops after mapping (deterministic, once). Everything else,
+    /// including hit points, inventory and equipment, is untouched; armour class is derived, so the SRD armour
+    /// rules apply to the loaded character without changing any saved value.
+    /// </summary>
+    public sealed class MigrationV9ToV10 : ISaveMigration
+    {
+        public int SourceVersion => 9;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["encounters"] == null) world["encounters"] = new JArray();
+            if (world["player"] is JObject player && player["rpg"] is JObject rpg)
+            {
+                if (rpg["deathSaveSuccesses"] == null) rpg["deathSaveSuccesses"] = 0;
+                if (rpg["deathSaveFailures"] == null) rpg["deathSaveFailures"] = 0;
+                if (rpg["isStable"] == null) rpg["isStable"] = false;
+                if (rpg["isDead"] == null) rpg["isDead"] = false;
+            }
+        }
+    }
+
+    /// <summary>
     /// v8 → v9 (Phase 7: progression). Adds the progression record to the character and changes nothing else:
     /// <list type="bullet">
     /// <item>the rules version: 6 for a created character (its choices were made under Phase 6 rules, so the

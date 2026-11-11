@@ -309,6 +309,7 @@ namespace Realmkeeper.Exploration.Presentation
                     _content.Add(Text($"{r.Species.Name} · {r.Background.Name} · {r.Class.Name} {r.Level}" + (r.Subclass != null ? " (" + r.Subclass.Name + ")" : string.Empty), "xk-w-value"));
                     if (r.Species.Appearance.PlaceholderNote != null) _content.Add(Text(r.Species.Appearance.PlaceholderNote, "xk-cc-warn"));
                     _content.Add(ExperienceBar(ch));
+                    if (ch.VitalText != null) _content.Add(Text(ch.VitalText, "xk-cc-warn")); // Phase 8
                     if (ch.CanAdvance) _content.Add(LevelUpBanner(ch));
                     var vit = Row("xk-cc-wrap");
                     vit.name = "xk-hub-vitals";
@@ -604,7 +605,20 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var k in h.KnownBy) _content.Add(Pair(k.Name, $"{k.Role} · familiarity {k.Familiarity}, regard {k.Affinity} · {k.Why}"));
             _content.Add(Text("How regard grows: once a day per person, from talking (+2 familiarity) and trading (+3 familiarity, +1 regard). Repeating it the same day adds nothing.", "xk-w-note"));
             _content.Add(Text("Controls", "xk-w-heading"));
-            _content.Add(Text("H hub · E talk / trade at a counter · T wait an hour · P pause time · Esc free the cursor or close a window", "xk-w-note"));
+            _content.Add(Text("H hub · E talk / trade at a counter · F practice fight · T wait an hour · P pause time · Esc free the cursor or close a window", "xk-w-note"));
+            ShowCredits();
+        }
+
+        /// <summary>Phase 8: the shipped credits and the SRD attribution (the same text as CREDITS.md).</summary>
+        private void ShowCredits()
+        {
+            var box = new VisualElement { name = "xk-hub-credits" };
+            box.Add(Text("Credits", "xk-w-heading"));
+            box.Add(Text(Realmkeeper.Application.Credits.SrdNotice, "xk-w-note"));
+            box.Add(Text(Realmkeeper.Application.Credits.Srd51Notice, "xk-w-note"));
+            box.Add(Text(Realmkeeper.Application.Credits.RulesUse, "xk-w-note"));
+            foreach (var (work, author, licence) in Realmkeeper.Application.Credits.Assets) box.Add(Pair(author, work + " · " + licence));
+            _content.Add(box);
         }
 
         // ----- Bits -------------------------------------------------------------------------------------

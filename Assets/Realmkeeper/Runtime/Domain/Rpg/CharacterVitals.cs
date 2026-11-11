@@ -69,10 +69,14 @@ namespace Realmkeeper.Domain.Rpg
         public static string ChangeHitPoints(CharacterSheetData s, int change)
         {
             if (change == 0 || Math.Abs(change) > MaxChange) return "Change hit points by at least 1.";
+            if (s.IsDead) return "The dead cannot be healed or harmed (there is no resurrection yet).";
             var max = new CharacterRules(s).MaxHp;
             if (change > 0)
             {
                 s.CurrentHp = Math.Min(max, s.CurrentHp + change);
+                // Phase 8: any healing brings a dying or stable character back; death saves reset.
+                s.IsStable = false;
+                s.DeathSaveSuccesses = s.DeathSaveFailures = 0;
                 return null;
             }
 

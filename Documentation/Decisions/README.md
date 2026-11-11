@@ -31,5 +31,12 @@
 | [0027](ADR-0027-shared-rules-engine.md) | One shared rules engine with conditions, stacking, roll modes and prerequisites | Accepted (Phase 7) |
 | [0028](ADR-0028-experience-ledger-and-explicit-advancement.md) | Experience ledger with idempotent awards, explicit advancement, outstanding choices | Accepted (Phase 7) |
 | [0029](ADR-0029-character-agnostic-progression.md) | Progression services work on any character sheet | Accepted (Phase 7) |
+| [0030](ADR-0030-domain-combat-engine.md) | Combat is a domain engine driven by commands; time stands still during a fight | Accepted (Phase 8) |
+| [0031](ADR-0031-combatants-reference-identities.md) | Combatants reference persistent identities; the sheet holds the player's vitals | Accepted (Phase 8) |
+| [0032](ADR-0032-deterministic-dice-and-action-sequence.md) | Counter-based dice per encounter; an action sequence against stale actions | Accepted (Phase 8) |
+| [0033](ADR-0033-combat-rules-configuration.md) | Combat rules configuration (SRD 5.2.1) with recorded Realmkeeper choices | Accepted (Phase 8) |
+| [0034](ADR-0034-death-and-dying.md) | Death saves for characters; creatures die; nothing comes back | Accepted (Phase 8) |
+| [0035](ADR-0035-settlement-structures.md) | Settlement structures built on existing places, honestly classified | Accepted (Phase 8) |
+| [0036](ADR-0036-combat-chronicle.md) | Combat reaches the chronicle as a few moments, never a log of swings | Accepted (Phase 8) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

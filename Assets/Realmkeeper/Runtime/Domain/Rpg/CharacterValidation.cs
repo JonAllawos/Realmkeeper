@@ -28,6 +28,16 @@ namespace Realmkeeper.Domain.Rpg
             return errors;
         }
 
+        /// <summary>Phase 8: death saves 0–3 each; stable and dead only at 0 hit points, and never both.</summary>
+        private static void CheckDeathState(CharacterSheetData s, List<string> errors)
+        {
+            if (s.DeathSaveSuccesses < 0 || s.DeathSaveSuccesses > 3 || s.DeathSaveFailures < 0 || s.DeathSaveFailures > 3) errors.Add("Death saves are between 0 and 3.");
+            if (s.IsStable && s.IsDead) errors.Add("A character cannot be both stable and dead.");
+            if ((s.IsStable || s.IsDead) && s.CurrentHp > 0) errors.Add("Only a character at 0 hit points can be stable or dead.");
+            if (s.CurrentHp > 0 && (s.DeathSaveSuccesses > 0 || s.DeathSaveFailures > 0)) errors.Add("A conscious character has no death saves.");
+            if (!s.IsDead && s.DeathSaveFailures >= 3) errors.Add("Three failed death saves means death.");
+        }
+
         /// <summary>Every problem with a character record (any character); empty when it is valid.</summary>
         public static IReadOnlyList<string> CheckSheet(CharacterSheetData s)
         {
@@ -41,6 +51,7 @@ namespace Realmkeeper.Domain.Rpg
             if (s.Title != null && s.Title.Length > CharacterSheetData.MaxTitleLength) errors.Add($"A title is at most {CharacterSheetData.MaxTitleLength} characters.");
             if (s.History != null && s.History.Length > CharacterSheetData.MaxHistoryLength) errors.Add($"A history is at most {CharacterSheetData.MaxHistoryLength} characters.");
             CheckExperience(s, errors);
+            CheckDeathState(s, errors);
 
             if (s.State != CreationState.Complete)
             {

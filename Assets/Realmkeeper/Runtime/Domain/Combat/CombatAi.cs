@@ -1,0 +1,154 @@
+using System;
+using System.Collections.Generic;
+
+namespace Realmkeeper.Domain.Combat
+{
+    /// <summary>
+    /// How a computer-controlled combatant weighs its options (Phase 8 baseline). Kept as data so personality, faction,
+    /// morale and relationships can tune it later without changing the decision service.
+    /// </summary>
+    public sealed class CombatAiProfile
+    {
+        /// <summary>Below this share of its hit points it tries to get away (Disengage and step back, or Dodge if it cannot move).</summary>
+        public double RetreatBelow { get; set; } = 0.25;
+
+        /// <summary>Whether it keeps attacking someone already down (baseline: no — it turns to those still fighting).</summary>
+        public bool FinishTheFallen { get; set; }
+
+        public static readonly CombatAiProfile Default = new CombatAiProfile();
+    }
+
+    /// <summary>
+    /// The baseline combat decision service (Phase 8). It reads the encounter and proposes the next action of the
+    /// active computer-controlled combatant; the engine validates and resolves it, so the AI can never bypass a rule.
+    /// Deterministic: the same state gives the same proposal (ties broken by distance, hit points, then ID).
+    ///
+    /// Order of thought: stand up if prone; get away when badly hurt; attack someone in reach (the weakest);
+    /// otherwise shoot when no enemy is next to it; otherwise close in (Dash if too far); otherwise end the turn.
+    /// </summary>
+    public static class CombatAi
+    {
+        private static readonly (int dx, int dy)[] Directions = { (0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1) };
+
+        public static CombatAction Next(CombatEngine engine, CombatantData actor, CombatAiProfile profile = null)
+        {
+            profile = profile ?? CombatAiProfile.Default;
+            var e = engine.Encounter;
+            if (actor.State != VitalState.Conscious || engine.Incapacitated(actor) && engine.MovementLeft(actor) == 0) return new EndTurnAction();
+            var stats = engine.Stats(actor);
+            var t = actor.Turn;
+
+            if (engine.Has(actor, ConditionType.Prone) && engine.Unavailable(actor, new StandAction()) == null) return new StandAction();
+
+            var targets = new List<CombatantData>();
+            foreach (var c in e.Combatants)
+                if (CombatEngine.Hostile(actor, c) && (c.State == VitalState.Conscious || profile.FinishTheFallen && c.State == VitalState.Dying)) targets.Add(c);
+            if (targets.Count == 0) return new EndTurnAction();
+            targets.Sort((a, b) =>
+            {
+                var d = actor.Position.DistanceFeet(a.Position).CompareTo(actor.Position.DistanceFeet(b.Position));
+                if (d != 0) return d;
+                d = engine.Hp(a).CompareTo(engine.Hp(b));
+                return d != 0 ? d : a.CombatantId.CompareTo(b.CombatantId);
+            });
+
+            var adjacentEnemy = false;
+            foreach (var c in targets) if (c.Position.IsAdjacent(actor.Position) && !engine.Incapacitated(c)) adjacentEnemy = true;
+
+            // Badly hurt: get away (Disengage, then step back), or Dodge when it cannot move.
+            var hurt = engine.Hp(actor) <= Math.Max(1, (int)(engine.MaxHp(actor) * profile.RetreatBelow));
+            if (hurt && adjacentEnemy)
+            {
+                if (!t.ActionUsed) return engine.Speed(actor) > 0 ? (CombatAction)new DisengageAction() : new DodgeAction();
+                if (t.Disengaged && engine.MovementLeft(actor) > 0)
+                {
+                    var away = StepAway(engine, actor, targets);
+                    if (away != null) return away;
+                }
+
+                return new EndTurnAction();
+            }
+
+            var canAttack = !t.ActionUsed || t.AttacksLeft > 0;
+            var melee = stats.BestMelee();
+            if (canAttack && melee != null)
+            {
+                CombatantData best = null;
+                foreach (var c in targets)
+                    if (actor.Position.DistanceFeet(c.Position) <= melee.Reach && (best == null || engine.Hp(c) < engine.Hp(best))) best = c;
+                if (best != null) return new AttackAction(best.CombatantId, melee.Id);
+            }
+
+            var ranged = stats.BestRanged();
+            if (canAttack && ranged != null && !adjacentEnemy)
+            {
+                CombatantData best = null;
+                foreach (var c in targets)
+                {
+                    var d = actor.Position.DistanceFeet(c.Position);
+                    if (d > ranged.LongRange) continue;
+                    if (best == null || (d <= ranged.Range) && actor.Position.DistanceFeet(best.Position) > ranged.Range) best = c;
+                }
+
+                if (best != null && actor.Position.DistanceFeet(best.Position) <= ranged.Range) return new AttackAction(best.CombatantId, ranged.Id);
+            }
+
+            // Close in on the nearest enemy.
+            if (melee != null && engine.MovementLeft(actor) > 0 && !t.Disengaged)
+            {
+                var path = PathToward(engine, actor, targets[0], melee.Reach);
+                if (path.Count > 0) return new MoveAction(path.ToArray());
+            }
+
+            if (!t.ActionUsed && melee != null && actor.Position.DistanceFeet(targets[0].Position) > melee.Reach && engine.Speed(actor) > 0) return new DashAction();
+            if (canAttack && ranged != null && actor.Position.DistanceFeet(targets[0].Position) <= ranged.LongRange && !adjacentEnemy)
+                return new AttackAction(targets[0].CombatantId, ranged.Id);
+            return new EndTurnAction();
+        }
+
+        /// <summary>A greedy path toward a target (each step the free square closest to it) until within reach or out of movement.</summary>
+        public static List<GridPos> PathToward(CombatEngine engine, CombatantData actor, CombatantData target, int reach)
+        {
+            var path = new List<GridPos>();
+            var at = actor.Position;
+            var left = engine.MovementLeft(actor);
+            for (var guard = 0; guard < 60 && at.DistanceFeet(target.Position) > reach; guard++)
+            {
+                GridPos? best = null;
+                foreach (var (dx, dy) in Directions)
+                {
+                    var n = new GridPos(at.X + dx, at.Y + dy, at.Z);
+                    var who = engine.At(n);
+                    if (who != null && who != actor) continue;
+                    if (n.DistanceFeet(target.Position) >= at.DistanceFeet(target.Position)) continue;
+                    if (best == null || n.DistanceFeet(target.Position) < best.Value.DistanceFeet(target.Position)) best = n;
+                }
+
+                if (best == null) break;
+                var cost = engine.StepCost(actor, best.Value);
+                if (cost > left) break;
+                left -= cost;
+                at = best.Value;
+                path.Add(at);
+            }
+
+            return path;
+        }
+
+        private static MoveAction StepAway(CombatEngine engine, CombatantData actor, List<CombatantData> enemies)
+        {
+            GridPos? best = null;
+            var bestScore = int.MinValue;
+            foreach (var (dx, dy) in Directions)
+            {
+                var n = new GridPos(actor.Position.X + dx, actor.Position.Y + dy, actor.Position.Z);
+                if (engine.At(n) != null || engine.StepCost(actor, n) > engine.MovementLeft(actor)) continue;
+                var nearest = int.MaxValue;
+                foreach (var en in enemies) nearest = Math.Min(nearest, n.DistanceFeet(en.Position));
+                if (nearest > bestScore) { bestScore = nearest; best = n; }
+            }
+
+            return best == null || bestScore <= 5 ? null : new MoveAction(best.Value);
+        }
+    }
+}

@@ -5,6 +5,9 @@ namespace Realmkeeper.Application
 {
     public sealed partial class WorldSession
     {
+        /// <summary>Phase 8: combat is turn-based and never moves the clock; time waits until the fight ends.</summary>
+        public const string EncounterBlocksTime = "A fight is going on: time stands still until it ends.";
+
         /// <summary>Hunger: the player's fed level falls this much on each hour mark the clock passes.</summary>
         public const int FedLostPerHour = 2;
 
@@ -19,6 +22,7 @@ namespace Realmkeeper.Application
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
             if (IsClosed || !HasWorld) return new AdvanceResult(false, "There is no active world.", null, 0, null);
+            if (_world.ActiveEncounter != null) return new AdvanceResult(false, EncounterBlocksTime, null, 0, null);
             if (command.Minutes < 1 || command.Minutes > AdvanceTimeCommand.MaxMinutes)
                 return new AdvanceResult(false, $"Advance between 1 and {AdvanceTimeCommand.MaxMinutes} minutes.", null, 0, null);
 

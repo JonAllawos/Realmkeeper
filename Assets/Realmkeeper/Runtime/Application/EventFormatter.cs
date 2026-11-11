@@ -78,6 +78,14 @@ namespace Realmkeeper.Application
                     return $"{e.Get("player") ?? "A traveller"}, {An($"{(e.Get("species") ?? "traveller").ToLowerInvariant()} {(e.Get("background") ?? "wanderer").ToLowerInvariant()}")}, set out as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}.";
                 case HistoricalEventType.PlayerLevelAdvanced:
                     return $"{e.Get("player") ?? "A traveller"} rose to level {e.Get("to") ?? "?"} as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}" + (string.IsNullOrEmpty(e.Get("subclass")) ? "." : $" of the {e.Get("subclass")}.");
+                case HistoricalEventType.EncounterStarted:
+                    return $"A fight broke out in {s}: {e.Get("name") ?? "an encounter"} ({e.Get("participants") ?? "?"} taking part).";
+                case HistoricalEventType.EncounterEnded:
+                    return $"The fight in {s} ({e.Get("name") ?? "an encounter"}) ended after {e.Get("rounds") ?? "?"} rounds: {e.Get("result") ?? "it was over"}.";
+                case HistoricalEventType.CombatantDowned:
+                    return $"{e.Get("name") ?? "Someone"} was struck down in {s}" + (string.IsNullOrEmpty(e.Get("by")) ? "." : $" by {e.Get("by")}.");
+                case HistoricalEventType.CombatantKilled:
+                    return $"{e.Get("name") ?? "Someone"} was killed in {s}" + (string.IsNullOrEmpty(e.Get("by")) ? "." : $" by {e.Get("by")}.");
                 case HistoricalEventType.LabourNoticePosted:
                     return $"{e.Get("player") ?? "A traveller"} posted a notice in {s} calling for more {(e.Get("focus") ?? "work").ToLowerInvariant()}.";
                 case HistoricalEventType.TradeRouteSuspended:

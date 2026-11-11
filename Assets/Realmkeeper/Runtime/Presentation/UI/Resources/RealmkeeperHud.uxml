@@ -135,6 +135,9 @@
                     <ui:Label text="Residents" class="rk-section" tooltip="Named people who live here. Click one to inspect them." />
                     <ui:VisualElement name="insp-residents" class="rk-resources" />
 
+                    <ui:Label text="Structures" class="rk-section" tooltip="The settlement's buildings. Functional ones take part in the simulation (homes, shops, workplaces, gathering places); informational ones are named and described but simulate nothing yet; decorative ones are scenery." />
+                    <ui:VisualElement name="insp-structures" class="rk-resources" />
+
                     <ui:VisualElement class="rk-section-row">
                         <ui:Label text="Politics" class="rk-section rk-grow" />
                         <ui:Button name="insp-politics-manage" text="Manage" tooltip="Show the political actions you can take here." class="rk-button rk-route-toggle" />

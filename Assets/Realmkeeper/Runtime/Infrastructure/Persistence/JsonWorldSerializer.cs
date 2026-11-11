@@ -62,7 +62,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7(), new MigrationV7ToV8(), new MigrationV8ToV9() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7(), new MigrationV7ToV8(), new MigrationV8ToV9(), new MigrationV9ToV10() };
 
         /// <summary>First schema with regions, the player character and named residents.</summary>
         public const int FirstSchemaWithRegions = 3;
@@ -72,6 +72,7 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         public const int FirstSchemaWithNpcEngine = 6;
         public const int FirstSchemaWithCommerce = 7;
+        public const int FirstSchemaWithStructures = 10;
 
         public string Serialize(WorldData world)
         {
@@ -190,6 +191,12 @@ namespace Realmkeeper.Infrastructure.Persistence
             {
                 Simulation.Commerce.CommerceGenesis.EnsureShops(world);
                 Simulation.Commerce.CommerceGenesis.EnsurePlayer(world);
+            }
+
+            // Saves older than v10 gain their settlements' structures, built on their existing places and shops, once.
+            if (originalVersion < FirstSchemaWithStructures)
+            {
+                Simulation.Commerce.StructureGenesis.Ensure(world);
             }
 
             var validation = WorldValidator.Validate(world);

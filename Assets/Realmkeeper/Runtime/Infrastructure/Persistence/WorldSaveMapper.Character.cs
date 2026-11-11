@@ -28,6 +28,10 @@ namespace Realmkeeper.Infrastructure.Persistence
                 Resources = new Dictionary<string, int>(s.Resources),
                 StartingEquipmentGranted = s.StartingEquipmentGranted,
                 CreatedOn = s.CreatedOn.IsValidDate ? s.CreatedOn.ToIsoString() : null,
+                DeathSaveSuccesses = s.DeathSaveSuccesses,
+                DeathSaveFailures = s.DeathSaveFailures,
+                IsStable = s.IsStable,
+                IsDead = s.IsDead,
                 RulesVersion = s.RulesVersion,
                 ExperienceLog = new List<ExperienceAwardDto>(),
                 Advancements = new List<AdvancementRecordDto>(),
@@ -62,6 +66,10 @@ namespace Realmkeeper.Infrastructure.Persistence
                 StartingEquipmentGranted = d.StartingEquipmentGranted,
                 CreatedOn = OptionalDate(d.CreatedOn, "character createdOn"),
                 RulesVersion = d.RulesVersion,
+                DeathSaveSuccesses = d.DeathSaveSuccesses,
+                DeathSaveFailures = d.DeathSaveFailures,
+                IsStable = d.IsStable,
+                IsDead = d.IsDead,
             };
             if (d.BaseScores != null)
             {

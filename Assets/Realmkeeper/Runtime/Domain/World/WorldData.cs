@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 9;
+        public const int CurrentSchemaVersion = 10;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -85,6 +85,24 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 5: trades with the player, newest last (bounded by <see cref="TransactionData.MaxHistory"/>).</summary>
         public List<TransactionData> Transactions { get; set; } = new List<TransactionData>();
+
+        /// <summary>Phase 8: encounters: at most one active, plus the most recent finished ones (bounded by <see cref="MaxEndedEncounters"/>).</summary>
+        public List<Realmkeeper.Domain.Combat.EncounterData> Encounters { get; set; } = new List<Realmkeeper.Domain.Combat.EncounterData>();
+
+        public const int MaxEndedEncounters = 20;
+
+        /// <summary>Phase 8: settlement structures (buildings), each owned by its settlement and linked to its location and shop where it has one.</summary>
+        public List<StructureData> Structures { get; set; } = new List<StructureData>();
+
+        /// <summary>The encounter going on, or null.</summary>
+        public Realmkeeper.Domain.Combat.EncounterData ActiveEncounter
+        {
+            get
+            {
+                foreach (var e in Encounters) if (e.IsActive) return e;
+                return null;
+            }
+        }
 
         public Calendar.WorldTime CurrentTime => new Calendar.WorldTime(CurrentSimulationDate, MinuteOfDay);
 
@@ -163,6 +181,8 @@ namespace Realmkeeper.Domain.World
             copy.MinuteOfDay = MinuteOfDay;
             if (Shops != null) foreach (var s in Shops) copy.Shops.Add(s?.Clone());
             if (Transactions != null) foreach (var t in Transactions) copy.Transactions.Add(t?.Clone());
+            if (Encounters != null) foreach (var e in Encounters) copy.Encounters.Add(e?.Clone());
+            if (Structures != null) foreach (var s in Structures) copy.Structures.Add(s?.Clone());
             return copy;
         }
 

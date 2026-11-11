@@ -712,3 +712,220 @@
     flex-basis: 0;
     flex-shrink: 1;
 }
+
+/* ----- Phase 8: the encounter panel ------------------------------------------------------------ */
+
+.xk-combat {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 1.5%;
+    height: 47%;
+    padding: 10px 14px;
+    background-color: rgba(18, 16, 13, 0.94);
+}
+
+.xk-combat-turn {
+    font-size: 16px;
+    -unity-font-style: bold;
+    margin: 0 12px;
+    color: rgb(214, 205, 186);
+}
+
+.xk-combat-turn--yours {
+    color: rgb(240, 200, 110);
+}
+
+.xk-combat-head-button {
+    margin-left: 6px;
+}
+
+.xk-combat-body {
+    flex-direction: row;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.xk-combat-col {
+    flex-direction: column;
+    margin-right: 10px;
+    min-height: 0;
+}
+
+.xk-combat-col--order {
+    width: 19%;
+}
+
+.xk-combat-col--grid {
+    width: 24%;
+}
+
+.xk-combat-col--actions {
+    width: 20%;
+}
+
+.xk-combat-col--info {
+    width: 19%;
+}
+
+.xk-combat-col--log {
+    flex-grow: 1;
+    margin-right: 0;
+}
+
+.xk-combat-row {
+    -unity-text-align: middle-left;
+    white-space: normal;
+    font-size: 12px;
+    margin: 1px 0;
+    padding: 3px 6px;
+    background-color: rgba(40, 36, 30, 0.9);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.15);
+    border-radius: 4px;
+    color: rgb(232, 223, 204);
+}
+
+.xk-combat-row--active {
+    border-color: rgb(240, 200, 110);
+    background-color: rgba(70, 58, 34, 0.95);
+}
+
+.xk-combat-row--selected {
+    border-left-width: 4px;
+}
+
+.xk-combat-row--down {
+    color: rgb(150, 142, 126);
+}
+
+.xk-combat-grid-row {
+    flex-direction: row;
+}
+
+.xk-combat-cell {
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    border-width: 1px;
+    border-radius: 0;
+    border-color: rgba(201, 164, 101, 0.12);
+    background-color: rgba(48, 44, 36, 0.85);
+    color: rgb(240, 236, 226);
+}
+
+.xk-combat-cell--reachable {
+    background-color: rgba(60, 96, 58, 0.85);
+}
+
+.xk-combat-cell--reachable:hover {
+    background-color: rgba(86, 140, 80, 0.95);
+}
+
+.xk-combat-cell--difficult {
+    background-color: rgba(92, 74, 46, 0.9);
+}
+
+.xk-combat-cell.xk-combat--player {
+    background-color: rgb(52, 98, 170);
+}
+
+.xk-combat-cell.xk-combat--ally {
+    background-color: rgb(48, 120, 62);
+}
+
+.xk-combat-cell.xk-combat--enemy {
+    background-color: rgb(150, 44, 36);
+}
+
+.xk-combat-cell--active {
+    border-color: rgb(240, 200, 110);
+    border-width: 2px;
+}
+
+.xk-combat-cell--down {
+    opacity: 0.55;
+}
+
+.xk-combat-economy {
+    font-size: 12px;
+    color: rgb(214, 205, 186);
+    margin-bottom: 4px;
+    white-space: normal;
+}
+
+.xk-combat-option {
+    margin-bottom: 2px;
+}
+
+.xk-combat-act {
+    -unity-text-align: middle-left;
+    white-space: normal;
+    font-size: 12px;
+    margin: 0;
+}
+
+.xk-combat-why {
+    font-size: 11px;
+    color: rgb(200, 160, 100);
+    white-space: normal;
+    margin: 0 0 2px 8px;
+}
+
+.xk-combat-result {
+    font-size: 12px;
+    white-space: normal;
+    color: rgb(240, 230, 205);
+    background-color: rgba(40, 36, 30, 0.9);
+    padding: 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.xk-combat-inspector {
+    flex-grow: 1;
+}
+
+.xk-combat-inspect-line {
+    font-size: 11px;
+    white-space: normal;
+    color: rgb(214, 205, 186);
+    margin-bottom: 2px;
+}
+
+.xk-combat-log {
+    flex-grow: 1;
+}
+
+.xk-combat-log-line {
+    font-size: 11px;
+    white-space: normal;
+    color: rgb(214, 205, 186);
+    margin-bottom: 1px;
+}
+
+.xk-combat-log--attack {
+    color: rgb(236, 216, 170);
+}
+
+.xk-combat-log--damage {
+    color: rgb(240, 160, 130);
+}
+
+.xk-combat-log--downed,
+.xk-combat-log--died {
+    color: rgb(240, 110, 90);
+    -unity-font-style: bold;
+}
+
+.xk-combat-log--turnstarted {
+    color: rgb(160, 152, 136);
+}
+
+.xk-combat-log--ended {
+    color: rgb(240, 200, 110);
+    -unity-font-style: bold;
+}

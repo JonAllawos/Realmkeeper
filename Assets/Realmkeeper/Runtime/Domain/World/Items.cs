@@ -101,8 +101,17 @@ namespace Realmkeeper.Domain.World
         public int Protection { get; set; }
         public WeaponClass WeaponClass { get; set; }
 
-        /// <summary>Damage potential, for a future combat system. Not used yet.</summary>
+        /// <summary>Damage potential as one number (Phase 5's shop and Hub figure). Combat uses <see cref="Weapon"/>.</summary>
         public int Damage { get; set; }
+
+        /// <summary>Phase 8: the weapon's combat data (SRD 5.2.1), or null when the item is not a weapon.</summary>
+        public WeaponProfile Weapon { get; set; }
+
+        /// <summary>Phase 8: the armour or shield's combat data (SRD 5.2.1), or null. Other worn pieces give no AC.</summary>
+        public ArmorProfile Armor { get; set; }
+
+        /// <summary>Phase 8: where the combat numbers come from ("SRD 5.2.1 (CC BY 4.0)"), or null.</summary>
+        public string RulesSource { get; set; }
 
         /// <summary>For food: how much eating one restores of the player's "fed" condition.</summary>
         public int Nourishment { get; set; }

@@ -461,6 +461,7 @@ namespace Realmkeeper.Presentation
             RefreshTrade(s);
             RefreshSettlementPolitics(s);
             RefreshSettlementResidents(s);
+            RefreshSettlementStructures(s);
         }
 
         /// <summary>Shortage warnings, one line each, most urgent first.</summary>

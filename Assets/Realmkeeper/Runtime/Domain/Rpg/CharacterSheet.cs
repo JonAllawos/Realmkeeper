@@ -51,6 +51,20 @@ namespace Realmkeeper.Domain.Rpg
         public int CurrentHp { get; set; }
         public int TemporaryHp { get; set; }
 
+        // ----- Phase 8: dying and death (SRD 5.2.1 death saving throws) -----
+
+        /// <summary>Death saving throw successes (0–3) while at 0 hit points.</summary>
+        public int DeathSaveSuccesses { get; set; }
+
+        /// <summary>Death saving throw failures (0–3) while at 0 hit points.</summary>
+        public int DeathSaveFailures { get; set; }
+
+        /// <summary>At 0 hit points but no longer making death saves.</summary>
+        public bool IsStable { get; set; }
+
+        /// <summary>Dead (three failed death saves, or massive damage). Resurrection is not part of Phase 8.</summary>
+        public bool IsDead { get; set; }
+
         /// <summary>Uses left of each resource (rage, spell slots, hit dice …), by resource ID.</summary>
         public Dictionary<string, int> Resources { get; set; } = new Dictionary<string, int>();
 
@@ -135,13 +149,35 @@ namespace Realmkeeper.Domain.Rpg
             Armor = armor;
             Shield = shield;
             HeavyArmor = heavyArmor;
+            BodyArmorId = null;
+            ShieldId = null;
+        }
+
+        /// <summary>Phase 8: the loadout of a worn suit of armour and shield, by item ID (either may be null).</summary>
+        public Loadout(string bodyArmorId, string shieldId)
+        {
+            var body = Realmkeeper.Domain.World.ItemCatalog.Find(bodyArmorId)?.Armor;
+            BodyArmorId = body != null && body.Category != Realmkeeper.Domain.World.ArmorCategory.Shield ? bodyArmorId : null;
+            ShieldId = Realmkeeper.Domain.World.ItemCatalog.Find(shieldId)?.Armor?.Category == Realmkeeper.Domain.World.ArmorCategory.Shield ? shieldId : null;
+            Armor = BodyArmorId != null;
+            Shield = ShieldId != null;
+            HeavyArmor = BodyArmorId != null && body.Category == Realmkeeper.Domain.World.ArmorCategory.Heavy;
         }
 
         public bool Armor { get; }
         public bool Shield { get; }
 
-        /// <summary>The item catalog has no heavy armour yet, so this is false for every player today.</summary>
+        /// <summary>A suit of heavy armour is worn (Phase 8: chain mail).</summary>
         public bool HeavyArmor { get; }
+
+        /// <summary>Phase 8: the worn suit of armour's item ID, or null.</summary>
+        public string BodyArmorId { get; }
+
+        /// <summary>Phase 8: the shield's item ID, or null.</summary>
+        public string ShieldId { get; }
+
+        public Realmkeeper.Domain.World.ArmorProfile BodyArmor => Realmkeeper.Domain.World.ItemCatalog.Find(BodyArmorId)?.Armor;
+        public Realmkeeper.Domain.World.ArmorProfile ShieldArmor => Realmkeeper.Domain.World.ItemCatalog.Find(ShieldId)?.Armor;
 
         public static readonly Loadout Unarmored = new Loadout(false, false, false);
 

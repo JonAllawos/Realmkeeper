@@ -116,3 +116,7 @@ Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults Pl
   [Results](Documentation/Testing/TestResults.md) ·
   [Untested areas](Documentation/Testing/UntestedAreas.md)
 - [Architectural decision records](Documentation/Decisions/README.md)
+
+## Credits
+
+Rules material from the System Reference Document 5.2.1 and 5.1 by Wizards of the Coast LLC (CC BY 4.0); CC0 art by Quaternius and ambientCG. Full attribution: [CREDITS.md](CREDITS.md) (also shown in the game, in the Player Hub's Info section).

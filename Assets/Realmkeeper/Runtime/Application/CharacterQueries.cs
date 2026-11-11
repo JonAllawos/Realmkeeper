@@ -26,6 +26,19 @@ namespace Realmkeeper.Application
         public string History => Player.Rpg.History;
         public string FullName => string.IsNullOrEmpty(Title) ? Name : Name + " " + Title;
 
+        // ----- Phase 8: the dying state -----
+
+        public bool IsDead => Player.Rpg.IsDead;
+        public bool IsStable => Player.Rpg.IsStable;
+
+        /// <summary>At 0 hit points, neither stable nor dead (only during a fight: a fight's end stabilizes the player).</summary>
+        public bool IsDying => State == CreationState.Complete && Player.Rpg.CurrentHp == 0 && !IsDead && !IsStable;
+
+        /// <summary>"Dead", "Unconscious, stable", "Dying (1 success, 2 failures)" or null when conscious.</summary>
+        public string VitalText =>
+            IsDead ? "Dead" : IsStable ? "Unconscious, stable (heal to wake)" :
+            IsDying ? $"Dying ({Player.Rpg.DeathSaveSuccesses} successes, {Player.Rpg.DeathSaveFailures} failures)" : null;
+
         // ----- Phase 7: progression -----
 
         public int Level => Player.Rpg.Level;

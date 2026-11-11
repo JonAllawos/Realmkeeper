@@ -107,20 +107,28 @@ namespace Realmkeeper.Simulation.Npcs
 
         private void Die(SimulationDayContext context, NpcData npc, SettlementData s)
         {
-            var world = context.World;
+            context.ReportEvent(HistoricalEventType.NpcDied, EventSeverity.Critical, EventImportance.Notable, new[] { s.SettlementId },
+                new EventData().Set("source", SimulationSource).Set("npc", npc.NpcId.ToString()).Set("name", npc.Name).Set("role", npc.Role.ToString()),
+                npcIds: new[] { npc.NpcId });
+            RecordDeath(context.World, npc, s, context.Date);
+        }
+
+        /// <summary>
+        /// The world consequences of a resident's death, shared by every cause (Phase 8: old age and population in the daily
+        /// simulation, and combat): dead with a date, goals abandoned, faction leadership passed to the most notable living
+        /// member, and those close to them remembering it. The caller reports the chronicle event.
+        /// </summary>
+        public static void RecordDeath(WorldData world, NpcData npc, SettlementData s, WorldDate date)
+        {
             npc.IsDeceased = true;
-            npc.DiedOn = context.Date;
+            npc.DiedOn = date;
             npc.CurrentLocationId = default;
             foreach (var g in npc.Goals)
             {
                 if (!g.IsActive) continue;
                 g.Status = NpcGoalStatus.Abandoned;
-                g.ClosedOn = context.Date;
+                g.ClosedOn = date;
             }
-
-            context.ReportEvent(HistoricalEventType.NpcDied, EventSeverity.Critical, EventImportance.Notable, new[] { s.SettlementId },
-                new EventData().Set("source", SimulationSource).Set("npc", npc.NpcId.ToString()).Set("name", npc.Name).Set("role", npc.Role.ToString()),
-                npcIds: new[] { npc.NpcId });
 
             // A faction never stays led by the dead: the most notable living member takes over, if any.
             foreach (var f in world.Factions)
@@ -145,11 +153,11 @@ namespace Realmkeeper.Simulation.Npcs
                 if (other == null || other.IsDeceased) continue;
                 NpcMind.Remember(other, new NpcMemoryData
                 {
-                    MemoryId = MemoryIdFor(world, other, context.Date, "death:" + npc.NpcId),
-                    Date = context.Date,
+                    MemoryId = MemoryIdFor(world, other, date, "death:" + npc.NpcId),
+                    Date = date,
                     Category = MemoryCategory.Death,
                     Subject = HistoricalEventType.NpcDied.ToString(),
-                    SettlementId = s.SettlementId,
+                    SettlementId = s?.SettlementId ?? npc.HomeSettlementId,
                     NpcIds = new List<NpcId> { npc.NpcId },
                     Salience = Math.Min(100, 50 + r.Affinity / 2),
                     Source = r.Kind == NpcRelationKind.Household ? MemorySource.Experienced : MemorySource.Learned,

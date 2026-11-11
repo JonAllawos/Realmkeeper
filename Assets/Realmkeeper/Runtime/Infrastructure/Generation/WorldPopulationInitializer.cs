@@ -38,6 +38,7 @@ namespace Realmkeeper.Infrastructure.Generation
         {
             Simulation.Commerce.CommerceGenesis.EnsureShops(world); // needs locations, keepers and stores
             Simulation.Commerce.CommerceGenesis.EnsurePlayer(world);
+            Simulation.Commerce.StructureGenesis.Ensure(world); // Phase 8: needs locations and shops
         }
 
         /// <summary>

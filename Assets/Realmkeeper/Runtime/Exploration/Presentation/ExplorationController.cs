@@ -366,6 +366,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (CameraRig != null) CameraRig.LookEnabled = !_cursorFree || !ManageCursor;
 
             UpdateLivingInput();
+            UpdateCombat(); // Phase 8
             if (WindowOpen)
             {
                 Hud?.SetPrompt(null);

@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 7, 2026-11-11)
+## Implementation status (updated at the end of Phase 8, 2026-11-11)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -27,8 +27,9 @@ present but visibly temporary; **Not started**.
 | 4 | NPC Intelligence | Implemented |
 | 5 | Living World & Player Hub | Implemented (`1f37bb6`) |
 | 6 | Character Creation | Implemented (`f2682a2`) |
-| 7 | RPG Progression | **Implemented, awaiting review.** See below. |
-| 8–16 | Combat onwards | Not started |
+| 7 | RPG Progression | Implemented (`a3cd9f5`) |
+| 8 | Combat (foundation) and settlement structures | **Implemented, awaiting review.** See below. |
+| 9–16 | Magic onwards | Not started |
 
 ### §7 Character and RPG system
 
@@ -45,10 +46,14 @@ present but visibly temporary; **Not started**.
 | Feats | Implemented (SRD set) | General, Origin, Fighting Style, Epic Boon; prerequisites and repeat rules |
 | XP and levelling | **Implemented** | Keyed ledger; explicit level-up window; multi-level transactions |
 | Hit points, hit dice | Implemented | Fixed averages; current HP rises with the maximum; damage, healing, temporary HP |
-| Armour class | Implemented, **provisional** | Conditional bonuses (Defense), unarmoured defences; armour categories wait for combat |
+| Armour class | **Implemented** (SRD armour, Phase 8) | Categories, Dex caps, shields, training penalties, Strength requirements, breakdown (ADR-0033) |
 | Class resources | **Implemented** | Spend, restore and recover commands; rests that pass time are Not started |
 | Spellcasting | Foundation | Slots, cantrips, prepared counts, DC and attack per level; no spells (Phase 9) |
-| Combat features | Foundation | Acquired and shown, with "waits for combat"; no combat (Phase 8) |
+| Combat features | Foundation, partly used | Second Wind and Cunning Action work in combat; Extra Attack sets attacks per action; Archery, Duelling and Great Weapon Fighting apply; the rest wait |
+| Turn-based combat | **Implemented** (Phase 8) | Encounters, initiative, action economy, 5-ft grid, opportunity attacks, SRD attacks and damage, 15 conditions, death saves; deterministic AI; the practice encounter is the only way in (`Systems/Combat.md`) |
+| Death and dying | **Implemented** (Phase 8) | Death saves for the player and residents; creatures die; non-lethal knock-outs; no resurrection (ADR-0034) |
+| Bestiary | Foundation | Four SRD creatures (commoner, bandit, guard, wolf); stand-in figures, no models |
+| Settlement structures | **Implemented** (Phase 8), simulation partly | Functional ones are the existing places and shops; informational and decorative ones are listed and signed, with no production (`Systems/SettlementStructures.md`) |
 | Character creator | Implemented | Now includes the rules-v7 level-1 choices |
 | Character sheet in the Player Hub | Implemented | Adds Progression, breakdowns, roll modes, senses, movement |
 | NPC and companion progression | Foundation | Services take any sheet (ADR-0029); no NPC holds one yet |
@@ -67,7 +72,8 @@ present but visibly temporary; **Not started**.
   mutation checks.
 - **17, 18 (honest placeholders, licensing):** no new art; SRD content attributed; deferred content
   listed rather than invented.
-- **20 (controlled phases):** Phase 7 stops here for review.
+- **20 (controlled phases):** Phase 7 stopped for review; Phase 8 stops here for review.
+- **Phase 8, principles 8, 16 and 17:** every combat number comes from the SRD 5.2.1 rules engine and is explained on screen; the rules are mutation-checked; ground markers and stand-in figures are labelled placeholders; the creature descriptions are Realmkeeper's own.
 
 ### §20 Open questions
 

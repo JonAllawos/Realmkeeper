@@ -81,6 +81,7 @@ namespace Realmkeeper.Application
             PlayerCommandHandlers.Register(_commands);
             CharacterCommandHandlers.Register(_commands);
             ProgressionCommandHandlers.Register(_commands);
+            CombatCommandHandlers.Register(_commands);
         }
 
         public EconomyRules Rules => _rules;
@@ -421,6 +422,7 @@ namespace Realmkeeper.Application
         private AdvanceResult Advance(int days)
         {
             if (IsClosed || !HasWorld) return new AdvanceResult(false, "There is no active world.", null, 0, null);
+            if (_world.ActiveEncounter != null) return new AdvanceResult(false, EncounterBlocksTime, null, 0, null);
             if (days > SimulationScheduler.MaxDaysPerRun)
                 return new AdvanceResult(false, $"Cannot advance more than {SimulationScheduler.MaxDaysPerRun} days at once.", null, 0, null);
 

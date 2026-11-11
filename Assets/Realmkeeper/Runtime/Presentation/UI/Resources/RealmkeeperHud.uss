@@ -859,3 +859,13 @@
 .rk-npc-tools .unity-base-slider__tracker {
     background-color: rgb(70, 62, 52);
 }
+
+/* ----- Phase 8: settlement structures -------------------------------------------------------- */
+
+.rk-structure--informational {
+    color: rgb(190, 182, 164);
+}
+
+.rk-structure--decorative {
+    color: rgb(150, 142, 126);
+}

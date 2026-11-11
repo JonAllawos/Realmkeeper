@@ -29,9 +29,22 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         }
 
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
+        /// <summary>Rebuilds the v9 layout: no encounters, structures or dying state (Phase 8).</summary>
+        public static void StripToV9(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 9;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            w.Remove("encounters");
+            w.Remove("structures");
+            if (w["player"]?["rpg"] is Newtonsoft.Json.Linq.JObject rpg)
+                foreach (var field in new[] { "deathSaveSuccesses", "deathSaveFailures", "isStable", "isDead" })
+                    rpg.Remove(field);
+        }
+
         /// <summary>Rebuilds the v7 layout: no character record (Phase 6).</summary>
         public static void StripToV7(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV9(doc);
             doc["schemaVersion"] = 7;
             if (doc["world"]["player"] is Newtonsoft.Json.Linq.JObject p) p.Remove("rpg");
         }

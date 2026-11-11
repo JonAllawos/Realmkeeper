@@ -263,6 +263,18 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 7: the player gained one or more levels (facts: player, class, from, to, subclass).</summary>
         PlayerLevelAdvanced = 53,
+
+        /// <summary>Phase 8: an encounter began (facts: name, kind, sides, participants).</summary>
+        EncounterStarted = 54,
+
+        /// <summary>Phase 8: an encounter ended (facts: name, outcome, winner, rounds).</summary>
+        EncounterEnded = 55,
+
+        /// <summary>Phase 8: the player or a named resident fell unconscious in a fight (facts: name, by).</summary>
+        CombatantDowned = 56,
+
+        /// <summary>Phase 8: the player was killed in a fight (residents use NpcDied, with cause "combat").</summary>
+        CombatantKilled = 57,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

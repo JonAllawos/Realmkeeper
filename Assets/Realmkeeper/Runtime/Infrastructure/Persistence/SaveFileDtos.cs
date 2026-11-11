@@ -55,6 +55,12 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         public List<ShopDto> Shops { get; set; }
         public List<TransactionDto> Transactions { get; set; }
+
+        /// <summary>Schema v10 (Phase 8).</summary>
+        public List<EncounterDto> Encounters { get; set; }
+
+        /// <summary>Schema v10 (Phase 8).</summary>
+        public List<StructureDto> Structures { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -542,6 +548,12 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int RulesVersion { get; set; }
         public System.Collections.Generic.List<ExperienceAwardDto> ExperienceLog { get; set; }
         public System.Collections.Generic.List<AdvancementRecordDto> Advancements { get; set; }
+
+        // Schema v10 (Phase 8): the dying state.
+        public int DeathSaveSuccesses { get; set; }
+        public int DeathSaveFailures { get; set; }
+        public bool IsStable { get; set; }
+        public bool IsDead { get; set; }
     }
 
     public sealed class ExperienceAwardDto
@@ -560,5 +572,128 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string Date { get; set; }
         public int HitPointsGained { get; set; }
         public string Summary { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    using System.Collections.Generic;
+
+    /// <summary>Schema v10 (Phase 8): an encounter, active or recently finished. Derived values (AC, attacks, speed) are not saved.</summary>
+    public sealed class EncounterDto
+    {
+        public string EncounterId { get; set; }
+        public string Name { get; set; }
+        public string Kind { get; set; }
+        public string Lethality { get; set; }
+        public string SettlementId { get; set; }
+        public string Status { get; set; }
+        public string Outcome { get; set; }
+        public string WinningSide { get; set; }
+        public int Round { get; set; }
+        public int TurnIndex { get; set; }
+        public List<string> Order { get; set; }
+        public List<CombatantDto> Combatants { get; set; }
+        public List<GridPosDto> DifficultTerrain { get; set; }
+        public string StartedOn { get; set; }
+        public int StartedAtMinute { get; set; }
+        public string EndedOn { get; set; }
+
+        /// <summary>The dice seed, as a decimal string (it is a 64-bit unsigned value).</summary>
+        public string Seed { get; set; }
+
+        public int RollCount { get; set; }
+        public int ActionSequence { get; set; }
+        public List<CombatLogEntryDto> Log { get; set; }
+        public string QuestRef { get; set; }
+        public string WorldEventRef { get; set; }
+    }
+
+    public sealed class GridPosDto
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+    }
+
+    public sealed class CombatantDto
+    {
+        public string CombatantId { get; set; }
+        public string Kind { get; set; }
+        public string SourceId { get; set; }
+        public string Name { get; set; }
+        public string Side { get; set; }
+        public string FactionId { get; set; }
+        public string Control { get; set; }
+        public string CreatureId { get; set; }
+        public int MaxHp { get; set; }
+        public int CurrentHp { get; set; }
+        public int TemporaryHp { get; set; }
+        public int DeathSaveSuccesses { get; set; }
+        public int DeathSaveFailures { get; set; }
+        public string State { get; set; }
+        public bool UsesDeathSaves { get; set; }
+        public GridPosDto Position { get; set; }
+        public List<ConditionDto> Conditions { get; set; }
+        public TurnResourcesDto Turn { get; set; }
+        public int InitiativeRoll { get; set; }
+        public int Initiative { get; set; }
+        public int TieBreak { get; set; }
+        public int JoinedRound { get; set; }
+    }
+
+    public sealed class ConditionDto
+    {
+        public string Type { get; set; }
+        public string SourceId { get; set; }
+        public string Reason { get; set; }
+        public int AppliedRound { get; set; }
+        public string Duration { get; set; }
+        public string ExpiresOn { get; set; }
+        public int ExpiresRound { get; set; }
+        public int Level { get; set; }
+        public int EscapeDc { get; set; }
+    }
+
+    public sealed class TurnResourcesDto
+    {
+        public bool ActionUsed { get; set; }
+        public bool BonusActionUsed { get; set; }
+        public bool ReactionUsed { get; set; }
+        public bool InteractionUsed { get; set; }
+        public int MovementUsed { get; set; }
+        public int MovementGranted { get; set; }
+        public string LightAttackWeapon { get; set; }
+        public int AttacksLeft { get; set; }
+        public bool Disengaged { get; set; }
+        public bool Dodging { get; set; }
+    }
+
+    public sealed class CombatLogEntryDto
+    {
+        public int Sequence { get; set; }
+        public int Round { get; set; }
+        public string Kind { get; set; }
+        public string ActorId { get; set; }
+        public string TargetId { get; set; }
+        public string Text { get; set; }
+        public List<int> Rolls { get; set; }
+        public int Value { get; set; }
+    }
+
+    /// <summary>Schema v10 (Phase 8): a settlement structure. Its definition is data and is not saved.</summary>
+    public sealed class StructureDto
+    {
+        public string StructureId { get; set; }
+        public string DefinitionId { get; set; }
+        public string Name { get; set; }
+        public string SettlementId { get; set; }
+        public string LocationId { get; set; }
+        public string ShopId { get; set; }
+        public string OwnerNpcId { get; set; }
+        public string FactionId { get; set; }
+        public string LayoutKey { get; set; }
+        public string Condition { get; set; }
+        public string EstablishedOn { get; set; }
     }
 }
