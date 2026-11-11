@@ -37,6 +37,9 @@ namespace Realmkeeper.Application
         public int AttacksLeft { get; set; }
         public string Stats { get; set; }
 
+        /// <summary>Phase 10: what the bestiary says of a creature (category, challenge, behaviour, traits, source), or null.</summary>
+        public string Bestiary { get; set; }
+
         /// <summary>For the stand-in figure: a beast (the wolf) rather than a person.</summary>
         public bool CreatureIsBeast { get; set; }
 
@@ -68,8 +71,26 @@ namespace Realmkeeper.Application
         public bool IsBonus { get; set; }
     }
 
+    /// <summary>Phase 10: the question an action waits on, as the prompt shows it.</summary>
+    public sealed class ReactionPromptView
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Reactor { get; set; }
+        public string Trigger { get; set; }
+        public string Cost { get; set; }
+        public string Consequence { get; set; }
+        public bool IsDecision { get; set; }
+
+        /// <summary>True when the player answers it (always, today: only the player is ever asked).</summary>
+        public bool ForPlayer { get; set; }
+    }
+
     public sealed class EncounterSnapshot
     {
+        /// <summary>Phase 10: the reaction or decision the player is being asked for, or null.</summary>
+        public ReactionPromptView Prompt { get; set; }
+
         public EncounterId Id { get; set; }
         public string Name { get; set; }
         public EncounterKind Kind { get; set; }
@@ -153,6 +174,7 @@ namespace Realmkeeper.Application
                     Concentration = c.Concentration?.Name, Effects = EffectLines(engine, c), IsCaster = s.IsCaster && c.FormCreatureId == null,
                     SpellSaveDc = s.IsCaster ? engine.SpellSaveDc(c) : 0, SpellAttack = s.IsCaster ? s.SpellAttack().Total : 0, Resources = ResourceText(engine, c),
                     Form = c.FormCreatureId == null ? null : CreatureCatalog.Find(c.FormCreatureId)?.Name,
+                    Bestiary = c.CreatureId != null && c.FormCreatureId == null ? BestiaryText(CreatureCatalog.Find(c.CreatureId)) : null,
                 };
             }
 
@@ -164,6 +186,16 @@ namespace Realmkeeper.Application
                 Round = e.Round, Sequence = e.ActionSequence, Order = order, Log = e.Log, DifficultTerrain = e.DifficultTerrain,
                 Active = e.Active != null ? View(e.Active) : null, Player = player != null ? View(player) : null,
             };
+            if (e.PendingReaction != null)
+            {
+                var o = e.PendingReaction.Opportunity;
+                snap.Prompt = new ReactionPromptView
+                {
+                    Id = e.PendingReaction.Id, Name = o.Name, Reactor = e.Find(o.ReactorId)?.Name, Trigger = o.Trigger, Cost = o.Cost, Consequence = o.Consequence,
+                    IsDecision = o.IsDecision, ForPlayer = e.Find(o.ReactorId)?.Control == CombatControl.Player,
+                };
+            }
+
             snap.PlayerOptions = player != null && e.Active == player && e.IsActive ? Options(engine, player) : new List<CombatOption>();
             if (player != null && e.Active == player && e.IsActive)
             {

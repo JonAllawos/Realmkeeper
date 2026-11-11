@@ -233,6 +233,13 @@ namespace Realmkeeper.Domain.Combat
         public bool FrenzyUsed { get; set; }
         public bool SacredWeaponUsed { get; set; }
 
+        // ----- Phase 10 -----
+
+        /// <summary>The square the turn started on (Charge measures the run from it).</summary>
+        public bool HasStart { get; set; }
+        public int StartX { get; set; }
+        public int StartY { get; set; }
+
         public TurnResources Clone() => (TurnResources)MemberwiseClone();
     }
 
@@ -290,6 +297,12 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>Wild Shape: the beast form it fights in (a creature catalog ID), or null.</summary>
         public string FormCreatureId { get; set; }
+
+        /// <summary>Phase 10: where it joined the fight (a territorial creature's home ground).</summary>
+        public GridPos Anchor { get; set; }
+
+        /// <summary>Phase 10: the persistent creature this combatant is (a wolf of a regional pack), or null for an anonymous one.</summary>
+        public string CreatureInstanceId { get; set; }
 
         public CombatantData Clone()
         {
@@ -363,6 +376,14 @@ namespace Realmkeeper.Domain.Combat
     {
         public const int MaxLogEntries = 500;
 
+        /// <summary>Phase 10: the action waiting on the player's reaction or decision (nothing else happens until it is answered).</summary>
+        public PendingReactionData PendingReaction { get; set; }
+
+        public int NextReactionId { get; set; } = 1;
+
+        /// <summary>Phase 10: where a generated encounter came from, its objective, and its applied consequences (null for practice and scripted fights).</summary>
+        public EncounterOriginData Origin { get; set; }
+
         public EncounterId EncounterId { get; set; }
         public string Name { get; set; } = string.Empty;
         public EncounterKind Kind { get; set; }
@@ -423,6 +444,8 @@ namespace Realmkeeper.Domain.Combat
             foreach (var l in Log) e.Log.Add(l.Clone());
             e.Effects = new List<ActiveEffectData>();
             foreach (var x in Effects) e.Effects.Add(x.Clone());
+            e.PendingReaction = PendingReaction?.Clone();
+            e.Origin = Origin?.Clone();
             return e;
         }
     }

@@ -119,4 +119,4 @@ Unity -batchmode -projectPath . -runTests -testPlatform PlayMode -testResults Pl
 
 ## Credits
 
-Rules material from the System Reference Document 5.2.1 and 5.1 by Wizards of the Coast LLC (CC BY 4.0); CC0 art by Quaternius and ambientCG. Full attribution: [CREDITS.md](CREDITS.md) (also shown in the game, in the Player Hub's Info section).
+Rules material, including the bestiary's creature statistics, from the System Reference Document 5.2.1 and 5.1 by Wizards of the Coast LLC (CC BY 4.0); five farm and small-game animals are Realmkeeper originals, labelled as such; CC0 art by Quaternius and ambientCG. Full attribution: [CREDITS.md](CREDITS.md) (also shown in the game, in the Player Hub's Info section).

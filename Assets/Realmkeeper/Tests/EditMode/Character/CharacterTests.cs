@@ -327,7 +327,7 @@ namespace Realmkeeper.Tests.EditMode.Character
         public void Version7Save_MigratesToALegacyCharacter_KeepingEverything()
         {
             var serializer = new JsonWorldSerializer();
-            var original = Phase2Worlds.Generated(2468);
+            var original = Phase2Worlds.GeneratedBeforeLivingWorld(2468); // Phase 10: the v11 world (its living-world additions arrive when a session loads a save; see the Phase 10 tests).
             original.Player.Purse = 77;
             original.Player.Appearance.HairColour = 4;
             original.Player.Name = "Old Traveller";

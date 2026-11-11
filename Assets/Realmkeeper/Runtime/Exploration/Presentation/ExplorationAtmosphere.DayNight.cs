@@ -93,21 +93,27 @@ namespace Realmkeeper.Exploration.Presentation
 
             var lamps = new GameObject("Night lamps").transform;
             lamps.SetParent(environmentRoot, false);
+            var posts = 0;
             foreach (var p in layout.Props)
             {
                 if (p.Kind != PropKind.LampPost) continue;
+                if (layout.Plan != null && posts++ >= 32) continue; // a light budget for the larger planned towns
                 var rot = Quaternion.Euler(0f, -p.Yaw, 0f);
-                AddLamp(lamps, new Vector3(p.Position.X, 0f, p.Position.Z) + rot * new Vector3(0f, 2.6f, -0.55f), 10f);
+                AddLamp(lamps, new Vector3(p.Position.X, LocalPaths.StandingHeight(layout, p.Position.X, p.Position.Z), p.Position.Z) + rot * new Vector3(0f, 2.6f, -0.55f), 10f);
             }
 
+            var lit = 0;
             foreach (var b in layout.Buildings)
             {
+                // A planned town has many more buildings: lamps on the square's and the sites' fronts only (a light budget).
+                if (layout.Plan != null && (lit >= 24 || (b.Kind == BuildingKind.House && b.Fit == ShopFit.None && Mathf.Sqrt(b.Center.X * b.Center.X + b.Center.Z * b.Center.Z) > layout.PlazaRadius + 30f))) continue;
+                lit++;
                 var plan = BuildingKitPlanner.Plan(b, layout.Type, layout.SettlementId.ToString());
                 var rot = Quaternion.Euler(0f, -b.Yaw, 0f);
                 foreach (var piece in plan.Pieces)
                 {
                     if (piece.ModuleId != "@Lantern") continue;
-                    AddLamp(lamps, new Vector3(b.Center.X, 0f, b.Center.Z) + rot * new Vector3(piece.X, piece.Y - 0.2f, piece.Z - 0.35f), 7f);
+                    AddLamp(lamps, new Vector3(b.Center.X, b.FloorHeight, b.Center.Z) + rot * new Vector3(piece.X, piece.Y - 0.2f, piece.Z - 0.35f), 7f);
                 }
             }
         }

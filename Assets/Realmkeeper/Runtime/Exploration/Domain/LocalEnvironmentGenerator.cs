@@ -31,7 +31,7 @@ namespace Realmkeeper.Exploration.Domain
     /// arrival point. Vertical-slice generator: one plaza-centred plan scaled by settlement type.
     /// Layout randomness is visual only and never touches simulation streams.
     /// </summary>
-    public static class LocalEnvironmentGenerator
+    public static partial class LocalEnvironmentGenerator
     {
         public const float StreetWidth = 5f;
         public const int Version = 1;
@@ -54,6 +54,7 @@ namespace Realmkeeper.Exploration.Domain
                 PlazaRadius = type == SettlementType.Hamlet ? 8f : 11f,
                 HasWalls = type == SettlementType.Town || type == SettlementType.City || type == SettlementType.Fortress,
                 ArrivalPose = new LocalPose(0f, 0f, -half + 4f, 0f),
+                Gate = new LocalPoint(2.5f, -half + 6f),
             };
 
             var plaza = layout.PlazaRadius;
@@ -186,7 +187,7 @@ namespace Realmkeeper.Exploration.Domain
 
         private static int HouseCountFor(SettlementType type) => SettlementSites.HouseCount(type);
 
-        private static void PlaceResidents(LocalEnvironmentLayout layout, IReadOnlyList<ResidentInput> residents, LayoutRandom rng)
+        internal static void PlaceResidents(LocalEnvironmentLayout layout, IReadOnlyList<ResidentInput> residents, LayoutRandom rng)
         {
             var plaza = layout.PlazaRadius;
             var hall = layout.Buildings[0].Center;
@@ -216,7 +217,7 @@ namespace Realmkeeper.Exploration.Domain
                 {
                     case NpcRole.Innkeeper: anchor = new LocalPoint(hall.X + 1.5f, hall.Z + 1f); wander = 1.2f; break;
                     case NpcRole.Merchant: anchor = new LocalPoint(plaza - 5f, -(plaza - 5f)); wander = 1.5f; break;
-                    case NpcRole.Guard: anchor = new LocalPoint(3.5f, -layout.HalfExtent + 7f); wander = 2f; break;
+                    case NpcRole.Guard: anchor = new LocalPoint(layout.Gate.X + 1f, layout.Gate.Z + 1f); wander = 2f; break;
                     case NpcRole.Farmer: anchor = new LocalPoint(plaza + 3f, 0f); wander = 3f; break;
                     case NpcRole.Elder: anchor = new LocalPoint(-3f, 3f); wander = 2f; break;
                     default:
@@ -258,7 +259,7 @@ namespace Realmkeeper.Exploration.Domain
 
             if (r.SiteKey == SettlementSites.Gate)
             {
-                anchor = new LocalPoint(side * 1.4f + 2.5f, -layout.HalfExtent + 6f);
+                anchor = new LocalPoint(layout.Gate.X + side * 1.4f, layout.Gate.Z);
                 wander = 1.5f;
                 return true;
             }
@@ -292,7 +293,7 @@ namespace Realmkeeper.Exploration.Domain
         }
 
         /// <summary>Small xorshift stream seeded by world seed and settlement ID. Layout only.</summary>
-        private sealed class LayoutRandom
+        internal sealed class LayoutRandom
         {
             private ulong _state;
 

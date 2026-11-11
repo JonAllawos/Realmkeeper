@@ -37,6 +37,9 @@ namespace Realmkeeper.Domain.Combat
 
     public sealed class DashAction : CombatAction { public override string Describe => "Dash"; }
     public sealed class DisengageAction : CombatAction { public override string Describe => "Disengage"; }
+
+    /// <summary>Phase 10: a computer-controlled combatant leaves the fight (no enemy within 30 ft; costs the action).</summary>
+    public sealed class FleeAction : CombatAction { public override string Describe => "Flee"; }
     public sealed class DodgeAction : CombatAction { public override string Describe => "Dodge"; }
 
     /// <summary>Stand up from Prone (costs half the speed).</summary>
@@ -145,6 +148,12 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>Phase 9: spells cast, each with its per-target outcomes.</summary>
         public List<SpellCastResult> Spells { get; } = new List<SpellCastResult>();
 
+        /// <summary>Phase 10: the action waits on a player's reaction or decision (nothing of it has happened yet).</summary>
+        public PendingReactionData Pending { get; set; }
+
+        /// <summary>Who is being asked.</summary>
+        public string WaitingOn { get; set; }
+
         public static ActionOutcome Refused(string why) => new ActionOutcome { Ok = false, Error = why };
     }
 
@@ -165,6 +174,9 @@ namespace Realmkeeper.Domain.Combat
         public string Side { get; set; }
         public GridPos Position { get; set; }
         public CombatControl Control { get; set; } = CombatControl.Ai;
+
+        /// <summary>Phase 10: the persistent creature this participant is (from a regional population), or null.</summary>
+        public string CreatureInstanceId { get; set; }
     }
 
     public sealed class EncounterSetup
@@ -177,6 +189,9 @@ namespace Realmkeeper.Domain.Combat
         public List<GridPos> DifficultTerrain { get; set; } = new List<GridPos>();
         public string QuestRef { get; set; }
         public string WorldEventRef { get; set; }
+
+        /// <summary>Phase 10: a generated encounter's origin and objective (null for practice and scripted fights).</summary>
+        public EncounterOriginData Origin { get; set; }
     }
 
     /// <summary>A chronicle-worthy moment the command reports (start, end, someone downed or killed).</summary>

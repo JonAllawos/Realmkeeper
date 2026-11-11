@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 11;
+        public const int CurrentSchemaVersion = 12;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -93,6 +93,22 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 8: settlement structures (buildings), each owned by its settlement and linked to its location and shop where it has one.</summary>
         public List<StructureData> Structures { get; set; } = new List<StructureData>();
+
+        /// <summary>Phase 10: regional creature populations (aggregate), creatures drawn into encounters, and settlement herds.</summary>
+        public List<CreaturePopulationData> CreaturePopulations { get; set; } = new List<CreaturePopulationData>();
+
+        public List<CreatureInstanceData> Creatures { get; set; } = new List<CreatureInstanceData>();
+
+        public List<LivestockHerdData> Livestock { get; set; } = new List<LivestockHerdData>();
+
+        /// <summary>Phase 10: each settlement's persisted spatial plan (made once, never rearranged).</summary>
+        public List<Realmkeeper.Domain.Settlements.SettlementLayoutData> SettlementLayouts { get; set; } = new List<Realmkeeper.Domain.Settlements.SettlementLayoutData>();
+
+        public Realmkeeper.Domain.Settlements.SettlementLayoutData FindLayout(SettlementId id)
+        {
+            if (SettlementLayouts != null) foreach (var l in SettlementLayouts) if (l != null && l.SettlementId == id) return l;
+            return null;
+        }
 
         /// <summary>The encounter going on, or null.</summary>
         public Realmkeeper.Domain.Combat.EncounterData ActiveEncounter
@@ -183,6 +199,11 @@ namespace Realmkeeper.Domain.World
             if (Transactions != null) foreach (var t in Transactions) copy.Transactions.Add(t?.Clone());
             if (Encounters != null) foreach (var e in Encounters) copy.Encounters.Add(e?.Clone());
             if (Structures != null) foreach (var s in Structures) copy.Structures.Add(s?.Clone());
+            if (CreaturePopulations != null) foreach (var p in CreaturePopulations) copy.CreaturePopulations.Add(p?.Clone());
+            if (Creatures != null) foreach (var c in Creatures) copy.Creatures.Add(c?.Clone());
+            if (Livestock != null) foreach (var h in Livestock) copy.Livestock.Add(h?.Clone());
+            // Plans are made once and never changed by the simulation (ADR-0048): copies share them.
+            if (SettlementLayouts != null) copy.SettlementLayouts.AddRange(SettlementLayouts);
             return copy;
         }
 

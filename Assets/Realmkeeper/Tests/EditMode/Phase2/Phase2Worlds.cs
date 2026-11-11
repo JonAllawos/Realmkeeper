@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Realmkeeper.Application;
 using Realmkeeper.Application.Ports;
 using Realmkeeper.Domain.Identifiers;
@@ -21,17 +22,49 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// <summary>The world of that seed as generated before Phase 5 (no shops or starting kit): the source of faithful old saves.</summary>
         public static WorldData GeneratedBeforeCommerce(long seed) => Generate(seed, false).World;
 
-        public static GeneratedWorld Generate(long seed, bool includeCommerce = true)
+        /// <summary>
+        /// Phase 10: the world of that seed as generated before Phase 10 (no extra posts filled, no NPC sheets, layouts or
+        /// wildlife): what a v11 save holds, and what the deserializer's migrations alone produce. The living-world
+        /// additions arrive when a session loads a save (tested by the Phase 10 tests).
+        /// </summary>
+        public static WorldData GeneratedBeforeLivingWorld(long seed) => Generate(seed, true, false).World;
+
+        public static GeneratedWorld Generate(long seed, bool includeCommerce = true, bool includeLivingWorld = true)
         {
             var settings = new WorldSettings();
             settings.EnabledSimulationSystems.AddRange(StandardSimulationSystems.AllIds);
-            return new RegionGenerator(new Xoshiro256RandomFactory()).Generate(new WorldGenerationRequest("Phaseland", seed, settings, FixedId) { IncludeCommerce = includeCommerce });
+            return new RegionGenerator(new Xoshiro256RandomFactory()).Generate(new WorldGenerationRequest("Phaseland", seed, settings, FixedId) { IncludeCommerce = includeCommerce, IncludeLivingWorld = includeLivingWorld });
         }
 
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
         /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
+        /// <summary>
+        /// Rebuilds the v11 layout (Phase 9): no fauna system, no creature populations, creatures or herds, no settlement
+        /// layouts or identities, no NPC character records, no Phase 10 combatant fields. Expects a world generated
+        /// before the living world (<see cref="GeneratedBeforeLivingWorld"/>), so no Phase 10 person exists to remove.
+        /// </summary>
+        public static void StripToV11(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 11;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;
+            systems?.FirstOrDefault(t => (string)t == Realmkeeper.Simulation.Fauna.FaunaSystem.Id)?.Remove();
+            foreach (var field in new[] { "creaturePopulations", "creatures", "livestock", "settlementLayouts" }) w.Remove(field);
+            foreach (Newtonsoft.Json.Linq.JObject n in (w["npcs"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray()) n.Remove("character");
+            foreach (var e in (w["encounters"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+            {
+                foreach (var field in new[] { "pendingReaction", "objective", "origin", "resolved" }) ((Newtonsoft.Json.Linq.JObject)e).Remove(field);
+                foreach (Newtonsoft.Json.Linq.JObject c in (Newtonsoft.Json.Linq.JArray)e["combatants"])
+                    {
+                        foreach (var field in new[] { "anchor", "creatureInstanceId" }) c.Remove(field);
+                        if (c["turn"] is Newtonsoft.Json.Linq.JObject turn) foreach (var field in new[] { "hasStart", "startX", "startY" }) turn.Remove(field);
+                    }
+            }
+        }
+
         public static void StripToV10(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV11(doc); // Phase 10
             doc["schemaVersion"] = 10;
             if (doc["world"]["player"]?["rpg"] is Newtonsoft.Json.Linq.JObject rpg)
             {

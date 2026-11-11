@@ -4,7 +4,6 @@ using Realmkeeper.Application;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Exploration.Domain;
-using Realmkeeper.Domain.World;
 using Realmkeeper.Simulation.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -295,7 +294,7 @@ namespace Realmkeeper.Exploration.Presentation
                 if (seen.Contains(pair.Key) || pair.Value == null || pair.Value.IsHidden) continue;
                 if (_planned.TryGetValue(pair.Key, out var prev) && prev.place.IsEmpty) continue;
                 _planned[pair.Key] = (default, ActivityKind.None);
-                var gate = new LocalPoint(2.5f, -layout.HalfExtent + 2f);
+                var gate = LocalPaths.LeavingPoint(layout);
                 var here = new LocalPoint(pair.Value.transform.localPosition.x, pair.Value.transform.localPosition.z);
                 _inside.TryGetValue(pair.Key, out var from);
                 var route = LocalPaths.Route(layout, here, from, gate, null);
@@ -311,8 +310,9 @@ namespace Realmkeeper.Exploration.Presentation
             var npc = _session.FindNpc(p.NpcId);
             if (npc == null || Player == null) return null;
             var parent = _residentsRoot;
-            var gate = new LayoutResidentSpot { NpcId = p.NpcId, Role = p.Role, Position = new LocalPoint(2.5f, -layout.HalfExtent + 3f), WanderRadius = 1.5f };
-            var view = ResidentView.Create(parent, gate, npc, _session, Player.transform, _materials, Catalog);
+            var way = LocalPaths.LeavingPoint(layout);
+            var gate = new LayoutResidentSpot { NpcId = p.NpcId, Role = p.Role, Position = layout.Plan != null ? way : new LocalPoint(2.5f, -layout.HalfExtent + 3f), WanderRadius = 1.5f };
+            var view = ResidentView.Create(parent, gate, npc, _session, Player.transform, _materials, Catalog, layout);
             _residents[p.NpcId] = view;
             _detector.Register(view);
             return view;

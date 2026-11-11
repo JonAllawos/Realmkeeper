@@ -61,6 +61,7 @@ namespace Realmkeeper.Simulation.Npcs
             foreach (var npc in world.Npcs)
             {
                 if (npc.IsDeceased || npc.Tier == NpcTier.Unassigned) continue;
+                RestOvernight(world, npc, today); // Phase 10: sheet-holders sleep and recover, every night
                 if (!IsDue(world, npc, today))
                 {
                     // Not due for a full update, but everyone keeps to their routine every day (cheap).
@@ -81,6 +82,33 @@ namespace Realmkeeper.Simulation.Npcs
             Converse(context);
             React(context);
             if (dayNumber % WorldDate.DaysPerWeek == 0) Weekly(context);
+        }
+
+        /// <summary>
+        /// Phase 10: a person with a character sheet sleeps each night — an SRD long rest (hit points, hit dice, resources,
+        /// spell preparation) when anything needs recovering. Someone unconscious but stable comes round with 1 hit point
+        /// first. Not while they are in a fight; the dead stay dead.
+        /// </summary>
+        public static void RestOvernight(WorldData world, NpcData npc, WorldDate today)
+        {
+            var sheet = npc.Character?.Sheet;
+            if (sheet == null || sheet.State != Domain.Rpg.CreationState.Complete || sheet.IsDead || !today.IsValidDate) return;
+            var fight = world.ActiveEncounter;
+            if (fight != null) foreach (var c in fight.Combatants) if (c.SourceId == npc.NpcId.ToString()) return;
+            var rules = new Domain.Rpg.CharacterRules(sheet);
+            var tired = sheet.CurrentHp < rules.MaxHp;
+            foreach (var pair in rules.ResourceMaximums()) if (!sheet.Resources.TryGetValue(pair.Key, out var left) || left < pair.Value) tired = true;
+            if (!tired) return;
+            if (sheet.CurrentHp <= 0)
+            {
+                sheet.CurrentHp = 1;
+                sheet.IsStable = false;
+                sheet.DeathSaveSuccesses = sheet.DeathSaveFailures = 0;
+            }
+
+            var endedAt = today.ToDayNumber() * 1440L + 360L; // they wake at six
+            if (Domain.Rpg.CharacterRest.LongRestProblem(sheet, endedAt - Domain.Rpg.CharacterRest.LongRestMinutes) != null) return;
+            Domain.Rpg.CharacterRest.LongRest(sheet, endedAt, "night:" + today.ToDayNumber());
         }
 
         // ----- 1. Population ---------------------------------------------------------------------

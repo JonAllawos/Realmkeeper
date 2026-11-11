@@ -105,6 +105,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             d.DiedOn = Date(n.DiedOn);
             d.LastUpdatedOn = Date(n.LastUpdatedOn);
             d.PlayerRegard = RegardDto(n.PlayerRegard);
+            d.Character = NpcCharacterDto(n.Character); // Phase 10
         }
 
         private static void WriteNpcWorld(WorldData w, WorldDto dto)
@@ -229,6 +230,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             n.DiedOn = OptionalDate(d.DiedOn, "npc diedOn");
             n.LastUpdatedOn = OptionalDate(d.LastUpdatedOn, "npc lastUpdatedOn");
             n.PlayerRegard = Regard(d.PlayerRegard);
+            n.Character = NpcCharacter(d.Character, n.Name); // Phase 10
         }
 
         private static void ReadNpcWorld(WorldDto dto, WorldData world)
@@ -267,6 +269,38 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Interactions = r.Interactions,
                 });
             }
+        }
+    
+        // ----- Phase 10: a named person's mechanical record -----------------------------------------------
+
+        private static NpcCharacterDto NpcCharacterDto(NpcCharacterData c) => c == null ? null : new NpcCharacterDto
+        {
+            ArchetypeId = c.ArchetypeId,
+            Occupation = c.Occupation,
+            Sheet = c.Sheet != null ? SheetDto(c.Sheet) : null,
+            Body = c.Gear?.Body,
+            Shield = c.Gear?.Shield,
+            MainHand = c.Gear?.MainHand,
+            OffHand = c.Gear?.OffHand,
+            Carried = c.Gear?.Carried != null ? new List<string>(c.Gear.Carried) : new List<string>(),
+            Purse = c.Purse,
+            SheetSince = c.SheetSince.IsValidDate ? Date(c.SheetSince) : null,
+        };
+
+        private static NpcCharacterData NpcCharacter(NpcCharacterDto d, string who)
+        {
+            if (d == null) return null;
+            if (string.IsNullOrWhiteSpace(d.ArchetypeId)) throw new SaveDataException($"{who}'s character record has no archetype.");
+            if (d.Purse < 0) throw new SaveDataException($"{who}'s purse is negative.");
+            return new NpcCharacterData
+            {
+                ArchetypeId = d.ArchetypeId,
+                Occupation = d.Occupation ?? string.Empty,
+                Sheet = d.Sheet != null ? Sheet(d.Sheet) : null,
+                Gear = new NpcGearData { Body = d.Body, Shield = d.Shield, MainHand = d.MainHand, OffHand = d.OffHand, Carried = d.Carried != null ? new List<string>(d.Carried) : new List<string>() },
+                Purse = d.Purse,
+                SheetSince = OptionalDate(d.SheetSince, "npc sheetSince"),
+            };
         }
     }
 }

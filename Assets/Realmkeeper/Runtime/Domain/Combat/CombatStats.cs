@@ -55,6 +55,9 @@ namespace Realmkeeper.Domain.Combat
         public ConditionType? OnHit { get; set; }
 
         public bool Light { get; set; }
+
+        /// <summary>Phase 10: the stat-block attack behind a creature's option (its saves, recharge and escape DC), or null.</summary>
+        public CreatureAttack Source { get; set; }
     }
 
     /// <summary>
@@ -87,19 +90,47 @@ namespace Realmkeeper.Domain.Combat
         public bool PackTactics => Creature?.PackTactics ?? false;
         public string WeaponName { get; private set; }
 
+        /// <summary>Phase 10: a named person's worn and carried gear (null for the player and creatures).</summary>
+        public NpcGearData Gear { get; private set; }
+
+        /// <summary>
+        /// The character sheet a combatant fights with (Phase 10): the player's, or a named person's when they hold one.
+        /// Null for creatures and for lightweight residents, who fight with an SRD profile.
+        /// </summary>
+        public static CharacterSheetData SheetOf(WorldData world, CombatantData c, out PlayerCharacterData player, out NpcGearData gear)
+        {
+            player = null;
+            gear = null;
+            if (c == null || world == null) return null;
+            if (c.Kind == CombatantKind.Player)
+            {
+                player = world.Player;
+                return player?.Rpg;
+            }
+
+            if (c.Kind != CombatantKind.Npc || c.CreatureId != null || !Guid.TryParse(c.SourceId, out var guid)) return null;
+            var npc = world.FindNpc(new Identifiers.NpcId(guid));
+            if (npc?.Character == null || !npc.Character.HasSheet) return null;
+            gear = npc.Character.Gear;
+            return npc.Character.Sheet;
+        }
+
         public static CombatStats For(WorldData world, CombatantData c)
         {
             var s = new CombatStats(c);
-            if (c.Kind == CombatantKind.Player)
+            var sheet = SheetOf(world, c, out var p, out var gear);
+            if (sheet != null)
             {
-                var p = world.Player;
+                // The player, or (Phase 10) a named person with a character sheet: the same rules, their own equipment.
                 s.Player = p;
-                s.Rules = new CharacterRules(p.Rpg, CharacterRules.LoadoutOf(p));
+                s.Gear = gear;
+                s.Rules = new CharacterRules(sheet, p != null ? CharacterRules.LoadoutOf(p) : gear?.Loadout ?? Loadout.Unarmored);
                 s.ArmorClass = s.Rules.ArmorClass(p);
                 s.BaseSpeed = s.Rules.Speed;
                 s.ProficiencyBonus = s.Rules.ProficiencyBonus;
                 s.AttacksPerAction = s.Rules.HasFeature("three_extra_attacks") ? 4 : s.Rules.HasFeature("two_extra_attacks") ? 3 : s.Rules.HasFeature("extra_attack") ? 2 : 1;
-                s.BuildPlayerAttacks();
+                s.BuildSheetAttacks(p != null ? p.Equipped(EquipmentSlot.MainHand)?.ItemId : gear?.MainHand,
+                    p != null ? p.Equipped(EquipmentSlot.OffHand)?.ItemId : gear?.Shield ?? gear?.OffHand);
                 if (c.FormCreatureId != null && CreatureCatalog.Find(c.FormCreatureId) is CreatureDefinition form)
                 {
                     // Wild Shape (Phase 9 foundation): the beast's armour class, speed, physical scores and attacks; the druid's own hit points, mind and proficiencies.
@@ -249,11 +280,10 @@ namespace Realmkeeper.Domain.Combat
             return v;
         }
 
-        private void BuildPlayerAttacks()
+        private void BuildSheetAttacks(string mainId, string offId)
         {
-            var p = Player;
-            var main = ItemCatalog.Find(p.Equipped(EquipmentSlot.MainHand)?.ItemId);
-            var off = ItemCatalog.Find(p.Equipped(EquipmentSlot.OffHand)?.ItemId);
+            var main = ItemCatalog.Find(mainId);
+            var off = ItemCatalog.Find(offId);
             var str = Modifier(Ability.Strength);
             var pb = ProficiencyBonus;
             if (main?.Weapon != null)
@@ -319,14 +349,14 @@ namespace Realmkeeper.Domain.Combat
                 _attacks.Add(new AttackOption
                 {
                     Id = a.Id, Name = a.Name, Kind = AttackKind.Weapon, Melee = true, Reach = a.Reach, AttackBonus = bonus, Damage = a.Damage, DamageBonus = damage,
-                    DamageType = a.DamageType, Ability = Ability.Strength, Proficient = true, OnHit = a.OnHit,
+                    DamageType = a.DamageType, Ability = Ability.Strength, Proficient = true, OnHit = a.OnHit, Source = a,
                 });
             if (a.Range > 0)
                 _attacks.Add(new AttackOption
                 {
                     Id = a.Reach > 0 ? a.Id + ":thrown" : a.Id, Name = a.Reach > 0 ? a.Name + " (thrown)" : a.Name, Kind = AttackKind.Weapon, Melee = false,
                     Range = a.Range, LongRange = a.LongRange, AttackBonus = bonus, Damage = a.Damage, DamageBonus = damage, DamageType = a.DamageType,
-                    Ability = Ability.Dexterity, Proficient = true,
+                    Ability = Ability.Dexterity, Proficient = true, Source = a, OnHit = a.Reach > 0 ? null : a.OnHit, // a web's hold; a thrown spear knocks nobody down
                 });
         }
     }

@@ -178,7 +178,7 @@ namespace Realmkeeper.Presentation
         {
             if (Session == null || !Session.HasWorld) return;
             var map = Session.Map;
-            WorldView.Rebuild(map, Session.GetSettlements());
+            WorldView.Rebuild(map, Session.GetSettlements(), id => Session.GetSettlementLayout(id));
             Indicators.Clear();
             Indicators.Refresh(Session.GetSettlements());
             PoliticalOverlay.Refresh(Session);

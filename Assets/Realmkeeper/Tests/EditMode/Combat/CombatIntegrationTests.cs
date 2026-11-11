@@ -77,7 +77,9 @@ namespace Realmkeeper.Tests.EditMode.Combat
             Assert.That(snap.Name, Does.StartWith("Practice"));
             Assert.That(snap.Order.Count(c => c.Kind == CombatantKind.Creature && c.HostileToPlayer), Is.EqualTo(2));
             var w = W;
-            var guard = w.Npcs.Where(n => !n.IsDeceased && n.Role == NpcRole.Guard && n.HomeSettlementId == w.Player.SettlementId).OrderBy(n => n.NpcId).FirstOrDefault();
+            // Phase 10: the guard on duty (rank and file before the captain), then the lowest ID.
+            var guard = w.Npcs.Where(n => !n.IsDeceased && n.Role == NpcRole.Guard && n.HomeSettlementId == w.Player.SettlementId)
+                .OrderBy(n => n.Tier == NpcTier.Notable ? 1 : 0).ThenBy(n => n.NpcId).FirstOrDefault();
             if (guard != null)
             {
                 var ally = snap.Order.Single(c => c.Kind == CombatantKind.Npc);

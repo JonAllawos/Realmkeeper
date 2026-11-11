@@ -109,7 +109,7 @@ namespace Realmkeeper.Tests.EditMode.Phase3
         [Test]
         public void Version2Save_UpgradesToRegionsPlayerAndResidents_WithoutChangingExistingData()
         {
-            var fresh = Phase2Worlds.Generated(555);
+            var fresh = Phase2Worlds.GeneratedBeforeLivingWorld(555); // Phase 10: the v11 world (its living-world additions arrive when a session loads a save; see the Phase 10 tests).
             var serializer = new JsonWorldSerializer();
             var doc = JObject.Parse(serializer.Serialize(fresh));
 
@@ -141,7 +141,7 @@ namespace Realmkeeper.Tests.EditMode.Phase3
         public void NamedResidents_AreAStableSubsetOfThePopulation()
         {
             var world = Phase2Worlds.Generated(123456789);
-            Assert.That(world.Npcs.Count, Is.EqualTo(6 + 5 + 4), "Town, village and hamlet residents.");
+            Assert.That(world.Npcs.Count, Is.EqualTo((6 + 3) + 5 + (4 + 1)), "Town, village and hamlet residents (Phase 10: the town's captain, guard and priest, the hamlet's warden).");
             Assert.That(world.Npcs.Select(n => n.NpcId).Distinct().Count(), Is.EqualTo(world.Npcs.Count));
             foreach (var s in world.Settlements)
                 Assert.That(world.Npcs.Count(n => n.HomeSettlementId == s.SettlementId), Is.LessThanOrEqualTo(s.Population));

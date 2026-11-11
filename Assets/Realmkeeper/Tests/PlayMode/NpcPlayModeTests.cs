@@ -56,11 +56,11 @@ namespace Realmkeeper.Tests.PlayMode
             hud.ShowPeople(true);
             yield return null;
             Assert.That(hud.PeoplePanelVisible, Is.True);
-            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(15), "Every named person is listed.");
+            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(19), "Every named person is listed."); // Phase 10: the captain, guard, priest and warden the places call for (15 → 19)
 
             var town = bootstrap.Session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
             hud.SetPeopleFilter(settlement: town.SettlementId);
-            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(6));
+            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(9)); // Phase 10: the town gains its captain, a guard and a priest (6 → 9)
             hud.SetPeopleFilter(role: NpcRole.Elder);
             Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(1));
             hud.SetPeopleFilter(settlement: default(SettlementId), clearRole: true);
@@ -94,7 +94,7 @@ namespace Realmkeeper.Tests.PlayMode
             bootstrap.Selection.Select(town.SettlementId);
             yield return null;
             var links = bootstrap.Hud.SettlementResidents.Query<Button>().ToList();
-            Assert.That(links.Count, Is.EqualTo(6));
+            Assert.That(links.Count, Is.EqualTo(9)); // Phase 10: the town gains its captain, a guard and a priest (6 → 9)
             var first = links[0];
             using (var click = NavigationSubmitEvent.GetPooled()) { click.target = first; first.SendEvent(click); }
             yield return null;

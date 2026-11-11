@@ -21,7 +21,17 @@ The SRD supplies the rules mechanics:
 - spells (levels, ranges, areas, damage, saves, durations) and spellcasting;
 - class features in combat, rests and recovery;
 - the bandit, guard, commoner and wolf statistics (SRD 5.2.1), and the acolyte and cult fanatic
-  statistics with their spellcasting (SRD 5.1).
+  statistics with their spellcasting (SRD 5.1);
+- the bestiary added in Phase 10, from SRD 5.1: deer, boar, black bear, brown bear, dire wolf, giant rat,
+  giant spider, goat, riding horse, draft horse, mastiff, goblin, thug (named "highwayman" in the game),
+  bandit captain, cultist, veteran, skeleton, zombie, ogre and troll, with their traits (Charge,
+  Regeneration, Undead Fortitude, Relentless, Nimble Escape, Parry and others).
+
+**Realmkeeper originals (not SRD).** The rabbit, fox, cattle, sheep and chicken have no SRD statistics.
+Their statistics are Realmkeeper's own, written in the same format and labelled
+`ContentSource.RealmkeeperOriginal` in the catalog and in the game's combat inspector. Creature
+descriptions, behaviour summaries, settlement identities, district and landmark names, and the NPC
+archetypes are Realmkeeper's own.
 
 Spell names are the SRD's; every spell and feature description, and all names and setting text,
 are Realmkeeper's own. Realmkeeper does not use the

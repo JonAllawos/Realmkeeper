@@ -41,7 +41,7 @@ namespace Realmkeeper.Presentation
             _materials = materials;
         }
 
-        public void Rebuild(RegionMap map, IReadOnlyList<SettlementSummary> settlements)
+        public void Rebuild(RegionMap map, IReadOnlyList<SettlementSummary> settlements, System.Func<Realmkeeper.Domain.Identifiers.SettlementId, Realmkeeper.Domain.Settlements.SettlementLayoutData> plans = null)
         {
             Clear();
             Map = map;
@@ -79,7 +79,7 @@ namespace Realmkeeper.Presentation
             {
                 var go = CreateChild("Settlement", settlementRoot);
                 var view = go.AddComponent<SettlementView>();
-                view.Build(map, settlement, _materials.Opaque);
+                view.Build(map, settlement, _materials.Opaque, plans?.Invoke(settlement.SettlementId));
                 _settlements[settlement.SettlementId] = view;
             }
         }

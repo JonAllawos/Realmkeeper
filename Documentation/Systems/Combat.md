@@ -301,14 +301,34 @@ The panel is docked along the bottom of the screen, so the fight stays visible a
 - **Panel:** Spells and Class features sections, the cast composer with grid aiming, and folding
   sections. Effects and concentration are on the initiative rows and in the inspector.
 
+## Phase 10 additions
+
+- **Reactions asked, not taken (ADR-0045).**
+  - Opportunity attacks, Shield, Parry, Cutting Words, Deflect Attacks, Uncanny Dodge, Hellish Rebuke,
+    Counterspell, Indomitable and Bardic Inspiration are asked at their rule point.
+  - The player answers through the panel's prompt; computer reactors decide by policy.
+  - The action is suspended, then replayed with the answer.
+- **NPCs with sheets fight as themselves (ADR-0043).** Their vitals, effects and spells are read from and
+  written to their sheet (`CombatStats.SheetOf`).
+- **Bestiary traits and behaviours (ADR-0044).**
+  - Traits: Charge, Regeneration, Undead Fortitude, Relentless, Nimble Escape, Recharge, Parry.
+  - Attack riders (save on hit, grapple escape DC).
+  - Behaviour-driven AI: flight for skittish animals, packs, predators, the mindless, the territorial.
+  - A flee action ends the turn.
+- **World encounters (ADR-0046).** Planned from the world's populations and checked before they start. Their
+  instances have fates, and consequences are settled once when the fight ends.
+- **Inspector.** A creature's bestiary entry: category, challenge and XP, behaviour, traits and source.
+- **Persistence.** Schema v12: the waiting question, the encounter's origin, combatant anchors and creature
+  instances.
+
 ## Deferred (not in Phase 9)
 
-- **Reactions:** a reaction prompt. Reactions are automatic, so reaction spells and features wait.
+- **Reactions:** (Phase 10: done; see above.)
 - **Weapon Mastery:** the chosen-weapons limit, Nick and Cleave.
 - **Weapons:** off-hand attacks, and ammunition counts.
 - **Sight and terrain:** cover, line of sight, lighting and elevation rules.
-- **Companions:** companions and their control, and NPC character sheets.
-- **Content:** encounter generation and a bestiary.
+- **Companions:** companions and their control. (NPC character sheets: Phase 10.)
+- **Content:** (encounter generation and a bestiary: Phase 10.)
 - **Presentation:** creature models, animations and a 3D grid renderer.
 - **Rewards and recovery:** experience awards from combat, resurrection, and recovery and medical
   systems.

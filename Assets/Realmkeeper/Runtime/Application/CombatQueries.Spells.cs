@@ -69,6 +69,17 @@ namespace Realmkeeper.Application
             return list;
         }
 
+        /// <summary>Phase 10: a creature's bestiary entry in a line (for the combat inspector).</summary>
+        private static string BestiaryText(CreatureDefinition d)
+        {
+            if (d == null) return null;
+            var traits = new List<string>();
+            foreach (var t in d.Traits) traits.Add(t.Name);
+            var source = d.Source == Domain.Rpg.ContentSource.Srd51 ? "SRD 5.1" : d.Source == Domain.Rpg.ContentSource.Srd521 ? "SRD 5.2.1" : "Realmkeeper original";
+            return d.Category + " · challenge " + d.ChallengeRating + " (" + d.Xp + " XP) · " + d.Behavior.Kind + ": " + d.Behavior.Summary +
+                   (traits.Count > 0 ? " · Traits: " + string.Join(", ", traits) : string.Empty) + " · " + source;
+        }
+
         private static string ResourceText(CombatEngine engine, CombatantData c)
         {
             var parts = new List<string>();

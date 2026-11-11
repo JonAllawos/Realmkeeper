@@ -49,7 +49,11 @@ namespace Realmkeeper.Exploration.Application
                 if (key != null) shops[key] = FitFor(s.Categories);
             }
 
-            return LocalEnvironmentGenerator.Generate(world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+            var plan = world.FindLayout(settlement.SettlementId);
+            if (plan == null) return LocalEnvironmentGenerator.Generate(world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+            var layout = LocalEnvironmentGenerator.FromPlan(plan.Clone(), world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+            foreach (var h in world.Livestock) if (h.SettlementId == settlement.SettlementId) layout.Herds.Add(new LayoutHerd { CreatureId = h.CreatureId, Count = h.Count, PastureKey = h.PastureKey });
+            return layout;
         }
 
         /// <summary>Same as <see cref="LayoutFor(WorldData, SettlementData)"/>, through session queries (for presentation).</summary>
@@ -59,7 +63,11 @@ namespace Realmkeeper.Exploration.Application
             foreach (var n in session.GetPresenceIn(settlement.SettlementId)) residents.Add(new ResidentInput(n.NpcId, n.Role, n.LayoutKey, n.LocationKind));
             var shops = new Dictionary<string, ShopFit>(StringComparer.Ordinal);
             foreach (var s in session.GetShops(settlement.SettlementId)) if (s.LayoutKey != null) shops[s.LayoutKey] = FitFor(s.Categories);
-            return LocalEnvironmentGenerator.Generate(session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+            var plan = session.GetSettlementLayout(settlement.SettlementId);
+            if (plan == null) return LocalEnvironmentGenerator.Generate(session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+            var layout = LocalEnvironmentGenerator.FromPlan(plan, session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
+            foreach (var h in session.GetHerds(settlement.SettlementId)) layout.Herds.Add(new LayoutHerd { CreatureId = h.CreatureId, Count = h.Count, PastureKey = h.PastureKey });
+            return layout;
         }
 
         /// <summary>How a shop is fitted out: a smithy for arms and armour, a merchant's counter otherwise.</summary>

@@ -481,7 +481,8 @@ namespace Realmkeeper.Tests.EditMode.Commerce
             Assert.That(w.HistoricalEvents.Count, Is.EqualTo(eventsBefore), "No invented history.");
             Assert.That(w.Player.IsOutfitted, Is.True);
             Phase2Worlds.ExpectLegacyThenTreatAsFresh(w);
-            Assert.That(World(serializer.Serialize(w)), Is.EqualTo(World(serializer.Serialize(Phase2Worlds.Generated(4242)))),
+            Assert.That(World(serializer.Serialize(w)), Is.EqualTo(World(serializer.Serialize(Phase2Worlds.GeneratedBeforeLivingWorld(4242)))), // Phase 10: the v11 world (its living-world additions arrive when a session loads a save; see the Phase 10 tests).
+                
                 "Exactly the shops, stock, stores and kit of a fresh world of that seed.");
 
             // Once only: a v7 save is never re-initialised.

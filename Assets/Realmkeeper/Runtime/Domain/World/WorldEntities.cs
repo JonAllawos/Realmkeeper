@@ -155,6 +155,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>Phase 5: how this person regards the player, with its causes.</summary>
         public PlayerRegardData PlayerRegard { get; set; } = new PlayerRegardData();
 
+        /// <summary>Phase 10: the person's archetype, gear and (for sheet-holders) character sheet; null until generated.</summary>
+        public NpcCharacterData Character { get; set; }
+
         public bool IsAlive => !IsDeceased;
 
         /// <summary>Whole years of age on a date (0 when the birth date is unknown).</summary>
@@ -181,6 +184,7 @@ namespace Realmkeeper.Domain.World
                 WorkplaceId = WorkplaceId,
                 CurrentLocationId = CurrentLocationId,
                 Schedule = Schedule?.Clone() ?? new NpcScheduleData(),
+                Character = Character?.Clone(),
                 Goals = new List<NpcGoalData>(Goals.Count),
                 Memories = new List<NpcMemoryData>(Memories.Count),
                 Knowledge = new List<NpcKnowledgeData>(Knowledge.Count),
@@ -275,6 +279,15 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 8: the player was killed in a fight (residents use NpcDied, with cause "combat").</summary>
         CombatantKilled = 57,
+
+        /// <summary>Phase 10: a named person was given a full character sheet (facts: name, class, level, occupation).</summary>
+        NpcPromoted = 58,
+
+        /// <summary>Phase 10: a named person rose a level through the shared advancement rules (facts: name, class, to).</summary>
+        NpcLevelAdvanced = 59,
+
+        /// <summary>Phase 10: a world encounter's consequences were applied, once (facts: name, outcome, xp, loot, deaths).</summary>
+        EncounterResolved = 60,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

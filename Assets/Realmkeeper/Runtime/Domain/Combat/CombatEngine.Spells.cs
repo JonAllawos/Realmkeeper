@@ -25,7 +25,7 @@ namespace Realmkeeper.Domain.Combat
 
         private SpellAccess Access(CombatantData c)
         {
-            if (c.Kind != CombatantKind.Player) return null;
+            if (SheetOf(c) == null) return null;
             var rules = Stats(c).Rules;
             return rules?.Class?.Spellcasting == null ? null : new SpellAccess(rules);
         }
@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.Combat
                 foreach (var id in block.Spells) if (SpellCatalog.Find(id) is SpellDefinition s) list.Add(s);
             }
 
-            if (c.Kind == CombatantKind.Player && Stats(c).Rules != null && Stats(c).Rules.Sheet.Chosen("class:invocations").Count + 0 >= 0 && HasInvocation(c, "armor_of_shadows"))
+            if (SheetOf(c) != null && Stats(c).Rules != null && HasInvocation(c, "armor_of_shadows"))
                 if (!list.Exists(x => x.Id == "mage_armor")) list.Add(SpellCatalog.Find("mage_armor"));
             return list;
         }
@@ -110,6 +110,7 @@ namespace Realmkeeper.Domain.Combat
             var s = SpellCatalog.Find(a.SpellId);
             if (s == null) return "There is no such spell.";
             if (!s.Castable) return $"{s.Name} cannot be cast yet: {s.StatusNote}";
+            if (s.CastingTime == CastingTime.Reaction) return $"{s.Name} is cast as a reaction, when its trigger happens (you will be asked)."; // Phase 10
             if (Incapacitated(actor)) return $"{actor.Name} is incapacitated.";
             if (!SpellsOf(actor).Exists(x => x.Id == s.Id)) return $"{actor.Name} does not have {s.Name} ready.";
             if (HasEffect(actor, CombatEffectKind.Raging)) return "No spells while raging.";
@@ -207,7 +208,7 @@ namespace Realmkeeper.Domain.Combat
         private string TypeOf(CombatantData c)
         {
             if (c.FormCreatureId != null) return CreatureCatalog.Find(c.FormCreatureId)?.Type ?? "Beast";
-            return c.Kind == CombatantKind.Player ? "Humanoid" : Stats(c).Creature?.Type ?? "Humanoid";
+            return Stats(c).Rules != null ? "Humanoid" : Stats(c).Creature?.Type ?? "Humanoid";
         }
 
         private string MetamagicProblem(CombatantData actor, SpellDefinition s, List<string> meta)
@@ -349,6 +350,7 @@ namespace Realmkeeper.Domain.Combat
             var time = meta.Contains("quickened") ? CastingTime.BonusAction : s.CastingTime;
             if (time == CastingTime.Action) UseAction(actor);
             else if (time == CastingTime.BonusAction) t.BonusActionUsed = true;
+            if (Counterspelled(actor, s, level)) return; // Phase 10: a foe's Counterspell (the action is wasted, the slot kept)
             string cost;
             if (AtWill(actor, s)) cost = s.IsCantrip ? "cantrip" : "at will";
             else if (a.FreeWith != null)
@@ -621,9 +623,9 @@ namespace Realmkeeper.Domain.Combat
                 case CombatEffectKind.HitPointMaximumBonus:
                 {
                     var v = e.Value + (level > s.Level ? e.PerSlotAbove.Bonus * (level - s.Level) : 0);
-                    if (target.Kind == CombatantKind.Player)
+                    if (SheetOf(target) is CharacterSheetData tsheet)
                     {
-                        CharacterVitals.GrantTemporaryHitPoints(_world.Player.Rpg, v);
+                        CharacterVitals.GrantTemporaryHitPoints(tsheet, v);
                         return $"{target.Name} gains {v} temporary hit points (the player's maximum is not raised)";
                     }
 
@@ -634,7 +636,7 @@ namespace Realmkeeper.Domain.Combat
                 }
 
                 case CombatEffectKind.TemporaryHitPoints:
-                    if (target.Kind == CombatantKind.Player) CharacterVitals.GrantTemporaryHitPoints(_world.Player.Rpg, e.Value);
+                    if (SheetOf(target) is CharacterSheetData tsh) CharacterVitals.GrantTemporaryHitPoints(tsh, e.Value);
                     else target.TemporaryHp = Math.Max(target.TemporaryHp, e.Value);
                     return $"{target.Name} gains {e.Value} temporary hit points";
 

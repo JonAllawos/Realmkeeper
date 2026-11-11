@@ -22,6 +22,8 @@ namespace Realmkeeper.Exploration.Presentation
 
         private Button _practiceButton;
         private Button _casterPracticeButton;
+        private Button _outingButton;
+        private int _outing;
         private GameObject _markers;
         private readonly Dictionary<string, GameObject> _markerViews = new Dictionary<string, GameObject>();
         private Vector3 _gridOrigin;
@@ -56,6 +58,7 @@ namespace Realmkeeper.Exploration.Presentation
             Combat.CloseRequested += CloseFight;
             Combat.CastRequested += a => CombatAct(a); // Phase 9
             Combat.FeatureRequested += f => CombatAct(f);
+            Combat.ReactionAnswered += (id, accept) => AnswerReaction(id, accept); // Phase 10
             Combat.MoveProblem = p => _session?.PlayerMoveProblem(p, out _);
             var row = Hud.Root.Q<VisualElement>("xk-clock-row");
             if (row != null)
@@ -64,6 +67,8 @@ namespace Realmkeeper.Exploration.Presentation
                 _practiceButton.tooltip = "A labelled practice encounter: two bandits at the edge of town, with the local guard beside you if there is one. Lethal: the fallen can die.";
                 _casterPracticeButton = TimeButton(row, "Practice vs caster (G)", "xk-open-practice-caster", () => StartPracticeFight(true, true));
                 _casterPracticeButton.tooltip = "The practice fight with a Cult Fanatic (an SRD spellcaster) among the bandits.";
+                _outingButton = TimeButton(row, "Go out: outskirts", "xk-open-outing", () => StartOuting());
+                _outingButton.tooltip = "Phase 10: walk out of the settlement — to its outskirts, along the road, or to the farms — and meet whatever lives there now (from the world's own creature populations).";
             }
         }
 
@@ -74,6 +79,7 @@ namespace Realmkeeper.Exploration.Presentation
             Combat = null;
             _practiceButton = null;
             _casterPracticeButton = null;
+            _outingButton = null;
             _fightOpen = false;
             _gridOriginSet = false;
         }
@@ -97,12 +103,51 @@ namespace Realmkeeper.Exploration.Presentation
             return result;
         }
 
+        private static readonly Realmkeeper.Simulation.Encounters.EncounterPurpose[] Outings =
+        {
+            Realmkeeper.Simulation.Encounters.EncounterPurpose.Outskirts, Realmkeeper.Simulation.Encounters.EncounterPurpose.Road, Realmkeeper.Simulation.Encounters.EncounterPurpose.Farms,
+        };
+
+        /// <summary>
+        /// Phase 10: an outing — the encounter the world gives where the player goes (refused with the reason). The button
+        /// cycles where the next outing goes after each one.
+        /// </summary>
+        public CommandResult StartOuting(Realmkeeper.Simulation.Encounters.EncounterPurpose? purpose = null)
+        {
+            if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            CloseWindows();
+            var where = purpose ?? Outings[_outing % Outings.Length];
+            var result = _session.Dispatch(new StartWorldEncounterCommand(where));
+            if (!result.IsSuccess)
+            {
+                Hud?.ShowMessage(result);
+                return result;
+            }
+
+            _outing++;
+            if (_outingButton != null) _outingButton.text = "Go out: " + Outings[_outing % Outings.Length].ToString().ToLowerInvariant();
+            _gridOriginSet = false;
+            RefreshCombat(result.Message, false);
+            return result;
+        }
+
         /// <summary>The player's action this turn (the snapshot's sequence guards against a double click).</summary>
         public CommandResult CombatAct(CombatAction action)
         {
             var s = Combat?.Snapshot;
             if (_session == null || s == null || s.Player == null) return CommandResult.InvalidState("There is no fight going on.");
             var result = _session.Dispatch(new CombatActionCommand(s.Id, s.Player.Id, action, s.Sequence));
+            RefreshCombat(Explain(result), !result.IsSuccess);
+            _aiTimer = AiTurnSeconds;
+            return result;
+        }
+
+        /// <summary>Phase 10: the player's answer to the reaction or decision they are asked (refused with the reason when stale).</summary>
+        public CommandResult AnswerReaction(int reactionId, bool accept)
+        {
+            var s = Combat?.Snapshot;
+            if (_session == null || s == null) return CommandResult.InvalidState("There is no fight going on.");
+            var result = _session.Dispatch(new RespondToReactionCommand(s.Id, reactionId, accept));
             RefreshCombat(Explain(result), !result.IsSuccess);
             _aiTimer = AiTurnSeconds;
             return result;
@@ -192,6 +237,7 @@ namespace Realmkeeper.Exploration.Presentation
             var character = _session?.GetCharacter();
             _practiceButton.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
             _casterPracticeButton?.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
+            _outingButton?.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
         }
 
         private void PauseTimeForFight()
@@ -214,7 +260,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (Combat == null) return;
             if (_fightOpen && !InFight && _resumePlaybackAfterFight) ResumeTimeAfterFight();
-            if (InFight && !Combat.Snapshot.IsPlayersTurn && AutoAi)
+            if (InFight && !Combat.Snapshot.IsPlayersTurn && AutoAi && Combat.Snapshot.Prompt == null) // a waiting question stops the clock
             {
                 _aiTimer -= Time.unscaledDeltaTime;
                 if (_aiTimer <= 0f) RunAiTurn();

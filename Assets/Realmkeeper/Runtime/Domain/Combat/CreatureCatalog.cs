@@ -23,6 +23,24 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>A condition a hit inflicts (the wolf's bite knocks a Medium or smaller target prone).</summary>
         public ConditionType? OnHit { get; set; }
+
+        // ----- Phase 10 -----
+
+        /// <summary>The save that avoids <see cref="OnHit"/> (null: no save; the condition always applies).</summary>
+        public Ability? OnHitSave { get; set; }
+        public int OnHitDc { get; set; }
+
+        /// <summary>Escape DC for a restraining hit (a web): the target can break free with a Strength check.</summary>
+        public int EscapeDc { get; set; }
+
+        /// <summary>Damage added on a hit that the target may save against (a venomous bite): dice, type, save, half on a success.</summary>
+        public Dice SaveDamage { get; set; }
+        public DamageType SaveDamageType { get; set; }
+        public Ability SaveDamageAbility { get; set; } = Ability.Constitution;
+        public int SaveDamageDc { get; set; }
+
+        /// <summary>Recharge on this d6 roll or higher at the start of its turn (0: always available).</summary>
+        public int Recharge { get; set; }
     }
 
     /// <summary>
@@ -66,10 +84,48 @@ namespace Realmkeeper.Domain.Combat
 
         public ContentSource Source { get; set; } = ContentSource.Srd521;
 
+        // ----- Phase 10: the bestiary (ADR-0044) -----
+
+        public CreatureCategory Category { get; set; } = CreatureCategory.Humanoid;
+
+        /// <summary>Challenge rating as written ("1/4", "2").</summary>
+        public string ChallengeRating { get; set; } = "0";
+
+        public int Xp => ChallengeRatings.Xp(ChallengeRating);
+
+        public int ClimbSpeed { get; set; }
+        public int SwimSpeed { get; set; }
+        public string Senses { get; set; } = string.Empty;
+        public string Languages { get; set; } = string.Empty;
+        public string Skills { get; set; } = string.Empty;
+        public IReadOnlyList<CreatureTrait> Traits { get; set; } = Array.Empty<CreatureTrait>();
+        public IReadOnlyList<CreatureReaction> Reactions { get; set; } = Array.Empty<CreatureReaction>();
+        public BehaviorProfile Behavior { get; set; } = new BehaviorProfile { Kind = CreatureBehavior.Intelligent, Summary = "Closes in and picks off the weakest; falls back when badly hurt." };
+        public IReadOnlyList<Habitat> Habitats { get; set; } = Array.Empty<Habitat>();
+        public Diet Diet { get; set; } = Diet.Omnivore;
+        public SocialForm Social { get; set; } = SocialForm.Solitary;
+        public string Temperament { get; set; } = string.Empty;
+        public LootProfile Loot { get; set; } = LootProfile.None;
+
+        /// <summary>Where the statistics come from, in words (stat block and licence, or Realmkeeper's own).</summary>
+        public string Provenance { get; set; }
+
+        public CreatureTrait Trait(CreatureTraitKind kind)
+        {
+            foreach (var t in Traits) if (t.Kind == kind) return t;
+            return null;
+        }
+
+        public CreatureReaction Reaction(CreatureReactionKind kind)
+        {
+            foreach (var r in Reactions) if (r.Kind == kind) return r;
+            return null;
+        }
+
         public int Modifier(Ability a) => AbilityRules.Modifier(Scores[(int)a]);
     }
 
-    public static class CreatureCatalog
+    public static partial class CreatureCatalog
     {
         private static readonly Lazy<IReadOnlyList<CreatureDefinition>> List = new Lazy<IReadOnlyList<CreatureDefinition>>(Build);
 
@@ -85,7 +141,15 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>The profile a resident of this role fights with.</summary>
         public static string ProfileFor(NpcRole role) => role == NpcRole.Guard ? "guard" : "commoner";
 
-        private static IReadOnlyList<CreatureDefinition> Build() => new[]
+        private static IReadOnlyList<CreatureDefinition> Build()
+        {
+            var list = new List<CreatureDefinition>(Core());
+            Annotate(list); // Phase 10: bestiary data for the Phase 8 and 9 creatures
+            list.AddRange(Bestiary()); // Phase 10: the bestiary
+            return list;
+        }
+
+        private static IReadOnlyList<CreatureDefinition> Core() => new[]
         {
             new CreatureDefinition
             {

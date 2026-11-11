@@ -169,3 +169,29 @@ Tested in PlayMode:
 - residents hidden indoors at night;
 - a keeper walking from home to the counter;
 - a shut shop whose keeper is asleep, with nobody in their place.
+
+## Planned settlements (Phase 10)
+
+A settlement with a persisted plan (ADR-0047, every world generated or loaded since Phase 10) is explored
+as that plan. `LocalEnvironmentGenerator.FromPlan` turns it into the environment layout:
+- the plan's road segments as streets;
+- its buildings, keeping their keys, floors, plinths, materials and roofs;
+- its features as props;
+- its herds in their pastures.
+
+`ModularEnvironmentBuilder` (the `.Plan` partial) draws the scene:
+- terrain mesh chunks with colliders;
+- draped roads, carried level over bridges;
+- the water;
+- bridges or fords;
+- fenced fields with rows, orchards, gardens and yards;
+- herd placeholders;
+- the wall circuit with gatehouses;
+- plinths and steps;
+- verges.
+
+People and props stand at `LocalPaths.StandingHeight`: a floor inside a building, a deck on a bridge, the ground
+elsewhere. People walk the plan's road graph (ADR-0049).
+
+Settlements without a plan keep the older two-street environment described above. Plan generation:
+`Documentation/Phase10/SettlementGeneration.md`.

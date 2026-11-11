@@ -49,6 +49,10 @@ Unknown IDs are ignored, so a save from a build with an extra system still loads
 | 200 | `realmkeeper.consumption` | None |
 | 300 | `realmkeeper.wellbeing` | None |
 | 400 | `realmkeeper.population` | None |
+| 425 | `realmkeeper.npcs` | None (choices are keyed hashes, not draws) |
+| 430 | `realmkeeper.shops` | None |
+| 450 | `realmkeeper.politics` | Only for new claim IDs (the system's own stream) |
+| 460 | `realmkeeper.fauna` | None (Phase 10; weekly) |
 | 500 | `realmkeeper.chronicle` | None |
 
 Rules and formulas: [Economy](Economy.md). Phase 1's `realmkeeper.food` and its coin-flip

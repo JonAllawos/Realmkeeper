@@ -193,7 +193,7 @@ namespace Realmkeeper.Exploration.Presentation
                 if (_residents.ContainsKey(spot.NpcId)) continue; // one body per persistent identity
                 var npc = _session.FindNpc(spot.NpcId);
                 if (npc == null) continue;
-                var view = ResidentView.Create(residents, spot, npc, _session, Player.transform, _materials, Catalog);
+                var view = ResidentView.Create(residents, spot, npc, _session, Player.transform, _materials, Catalog, layout);
                 _residents.Add(spot.NpcId, view);
                 _detector.Register(view);
             }
@@ -201,7 +201,7 @@ namespace Realmkeeper.Exploration.Presentation
             var points = new GameObject("Interaction points").transform;
             foreach (var spec in layout.Interactables)
             {
-                var view = EnvironmentInteractable.Create(points, spec, settlement.SettlementId, _materials);
+                var view = EnvironmentInteractable.Create(points, spec, settlement.SettlementId, _materials, LocalPaths.StandingHeight(layout, spec.Position.X, spec.Position.Z));
                 _interactables.Add(view);
                 _detector.Register(view);
             }

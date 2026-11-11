@@ -50,6 +50,11 @@ namespace Realmkeeper.Domain.Rpg
     {
         Small = 0,
         Medium = 1,
+
+        // Phase 10 (bestiary); appended so saved values keep their meaning.
+        Tiny = 2,
+        Large = 3,
+        Huge = 4,
     }
 
     /// <summary>Where a rules definition comes from (licence provenance; see Characters.md).</summary>

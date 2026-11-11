@@ -53,7 +53,7 @@ namespace Realmkeeper.Domain.Combat
         {
             if (!Encounter.Effects.Remove(e)) return;
             var target = Encounter.Find(e.TargetId);
-            if (e.Kind == CombatEffectKind.HitPointMaximumBonus && target != null && target.Kind != CombatantKind.Player)
+            if (e.Kind == CombatEffectKind.HitPointMaximumBonus && target != null && SheetOf(target) == null)
             {
                 target.MaxHp = Math.Max(1, target.MaxHp - e.Value);
                 target.CurrentHp = Math.Min(target.CurrentHp, target.MaxHp);
@@ -150,7 +150,7 @@ namespace Realmkeeper.Domain.Combat
                 if (e.Kind == CombatEffectKind.ArmorClassBonus) b.Add(e.Name, e.Value);
                 if (e.Kind == CombatEffectKind.ArmorClassBase)
                 {
-                    var unarmoured = c.Kind != CombatantKind.Player || _world.Player.Equipped(EquipmentSlot.Chest) == null || ItemCatalog.Find(_world.Player.Equipped(EquipmentSlot.Chest).ItemId)?.Armor == null;
+                    var unarmoured = Stats(c).Rules == null || !Stats(c).Rules.Loadout.Armor;
                     var with = e.Value + Stats(c).Modifier(Ability.Dexterity);
                     if (unarmoured && with > b0.Total) b.Add(e.Name + $" (base {e.Value} + Dex instead of {b0.Total})", with - b0.Total);
                 }
@@ -224,13 +224,13 @@ namespace Realmkeeper.Domain.Combat
 
         private int ResourceLeft(CombatantData c, string id)
         {
-            var map = c.Kind == CombatantKind.Player ? _world.Player.Rpg.Resources : c.Resources;
+            var map = SheetOf(c)?.Resources ?? c.Resources;
             return map.TryGetValue(id, out var n) ? n : 0;
         }
 
         private void SpendResource(CombatantData c, string id, int amount)
         {
-            var map = c.Kind == CombatantKind.Player ? _world.Player.Rpg.Resources : c.Resources;
+            var map = SheetOf(c)?.Resources ?? c.Resources;
             map[id] = Math.Max(0, (map.TryGetValue(id, out var n) ? n : 0) - amount);
         }
     }

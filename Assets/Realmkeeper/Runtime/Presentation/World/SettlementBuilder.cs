@@ -87,6 +87,87 @@ namespace Realmkeeper.Presentation
             return new Result(builder.ToMesh($"Settlement {settlement.Name}"), buildings, footprint);
         }
 
+        /// <summary>
+        /// Phase 10 (ADR-0047): the settlement as its persisted plan says, at map scale — the landmark on its high
+        /// ground, the core's buildings where the plan puts them (facing as they face), the farmsteads beyond, the
+        /// wall on its circuit and the fields in their places — so the strategic view and the walkable settlement agree.
+        /// </summary>
+        public static Result Build(RegionMap map, SettlementSummary settlement, Realmkeeper.Domain.Settlements.SettlementLayoutData plan)
+        {
+            if (plan == null) return Build(map, settlement);
+            var rng = new LocalRandom(Seed(settlement.Position));
+            var center = MapSampling.CellToWorld(map, settlement.Position);
+            var radius = MapSampling.SettlementRadiusCells(settlement.SettlementType) * map.CellSize;
+            var scale = radius / (plan.CoreRadius + 15f);
+            var builder = new MeshBuilder();
+            var buildings = 0;
+            Vector2 At(Realmkeeper.Domain.Settlements.PlanPoint p) => new Vector2(center.x + p.X * scale, center.z + p.Z * scale);
+
+            foreach (var b in plan.Buildings)
+            {
+                var pos = At(b.Center);
+                if (Vector2.Distance(pos, new Vector2(center.x, center.z)) > radius * 1.7f) continue;
+                if (b.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Gatehouse) continue;
+                if (b.Key == Realmkeeper.Domain.World.SettlementSites.Landmark)
+                {
+                    if (b.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Keep) AddKeep(map, builder, pos, rng);
+                    else if (b.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Religious) AddChapel(map, builder, pos, rng);
+                    else
+                    {
+                        var g = MinHeight(map, pos, 0.8f) - 0.2f;
+                        builder.AddBox(new Vector3(pos.x, g, pos.y), new Vector3(0.9f, 3.2f, 0.9f), 0f, Palette.Stone, Palette.Stone);
+                        builder.AddPyramid(new Vector3(pos.x, g + 3.2f, pos.y), 0.6f, 1.0f, 0f, Palette.Slate);
+                    }
+
+                    buildings++;
+                    continue;
+                }
+
+                var cell = MapSampling.WorldToCell(map, pos.x, pos.y);
+                if (map.IsWater(cell.X, cell.Z)) continue;
+                var width = Mathf.Max(0.7f, b.Width * scale * 1.6f);
+                var length = Mathf.Max(0.9f, b.Depth * scale * 1.6f);
+                var wallHeight = Mathf.Clamp(b.Height * 0.24f, 0.8f, 2.4f);
+                var ground = MinHeight(map, pos, Mathf.Max(width, length) * 0.5f) - 0.25f;
+                var yaw = -b.Yaw; // the plan turns counter-clockwise from +X; Unity's yaw turns the other way
+                var walls = b.Walls == Realmkeeper.Domain.Settlements.WallMaterial.Stone ? Palette.Limestone : b.Walls == Realmkeeper.Domain.Settlements.WallMaterial.Timber ? Palette.Timber : Palette.Plaster;
+                var roof = b.Palette % 2 == 0 ? Palette.RoofTile : Palette.RoofTileWarm;
+                var baseCenter = new Vector3(pos.x, ground, pos.y);
+                builder.AddBox(baseCenter, new Vector3(width, wallHeight + 0.25f, length), yaw, walls, walls);
+                builder.AddGableRoof(baseCenter + Vector3.up * (wallHeight + 0.25f), width + 0.36f, length + 0.36f, width * 0.65f, yaw, roof, walls);
+                buildings++;
+            }
+
+            if (plan.HasWalls) AddWall(map, builder, center, plan.CoreRadius * scale + 0.4f, RoadExitAngles(map, settlement));
+
+            var crops = new[] { Palette.Wheat, Palette.Crop, Palette.Ploughed };
+            foreach (var f in plan.Fields)
+            {
+                if (f.Kind == Realmkeeper.Domain.Settlements.FieldKind.Garden || f.Kind == Realmkeeper.Domain.Settlements.FieldKind.Yard) continue;
+                var pos = At(f.Center);
+                if (Vector2.Distance(pos, new Vector2(center.x, center.z)) > radius * 2.2f) continue;
+                var cell = MapSampling.WorldToCell(map, pos.x, pos.y);
+                if (map.IsRoad(cell.X, cell.Z) || map.IsWater(cell.X, cell.Z)) continue;
+                var rotation = Quaternion.Euler(0f, -f.Yaw, 0f);
+                var halfW = Mathf.Max(0.8f, f.Width * scale * 0.5f);
+                var halfL = Mathf.Max(0.8f, f.Depth * scale * 0.5f);
+                var color = f.Kind == Realmkeeper.Domain.Settlements.FieldKind.Pasture || f.Kind == Realmkeeper.Domain.Settlements.FieldKind.Orchard ? Palette.Crop
+                    : f.Kind == Realmkeeper.Domain.Settlements.FieldKind.Fallow ? Palette.Ploughed : crops[Mathf.Abs(f.Key.GetHashCode()) % 2];
+                Vector3 Corner(float x, float z)
+                {
+                    var p = new Vector3(pos.x, 0f, pos.y) + rotation * new Vector3(x, 0f, z);
+                    p.y = MapSampling.HeightAt(map, p.x, p.z) + 0.07f;
+                    return p;
+                }
+
+                builder.AddQuad(Corner(-halfW, -halfL), Corner(-halfW, halfL), Corner(halfW, halfL), Corner(halfW, -halfL), Vector3.up, color);
+            }
+
+            var size = (radius + 2f) * 2f;
+            var footprint = new Bounds(center + Vector3.up * 1.5f, new Vector3(size, 4f, size));
+            return new Result(builder.ToMesh($"Settlement {settlement.Name}"), buildings, footprint);
+        }
+
         // ----- Houses ---------------------------------------------------------------------
 
         private enum HouseStyle { Hamlet, Village, Town }

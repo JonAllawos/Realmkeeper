@@ -61,6 +61,12 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v10 (Phase 8).</summary>
         public List<StructureDto> Structures { get; set; }
+
+        // Schema v12 (Phase 10): the living world.
+        public List<CreaturePopulationDto> CreaturePopulations { get; set; }
+        public List<CreatureInstanceDto> Creatures { get; set; }
+        public List<LivestockHerdDto> Livestock { get; set; }
+        public List<SettlementLayoutDto> SettlementLayouts { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -275,6 +281,9 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v7. How they regard the player.</summary>
         public PlayerRegardDto PlayerRegard { get; set; }
+
+        /// <summary>Phase 10 (v12): archetype, gear, purse and (for sheet-holders) the character sheet; null before v12.</summary>
+        public NpcCharacterDto Character { get; set; }
     }
 
     public sealed class NpcConditionDto
@@ -446,6 +455,21 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string Source { get; set; }
     }
 
+    /// <summary>Phase 10 (v12): a named person's mechanical record.</summary>
+    public sealed class NpcCharacterDto
+    {
+        public string ArchetypeId { get; set; }
+        public string Occupation { get; set; }
+        public CharacterSheetDto Sheet { get; set; }
+        public string Body { get; set; }
+        public string Shield { get; set; }
+        public string MainHand { get; set; }
+        public string OffHand { get; set; }
+        public List<string> Carried { get; set; }
+        public int Purse { get; set; }
+        public string SheetSince { get; set; }
+    }
+
     public sealed class PlayerRegardDto
     {
         public int Familiarity { get; set; }
@@ -614,6 +638,11 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v11 (Phase 9).
         public List<ActiveEffectDto> Effects { get; set; }
         public int NextInstanceId { get; set; } = 1;
+
+        // Schema v12 (Phase 10): the action waiting on the player's answer, and the next question's number.
+        public PendingReactionDto PendingReaction { get; set; }
+        public int NextReactionId { get; set; } = 1;
+        public EncounterOriginDto Origin { get; set; }
     }
 
     public sealed class GridPosDto
@@ -621,6 +650,96 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int X { get; set; }
         public int Y { get; set; }
         public int Z { get; set; }
+    }
+
+    public sealed class EncounterOriginDto
+    {
+        public string Type { get; set; }
+        public string Objective { get; set; }
+        public string ProtectedNpcId { get; set; }
+        public string NearSettlementId { get; set; }
+        public string Context { get; set; }
+        public string Terrain { get; set; }
+        public List<string> SourceIds { get; set; }
+        public int XpBudget { get; set; }
+        public int XpTotal { get; set; }
+        public string Difficulty { get; set; }
+        public string PlanSeed { get; set; }
+        public bool Resolved { get; set; }
+        public string Result { get; set; }
+        public bool ObjectiveMet { get; set; }
+    }
+
+    public sealed class PendingReactionDto
+    {
+        public int Id { get; set; }
+        public string Kind { get; set; }
+        public string Name { get; set; }
+        public string ReactorId { get; set; }
+        public string TriggerId { get; set; }
+        public string TargetId { get; set; }
+        public string Trigger { get; set; }
+        public string Cost { get; set; }
+        public string Consequence { get; set; }
+        public string ActorId { get; set; }
+        public int Sequence { get; set; }
+        public List<bool> Answers { get; set; }
+        public ActionRecordDto Action { get; set; }
+    }
+
+    public sealed class ActionRecordDto
+    {
+        public string Kind { get; set; }
+        public string Id { get; set; }
+        public string Option { get; set; }
+        public string Target { get; set; }
+        public List<string> Targets { get; set; }
+        public List<GridPosDto> Path { get; set; }
+        public GridPosDto Point { get; set; }
+        public int Level { get; set; }
+        public int Amount { get; set; }
+        public List<string> Metamagic { get; set; }
+        public string FreeWith { get; set; }
+    }
+
+    public sealed class CreaturePopulationDto
+    {
+        public string PopulationId { get; set; }
+        public string RegionId { get; set; }
+        public string CreatureId { get; set; }
+        public string Habitat { get; set; }
+        public int CenterX { get; set; }
+        public int CenterZ { get; set; }
+        public int RangeCells { get; set; }
+        public int Count { get; set; }
+        public int Capacity { get; set; }
+        public int Deaths { get; set; }
+        public int Drawn { get; set; }
+        public string LastUpdatedOn { get; set; }
+    }
+
+    public sealed class CreatureInstanceDto
+    {
+        public string InstanceId { get; set; }
+        public string CreatureId { get; set; }
+        public string Name { get; set; }
+        public string OriginId { get; set; }
+        public string State { get; set; }
+        public int CurrentHp { get; set; }
+        public string FirstSeenOn { get; set; }
+        public string DiedOn { get; set; }
+        public string LastEncounterId { get; set; }
+    }
+
+    public sealed class LivestockHerdDto
+    {
+        public string HerdId { get; set; }
+        public string SettlementId { get; set; }
+        public string CreatureId { get; set; }
+        public int Count { get; set; }
+        public string PastureKey { get; set; }
+        public string KeeperNpcId { get; set; }
+        public string LastUpdatedOn { get; set; }
     }
 
     public sealed class CombatantDto
@@ -652,6 +771,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public Dictionary<string, int> Resources { get; set; }
         public ConcentrationDto Concentration { get; set; }
         public string FormCreatureId { get; set; }
+
+        // Schema v12 (Phase 10).
+        public GridPosDto Anchor { get; set; }
+        public string CreatureInstanceId { get; set; }
     }
 
     public sealed class ConditionDto
@@ -702,6 +825,11 @@ namespace Realmkeeper.Infrastructure.Persistence
         public bool StunningStrikeUsed { get; set; }
         public bool FrenzyUsed { get; set; }
         public bool SacredWeaponUsed { get; set; }
+
+        // Schema v12 (Phase 10).
+        public bool HasStart { get; set; }
+        public int StartX { get; set; }
+        public int StartY { get; set; }
     }
 
     public sealed class CombatLogEntryDto

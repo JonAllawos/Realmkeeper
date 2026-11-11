@@ -83,6 +83,7 @@ namespace Realmkeeper.Application
             ProgressionCommandHandlers.Register(_commands);
             CombatCommandHandlers.Register(_commands);
             SpellCommandHandlers.Register(_commands); // Phase 9
+            NpcCharacterCommandHandlers.Register(_commands); // Phase 10
         }
 
         public EconomyRules Rules => _rules;
@@ -249,8 +250,26 @@ namespace Realmkeeper.Application
                 if (!check.IsValid) return CommandResult.Fail("Load failed: the upgraded world is invalid.", check.Errors);
             }
 
+            // Phase 10: an older save gains its living-world data (people, sheets, settlement layouts, wildlife) once.
+            var living = false;
+            try
+            {
+                living = _generator.EnsureLivingWorld(world, map);
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            {
+                return CommandResult.Fail("Load failed: the living world could not be added.", new[] { ex.Message });
+            }
+
+            if (living)
+            {
+                var check = WorldValidator.Validate(world);
+                if (!check.IsValid) return CommandResult.Fail("Load failed: the upgraded world is invalid.", check.Errors);
+            }
+
             Replace(world, map, WorldChangeReason.Loaded);
-            return CommandResult.Ok(upgraded ? $"Loaded '{world.WorldName}' (economy added to an older save)." : $"Loaded '{world.WorldName}'.");
+            return CommandResult.Ok(upgraded ? $"Loaded '{world.WorldName}' (economy added to an older save)." :
+                living ? $"Loaded '{world.WorldName}' (living-world data added to an older save)." : $"Loaded '{world.WorldName}'.");
         }
 
         /// <summary>Same as <c>Dispatch(command)</c>; kept for Phase 1 and 2 callers.</summary>

@@ -17,7 +17,7 @@ namespace Realmkeeper.Exploration.Presentation
     /// boxes for props and walls, none on detail. Static geometry is batched after building.
     /// Same layout in, same scene out.
     /// </summary>
-    public static class ModularEnvironmentBuilder
+    public static partial class ModularEnvironmentBuilder
     {
         public static GameObject Build(LocalEnvironmentLayout layout, ArtCatalog catalog)
         {
@@ -25,12 +25,16 @@ namespace Realmkeeper.Exploration.Presentation
             var assets = root.AddComponent<GeneratedAssets>();
             var ctx = new Context(root.transform, layout, catalog, assets);
 
-            BuildGround(ctx);
+            var planned = layout.Plan != null; // Phase 10: a persisted settlement plan, on its own ground
+            if (planned) BuildPlanGround(ctx);
+            else BuildGround(ctx);
             foreach (var b in layout.Buildings) BuildBuilding(ctx, b);
-            BuildBoundary(ctx);
+            if (planned) BuildPlanBoundary(ctx);
+            else BuildBoundary(ctx);
             foreach (var p in layout.Props) BuildProp(ctx, p);
             BuildTavernInterior(ctx);
-            BuildStreetDressing(ctx);
+            if (planned) BuildPlanDressing(ctx);
+            else BuildStreetDressing(ctx);
 
             // Merge the thousands of kit pieces into a few hundred draws (one per cell, material and shadow mode).
             MeshMerger.Merge(ctx.Static, assets);
@@ -61,6 +65,7 @@ namespace Realmkeeper.Exploration.Presentation
             public GeneratedAssets Assets { get; }
             public ulong Seed { get; }
             public readonly Dictionary<string, BuildingPlan> Plans = new Dictionary<string, BuildingPlan>(StringComparer.Ordinal);
+            public readonly Dictionary<string, Material> Tints = new Dictionary<string, Material>(StringComparer.Ordinal);
 
             public Material Mat(string id) => Catalog.Material(id) ?? Catalog.Material("Plaster");
         }
@@ -120,13 +125,15 @@ namespace Realmkeeper.Exploration.Presentation
 
         private static void BuildBuilding(Context ctx, LayoutBuilding b)
         {
+            if (b.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Gatehouse) { BuildGatehouse(ctx, b); return; }
             var plan = BuildingKitPlanner.Plan(b, ctx.Layout.Type, ctx.Layout.SettlementId.ToString());
             ctx.Plans[b.Key] = plan;
             var go = new GameObject(b.Key + " (" + plan.Archetype + ")");
             go.transform.SetParent(ctx.Static, false);
-            go.transform.localPosition = new Vector3(b.Center.X, 0f, b.Center.Z);
+            go.transform.localPosition = new Vector3(b.Center.X, b.FloorHeight, b.Center.Z); // Phase 10: on its floor (0 on flat ground)
             go.transform.localRotation = Quaternion.Euler(0f, -b.Yaw, 0f); // door on local −Z faces (sin yaw, −cos yaw)
             foreach (var piece in plan.Pieces) Piece(ctx, go.transform, piece);
+            if (ctx.Layout.Plan != null) BuildPlinth(ctx, b, go.transform);
 
             // Collision: the walls' volume. The tavern keeps its doorway open and its interior walkable.
             var colliders = new GameObject(b.Key + " colliders").transform;
@@ -347,7 +354,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var go = new GameObject(p.Kind.ToString());
             go.transform.SetParent(ctx.Static, false);
-            go.transform.localPosition = new Vector3(p.Position.X, 0f, p.Position.Z);
+            go.transform.localPosition = new Vector3(p.Position.X, LocalPaths.StandingHeight(ctx.Layout, p.Position.X, p.Position.Z), p.Position.Z);
             go.transform.localRotation = Quaternion.Euler(0f, -p.Yaw, 0f);
             var t = go.transform;
             var colliders = new GameObject(p.Kind + " collider").transform;
@@ -491,7 +498,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (hall == null || !ctx.Plans.TryGetValue(hall.Key, out var plan)) return;
             var room = new GameObject("Tavern interior").transform;
             room.SetParent(ctx.Static, false);
-            room.localPosition = new Vector3(hall.Center.X, 0f, hall.Center.Z);
+            room.localPosition = new Vector3(hall.Center.X, hall.FloorHeight, hall.Center.Z);
             room.localRotation = Quaternion.Euler(0f, -hall.Yaw, 0f);
             var colliders = new GameObject("Tavern interior colliders").transform;
             colliders.SetParent(ctx.Colliders, false);

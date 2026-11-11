@@ -271,7 +271,7 @@ namespace Realmkeeper.Domain.Combat
                     actor.FormCreatureId = "wolf";
                     ForgetStats(actor);
                     AddEffect(instance, origin, "Wild Shape (wolf)", actor, actor, CombatEffectKind.WildShapeForm);
-                    CharacterVitals.GrantTemporaryHitPoints(_world.Player.Rpg, rules.Level);
+                    CharacterVitals.GrantTemporaryHitPoints(SheetOf(actor), rules.Level);
                     Say($"{actor.Name} takes the shape of a wolf and gains {rules.Level} temporary hit points.");
                     break;
                 }
@@ -383,7 +383,7 @@ namespace Realmkeeper.Domain.Combat
                     var level = int.Parse(a.Option);
                     SpendResource(actor, "sorcery_points", FontSlotCost[level]);
                     var id = Access(actor).SlotResource(level);
-                    _world.Player.Rpg.Resources[id] = ResourceLeft(actor, id) + 1;
+                    SheetOf(actor).Resources[id] = ResourceLeft(actor, id) + 1;
                     Say($"{actor.Name} shapes {FontSlotCost[level]} sorcery points into a level {level} spell slot.");
                     break;
                 }
@@ -392,7 +392,7 @@ namespace Realmkeeper.Domain.Combat
                 {
                     var level = int.Parse(a.Option);
                     SpendResource(actor, Access(actor).SlotResource(level), 1);
-                    _world.Player.Rpg.Resources["sorcery_points"] = ResourceLeft(actor, "sorcery_points") + level;
+                    SheetOf(actor).Resources["sorcery_points"] = ResourceLeft(actor, "sorcery_points") + level;
                     Say($"{actor.Name} unravels a level {level} slot into {level} sorcery points.");
                     break;
                 }

@@ -52,6 +52,10 @@ namespace Realmkeeper.Domain.Combat
                 return d != 0 ? d : a.CombatantId.CompareTo(b.CombatantId);
             });
 
+            // Phase 10: creatures behave like what they are (flee, hold ground, hunt in packs); characters use the baseline.
+            var behaviour = BehaviorChoice(engine, actor, targets, ref profile);
+            if (behaviour != null) return behaviour;
+
             var adjacentEnemy = false;
             foreach (var c in targets) if (c.Position.IsAdjacent(actor.Position) && !engine.Incapacitated(c)) adjacentEnemy = true;
 
@@ -84,6 +88,7 @@ namespace Realmkeeper.Domain.Combat
             }
 
             var ranged = stats.BestRanged();
+            if (ranged != null && engine.AttackNotReady(actor, ranged) != null) ranged = null; // Phase 10: a recharging attack
             if (canAttack && ranged != null && !adjacentEnemy)
             {
                 CombatantData best = null;

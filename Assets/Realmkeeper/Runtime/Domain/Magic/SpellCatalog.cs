@@ -255,14 +255,14 @@ namespace Realmkeeper.Domain.Magic
                 Id = "hellish_rebuke", Name = "Hellish Rebuke", Level = 1, School = SpellSchool.Evocation, CastingTime = CastingTime.Reaction, Range = 60, Targeting = SpellTargeting.Creatures, Affects = SpellAffects.Hostile,
                 Classes = Cls(K), Resolution = SpellResolution.Save, SaveAbility = Ability.Dexterity, Effects = new[] { Dmg(2, 10, DamageType.Fire, true, 1) },
                 Description = "When a creature harms you, flames engulf it.", Upcast = "1d10 more per slot level above 1.",
-                Status = ImplementationStatus.Deferred, StatusNote = "Reactions are taken automatically (ADR-0033); reaction spells wait for a reaction prompt.",
+                Status = ImplementationStatus.Partial, StatusNote = "Offered as a reaction (Phase 10) after damage from a weapon or creature attack; damage from spells does not trigger it yet.",
             },
             new SpellDefinition
             {
                 Id = "shield", Name = "Shield", Level = 1, School = SpellSchool.Abjuration, CastingTime = CastingTime.Reaction, Targeting = SpellTargeting.Self,
                 Classes = Cls(S, W), Duration = SpellDurationKind.UntilCasterNextTurn, DurationText = "1 round", Effects = new[] { Fx(CombatEffectKind.ArmorClassBonus, 5) },
                 Description = "An invisible barrier: +5 armour class until your next turn, cast when you are hit.",
-                Status = ImplementationStatus.Deferred, StatusNote = "Reactions are taken automatically (ADR-0033); reaction spells wait for a reaction prompt.",
+                Status = ImplementationStatus.Partial, StatusNote = "Offered as a reaction (Phase 10) when a weapon or creature attack hits; spell attacks and Magic Missile do not trigger it yet.",
             },
 
             // ===== Level 2 =====================================================================================
@@ -366,7 +366,7 @@ namespace Realmkeeper.Domain.Magic
             {
                 Id = "counterspell", Name = "Counterspell", Level = 3, School = SpellSchool.Abjuration, CastingTime = CastingTime.Reaction, Range = 60, Targeting = SpellTargeting.Creatures,
                 Classes = Cls(S, K, W), Description = "Interrupt a creature casting a spell.",
-                Status = ImplementationStatus.Deferred, StatusNote = "Reactions are taken automatically (ADR-0033); reaction spells wait for a reaction prompt.",
+                Status = ImplementationStatus.Functional, StatusNote = "Offered as a reaction (Phase 10) when a hostile creature within 60 ft begins a spell: it saves (Constitution) or the spell fails, its slot unspent.",
             },
 
             // ===== Levels 4–5 ==================================================================================
@@ -404,7 +404,7 @@ namespace Realmkeeper.Domain.Magic
                 if (s.Classes.Count == 0) errors.Add($"Spell {s.Id} is on no class list.");
                 foreach (var c in s.Classes) if (RpgCatalog.FindClass(c)?.Spellcasting == null) errors.Add($"Spell {s.Id} names {c}, which does not cast spells.");
                 if (s.Status != ImplementationStatus.Functional && string.IsNullOrWhiteSpace(s.StatusNote)) errors.Add($"Spell {s.Id} is {s.Status} without saying why.");
-                if (s.Castable && s.Effects.Count == 0) errors.Add($"Spell {s.Id} is castable but does nothing.");
+                if (s.Castable && s.Effects.Count == 0 && s.CastingTime != CastingTime.Reaction) errors.Add($"Spell {s.Id} is castable but does nothing.");
                 if (s.Range < 0 || s.Touch && s.Range != 5) errors.Add($"Spell {s.Id} has an invalid range.");
                 if (s.Targeting == SpellTargeting.Creatures && s.MaxTargets < 1) errors.Add($"Spell {s.Id} targets no creature.");
                 if ((s.Targeting == SpellTargeting.Point || s.Targeting == SpellTargeting.FromSelf) && s.Area == AreaShape.None && !HasTeleport(s) && s.Castable)

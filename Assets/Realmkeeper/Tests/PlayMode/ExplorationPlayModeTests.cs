@@ -189,8 +189,10 @@ namespace Realmkeeper.Tests.PlayMode
             for (var i = 0; i < 60; i++) yield return null;
             _input.Move = Vector2.zero;
             var walked = Controller.Player.transform.position;
-            Assert.That(walked.z - start.z, Is.GreaterThan(1f), "Walked north from the gate.");
-            Assert.That(Mathf.Abs(walked.y - start.y), Is.LessThan(0.2f), "Stayed on the ground.");
+            // Phase 10: a planned settlement's way in faces into the town along its road (not always north), and its
+            // ground rises and falls: forward is measured on the ground, and grounded means on the plan's ground.
+            Assert.That(new Vector2(walked.x - start.x, walked.z - start.z).magnitude, Is.GreaterThan(1f), "Walked in from the way in.");
+            Assert.That(Mathf.Abs(walked.y - Realmkeeper.Exploration.Domain.LocalPaths.StandingHeight(Controller.Streamer.Current, walked.x, walked.z)), Is.LessThan(0.2f), "Stayed on the ground.");
 
             _input.JumpPressed = true;
             var peak = walked.y;

@@ -54,9 +54,9 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         public void Queries_ListFilterAndInspectWithAllTenSections()
         {
             var all = _s.GetNpcs();
-            Assert.That(all.Count, Is.EqualTo(15));
+            Assert.That(all.Count, Is.EqualTo(15 + 4), "15 by role, and (Phase 10) the people the places call for: a captain, a guard and a priest in the town, a warden in the hamlet.");
             var town = _s.GetSettlements().First(x => x.SettlementType == SettlementType.Town);
-            Assert.That(_s.GetNpcs(new NpcFilter { Settlement = town.SettlementId }).Count, Is.EqualTo(6));
+            Assert.That(_s.GetNpcs(new NpcFilter { Settlement = town.SettlementId }).Count, Is.EqualTo(6 + 3));
             Assert.That(_s.GetNpcs(new NpcFilter { Role = NpcRole.Elder }).All(n => n.Role == NpcRole.Elder), Is.True);
             Assert.That(_s.GetNpcs(new NpcFilter { Tier = NpcTier.Notable }).All(n => n.Tier == NpcTier.Notable), Is.True);
             Assert.That(_s.GetNpcs(new NpcFilter { NameContains = all[0].Name.Substring(0, 3) }), Has.Some.Matches<NpcListItem>(n => n.NpcId == all[0].NpcId));
@@ -213,7 +213,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         [Test]
         public void Version5Save_GainsTheEngineOnce_WithoutInventedHistory()
         {
-            var fresh = Phase2Worlds.Generated(555);
+            var fresh = Phase2Worlds.GeneratedBeforeLivingWorld(555); // Phase 10: the v11 world (its living-world additions arrive when a session loads a save; see the Phase 10 tests).
             var serializer = new JsonWorldSerializer();
             var doc = JObject.Parse(serializer.Serialize(Phase2Worlds.GeneratedBeforeCommerce(555)));
             Phase2Worlds.StripToV5(doc);

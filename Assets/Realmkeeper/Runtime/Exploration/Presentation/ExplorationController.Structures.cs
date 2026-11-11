@@ -57,7 +57,7 @@ namespace Realmkeeper.Exploration.Presentation
                 var door = LocalPaths.DoorOutside(b);
                 var sign = new GameObject("Sign " + pair.Key);
                 sign.transform.SetParent(root, false);
-                sign.transform.position = new Vector3(door.X, 3.1f, door.Z);
+                sign.transform.position = new Vector3(door.X, b.FloorHeight + 3.1f, door.Z); // Phase 10: above the door on a planned settlement's ground
                 sign.transform.rotation = Quaternion.Euler(0f, LocalPaths.FacingOut(b) + 180f, 0f);
                 WorldText(sign, string.Join(" · ", pair.Value), new Color(0.95f, 0.86f, 0.62f), 0.05f);
                 _signs.Add(sign);

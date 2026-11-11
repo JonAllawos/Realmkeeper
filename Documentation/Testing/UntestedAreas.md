@@ -22,3 +22,13 @@
 | Very long fights (log over 500 entries) | Bounded by design and validated; no test plays one that long | Add a test that trims the log |
 | Frame time with the encounter panel open | Not profiled | Run the performance probe in a development build |
 | Free mouse-driven play (clicks on markers in the 3D scene) | Moves are made on the panel's grid only; the markers are not clickable | Decide in a later phase whether to add picking |
+
+## Phase 10 (NPC sheets, bestiary, reactions, encounters, settlement plans)
+
+| Area | Risk | How to cover it |
+|---|---|---|
+| Frame time in a player build of a planned town | Measured in the editor's play mode only (Phase10/Performance.md) | Run the performance probe in a development build (its poses need updating for planned towns) |
+| Very large plans (a city) | Cities are not generated yet; the generator's cost grows with buildings × roads | Add a city type and profile it |
+| Reactions with several questions in one action | Covered by design (each answer replays); no test asks three questions in one action | Add an engine test with Shield, then Uncanny Dodge, in one attack sequence |
+| Walking into a riverbed | Water has no collider; harmless, but not tested in play | Decide whether rivers block, and test it |
+| Plans from very old saves (v1–v4) | Tested from v11 (and older documents migrate through v11) | Add a v5 document to the upgrade test |

@@ -74,3 +74,11 @@ A settlement's buildings, as world data. Definitions are code data (`Domain/Worl
   and repair.
 - **Ownership:** changes of ownership over time.
 - **Presentation:** structures as distinct models, and procedural layouts.
+
+## Phase 10: structures on a planned settlement
+
+Structures keep their layout keys (`hall`, `granary`, `landmark`, `house-n`). Since Phase 10 those keys name
+buildings in each settlement's persisted plan (ADR-0047), so every structure, sign and shop stands on its plan
+building, on its floor and plinth. A structure's sign hangs above its building's door at the building's floor
+height. The plan's other buildings (homes, barns, mills, warehouses, sheds) are part of the settlement's
+look. They are not structures with economic effects.

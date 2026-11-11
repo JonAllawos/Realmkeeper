@@ -27,11 +27,11 @@ namespace Realmkeeper.Exploration.Presentation
 
         public Vector3 InteractionPoint => transform.position;
 
-        public static EnvironmentInteractable Create(Transform parent, LayoutInteractable spec, SettlementId settlementId, ExplorationMaterials m)
+        public static EnvironmentInteractable Create(Transform parent, LayoutInteractable spec, SettlementId settlementId, ExplorationMaterials m, float groundY = 0f)
         {
             var go = new GameObject(spec.Kind.ToString());
             go.transform.SetParent(parent, false);
-            go.transform.localPosition = new Vector3(spec.Position.X, 0f, spec.Position.Z);
+            go.transform.localPosition = new Vector3(spec.Position.X, groundY, spec.Position.Z);
             go.transform.localRotation = Quaternion.Euler(0f, -spec.Yaw, 0f);
             var t = go.transform;
             var dark = m.Get(ExplorationMaterials.DarkTimber);

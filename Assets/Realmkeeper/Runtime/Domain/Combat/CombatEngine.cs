@@ -59,7 +59,7 @@ namespace Realmkeeper.Domain.Combat
             {
                 Name = string.IsNullOrWhiteSpace(setup.Name) ? "Encounter" : setup.Name.Trim(),
                 Kind = setup.Kind, Lethality = setup.Lethality, SettlementId = setup.SettlementId, Status = EncounterStatus.Active,
-                StartedOn = world.CurrentSimulationDate, StartedAtMinute = world.MinuteOfDay, QuestRef = setup.QuestRef, WorldEventRef = setup.WorldEventRef,
+                StartedOn = world.CurrentSimulationDate, StartedAtMinute = world.MinuteOfDay, QuestRef = setup.QuestRef, WorldEventRef = setup.WorldEventRef, Origin = setup.Origin?.Clone(),
             };
             enc.EncounterId = new EncounterId(nextGuid("encounter"));
             enc.Seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "encounter:" + enc.EncounterId);
@@ -92,7 +92,7 @@ namespace Realmkeeper.Domain.Combat
                 if (p.Kind == CombatantKind.Npc && x.Kind == CombatantKind.Npc && x.SourceId == p.NpcId.ToString()) { errors.Add($"{x.Name} is already taking part."); return null; }
             }
 
-            var c = new CombatantData { Kind = p.Kind, Side = p.Side.Trim(), Position = p.Position, Control = p.Control, JoinedRound = Math.Max(1, enc.Round) };
+            var c = new CombatantData { Kind = p.Kind, Side = p.Side.Trim(), Position = p.Position, Control = p.Control, JoinedRound = Math.Max(1, enc.Round), Anchor = p.Position, CreatureInstanceId = p.CreatureInstanceId };
             switch (p.Kind)
             {
                 case CombatantKind.Player:
@@ -111,8 +111,17 @@ namespace Realmkeeper.Domain.Combat
                     c.SourceId = npc.NpcId.ToString();
                     c.Name = npc.Name;
                     c.FactionId = npc.FactionId;
-                    c.CreatureId = p.CreatureId ?? CreatureCatalog.ProfileFor(npc.Role);
                     c.UsesDeathSaves = true; // named people are characters: they fall unconscious and fight for their lives
+                    if (p.CreatureId == null && npc.Character != null && npc.Character.HasSheet)
+                    {
+                        // Phase 10: a sheet-holder fights as themselves (class, equipment, spells); their vitals live on the sheet.
+                        var sh = npc.Character.Sheet;
+                        if (sh.IsDead) { errors.Add(npc.Name + " is dead."); return null; }
+                        c.State = sh.CurrentHp > 0 ? VitalState.Conscious : sh.IsStable ? VitalState.Stable : VitalState.Dying;
+                        break;
+                    }
+
+                    c.CreatureId = p.CreatureId ?? CreatureCatalog.ProfileFor(npc.Role); // lightweight: the SRD profile of their role
                     break;
                 default:
                     var def = CreatureCatalog.Find(p.CreatureId);
@@ -123,12 +132,13 @@ namespace Realmkeeper.Domain.Combat
                     break;
             }
 
-            if (c.Kind != CombatantKind.Player)
+            if (c.Kind != CombatantKind.Player && c.CreatureId != null)
             {
                 var def = CreatureCatalog.Find(c.CreatureId);
                 if (def == null) { errors.Add($"Unknown creature profile '{c.CreatureId}'."); return null; }
                 c.MaxHp = def.MaxHp;
                 c.CurrentHp = def.MaxHp;
+                PrepareTraits(c, def); // Phase 10: Relentless ready, recharging attacks charged
                 if (def.Spellcasting != null) // Phase 9: a caster profile's slots, on the combatant
                     for (var l = 0; l < def.Spellcasting.Slots.Count; l++) c.Resources["spell_slots_" + (l + 1)] = def.Spellcasting.Slots[l];
             }
@@ -238,6 +248,7 @@ namespace Realmkeeper.Domain.Combat
             c.Turn = new TurnResources(); // every per-turn resource and flag resets
             Expire(ConditionDuration.StartOfTurn, c);
             ExpireEffects(EffectExpiry.StartOfTurn, c);
+            StartOfTurnTraits(c); // Phase 10: charge start, recharges, regeneration
             Log(CombatLogKind.TurnStarted, c.CombatantId, default, $"Round {Encounter.Round}: {c.Name}'s turn.");
             if (c.State == VitalState.Dying) DeathSave(c);
         }
@@ -255,11 +266,14 @@ namespace Realmkeeper.Domain.Combat
 
         // ===== Acting ======================================================================================
 
-        /// <summary>Validates and resolves one action of the active combatant.</summary>
-        public ActionOutcome Act(CombatantId actorId, CombatAction action)
+        /// <summary>Validates and resolves one action of the active combatant. With a player reaction to ask, the action waits (Phase 10).</summary>
+        public ActionOutcome Act(CombatantId actorId, CombatAction action) => Resolve(actorId, action, null, false);
+
+        private ActionOutcome Resolve(CombatantId actorId, CombatAction action, List<bool> answers, bool replay)
         {
             var e = Encounter;
             if (!e.IsActive) return ActionOutcome.Refused("The encounter is over.");
+            if (e.PendingReaction != null && !replay) return ActionOutcome.Refused("Waiting for an answer: " + e.PendingReaction.Opportunity.Name + ".");
             var actor = e.Find(actorId);
             if (actor == null) return ActionOutcome.Refused("That combatant is not in this encounter.");
             if (e.Active != actor) return ActionOutcome.Refused($"It is {e.Active?.Name ?? "nobody"}'s turn, not {actor.Name}'s.");
@@ -268,6 +282,11 @@ namespace Realmkeeper.Domain.Combat
             if (why != null) return ActionOutcome.Refused(why);
 
             _current = new ActionOutcome { Ok = true };
+            var snapshot = PlayerCanBeAsked() ? Take() : null; // Phase 10: an action that may wait on the player is undone if it does
+            _answers = answers;
+            _asked = 0;
+            try
+            {
             switch (action)
             {
                 case MoveAction m: DoMove(actor, m); break;
@@ -278,10 +297,13 @@ namespace Realmkeeper.Domain.Combat
                     Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} dashes (+{Speed(actor)} ft of movement).");
                     break;
                 case DisengageAction _:
-                    UseAction(actor);
+                    var nimble = actor.Turn.ActionUsed && NimbleEscape(actor); // Phase 10: Nimble Escape (a bonus action)
+                    if (nimble) actor.Turn.BonusActionUsed = true;
+                    else UseAction(actor);
                     actor.Turn.Disengaged = true;
-                    Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} disengages: no opportunity attacks this turn.");
+                    Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} disengages{(nimble ? " nimbly (bonus action)" : string.Empty)}: no opportunity attacks this turn.");
                     break;
+                case FleeAction _: DoFlee(actor); break; // Phase 10
                 case DodgeAction _:
                     UseAction(actor);
                     actor.Turn.Dodging = true;
@@ -303,12 +325,29 @@ namespace Realmkeeper.Domain.Combat
                     AdvanceTurn();
                     break;
             }
+            }
+            catch (ReactionPending pending)
+            {
+                Restore(snapshot);
+                _current = null;
+                _answers = null;
+                return Suspend(Encounter.Find(actorId), action, answers, pending.Opportunity);
+            }
+
+            _answers = null;
 
             e.ActionSequence++;
             CheckEnd();
             var outcome = _current;
             _current = null;
             return outcome;
+        }
+
+        /// <summary>True when someone the player controls is in the fight (only then can an action wait on an answer).</summary>
+        private bool PlayerCanBeAsked()
+        {
+            foreach (var c in Encounter.Combatants) if (c.Control == CombatControl.Player && c.State != VitalState.Dead) return true;
+            return false;
         }
 
         /// <summary>Why an action is not allowed now (null when it is). Shared by the engine, the AI and the UI.</summary>
@@ -335,9 +374,13 @@ namespace Realmkeeper.Domain.Combat
                     if (o.Melee && d > o.Reach) return $"{target.Name} is {d} ft away; {o.Name} reaches {o.Reach} ft.";
                     if (!o.Melee && d > o.LongRange) return $"{target.Name} is {d} ft away; {o.Name} reaches at most {o.LongRange} ft.";
                     if (o.Kind == AttackKind.Grapple && Has(target, ConditionType.Grappled)) return $"{target.Name} is already grappled.";
+                    var notReady = AttackNotReady(actor, o); // Phase 10: a recharging attack
+                    if (notReady != null) return notReady;
                     return null;
                 }
 
+                case DisengageAction _ when t.ActionUsed && !t.BonusActionUsed && NimbleEscape(actor) && !incapacitated: return null; // Phase 10: Nimble Escape
+                case FleeAction _: return incapacitated ? $"{actor.Name} is incapacitated." : FleeProblem(actor);
                 case DashAction _:
                 case DisengageAction _:
                 case DodgeAction _:
@@ -453,6 +496,12 @@ namespace Realmkeeper.Domain.Combat
                         {
                             var o = Stats(enemy).BestMelee();
                             if (o == null) continue;
+                            if (!Ask(new ReactionOpportunity // Phase 10: a choice, not automatic
+                            {
+                                Kind = ReactionKind.OpportunityAttack, Name = "Opportunity attack", ReactorId = enemy.CombatantId, TriggerId = actor.CombatantId, TargetId = actor.CombatantId,
+                                Trigger = $"{actor.Name} leaves {enemy.Name}'s reach.", Cost = $"{enemy.Name}'s reaction",
+                                Consequence = $"One attack with {o.Name} ({Breakdown.Signed(o.AttackBonus.Total)} to hit) before {actor.Name} moves on.",
+                            })) continue;
                             enemy.Turn.ReactionUsed = true;
                             Log(CombatLogKind.Action, enemy.CombatantId, actor.CombatantId, $"{enemy.Name} makes an opportunity attack as {actor.Name} leaves its reach.");
                             ResolveAttack(enemy, actor, o, true);
@@ -494,18 +543,21 @@ namespace Realmkeeper.Domain.Combat
 
         // ===== Damage, healing, death ======================================================================
 
-        public int Hp(CombatantData c) => c.Kind == CombatantKind.Player ? _world.Player.Rpg.CurrentHp : c.CurrentHp;
-        public int TempHp(CombatantData c) => c.Kind == CombatantKind.Player ? _world.Player.Rpg.TemporaryHp : c.TemporaryHp;
+        public int Hp(CombatantData c) => SheetOf(c) is CharacterSheetData sh ? sh.CurrentHp : c.CurrentHp;
+        public int TempHp(CombatantData c) => SheetOf(c) is CharacterSheetData sh ? sh.TemporaryHp : c.TemporaryHp;
         public int MaxHp(CombatantData c) => Stats(c).MaxHp;
-        public int Successes(CombatantData c) => c.Kind == CombatantKind.Player ? _world.Player.Rpg.DeathSaveSuccesses : c.DeathSaveSuccesses;
-        public int Failures(CombatantData c) => c.Kind == CombatantKind.Player ? _world.Player.Rpg.DeathSaveFailures : c.DeathSaveFailures;
+        public int Successes(CombatantData c) => SheetOf(c) is CharacterSheetData sh ? sh.DeathSaveSuccesses : c.DeathSaveSuccesses;
+        public int Failures(CombatantData c) => SheetOf(c) is CharacterSheetData sh ? sh.DeathSaveFailures : c.DeathSaveFailures;
+
+        /// <summary>Phase 10: the character sheet a combatant fights with (the player's, or a named person's), or null.</summary>
+        public CharacterSheetData SheetOf(CombatantData c) => CombatStats.SheetOf(_world, c, out _, out _);
 
         private void SetDeathSaves(CombatantData c, int successes, int failures)
         {
-            if (c.Kind == CombatantKind.Player)
+            if (SheetOf(c) is CharacterSheetData sh)
             {
-                _world.Player.Rpg.DeathSaveSuccesses = successes;
-                _world.Player.Rpg.DeathSaveFailures = failures;
+                sh.DeathSaveSuccesses = successes;
+                sh.DeathSaveFailures = failures;
             }
             else
             {
@@ -517,8 +569,8 @@ namespace Realmkeeper.Domain.Combat
         private void SetState(CombatantData c, VitalState state)
         {
             c.State = state;
-            if (c.Kind != CombatantKind.Player) return;
-            var s = _world.Player.Rpg;
+            var s = SheetOf(c);
+            if (s == null) return;
             s.IsStable = state == VitalState.Stable;
             s.IsDead = state == VitalState.Dead;
             if (state == VitalState.Conscious || state == VitalState.Dead) s.DeathSaveSuccesses = s.DeathSaveFailures = 0;
@@ -544,6 +596,7 @@ namespace Realmkeeper.Domain.Combat
             }
 
             r.Final = final;
+            NoteDamageType(target, type, final); // Phase 10: fire and acid stop regeneration
             var name = type.ToString().ToLowerInvariant();
             if (target.State == VitalState.Dead) return r;
             if (target.State == VitalState.Dying || target.State == VitalState.Stable)
@@ -561,9 +614,8 @@ namespace Realmkeeper.Domain.Combat
             }
 
             int absorbed;
-            if (target.Kind == CombatantKind.Player)
+            if (SheetOf(target) is CharacterSheetData sheet)
             {
-                var sheet = _world.Player.Rpg;
                 var before = sheet.TemporaryHp;
                 if (final > 0) CharacterVitals.ChangeHitPoints(sheet, -final); // the Phase 7 rule: temporary hit points first, stop at 0
                 absorbed = before - sheet.TemporaryHp;
@@ -572,7 +624,8 @@ namespace Realmkeeper.Domain.Combat
             {
                 absorbed = Math.Min(target.TemporaryHp, final);
                 target.TemporaryHp -= absorbed;
-                target.CurrentHp = Math.Max(0, target.CurrentHp - (final - absorbed));
+                var lost = ClingToLife(target, final - absorbed, type, critical); // Phase 10: Undead Fortitude, Relentless
+                target.CurrentHp = Math.Max(0, target.CurrentHp - lost);
             }
 
             r.TemporaryAbsorbed = absorbed;
@@ -615,6 +668,7 @@ namespace Realmkeeper.Domain.Combat
             }
             else
             {
+                if (CollapsesInsteadOfDying(target)) return r; // Phase 10: Regeneration
                 Kill(target, "dropped to 0 hit points", byName);
                 r.Killed = true;
                 return r;
@@ -636,7 +690,7 @@ namespace Realmkeeper.Domain.Combat
             SetState(c, VitalState.Dead);
             EndConcentration(c, "died"); // Phase 9: the dead sustain nothing, and nothing lingers on them
             foreach (var e in new List<ActiveEffectData>(EffectsOn(c))) RemoveEffect(e, "the creature died");
-            if (c.Kind == CombatantKind.Player) _world.Player.Rpg.CurrentHp = 0;
+            if (SheetOf(c) is CharacterSheetData dead) dead.CurrentHp = 0;
             else c.CurrentHp = 0;
             c.Conditions.Clear();
             Log(CombatLogKind.Died, c.CombatantId, default, $"{c.Name} dies ({how}).");
@@ -654,7 +708,7 @@ namespace Realmkeeper.Domain.Combat
             if (c.State == VitalState.Dead) return $"{c.Name} is dead; healing cannot help.";
             if (c.State == VitalState.Fled) return $"{c.Name} has left the fight.";
             var before = Hp(c);
-            if (c.Kind == CombatantKind.Player) CharacterVitals.ChangeHitPoints(_world.Player.Rpg, amount);
+            if (SheetOf(c) is CharacterSheetData healed) CharacterVitals.ChangeHitPoints(healed, amount);
             else c.CurrentHp = Math.Min(c.MaxHp, c.CurrentHp + amount);
             Log(CombatLogKind.Healing, c.CombatantId, default, $"{c.Name} regains {Hp(c) - before} hit points from {source}: {before} → {Hp(c)} HP.", Hp(c) - before);
             if (before == 0 && Hp(c) > 0)
@@ -867,9 +921,11 @@ namespace Realmkeeper.Domain.Combat
             e.Outcome = outcome;
             e.WinningSide = winner;
             e.EndedOn = _world.CurrentSimulationDate;
+            FinishOffRegenerators(); // Phase 10
+            e.PendingReaction = null; // Phase 10: the question's window closes with the fight
             EndAllEffects(); // Phase 9: spell and feature effects are encounter time only
             foreach (var c in e.Combatants)
-                if (c.Kind == CombatantKind.Player && c.State == VitalState.Dying)
+                if (SheetOf(c) != null && c.State == VitalState.Dying)
                 {
                     SetState(c, VitalState.Stable);
                     Log(CombatLogKind.Stabilized, c.CombatantId, default, $"{c.Name} is stabilized as the fight ends.");

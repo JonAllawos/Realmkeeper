@@ -65,6 +65,9 @@ namespace Realmkeeper.Infrastructure.Generation
             WorldPopulationInitializer.EnsureCommerce(world);
         }
 
+        /// <summary>Phase 10: the living-world additions an older save lacks (deterministic, once).</summary>
+        public bool EnsureLivingWorld(WorldData world, RegionMap map) => LivingWorldGenesis.Ensure(world, map, _randomFactory);
+
         public int GeneratorVersion => Version;
 
         public bool SupportsVersion(int generatorVersion) => generatorVersion == Version;
@@ -106,6 +109,7 @@ namespace Realmkeeper.Infrastructure.Generation
             WorldPopulationInitializer.EnsureAll(world, map.Width, map.Depth, _randomFactory);
             _economy.Initialize(world, map, Stream("trade-routes"));
             if (request.IncludeCommerce) WorldPopulationInitializer.EnsureCommerce(world);
+            if (request.IncludeCommerce && request.IncludeLivingWorld) LivingWorldGenesis.Ensure(world, map, _randomFactory); // Phase 10: people, sheets, settlements, wildlife
 
             var worldValidation = WorldValidator.Validate(world);
             var mapValidation = RegionMapValidator.Validate(map, world.Settlements);

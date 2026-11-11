@@ -1043,3 +1043,32 @@
     color: rgb(214, 180, 116);
     -unity-font-style: bold;
 }
+
+/* Phase 10: a reaction or decision waiting on the player — above every column of the encounter panel. */
+.xk-combat-prompt {
+    flex-direction: row;
+    align-items: center;
+    margin: 4px 6px;
+    padding: 8px 10px;
+    background-color: rgba(92, 64, 24, 0.97);
+    border-width: 2px;
+    border-color: rgb(240, 200, 110);
+    border-radius: 4px;
+}
+
+.xk-combat-prompt-title {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(250, 225, 160);
+}
+
+.xk-combat-prompt-body {
+    font-size: 12px;
+    white-space: normal;
+    color: rgb(240, 230, 205);
+}
+
+.xk-combat-prompt .xk-button {
+    margin-left: 8px;
+    min-width: 110px;
+}

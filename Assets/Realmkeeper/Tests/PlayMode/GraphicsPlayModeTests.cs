@@ -102,7 +102,8 @@ namespace Realmkeeper.Tests.PlayMode
                 Assert.That(colliders.GetComponentsInChildren<BoxCollider>().Length, Is.GreaterThan(0), b.Key + " has collision.");
             }
 
-            Assert.That(controller.EnvironmentRoot.GetComponentsInChildren<MeshCollider>(), Is.Empty, "No mesh colliders on detail.");
+            // Phase 10: a planned settlement's ground is a terrain mesh with its own collider; detail still has none.
+            Assert.That(controller.EnvironmentRoot.GetComponentsInChildren<MeshCollider>().Where(m => !m.name.StartsWith("Terrain collider", System.StringComparison.Ordinal)), Is.Empty, "No mesh colliders on detail.");
 
             // Residents: one body per persistent NPC ID, each a humanoid whose look comes from that ID.
             var expected = layout.Residents.Select(r => r.NpcId).Distinct().ToList();

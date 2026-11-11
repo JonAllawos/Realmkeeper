@@ -50,6 +50,24 @@ namespace Realmkeeper.Application
         public int? ExpectedSequence { get; }
     }
 
+    /// <summary>
+    /// Phase 10: the player's answer to the question an action is waiting on (ADR-0045): take the reaction (or make the
+    /// decision) or let it pass. The action then finishes, or stops at its next question. Answered once.
+    /// </summary>
+    public sealed class RespondToReactionCommand : ICommand
+    {
+        public RespondToReactionCommand(EncounterId encounterId, int reactionId, bool accept)
+        {
+            EncounterId = encounterId;
+            ReactionId = reactionId;
+            Accept = accept;
+        }
+
+        public EncounterId EncounterId { get; }
+        public int ReactionId { get; }
+        public bool Accept { get; }
+    }
+
     /// <summary>Lets the active computer-controlled combatant take its whole turn (the AI proposes; the engine resolves).</summary>
     public sealed class RunAiTurnCommand : ICommand
     {
@@ -143,7 +161,7 @@ namespace Realmkeeper.Application
         public bool Withdraw { get; }
     }
 
-    public static class CombatCommandHandlers
+    public static partial class CombatCommandHandlers
     {
         public const string PlayerSide = "player";
 
@@ -153,6 +171,8 @@ namespace Realmkeeper.Application
             commands.Register<StartPracticeEncounterCommand>(new PracticeHandler());
             commands.Register<CombatActionCommand>(new ActionHandler());
             commands.Register<RunAiTurnCommand>(new AiHandler());
+            commands.Register<RespondToReactionCommand>(new RespondHandler()); // Phase 10
+            commands.Register<StartWorldEncounterCommand>(new WorldEncounterHandler()); // Phase 10
             commands.Register<JoinEncounterCommand>(new JoinHandler());
             commands.Register<ApplyConditionCommand>(new ApplyConditionHandler());
             commands.Register<RemoveConditionCommand>(new RemoveConditionHandler());
@@ -178,9 +198,16 @@ namespace Realmkeeper.Application
                 },
                 DifficultTerrain = { new GridPos(0, 3), new GridPos(1, 3) },
             };
+            // The guard on duty beside you: a rank-and-file guard rather than the captain (Phase 10 adds captains, who hold
+            // higher-level sheets), the lowest ID among them for determinism.
             NpcData guard = null;
             foreach (var n in world.Npcs)
-                if (!n.IsDeceased && n.Role == NpcRole.Guard && n.HomeSettlementId == p.SettlementId && (guard == null || n.NpcId.CompareTo(guard.NpcId) < 0)) guard = n;
+            {
+                if (n.IsDeceased || n.Role != NpcRole.Guard || n.HomeSettlementId != p.SettlementId) continue;
+                var better = guard == null || (n.Tier != NpcTier.Notable && guard.Tier == NpcTier.Notable) ||
+                             ((n.Tier == NpcTier.Notable) == (guard.Tier == NpcTier.Notable) && n.NpcId.CompareTo(guard.NpcId) < 0);
+                if (better) guard = n;
+            }
             if (guard != null) setup.Participants.Add(new ParticipantSetup { Kind = CombatantKind.Npc, NpcId = guard.NpcId, Side = PlayerSide, Position = new GridPos(-1, 0) });
             if (withCaster)
             {
@@ -235,6 +262,7 @@ namespace Realmkeeper.Application
                 NpcSystem.RecordDeath(world, npc, world.FindSettlement(npc.HomeSettlementId), world.CurrentSimulationDate);
             }
 
+            if (!engine.Encounter.IsActive) WorldEncounters.Resolve(context, world, engine.Encounter); // Phase 10: the aftermath, once
             engine.Chronicle.Clear();
             engine.ResidentDeaths.Clear();
             var ended = 0;
@@ -246,6 +274,7 @@ namespace Realmkeeper.Application
         public static string Describe(ActionOutcome o)
         {
             var sb = new StringBuilder();
+            if (o.Pending != null) return $"Waiting for {o.WaitingOn ?? "the player"}: {o.Pending.Opportunity.Name} — {o.Pending.Opportunity.Trigger}"; // Phase 10
             foreach (var e in o.Entries)
             {
                 if (sb.Length > 0) sb.Append('\n');
@@ -273,6 +302,18 @@ namespace Realmkeeper.Application
             if (world.Player?.Rpg?.Spellcasting != null && enc.Combatants.Exists(c => c.Kind == CombatantKind.Player)) world.Player.Rpg.Spellcasting.PreparationChanges = 0; // Phase 9: a fight closes the preparation window
             Settle(context, engine);
             return CommandResult.Ok($"{enc.Name}: round {enc.Round}, {enc.Active?.Name ?? "nobody"}'s turn.");
+        }
+
+        /// <summary>Phase 10: starts a generated encounter (its individuals already drawn) and describes it.</summary>
+        internal static CommandResult StartGenerated(CommandContext context, EncounterSetup setup, string description)
+        {
+            var r = Start(context, setup);
+            return r.IsSuccess ? CommandResult.Ok(description + Environment.NewLine + r.Message) : r;
+        }
+
+        private sealed class WorldEncounterHandler : ICommandHandler<StartWorldEncounterCommand>
+        {
+            public CommandResult Handle(StartWorldEncounterCommand command, CommandContext context) => WorldEncounters.Start(command, context);
         }
 
         private sealed class StartHandler : ICommandHandler<StartEncounterCommand>
@@ -324,15 +365,30 @@ namespace Realmkeeper.Application
                 {
                     var proposal = CombatAi.Next(engine, actor);
                     var outcome = engine.Act(actor.CombatantId, proposal);
+                    if (outcome.Pending != null) { lines.Add(Describe(outcome)); break; } // Phase 10: the player is asked to react
                     if (!outcome.Ok) outcome = engine.Act(actor.CombatantId, new EndTurnAction()); // never stuck on a refused proposal
                     var text = Describe(outcome);
                     if (text.Length > 0) lines.Add(text);
                     if (proposal is EndTurnAction) break;
                 }
 
-                if (engine.Encounter.IsActive && engine.Encounter.Active == actor) engine.Act(actor.CombatantId, new EndTurnAction());
+                if (engine.Encounter.IsActive && engine.Encounter.Active == actor && engine.Encounter.PendingReaction == null) engine.Act(actor.CombatantId, new EndTurnAction());
                 Settle(context, engine);
                 return CommandResult.Ok(string.Join("\n", lines));
+            }
+        }
+
+        private sealed class RespondHandler : ICommandHandler<RespondToReactionCommand>
+        {
+            public CommandResult Handle(RespondToReactionCommand command, CommandContext context)
+            {
+                Active(context, command.EncounterId, out var refused);
+                if (refused != null) return refused;
+                var (engine, _) = Working(context, command.EncounterId);
+                var outcome = engine.Respond(command.ReactionId, command.Accept);
+                if (!outcome.Ok) return CommandResult.InvalidState(outcome.Error);
+                Settle(context, engine);
+                return CommandResult.Ok(Describe(outcome));
             }
         }
 

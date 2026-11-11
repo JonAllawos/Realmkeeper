@@ -233,3 +233,17 @@ knows the player and why.
 | The factions | Who holds the place as they know it, their own allegiance, and the last political news they remember |
 
 "Where is someone" remains the Person topic.
+
+## Character records (Phase 10)
+
+Every living named person now carries a character record (ADR-0043). People whose work is fighting, healing
+or keeping order hold a full character sheet, built by the player's rules. The others hold a lightweight record
+(archetype, occupation, gear, purse) until they are promoted. Phase 10 also fills the posts the world's places
+call for (a captain, a guard and a priest in the town; a warden in the hamlet): named people go from 15 to 19.
+
+- **Commands:** `PromoteNpcCommand`, `AwardNpcExperienceCommand` (keyed), `AdvanceNpcCommand`.
+- **Query:** `WorldSession.GetNpcCharacter`.
+- **Inspector:** a Character section, with DM tools to give a sheet or take an earned level.
+- **Upkeep:** people with sheets take a long rest each night and fight as themselves.
+
+Details: `Documentation/Phase10/CreatureAndNpcSystems.md`.

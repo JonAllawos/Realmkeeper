@@ -156,6 +156,7 @@ namespace Realmkeeper.Exploration.Presentation
             _close.EnableInClassList("xk-hidden", active);
 
             if (Inspected.IsEmpty || Find(s, Inspected) == null) Inspected = s.Player?.Id ?? (s.Order.Count > 0 ? s.Order[0].Id : default);
+            FillPrompt(s); // Phase 10: a question waiting on the player comes first
             FillOrder(s);
             FillGrid(s);
             FillActions(s);
@@ -273,6 +274,12 @@ namespace Realmkeeper.Exploration.Presentation
                 return;
             }
 
+            if (s.Prompt != null)
+            {
+                _actions.Add(TradeWindow.Text("Answer the question above first: the action it interrupted waits on your answer.", "xk-w-note"));
+                return;
+            }
+
             if (Composing) { FillComposer(s); return; } // Phase 9: aiming a spell
 
             var p = s.Player;
@@ -321,6 +328,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (c.Effects.Count > 0) lines.Add("Effects: " + string.Join(", ", c.Effects));
             if (c.IsCaster) lines.Add($"Spell save DC {c.SpellSaveDc}, spell attack {(c.SpellAttack >= 0 ? "+" : string.Empty)}{c.SpellAttack}");
             if (!string.IsNullOrEmpty(c.Resources)) lines.Add("Resources: " + c.Resources);
+            if (!string.IsNullOrEmpty(c.Bestiary)) lines.Add("Bestiary: " + c.Bestiary); // Phase 10
             InspectorText = string.Join("\n", lines);
             foreach (var l in lines) _inspector.Add(TradeWindow.Text(l, "xk-combat-inspect-line"));
         }

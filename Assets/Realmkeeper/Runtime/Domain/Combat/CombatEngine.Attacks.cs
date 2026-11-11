@@ -57,7 +57,9 @@ namespace Realmkeeper.Domain.Combat
                 return g;
             }
 
+            SpendRecharge(attacker, o); // Phase 10: a recharging attack is spent when used
             var r = AttackRoll(attacker, target, o, opportunity);
+            ReactToHit(attacker, target, o, r, r.Critical ? 20 : 0); // Phase 10: Shield, Parry, Cutting Words
             var weapon = o.ItemId != null ? ItemCatalog.Find(o.ItemId)?.Weapon : null;
             if (!r.Hit)
             {
@@ -91,25 +93,17 @@ namespace Realmkeeper.Domain.Combat
             if (o.Damage.Bonus != 0) r.DamageBreakdown.Add("bonus", o.Damage.Bonus);
             if (o.DamageBonus != null) foreach (var (label, value) in o.DamageBonus.Parts) if (value != 0) r.DamageBreakdown.Add(label, value);
             AddDamageRiders(attacker, target, o, weapon, r);
+            var charged = ChargeBonus(attacker, target, o, r); // Phase 10: Charge
             var amount = Math.Max(0, r.DamageBreakdown.Total);
 
-            // Uncanny Dodge (automatic reaction): half the damage of an attack the rogue can see.
-            if (TargetFeature(target, "uncanny_dodge") && CanReact(target) && !Has(target, ConditionType.Blinded) && amount > 0)
-            {
-                target.Turn.ReactionUsed = true;
-                amount /= 2;
-                r.DamageBreakdown.Note("Uncanny Dodge halves it");
-                Log(CombatLogKind.Action, target.CombatantId, attacker.CombatantId, $"{target.Name} uses Uncanny Dodge: the damage is halved to {amount}.");
-            }
+            amount = ReactToDamage(attacker, target, o, r, amount); // Phase 10: Deflect Attacks, Uncanny Dodge (choices now)
 
             var hpBefore = Hp(target);
             r.Damage = ApplyDamage(target, amount, o.DamageType, r.Critical, attacker.Name);
             ExtraDamageFromMarks(attacker, target, r);
-            if (o.OnHit.HasValue && target.State == VitalState.Conscious)
-            {
-                r.ConditionApplied = o.OnHit;
-                ApplyCondition(target, o.OnHit.Value, attacker.CombatantId, attacker.Name + "'s " + o.Name.ToLowerInvariant(), ConditionDuration.UntilRemoved, default, 0);
-            }
+            if (o.OnHit.HasValue && target.State == VitalState.Conscious) ApplyHitCondition(attacker, target, o, r); // Phase 10: with its save and escape DC
+            CreatureHitEffects(attacker, target, o, r, charged); // Phase 10: a charge's knock-down, venom
+            if (r.Damage != null && r.Damage.Final > 0) ReactToBeingHurt(attacker, target); // Phase 10: Hellish Rebuke
 
             var t = attacker.Turn;
             t.LastHitTargetId = target.CombatantId;
@@ -157,9 +151,9 @@ namespace Realmkeeper.Domain.Combat
             else if (roll.Natural >= critFrom) { r.Hit = true; r.Critical = true; }
             else
             {
-                r.Total += SpendInspiration(attacker, r.Total, r.TargetAc, notes);
                 r.Hit = r.Total >= r.TargetAc;
                 if (!r.Hit) r.MissReason = $"{r.Total} is below AC {r.TargetAc}";
+                DecideOnMissedAttack(attacker, r, notes); // Phase 10: the roller decides
             }
 
             var within5 = attacker.Position.DistanceFeet(target.Position) <= 5;
@@ -230,7 +224,7 @@ namespace Realmkeeper.Domain.Combat
 
         // ===== Riders ======================================================================================
 
-        private bool AttackerFeature(CombatantData c, string id) => c.Kind == CombatantKind.Player && Stats(c).Rules != null && Stats(c).Rules.HasFeature(id);
+        private bool AttackerFeature(CombatantData c, string id) => Stats(c).Rules != null && Stats(c).Rules.HasFeature(id);
 
         private bool TargetFeature(CombatantData c, string id) => AttackerFeature(c, id);
 
@@ -367,7 +361,7 @@ namespace Realmkeeper.Domain.Combat
             if (!AttackerFeature(attacker, "dark_ones_blessing") || hpBefore <= 0 || Hp(target) > 0 || !Hostile(attacker, target)) return;
             var rules = Stats(attacker).Rules;
             var amount = Math.Max(1, rules.Level + AbilityRules.Modifier(rules.Score(Ability.Charisma)));
-            CharacterVitals.GrantTemporaryHitPoints(_world.Player.Rpg, amount);
+            CharacterVitals.GrantTemporaryHitPoints(SheetOf(attacker), amount);
             Log(CombatLogKind.Healing, attacker.CombatantId, default, $"Dark One's Blessing: {attacker.Name} gains {amount} temporary hit points.", amount);
         }
     }
@@ -419,22 +413,7 @@ namespace Realmkeeper.Domain.Combat
             if (aura > 0) notes.Add($"Aura of Protection +{aura}");
             r.Total = roll.Natural + r.Bonus.Total - 2 * ExhaustionLevel(c) + RollDieEffects(c, notes) + aura;
             r.Success = r.Total >= dc;
-            if (!r.Success)
-            {
-                r.Total += SpendInspiration(c, r.Total, dc, notes);
-                r.Success = r.Total >= dc;
-            }
-
-            if (!r.Success && TargetFeature(c, "indomitable") && ResourceLeft(c, "indomitable") > 0)
-            {
-                // Indomitable (taken automatically): reroll the failed save with a bonus equal to the fighter level.
-                SpendResource(c, "indomitable", 1);
-                var again = Die(20);
-                var level = s.Rules.Level;
-                r.Total = again + r.Bonus.Total - 2 * ExhaustionLevel(c) + level + aura;
-                r.Success = r.Total >= dc;
-                notes.Add($"Indomitable: rerolled {again} +{level}");
-            }
+            if (!r.Success) DecideOnFailedSave(c, ability, dc, r, r.Bonus.Total - 2 * ExhaustionLevel(c), notes, aura); // Phase 10: Bardic Inspiration, Indomitable
 
             Log(CombatLogKind.Save, c.CombatantId, default,
                 $"{c.Name}'s {ability} save against {against}: d20 {roll.Natural}{(roll.Advantage || roll.Disadvantage ? $" ({roll.First}/{roll.Second}, {roll.ModeText})" : string.Empty)} {Breakdown.Signed(r.Bonus.Total)}{(notes.Count > 0 ? " " + string.Join(" ", notes) : string.Empty)} = {r.Total} vs DC {dc}: {(r.Success ? "success" : "failure")}.", r.Total, roll);

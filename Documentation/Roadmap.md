@@ -14,8 +14,9 @@
 | Phase 6: Character Creation & Core RPG Foundation | Done (`f2682a2`) | `Systems/Characters.md`, `Systems/Species.md`, `Systems/Backgrounds.md`, `Systems/Classes.md`, `Systems/SkillsAndAbilities.md`, `Systems/CharacterCreation.md`, `Reports/Phase6-Character-Creation.md` |
 | Phase 7: Character Progression & Core Rules Engine | Done (`a3cd9f5`) | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
 | Phase 8: Combat Foundation, Encounter Engine & Settlement Structures | Done (`2fe83eb`) | `Systems/Combat.md`, `Systems/SettlementStructures.md`, `Phase8/Phase8-Report.md`, ADR-0030…0036 |
-| Phase 9: Spellcasting, Class Features & Combat Integration | Done (this milestone); awaiting review, committed locally and not pushed. See the test results for what was run | `Systems/Spellcasting.md`, `Systems/ClassFeatures.md`, `Systems/RestAndRecovery.md`, `Systems/SpellCatalogAudit.md`, `Phase9/Phase9-Report.md`, ADR-0037…0042 |
-| Phase 10 | **Not started.** Waits for review of Phase 9 and its own brief. | — |
+| Phase 9: Spellcasting, Class Features & Combat Integration | Done (`27a5261`, committed locally) | `Systems/Spellcasting.md`, `Systems/ClassFeatures.md`, `Systems/RestAndRecovery.md`, `Systems/SpellCatalogAudit.md`, `Phase9/Phase9-Report.md`, ADR-0037…0042 |
+| Phase 10: Bestiary, NPC Character Systems, Encounter Intelligence & Living Settlement Generation | Done (this milestone); awaiting review, committed locally and not pushed. See the test results for what was run | `Phase10/SettlementGeneration.md`, `Phase10/CreatureAndNpcSystems.md`, `Phase10/Testing.md`, `Phase10/Performance.md`, `Phase10/Limitations.md`, `Reports/Phase10-Bestiary-NPCs-Settlements.md`, ADR-0043…0049 |
+| Phase 11: Inventory, Loot, Equipment, Crafting & Item Progression | **Not started.** Brief received; begins after Phase 10 is committed. | — |
 
 ## Phase 2 completion: what it added
 
@@ -239,3 +240,26 @@ Main limitations (full list in `Phase9/Phase9-Report.md`):
 | Wild Shape | One form (wolf) |
 | Metamagic | Four of ten options not simulated |
 | NPC casters | Two SRD 5.1 stat blocks; slots refill per encounter |
+
+## Phase 10: what it added
+
+- **Named people with character records** (ADR-0043).
+  - Fighters, healers and wardens hold full sheets, built by the player's rules.
+  - Commands promote a person, award keyed experience and advance levels.
+  - People with sheets fight as themselves.
+  - The town and hamlet gain the posts their places call for (15 → 19 named people).
+- **A bestiary and aggregate wildlife** (ADR-0044).
+  - 20 SRD 5.1 creatures and 5 labelled originals, with traits and behaviours applied in combat.
+  - Weekly populations, predation, hunting and herds.
+  - Named individuals drawn into fights, whose fates persist.
+- **Reactions asked, not taken** (ADR-0045). Suspend and replay. The encounter panel's prompt offers Accept or
+  Decline, and the answer is atomic and saved while it waits.
+- **Encounters from the world** (ADR-0046). Outings to the outskirts, the road or the farms, planned from the
+  populations in range, checked before they start, and settled once.
+- **Settlement identity and terrain-first plans** (ADR-0047, ADR-0048, ADR-0049).
+  - Ground, water and bridges, roads, districts, buildings on buildable ground, farms and herds, landmarks and
+    walls.
+  - The plan is persisted and never regenerated.
+  - The walkable settlement, the strategic map and the inspector all read it.
+  - People walk its road graph and stand on its ground.
+- **Schema v12** with migration; older saves gain the Phase 10 data once on load.

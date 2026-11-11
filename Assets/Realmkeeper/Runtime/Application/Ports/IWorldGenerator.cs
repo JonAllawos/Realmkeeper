@@ -27,6 +27,12 @@ namespace Realmkeeper.Application.Ports
         /// faithful pre-Phase-5 saves in migration tests; the game always generates with commerce.
         /// </summary>
         public bool IncludeCommerce { get; set; } = true;
+
+        /// <summary>
+        /// Phase 10: add the living-world data (the people a settlement's places call for, NPC sheets, settlement layouts,
+        /// wildlife). False gives the world as it was before Phase 10, the source of faithful v11 fixtures.
+        /// </summary>
+        public bool IncludeLivingWorld { get; set; } = true;
     }
 
     /// <summary>Generation output: authoritative world data plus the derived geography it sits on.</summary>
@@ -66,5 +72,12 @@ namespace Realmkeeper.Application.Ports
         /// derived from the regenerated geography. Leaves already-initialized settlements alone.
         /// </summary>
         void InitializeEconomy(WorldData world, RegionMap map);
+
+        /// <summary>
+        /// Phase 10: fills in the living-world data an older save lacks (people a settlement's places call for, NPC sheets,
+        /// settlement identity and layout, wildlife and livestock), derived from the regenerated geography. Never
+        /// replaces what exists. True when anything was added.
+        /// </summary>
+        bool EnsureLivingWorld(WorldData world, RegionMap map);
     }
 }

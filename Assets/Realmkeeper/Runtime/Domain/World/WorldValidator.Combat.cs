@@ -37,6 +37,16 @@ namespace Realmkeeper.Domain.World
                         players++;
                         if (world.Player == null) result.AddError($"{who} is the player, but there is no player.");
                     }
+                    else if (c.Kind == CombatantKind.Npc && c.CreatureId == null)
+                    {
+                        // Phase 10: a named person fighting with their own character sheet; their vitals live on the sheet.
+                        var person = System.Guid.TryParse(c.SourceId, out var pg) ? world.FindNpc(new NpcId(pg)) : null;
+                        var sheet = person?.Character?.Sheet;
+                        if (sheet == null || !person.Character.HasSheet) result.AddError($"{who} fights without a creature profile but has no character sheet.");
+                        else if (c.State == VitalState.Conscious && sheet.CurrentHp == 0) result.AddError($"{who} is conscious at 0 hit points.");
+                        else if ((c.State == VitalState.Dying || c.State == VitalState.Stable || c.State == VitalState.Dead) && sheet.CurrentHp > 0)
+                            result.AddError($"{who} is {c.State.ToString().ToLowerInvariant()} with hit points left.");
+                    }
                     else
                     {
                         if (CreatureCatalog.Find(c.CreatureId) == null) result.AddError($"{who} has unknown creature profile '{c.CreatureId}'.");
@@ -67,6 +77,16 @@ namespace Realmkeeper.Domain.World
 
                     if (exhaustion > 1) result.AddError($"{who} has exhaustion recorded twice.");
                     if (c.Turn == null || c.Turn.MovementUsed < 0 || c.Turn.AttacksLeft < 0) result.AddError($"{who} has invalid turn resources.");
+                }
+
+                // Phase 10: the question an action waits on.
+                if (e.PendingReaction != null)
+                {
+                    var p = e.PendingReaction;
+                    if (!e.IsActive) result.AddError($"{label} is over but still waits on a reaction.");
+                    if (p.Opportunity == null || !ids.Contains(p.Opportunity.ReactorId) || !ids.Contains(p.ActorId)) result.AddError($"{label} waits on a reaction from no combatant.");
+                    if (p.Id < 1 || p.Id >= e.NextReactionId) result.AddError($"{label} waits on an unnumbered reaction.");
+                    if (p.Action == null || ActionCodec.FromRecord(p.Action) == null) result.AddError($"{label} waits with no action to finish.");
                 }
 
                 // Phase 9: effects, concentration, forms and resources.

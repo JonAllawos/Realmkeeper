@@ -136,3 +136,10 @@ This note does not change any requirement.
   - no state lives only in the scene.
 - **Open owner decision.** Whether the Bible supersedes parts of §1 is still for the owner to
   decide (see `GameDesignBible.md`).
+- **Phase 10 (2026-11-11).** Phase 10 adds more Bible systems:
+  - NPC character sheets, a bestiary and aggregate wildlife;
+  - reaction prompts and world-drawn encounters;
+  - persisted settlement plans that the walkable settlement, the strategic map and the inspector all read.
+  These respect the binding requirements above: one world model, changes through commands, nothing only in the
+  scene, older saves upgraded once. The scope difference between this document's §1 and the Bible is still
+  unresolved. Phase 10 records it and does not settle it; the decision remains the owner's.

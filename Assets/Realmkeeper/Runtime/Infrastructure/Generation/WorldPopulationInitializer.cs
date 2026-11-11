@@ -118,6 +118,90 @@ namespace Realmkeeper.Infrastructure.Generation
             }
         }
 
+        /// <summary>
+        /// Phase 10: the people a settlement's own places call for but nobody yet fills — a captain and a second guard
+        /// for a town's gatehouse, a priest for a shrine nobody tends, a warden for a hamlet's watchtower. Deterministic
+        /// (their own ID and name streams), added once: when the first of them already exists nothing is added, so a
+        /// new world and an upgraded save get exactly the same people. Returns each person added with their post (their
+        /// inner life is filled by <c>NpcGenesis.EnsurePeople</c>, then <see cref="SettlePhase10People"/> sets their posts).
+        /// </summary>
+        public static List<(NpcData npc, string post)> EnsurePhase10People(WorldData world, IRandomSourceFactory random)
+        {
+            var added = new List<(NpcData, string)>();
+            var ids = Stream(world, "npcs-v12", random);
+            var names = new PersonNameGenerator(Stream(world, "npc-names-v12", random));
+            var first = true;
+            foreach (var s in world.Settlements)
+            {
+                var plan = new List<(NpcRole role, string post)>();
+                var named = 0;
+                foreach (var n in world.Npcs) if (n.HomeSettlementId == s.SettlementId && !n.IsDeceased) named++;
+
+                bool Tended(LocationKind kind)
+                {
+                    foreach (var n in world.Npcs)
+                        if (n.HomeSettlementId == s.SettlementId && !n.IsDeceased && world.FindLocation(n.WorkplaceId)?.Kind == kind) return true;
+                    return false;
+                }
+
+                bool Has(LocationKind kind)
+                {
+                    foreach (var l in world.Locations) if (l.SettlementId == s.SettlementId && l.Kind == kind) return true;
+                    return false;
+                }
+
+                if (s.SettlementType >= SettlementType.Town)
+                {
+                    if (Has(LocationKind.GuardPost)) { plan.Add((NpcRole.Guard, "captain")); plan.Add((NpcRole.Guard, "guard")); }
+                    if (Has(LocationKind.Worship) && !Tended(LocationKind.Worship)) plan.Add((NpcRole.Resident, "priest"));
+                }
+                else if (s.SettlementType == SettlementType.Hamlet && Has(LocationKind.GuardPost) && !Tended(LocationKind.GuardPost))
+                {
+                    plan.Add((NpcRole.Guard, "warden"));
+                }
+
+                foreach (var (role, post) in plan)
+                {
+                    var id = new NpcId(DeterministicGuid.Next(ids));
+                    if (first && world.FindNpc(id) != null) return added; // already added once: never twice
+                    var name = names.NextFullName(role);
+                    for (var tries = 0; tries < 20 && NameTaken(world, name); tries++) name = names.NextFullName(role); // one name, one person
+                    first = false;
+                    if (named + 1 > s.Population) continue; // named people are a subset of the population, never more
+                    var npc = new NpcData { NpcId = id, Name = name, HomeSettlementId = s.SettlementId, FactionId = s.FactionId, Role = role, MetPlayerOn = default(WorldDate) };
+                    world.Npcs.Add(npc);
+                    named++;
+                    added.Add((npc, post));
+                }
+            }
+
+            return added;
+        }
+
+        private static bool NameTaken(WorldData world, string name)
+        {
+            foreach (var n in world.Npcs) if (string.Equals(n.Name, name, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        /// <summary>After the NPC engine has given the new people their lives: the captain leads (notable); the priest tends the shrine.</summary>
+        public static void SettlePhase10People(WorldData world, IEnumerable<(NpcData npc, string post)> added)
+        {
+            foreach (var (npc, post) in added)
+            {
+                if (post == "captain") npc.Tier = NpcTier.Notable;
+                if (post != "priest") continue;
+                foreach (var l in world.Locations)
+                {
+                    if (l.SettlementId != npc.HomeSettlementId || l.Kind != LocationKind.Worship) continue;
+                    npc.WorkplaceId = l.LocationId;
+                    Simulation.Npcs.NpcGenesis.PlanSchedule(world, npc, npc.HomeSettlementId);
+                    npc.CurrentLocationId = npc.Schedule.For(world.CurrentSimulationDate);
+                    break;
+                }
+            }
+        }
+
         private static NpcRole[] RolesFor(SettlementType type)
         {
             switch (type)

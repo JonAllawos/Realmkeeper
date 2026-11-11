@@ -27,7 +27,7 @@ namespace Realmkeeper.Presentation
         /// <summary>Radius of the selection ring: just outside walls and houses.</summary>
         public float HighlightRadius { get; private set; }
 
-        public void Build(RegionMap map, SettlementSummary settlement, Material material)
+        public void Build(RegionMap map, SettlementSummary settlement, Material material, Realmkeeper.Domain.Settlements.SettlementLayoutData plan = null)
         {
             SettlementId = settlement.SettlementId;
             SettlementType = settlement.SettlementType;
@@ -35,7 +35,7 @@ namespace Realmkeeper.Presentation
             HighlightRadius = MapSampling.SettlementRadiusCells(settlement.SettlementType) * map.CellSize + 1.8f;
             gameObject.name = $"Settlement {settlement.Name} ({settlement.SettlementType})";
 
-            var result = SettlementBuilder.Build(map, settlement);
+            var result = SettlementBuilder.Build(map, settlement, plan); // Phase 10: from its plan when it has one
             PresentationMaterials.DestroyObject(_mesh);
             _mesh = result.Mesh;
             BuildingCount = result.BuildingCount;

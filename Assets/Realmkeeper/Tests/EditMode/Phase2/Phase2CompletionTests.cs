@@ -44,8 +44,8 @@ namespace Realmkeeper.Tests.EditMode.Phase2
             Assert.That(ids, Is.EqualTo(new[]
             {
                 LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, ConsumptionSystem.Id,
-                SettlementWellbeingSystem.Id, PopulationSystem.Id, Realmkeeper.Simulation.Npcs.NpcSystem.Id, Realmkeeper.Simulation.Commerce.ShopSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id,
-            }), "The order documented in Documentation/Systems/Economy.md (politics added in Phase 3, NPCs in Phase 4, shops in Phase 5).");
+                SettlementWellbeingSystem.Id, PopulationSystem.Id, Realmkeeper.Simulation.Npcs.NpcSystem.Id, Realmkeeper.Simulation.Commerce.ShopSystem.Id, PoliticalSystem.Id, Realmkeeper.Simulation.Fauna.FaunaSystem.Id, ChronicleSystem.Id,
+            }), "The order documented in Documentation/Systems/Economy.md (politics added in Phase 3, NPCs in Phase 4, shops in Phase 5, fauna in Phase 10).");
             var orders = TestWorlds.Scheduler().Systems.Select(s => s.ExecutionOrder).ToArray();
             Assert.That(orders, Is.Ordered.Ascending);
             Assert.That(orders.Distinct().Count(), Is.EqualTo(orders.Length), "No two systems share a slot.");

@@ -62,6 +62,8 @@ namespace Realmkeeper.Exploration.Presentation
 
         public bool IsWalking => _route.Count > 0;
 
+        private LocalEnvironmentLayout _layout;
+
         /// <summary>The spot the current plan ends at (settlement coordinates).</summary>
         public Vector3 Destination => _anchor;
 
@@ -72,12 +74,14 @@ namespace Realmkeeper.Exploration.Presentation
         public Vector3 InteractionPoint => transform.position;
 
         public static ResidentView Create(Transform parent, LayoutResidentSpot spot, NpcSummary npc, WorldSession session, Transform player,
-            ExplorationMaterials materials, ArtCatalog catalog = null)
+            ExplorationMaterials materials, ArtCatalog catalog = null, LocalEnvironmentLayout layout = null)
         {
             var go = new GameObject("Resident " + npc.NpcId);
             go.transform.SetParent(parent, false);
             go.transform.localPosition = new Vector3(spot.Position.X, 0f, spot.Position.Z);
             var view = go.AddComponent<ResidentView>();
+            view._layout = layout;
+            go.transform.localPosition = new Vector3(spot.Position.X, LocalPaths.StandingHeight(layout, spot.Position.X, spot.Position.Z), spot.Position.Z);
             view.NpcId = npc.NpcId;
             view.Role = npc.Role;
             view.DisplayName = npc.Name;
@@ -192,6 +196,15 @@ namespace Realmkeeper.Exploration.Presentation
                 case ActivityKind.None: return "here";
                 default: return a.ToString().ToLowerInvariant();
             }
+        }
+
+        /// <summary>Phase 10: on a planned settlement's ground (a floor indoors, a deck on a bridge).</summary>
+        private void LateUpdate()
+        {
+            if (_layout?.Plan == null) return;
+            var p = transform.localPosition;
+            var y = LocalPaths.StandingHeight(_layout, p.x, p.z);
+            if (Mathf.Abs(p.y - y) > 0.001f) transform.localPosition = new Vector3(p.x, y, p.z);
         }
 
         private void Update()

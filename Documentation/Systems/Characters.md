@@ -140,3 +140,14 @@ The SRD 5.2.1 attribution above covers the progression content (class tables, th
 invocations, Metamagic, the experience table). Provenance per definition is in the catalog
 (`ContentSource`): every Phase 7 feature, subclass, feat and option is SRD 5.2.1 unless noted.
 Deferred content is listed in `CharacterProgression.md`.
+
+## Named people's sheets (Phase 10)
+
+The character rules are not the player's alone. Since Phase 10, named people whose work is fighting,
+healing or keeping order hold full `CharacterSheetData` sheets (ADR-0043), built through the same
+pipeline as the player's:
+- `CharacterDraft`, then `BuildSheet`, then `CheckSheet`;
+- choices from their archetype's preferences.
+
+Promotion, keyed experience and advancement use the shared rules. The world validator checks every NPC sheet
+as it checks the player's. Details: `Documentation/Phase10/CreatureAndNpcSystems.md`.

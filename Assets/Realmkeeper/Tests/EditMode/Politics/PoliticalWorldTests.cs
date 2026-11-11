@@ -160,7 +160,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
             Assert.That(leaders.Distinct().Count(), Is.EqualTo(4), "Nobody leads two factions.");
             Assert.That(leaders.All(id => world.FindNpc(id) != null), Is.True);
             Assert.That(world.Factions.Single(f => f.Type == FactionType.ReligiousOrder).LeaderNpcId.IsEmpty, Is.True);
-            Assert.That(world.Npcs.Count, Is.EqualTo(15), "No resident was created for politics.");
+            Assert.That(world.Npcs.Count, Is.EqualTo(15 + 4), "No resident was created for politics (the four Phase 10 people fill posts: guards, a priest, a warden).");
 
             // Every pair has one relationship; the starting agreements are in place.
             Assert.That(world.Relations.Count, Is.EqualTo(10));
@@ -218,7 +218,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
         [Test]
         public void Version4Save_GainsItsPolitics_AndKeepsEverythingElse()
         {
-            var fresh = Phase2Worlds.Generated(777);
+            var fresh = Phase2Worlds.GeneratedBeforeLivingWorld(777); // Phase 10: the v11 world (its living-world additions arrive when a session loads a save; see the Phase 10 tests).
             var serializer = new JsonWorldSerializer();
             var doc = JObject.Parse(serializer.Serialize(Phase2Worlds.GeneratedBeforeCommerce(777)));
             Phase2Worlds.StripToV5(doc);

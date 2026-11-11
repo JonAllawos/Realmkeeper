@@ -1,6 +1,6 @@
 # Spell catalog audit
 
-Phase 9, rules version 8. The source is `Domain/Magic/SpellCatalog.cs`; `SpellCatalog.Validate()` is
+Phase 9, rules version 8. Updated in Phase 10: the reaction prompt (ADR-0045) made Shield, Hellish Rebuke and Counterspell castable as reactions. The source is `Domain/Magic/SpellCatalog.cs`; `SpellCatalog.Validate()` is
 run by the tests. Every spell's mechanics follow the SRD 5.2.1 (CC BY 4.0).
 
 - **Names** are the SRD's.
@@ -22,12 +22,12 @@ run by the tests. Every spell's mechanics follow the SRD 5.2.1 (CC BY 4.0).
 | Level | Functional | Partial | DataOnly | Deferred | Total |
 |---|---:|---:|---:|---:|---:|
 | Cantrips | 6 | 1 | 3 | 0 | 10 |
-| Level 1 | 12 | 4 | 1 | 2 | 19 |
+| Level 1 | 12 | 6 | 1 | 0 | 19 |
 | Level 2 | 5 | 2 | 0 | 1 | 8 |
-| Level 3 | 2 | 2 | 0 | 3 | 7 |
+| Level 3 | 3 | 2 | 0 | 2 | 7 |
 | Level 4 | 1 | 0 | 0 | 0 | 1 |
 | Level 5 | 1 | 1 | 0 | 0 | 2 |
-| **All** | **27** | **10** | **4** | **6** | **47** |
+| **All** | **28** | **12** | **4** | **3** | **47** |
 
 By class list (a spell can be on several lists):
 
@@ -76,8 +76,8 @@ spell list.
 | 1 | Expeditious Retreat | Transmutation | sorcerer, warlock, wizard | - | Self | yes | Functional |  |
 | 1 | Entangle | Conjuration | druid, ranger | Save | Point | yes | Partial | The square does not become difficult terrain. |
 | 1 | Detect Magic | Divination | bard, cleric, druid, paladin, ranger, sorcerer, wizard | - | Self | yes | DataOnly | No magic items or auras exist in the world yet. |
-| 1 | Hellish Rebuke | Evocation | warlock | Save | Creatures |  | Deferred | Reactions are taken automatically (ADR-0033); reaction spells wait for a reaction prompt. |
-| 1 | Shield | Abjuration | sorcerer, wizard | - | Self |  | Deferred | Reactions are taken automatically (ADR-0033); reaction spells wait for a reaction prompt. |
+| 1 | Hellish Rebuke | Evocation | warlock | Save | Creatures |  | Partial | Phase 10: offered as a reaction after damage from a weapon or creature attack; damage from spells does not trigger it yet. |
+| 1 | Shield | Abjuration | sorcerer, wizard | - | Self |  | Partial | Phase 10: offered as a reaction when a weapon or creature attack hits; spell attacks and Magic Missile do not trigger it yet. |
 | 2 | Scorching Ray | Evocation | sorcerer, wizard | Attack | Creatures |  | Functional |  |
 | 2 | Shatter | Evocation | bard, sorcerer, warlock, wizard | Save | Point |  | Functional |  |
 | 2 | Hold Person | Enchantment | bard, cleric, druid, sorcerer, warlock, wizard | Save | Creatures | yes | Functional |  |
@@ -92,7 +92,7 @@ spell list.
 | 3 | Dispel Magic | Abjuration | bard, cleric, druid, paladin, sorcerer, warlock, wizard | - | Creatures |  | Partial | Spells above the slot level stay (the ability check to end them is not modelled). |
 | 3 | Revivify | Necromancy | cleric, paladin | - | Creatures |  | Deferred | Resurrection is out of scope (ADR-0034). |
 | 3 | Spirit Guardians | Conjuration | cleric | - | Self | yes | Deferred | Moving auras that trigger on entering an area are not modelled yet. |
-| 3 | Counterspell | Abjuration | sorcerer, warlock, wizard | - | Creatures |  | Deferred | Reactions are taken automatically (ADR-0033); reaction spells wait for a reaction prompt. |
+| 3 | Counterspell | Abjuration | sorcerer, warlock, wizard | - | Creatures |  | Functional | Phase 10: offered as a reaction when a hostile creature within 60 ft begins a spell: it saves (Constitution) or the spell fails, its slot unspent. |
 | 4 | Greater Invisibility | Illusion | bard, sorcerer, wizard | - | Creatures | yes | Functional |  |
 | 5 | Cone of Cold | Evocation | sorcerer, wizard | Save | FromSelf |  | Functional |  |
 | 5 | Mass Cure Wounds | Abjuration | bard, cleric, druid | - | Creatures |  | Partial | Targets are chosen creatures within range; the 30-foot grouping is not enforced. |

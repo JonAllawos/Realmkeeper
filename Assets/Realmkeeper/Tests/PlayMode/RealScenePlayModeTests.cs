@@ -114,7 +114,8 @@ namespace Realmkeeper.Tests.PlayMode
             }
 
             input.Move = Vector2.zero;
-            Assert.That(player.transform.position.z - start.z, Is.GreaterThan(1f),
+            // Phase 10: the way in faces along the road into a planned town (not always north): distance on the ground.
+            Assert.That(new Vector2(player.transform.position.x - start.x, player.transform.position.z - start.z).magnitude, Is.GreaterThan(1f),
                 $"The character walks, however high the frame rate ({Time.frameCount} frames so far).");
             Assert.That(installer.Controller.ReturnToWorldMap().IsSuccess, Is.True);
         }

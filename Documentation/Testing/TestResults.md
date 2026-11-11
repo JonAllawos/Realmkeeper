@@ -699,3 +699,14 @@ all were caught.
 - concentration and effects were missing from the initiative rows and the inspector.
 
 **Not run:** a development-build frame-time probe, and manual play beyond the automated captures.
+
+## Phase 10 runs (2026-11-11)
+
+| Suite | Environment | Result |
+|---|---|---|
+| .NET | Windows 11 Pro, .NET 8 SDK, Release, warnings as errors | **552 passed**, 0 failed, 0 skipped; 0 warnings |
+| Unity EditMode | Unity 6000.0.47f1, batch mode | **552 passed**, 0 failed, 0 skipped; no compiler warnings |
+| Unity PlayMode | Unity 6000.0.47f1, batch mode | **74 passed**, 0 failed, 0 inconclusive, 14 skipped (capture sets without `RK_CAPTURE_DIR`) |
+| Phase 10 captures | Unity 6000.0.47f1, editor (not batch), `RK_CAPTURE_DIR` set | **4 passed**: 15 screenshots and the scene performance log |
+
+Mutants, new tests, the existing tests that changed (and why), and bugs found: `Documentation/Phase10/Testing.md`.

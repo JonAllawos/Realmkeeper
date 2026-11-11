@@ -197,6 +197,7 @@ namespace Realmkeeper.Presentation
             }
 
             SectionOf("Identity", d.Identity, "-");
+            SectionOf("Character", CharacterLines(_session.GetNpcCharacter(d.NpcId)), "No record."); // Phase 10
             SectionOf("Personality", d.Personality, "-");
             SectionOf("Skills", d.Skills, "-");
             SectionOf("Condition", d.Condition, "-");
@@ -208,6 +209,38 @@ namespace Realmkeeper.Presentation
             SectionOf("History", d.History, "Nothing in the chronicle yet.");
 
             if (_manageNpc && d.IsAlive) body.Add(BuildNpcTools(d));
+        }
+
+        /// <summary>Phase 10: a named person's character record as inspector lines: their sheet (by the player's rules) or their lightweight record.</summary>
+        private static IReadOnlyList<NpcLine> CharacterLines(NpcCharacterView c)
+        {
+            var lines = new List<NpcLine>();
+            if (c == null) return lines;
+            lines.Add(new NpcLine("Archetype", c.Archetype, c.HasSheet ? "Their work is fighting, healing or keeping order: they carry a full character sheet." : "A lightweight record; promoted when they matter more."));
+            if (!c.HasSheet)
+            {
+                lines.Add(new NpcLine("In a fight", c.CombatProfile ?? "commoner"));
+                if (c.Equipment.Count > 0) lines.Add(new NpcLine("Carries", string.Join(", ", c.Equipment)));
+                lines.Add(new NpcLine("Purse", c.Purse + " cp"));
+                return lines;
+            }
+
+            var sub = string.IsNullOrEmpty(c.Subclass) ? string.Empty : " (" + c.Subclass + ")";
+            lines.Add(new NpcLine("Class", c.ClassName + sub + " " + c.Level, c.Species + ", " + c.Background));
+            lines.Add(new NpcLine("Experience", c.Experience + (c.CanAdvance ? " — a new level awaits" : string.Empty)));
+            lines.Add(new NpcLine("Hit points", c.Hp + " / " + c.MaxHp + " (" + c.State + ")"));
+            lines.Add(new NpcLine("Armour class", c.ArmorClass.ToString(), c.ArmorClassText));
+            lines.Add(new NpcLine("Speed · proficiency", c.Speed + " ft · +" + c.ProficiencyBonus));
+            var names = new[] { "Str", "Dex", "Con", "Int", "Wis", "Cha" };
+            lines.Add(new NpcLine("Abilities", string.Join("  ", names.Select((n, i) => n + " " + c.Scores[i]))));
+            if (c.Saves.Count > 0) lines.Add(new NpcLine("Saves", string.Join(", ", c.Saves)));
+            if (c.Skills.Count > 0) lines.Add(new NpcLine("Skills", string.Join(", ", c.Skills)));
+            if (c.Equipment.Count > 0) lines.Add(new NpcLine("Equipment", string.Join(", ", c.Equipment)));
+            if (c.Features.Count > 0) lines.Add(new NpcLine("Features", string.Join(", ", c.Features)));
+            if (c.Spells.Count > 0) lines.Add(new NpcLine("Spells", string.Join(", ", c.Spells)));
+            if (c.Resources.Count > 0) lines.Add(new NpcLine("Resources", string.Join(", ", c.Resources)));
+            if (c.Languages.Count > 0) lines.Add(new NpcLine("Languages", string.Join(", ", c.Languages)));
+            return lines;
         }
 
         // ----- The DM's tools ---------------------------------------------------------------------------
@@ -233,6 +266,11 @@ namespace Realmkeeper.Presentation
                 foreach (var p in parts) row.Add(p);
                 return row;
             }
+
+            // Phase 10: a sheet for someone who has none; a level they have earned.
+            var record = _session.GetNpcCharacter(id);
+            if (record != null && !record.HasSheet) tools.Add(ToolRow(SmallButton("Give a character sheet", "tool-promote", () => Do(new PromoteNpcCommand(id)))));
+            if (record != null && record.CanAdvance) tools.Add(ToolRow(SmallButton("Advance a level", "tool-advance", () => Do(new AdvanceNpcCommand(id)))));
 
             var name = new TextField { name = "tool-name", value = d.Name };
             tools.Add(ToolRow(name, SmallButton("Rename", "tool-rename", () => Do(new EditNpcIdentityCommand(id, name.value, source: dm)))));
@@ -313,6 +351,22 @@ namespace Realmkeeper.Presentation
             var box = Root.Q<VisualElement>("insp-residents");
             if (box == null) return;
             box.Clear();
+            // Phase 10 (ADR-0047): what kind of place it is, from its persisted plan.
+            var plan = _session.GetSettlementLayout(s.SettlementId);
+            if (plan != null)
+            {
+                var identity = Cell(plan.Identity.Summary, "rk-npc-explain");
+                identity.name = "insp-identity";
+                box.Add(identity);
+                var districts = new List<string>();
+                foreach (var d in plan.Districts) districts.Add(d.Name);
+                var landmarks = new List<string>();
+                foreach (var l in plan.Landmarks) landmarks.Add(l.Name);
+                var layout = Cell($"Districts: {string.Join(", ", districts)}. Landmarks: {string.Join(", ", landmarks)}. {plan.Buildings.Count} buildings, {plan.Fields.Count} fields and gardens.", "rk-trade-line");
+                layout.name = "insp-layout";
+                box.Add(layout);
+            }
+
             var residents = _session.GetNpcs(new NpcFilter { Settlement = s.SettlementId });
             if (residents.Count == 0)
             {

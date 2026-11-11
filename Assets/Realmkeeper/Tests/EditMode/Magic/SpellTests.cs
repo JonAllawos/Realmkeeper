@@ -375,7 +375,8 @@ namespace Realmkeeper.Tests.EditMode.Magic
             var sequence = e.Encounter.ActionSequence;
             Assert.That(e.Act(p.CombatantId, new CastSpellAction("magic_missile", 1, new[] { bandit.CombatantId })).Ok, Is.False, "200 ft is beyond 120 ft.");
             Assert.That(e.Act(p.CombatantId, new CastSpellAction("fireball", 3, point: new GridPos(5, 5))).Ok, Is.False, "Not known.");
-            Assert.That(e.Act(p.CombatantId, new CastSpellAction("shield", 1)).Error, Does.Contain("cannot be cast yet"));
+            Assert.That(e.Act(p.CombatantId, new CastSpellAction("shield", 1)).Error, Does.Contain("cast as a reaction"), "Phase 10: Shield is a reaction, offered when a hit lands; never an action on your turn.");
+            Assert.That(e.Act(p.CombatantId, new CastSpellAction("detect_magic", 1)).Error, Does.Contain("cannot be cast yet"), "A data-only spell still says why.");
             Assert.That(e.Act(p.CombatantId, new CastSpellAction("magic_missile", 2, new[] { bandit.CombatantId })).Ok, Is.False, "No level 2 slot at level 1.");
             Assert.That(w.Player.Rpg.Resources["spell_slots_1"], Is.EqualTo(2));
             Assert.That(p.Turn.ActionUsed, Is.False);

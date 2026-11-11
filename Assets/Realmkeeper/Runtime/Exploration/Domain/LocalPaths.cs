@@ -70,7 +70,7 @@ namespace Realmkeeper.Exploration.Domain
                 return (new LocalPoint((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius), 1.5f, false);
             }
 
-            if (siteKey == SettlementSites.Gate) return (new LocalPoint(Side(n) * 1.4f + 2.5f, -layout.HalfExtent + 6f), 1.5f, false);
+            if (siteKey == SettlementSites.Gate) return (new LocalPoint(layout.Gate.X + Side(n) * 1.4f, layout.Gate.Z), 1.5f, false);
 
             var b = Find(layout, siteKey);
             if (b == null) return null;
@@ -97,7 +97,12 @@ namespace Realmkeeper.Exploration.Domain
 
             var start = path[path.Count - 1];
             var end = toInside != null ? ToWorld(toInside, DoorwayX(toInside), -(toInside.Depth / 2f + DoorStandOff)) : to;
-            if (Distance(start, end) > 3f)
+            if (Distance(start, end) > 3f && layout.Plan != null)
+            {
+                // A real road network: the shortest way along it (Phase 10).
+                foreach (var q in GraphRoute(layout, start, end)) path.Add(q);
+            }
+            else if (Distance(start, end) > 3f)
             {
                 var a = Project(layout, start, out var streetA);
                 var b = Project(layout, end, out var streetB);
@@ -122,6 +127,108 @@ namespace Realmkeeper.Exploration.Domain
 
             path.Add(to);
             return path;
+        }
+
+        /// <summary>
+        /// The road network of a planned settlement as a graph: every road's points, joined along each road, and joined
+        /// across where roads meet or cross (points of different roads within a few metres), and across the square.
+        /// </summary>
+        internal sealed class RoadGraph
+        {
+            public readonly List<LocalPoint> Nodes = new List<LocalPoint>();
+            public readonly List<List<int>> Links = new List<List<int>>();
+
+            public int Add(LocalPoint p)
+            {
+                Nodes.Add(p);
+                Links.Add(new List<int>());
+                return Nodes.Count - 1;
+            }
+
+            public void Join(int a, int b)
+            {
+                if (a == b || Links[a].Contains(b)) return;
+                Links[a].Add(b);
+                Links[b].Add(a);
+            }
+        }
+
+        internal static RoadGraph GraphOf(LocalEnvironmentLayout layout)
+        {
+            if (layout.Graph != null) return layout.Graph;
+            var g = new RoadGraph();
+            var roadOf = new List<int>();
+            var plan = layout.Plan;
+            for (var r = 0; r < plan.Roads.Count; r++)
+            {
+                var line = plan.Roads[r].Line;
+                var previous = -1;
+                for (var i = 0; i < line.Count; i++)
+                {
+                    var n = g.Add(new LocalPoint(line[i].X, line[i].Z));
+                    roadOf.Add(r);
+                    if (previous >= 0) g.Join(previous, n);
+                    previous = n;
+                }
+            }
+
+            var plaza = layout.PlazaRadius + 3f;
+            for (var a = 0; a < g.Nodes.Count; a++)
+                for (var b = a + 1; b < g.Nodes.Count; b++)
+                {
+                    if (roadOf[a] == roadOf[b]) continue;
+                    var d = Distance(g.Nodes[a], g.Nodes[b]);
+                    var ra = (float)Math.Sqrt(g.Nodes[a].X * g.Nodes[a].X + g.Nodes[a].Z * g.Nodes[a].Z);
+                    var rb = (float)Math.Sqrt(g.Nodes[b].X * g.Nodes[b].X + g.Nodes[b].Z * g.Nodes[b].Z);
+                    if (d <= 4.5f || (ra <= plaza && rb <= plaza)) g.Join(a, b);
+                }
+
+            layout.Graph = g;
+            return g;
+        }
+
+        /// <summary>The way between two points along a planned settlement's roads (excluding the two points themselves).</summary>
+        internal static List<LocalPoint> GraphRoute(LocalEnvironmentLayout layout, LocalPoint start, LocalPoint end)
+        {
+            var g = GraphOf(layout);
+            var result = new List<LocalPoint>();
+            if (g.Nodes.Count == 0) return result;
+            var from = Nearest(g, start);
+            var to = Nearest(g, end);
+            var dist = new float[g.Nodes.Count];
+            var prev = new int[g.Nodes.Count];
+            var done = new bool[g.Nodes.Count];
+            for (var i = 0; i < dist.Length; i++) { dist[i] = float.MaxValue; prev[i] = -1; }
+            dist[from] = 0f;
+            for (var step = 0; step < g.Nodes.Count; step++)
+            {
+                var u = -1;
+                for (var i = 0; i < dist.Length; i++) if (!done[i] && dist[i] < float.MaxValue && (u < 0 || dist[i] < dist[u])) u = i;
+                if (u < 0 || u == to) break;
+                done[u] = true;
+                foreach (var v in g.Links[u])
+                {
+                    var alt = dist[u] + Distance(g.Nodes[u], g.Nodes[v]);
+                    if (alt < dist[v]) { dist[v] = alt; prev[v] = u; }
+                }
+            }
+
+            if (dist[to] == float.MaxValue) { result.Add(g.Nodes[from]); result.Add(g.Nodes[to]); return result; }
+            for (var n = to; n >= 0; n = prev[n]) result.Insert(0, g.Nodes[n]);
+            return result;
+        }
+
+        private static int Nearest(RoadGraph g, LocalPoint p)
+        {
+            var best = 0;
+            var bestD = float.MaxValue;
+            for (var i = 0; i < g.Nodes.Count; i++)
+            {
+                var d = Distance(g.Nodes[i], p);
+                if (d < bestD) { bestD = d; best = i; }
+            }
+
+            return best;
         }
 
         /// <summary>The nearest point on any street's centre line, and that street's index (−1 if there are none).</summary>
@@ -149,6 +256,37 @@ namespace Realmkeeper.Exploration.Domain
 
             return best;
         }
+
+        /// <summary>
+        /// The height someone stands at (Phase 10): a building's floor inside it, a bridge's deck on it, the ground
+        /// elsewhere; 0 everywhere in an environment without a plan (its ground is flat).
+        /// </summary>
+        public static float StandingHeight(LocalEnvironmentLayout layout, float x, float z)
+        {
+            var plan = layout?.Plan;
+            if (plan == null) return 0f;
+            foreach (var b in layout.Buildings)
+            {
+                var r = b.Yaw * Math.PI / 180.0;
+                var dx = x - b.Center.X;
+                var dz = z - b.Center.Z;
+                var lx = dx * Math.Cos(r) + dz * Math.Sin(r);
+                var lz = -dx * Math.Sin(r) + dz * Math.Cos(r);
+                if (Math.Abs(lx) <= b.Width / 2f + 0.2f && Math.Abs(lz) <= b.Depth / 2f + 0.2f) return b.FloorHeight;
+            }
+
+            foreach (var br in plan.Bridges)
+            {
+                var d = Realmkeeper.Domain.Settlements.SettlementTerrain.SegmentDistance(br.From.X, br.From.Z, br.To.X, br.To.Z, x, z, out _, out _);
+                if (d <= br.Width / 2f + 0.3f) return br.DeckHeight;
+            }
+
+            return plan.HeightAt(x, z);
+        }
+
+        /// <summary>Where people leave by: the plan's way in, or the older plan's south gate.</summary>
+        public static LocalPoint LeavingPoint(LocalEnvironmentLayout layout) =>
+            layout.Plan != null ? new LocalPoint(layout.Plan.Arrival.X, layout.Plan.Arrival.Z) : new LocalPoint(2.5f, -layout.HalfExtent + 2f);
 
         public static float Distance(LocalPoint a, LocalPoint b)
         {

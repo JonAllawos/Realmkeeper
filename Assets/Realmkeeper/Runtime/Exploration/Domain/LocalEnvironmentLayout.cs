@@ -79,6 +79,20 @@ namespace Realmkeeper.Exploration.Domain
         public ShopFit Fit { get; set; }
 
         public bool IsEnterable => Kind == BuildingKind.Hall || Fit != ShopFit.None;
+
+        // Phase 10 (from a persisted settlement plan; defaults describe the older generated plan).
+
+        /// <summary>What the building is for (decides its form); null for the older generated plan.</summary>
+        public Realmkeeper.Domain.Settlements.BuildingFunction? Function { get; set; }
+
+        /// <summary>The floor's height above the square (metres) and the plinth beneath it.</summary>
+        public float FloorHeight { get; set; }
+        public float Foundation { get; set; }
+        public int Storeys { get; set; } = 1;
+        public Realmkeeper.Domain.Settlements.RoofShape Roof { get; set; }
+        public Realmkeeper.Domain.Settlements.WallMaterial Walls { get; set; }
+        public bool Chimney { get; set; }
+        public string DistrictKey { get; set; }
     }
 
     public sealed class LayoutProp
@@ -117,6 +131,14 @@ namespace Realmkeeper.Exploration.Domain
         public float WanderRadius { get; set; }
     }
 
+    /// <summary>A herd in its pasture (Phase 10): what it is, how many, and the field (by plan key) it grazes.</summary>
+    public sealed class LayoutHerd
+    {
+        public string CreatureId { get; set; }
+        public int Count { get; set; }
+        public string PastureKey { get; set; }
+    }
+
     /// <summary>
     /// The engine-free description of one settlement's explorable environment. It is derived from
     /// world data (seed, settlement ID, type, residents) and never saved. It refers to the
@@ -145,6 +167,21 @@ namespace Realmkeeper.Exploration.Domain
         public List<LayoutProp> Props { get; } = new List<LayoutProp>();
         public List<LayoutInteractable> Interactables { get; } = new List<LayoutInteractable>();
         public List<LayoutResidentSpot> Residents { get; } = new List<LayoutResidentSpot>();
+
+        /// <summary>Phase 10: the settlement's herds (what grazes where), shown as animals in their pastures.</summary>
+        public List<LayoutHerd> Herds { get; } = new List<LayoutHerd>();
+
+        /// <summary>Where the gate (or the road in) is: the guard's post and where travellers wait.</summary>
+        public LocalPoint Gate { get; set; }
+
+        /// <summary>Phase 10: the persisted settlement plan this environment was made from (null for the older generated plan).</summary>
+        public Realmkeeper.Domain.Settlements.SettlementLayoutData Plan { get; set; }
+
+        /// <summary>The ground's height at a point (metres above the square): the plan's terrain, or flat.</summary>
+        public float GroundAt(float x, float z) => Plan?.HeightAt(x, z) ?? 0f;
+
+        /// <summary>The road graph for routes (built on first use).</summary>
+        internal LocalPaths.RoadGraph Graph { get; set; }
 
         /// <summary>Stable key of the environment (one per settlement).</summary>
         public string EnvironmentKey => "settlement:" + SettlementId;

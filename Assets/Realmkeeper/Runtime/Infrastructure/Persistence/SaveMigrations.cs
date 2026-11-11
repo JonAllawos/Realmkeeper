@@ -11,6 +11,35 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// new "up to" choices it can make in the spellbook; nothing is chosen or reset for it. Encounters gain their active
     /// effects, combatant resources and concentration as empty when absent (the mapper reads absent lists as empty).
     /// </summary>
+    /// <summary>
+    /// v11 → v12 (Phase 10: the living world). Structural only: empty creature populations, creatures, herds and settlement
+    /// layouts, and the fauna system enabled after the chronicle's predecessors (where the standard systems run). NPC
+    /// character records, populations, herds and layouts are not written here: the session adds them once, after the
+    /// region map is regenerated (ADR-0048), so an old save and a fresh world of its seed get the same additions.
+    /// </summary>
+    public sealed class MigrationV11ToV12 : ISaveMigration
+    {
+        public int SourceVersion => 11;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            foreach (var list in new[] { "creaturePopulations", "creatures", "livestock", "settlementLayouts" })
+                if (world[list] == null) world[list] = new JArray();
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken chronicle = null;
+            var hasFauna = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == ChronicleSystem.Id) chronicle = id;
+                if ((string)id == Simulation.Fauna.FaunaSystem.Id) hasFauna = true;
+            }
+
+            if (chronicle != null && !hasFauna) chronicle.AddAfterSelf(Simulation.Fauna.FaunaSystem.Id);
+        }
+    }
+
     public sealed class MigrationV10ToV11 : ISaveMigration
     {
         public int SourceVersion => 10;

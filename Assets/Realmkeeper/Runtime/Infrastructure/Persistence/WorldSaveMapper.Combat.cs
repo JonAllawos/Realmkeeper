@@ -28,7 +28,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     WinningSide = e.WinningSide, Round = e.Round, TurnIndex = e.TurnIndex, Order = new List<string>(), Combatants = new List<CombatantDto>(),
                     DifficultTerrain = new List<GridPosDto>(), StartedOn = DateText(e.StartedOn), StartedAtMinute = e.StartedAtMinute, EndedOn = DateText(e.EndedOn),
                     Seed = e.Seed.ToString(CultureInfo.InvariantCulture), RollCount = e.RollCount, ActionSequence = e.ActionSequence, Log = new List<CombatLogEntryDto>(),
-                    QuestRef = e.QuestRef, WorldEventRef = e.WorldEventRef, NextInstanceId = e.NextInstanceId, Effects = new List<ActiveEffectDto>(),
+                    QuestRef = e.QuestRef, WorldEventRef = e.WorldEventRef, NextInstanceId = e.NextInstanceId, NextReactionId = e.NextReactionId, PendingReaction = PendingDto(e.PendingReaction), Origin = OriginDto(e.Origin), Effects = new List<ActiveEffectDto>(),
                 };
                 foreach (var x in e.Effects)
                     d.Effects.Add(new ActiveEffectDto
@@ -48,7 +48,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                         MaxHp = c.MaxHp, CurrentHp = c.CurrentHp, TemporaryHp = c.TemporaryHp, DeathSaveSuccesses = c.DeathSaveSuccesses, DeathSaveFailures = c.DeathSaveFailures,
                         State = c.State.ToString(), UsesDeathSaves = c.UsesDeathSaves, Position = PosDto(c.Position), Conditions = new List<ConditionDto>(),
                         InitiativeRoll = c.InitiativeRoll, Initiative = c.Initiative, TieBreak = c.TieBreak, JoinedRound = c.JoinedRound,
-                        Resources = new Dictionary<string, int>(c.Resources), FormCreatureId = c.FormCreatureId,
+                        Resources = new Dictionary<string, int>(c.Resources), FormCreatureId = c.FormCreatureId, Anchor = PosDto(c.Anchor), CreatureInstanceId = c.CreatureInstanceId,
                         Concentration = c.Concentration == null ? null : new ConcentrationDto { InstanceId = c.Concentration.InstanceId, SpellId = c.Concentration.SpellId, Name = c.Concentration.Name, StartedRound = c.Concentration.StartedRound },
                         Turn = new TurnResourcesDto
                         {
@@ -59,6 +59,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                             Reckless = c.Turn.Reckless, AttackedOrForcedSave = c.Turn.AttackedOrForcedSave, LastHitTargetId = IdText(c.Turn.LastHitTargetId), LastHitMelee = c.Turn.LastHitMelee,
                             LastHitCritical = c.Turn.LastHitCritical, LastHitMonkWeapon = c.Turn.LastHitMonkWeapon, AttackActionTaken = c.Turn.AttackActionTaken,
                             StunningStrikeUsed = c.Turn.StunningStrikeUsed, FrenzyUsed = c.Turn.FrenzyUsed, SacredWeaponUsed = c.Turn.SacredWeaponUsed,
+                            HasStart = c.Turn.HasStart, StartX = c.Turn.StartX, StartY = c.Turn.StartY,
                         },
                     };
                     foreach (var k in c.Conditions)
@@ -106,6 +107,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     StartedOn = OptionalDate(d.StartedOn, "encounter startedOn"), StartedAtMinute = d.StartedAtMinute, EndedOn = OptionalDate(d.EndedOn, "encounter endedOn"),
                     Seed = seed, RollCount = d.RollCount, ActionSequence = d.ActionSequence, QuestRef = d.QuestRef, WorldEventRef = d.WorldEventRef,
                     NextInstanceId = System.Math.Max(1, d.NextInstanceId),
+                    NextReactionId = System.Math.Max(1, d.NextReactionId), PendingReaction = Pending(d.PendingReaction), Origin = Origin(d.Origin),
                 };
                 foreach (var id in d.Order ?? new List<string>()) e.Order.Add(new CombatantId(RequiredGuid(id, "encounter order")));
                 foreach (var p in d.DifficultTerrain ?? new List<GridPosDto>()) e.DifficultTerrain.Add(Pos(p));
@@ -122,7 +124,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                         DeathSaveSuccesses = cd.DeathSaveSuccesses, DeathSaveFailures = cd.DeathSaveFailures, State = ParseEnum<VitalState>(cd.State, "combatant state"),
                         UsesDeathSaves = cd.UsesDeathSaves, Position = Pos(cd.Position), InitiativeRoll = cd.InitiativeRoll, Initiative = cd.Initiative,
                         TieBreak = cd.TieBreak, JoinedRound = cd.JoinedRound,
-                        Resources = new Dictionary<string, int>(cd.Resources ?? new Dictionary<string, int>()), FormCreatureId = cd.FormCreatureId,
+                        Resources = new Dictionary<string, int>(cd.Resources ?? new Dictionary<string, int>()), FormCreatureId = cd.FormCreatureId, Anchor = cd.Anchor != null ? Pos(cd.Anchor) : Pos(cd.Position), CreatureInstanceId = cd.CreatureInstanceId,
                         Concentration = cd.Concentration == null ? null : new ConcentrationData { InstanceId = cd.Concentration.InstanceId, SpellId = cd.Concentration.SpellId, Name = cd.Concentration.Name ?? string.Empty, StartedRound = cd.Concentration.StartedRound },
                         Turn = new TurnResources
                         {
@@ -133,6 +135,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                             Reckless = t.Reckless, AttackedOrForcedSave = t.AttackedOrForcedSave, LastHitTargetId = CombatantRef(t.LastHitTargetId, "turn lastHitTargetId"), LastHitMelee = t.LastHitMelee,
                             LastHitCritical = t.LastHitCritical, LastHitMonkWeapon = t.LastHitMonkWeapon, AttackActionTaken = t.AttackActionTaken,
                             StunningStrikeUsed = t.StunningStrikeUsed, FrenzyUsed = t.FrenzyUsed, SacredWeaponUsed = t.SacredWeaponUsed,
+                            HasStart = t.HasStart, StartX = t.StartX, StartY = t.StartY,
                         },
                     };
                     foreach (var k in cd.Conditions ?? new List<ConditionDto>())

@@ -44,5 +44,12 @@
 | [0040](ADR-0040-rests-and-recovery.md) | Rests pass world time first, then recover through one idempotent command | Accepted (Phase 9) |
 | [0041](ADR-0041-class-feature-activation.md) | Class features act through one activation model matched by feature ID | Accepted (Phase 9) |
 | [0042](ADR-0042-npc-spellcasting.md) | Creatures and residents cast through the same engine; caster stat blocks from SRD 5.1 | Accepted (Phase 9) |
+| [0043](ADR-0043-npc-character-sheets.md) | Named people carry character records; sheets by archetype, promotion on demand | Accepted (Phase 10) |
+| [0044](ADR-0044-bestiary-and-wildlife.md) | The bestiary is data; creatures are drawn from aggregate populations into named instances | Accepted (Phase 10) |
+| [0045](ADR-0045-reaction-decisions.md) | Reactions and decisions are asked, not taken: suspend, ask, replay | Accepted (Phase 10) |
+| [0046](ADR-0046-world-encounters.md) | Encounters come from the world, are checked before they start, and settle exactly once | Accepted (Phase 10) |
+| [0047](ADR-0047-settlement-layouts.md) | Settlements have a persisted identity and a terrain-first plan | Accepted (Phase 10) |
+| [0048](ADR-0048-persisted-spatial-data.md) | Spatial plans are persisted, versioned and generated once; schema v12 | Accepted (Phase 10) |
+| [0049](ADR-0049-settlement-navigation.md) | People walk the plan's own roads: a road graph, ground heights and one leaving point | Accepted (Phase 10) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

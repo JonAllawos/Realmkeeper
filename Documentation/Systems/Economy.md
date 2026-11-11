@@ -23,7 +23,9 @@ that does not fit is recorded as **wasted**; unmet demand is recorded as **short
 | 300 | `realmkeeper.wellbeing` | Prosperity and stability move toward explainable targets, at most 1 point a day. |
 | 400 | `realmkeeper.population` | Slow growth or emigration, carried in thousandths of a person. |
 | 425 | `realmkeeper.npcs` | Phase 4. Reconciles named people with the population (tier 3 is the rest); updates tier-1 people daily and tier-2 weekly; moves people, runs conversations and rumours, and records reactions to the day's events; weekly forgetting and staleness (see [NPCs](NPCs.md)). |
+| 430 | `realmkeeper.shops` | Phase 5. Daily restocking: each shop's keeper turns settlement materials into merchandise and pays the treasury for them (see [Commerce](Commerce.md)). |
 | 450 | `realmkeeper.politics` | Phase 3. Every day keeps faction membership within the population; on weekly ticks it runs the political evaluation (see [Politics](Politics.md)). Faction dues move coin out of settlements above a 30-day reserve. |
+| 460 | `realmkeeper.fauna` | Phase 10. Once a week: wildlife breeds toward capacity, wolves take deer, settlement hunters take game, herds move toward what the farms keep (a hungry settlement slaughters a tenth). See `Documentation/Phase10/CreatureAndNpcSystems.md`. |
 | 500 | `realmkeeper.chronicle` | Milestone events (ratings, population, treasury, production). |
 
 Each day is one transaction (ADR-0008): the scheduler copies the world, runs these systems in
