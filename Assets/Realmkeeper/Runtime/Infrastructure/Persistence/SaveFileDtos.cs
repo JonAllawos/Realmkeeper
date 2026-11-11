@@ -73,6 +73,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<WorkJobDto> WorkJobs { get; set; }
         public List<GatheringSiteDto> GatheringSites { get; set; }
         public int? ItemCatalogVersion { get; set; }
+
+        // Schema v14 (Phase 12): quests and the conversation in progress.
+        public List<QuestInstanceDto> Quests { get; set; }
+        public ConversationDto Conversation { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -80,6 +84,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string SimulationSpeed { get; set; }
         public string StartingDate { get; set; }
         public List<string> EnabledSimulationSystems { get; set; }
+
+        /// <summary>Schema v14 (Phase 12): content presentation, tag name → Show/Soften/Hide (absent: everything shown).</summary>
+        public Dictionary<string, string> Content { get; set; }
     }
 
     public sealed class SettlementDto
@@ -411,6 +418,9 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Slot name → stack.</summary>
         public Dictionary<string, ItemStackDto> Equipment { get; set; }
+
+        /// <summary>Schema v14 (Phase 12): standing, reputation, notoriety, the ledger, discoveries, rumours, decisions.</summary>
+        public PlayerSocialDto Social { get; set; }
     }
 
     public sealed class PlayerAppearanceDto
@@ -496,6 +506,13 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int Conversations { get; set; }
         public long LastTradeDay { get; set; }
         public long LastTalkDay { get; set; }
+
+        // Schema v14 (Phase 12): the further dimensions of regard (absent: 0).
+        public int Trust { get; set; }
+        public int Respect { get; set; }
+        public int Fear { get; set; }
+        public int Gratitude { get; set; }
+        public int Hostility { get; set; }
     }
 
     public sealed class HistoricalEventDto
@@ -995,5 +1012,134 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int PerWeek { get; set; }
         public int Yield { get; set; }
         public int Minutes { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    using System.Collections.Generic;
+
+    /// <summary>Schema v14 (Phase 12): a quest instance.</summary>
+    public sealed class QuestInstanceDto
+    {
+        public string InstanceId { get; set; }
+        public string DefinitionId { get; set; }
+        public int DefinitionVersion { get; set; }
+        public string State { get; set; }
+        public Dictionary<string, string> Bindings { get; set; }
+        public string SourceKey { get; set; }
+        public long CreatedAt { get; set; } = -1;
+        public long DiscoveredAt { get; set; } = -1;
+        public long OfferedAt { get; set; } = -1;
+        public long AcceptedAt { get; set; } = -1;
+        public long ClosedAt { get; set; } = -1;
+        public long ExpiresAt { get; set; } = -1;
+        public List<ObjectiveProgressDto> Objectives { get; set; }
+        public List<string> Decisions { get; set; }
+        public Dictionary<string, string> Variables { get; set; }
+        public string Outcome { get; set; }
+        public bool RewardsClaimed { get; set; }
+        public List<string> AppliedConsequences { get; set; }
+        public string FailureReason { get; set; }
+        public List<QuestHistoryDto> History { get; set; }
+        public bool Tracked { get; set; }
+    }
+
+    public sealed class ObjectiveProgressDto
+    {
+        public string Id { get; set; }
+        public int Count { get; set; }
+        public bool Done { get; set; }
+        public bool Failed { get; set; }
+        public bool Revealed { get; set; }
+        public bool Unavailable { get; set; }
+        public long DoneAt { get; set; } = -1;
+    }
+
+    public sealed class QuestHistoryDto
+    {
+        public long At { get; set; }
+        public string Text { get; set; }
+    }
+
+    public sealed class ConversationDto
+    {
+        public string Key { get; set; }
+        public string NpcId { get; set; }
+        public string DialogueId { get; set; }
+        public string NodeId { get; set; }
+        public string QuestInstanceId { get; set; }
+        public long StartedAt { get; set; }
+        public int Turn { get; set; }
+        public Dictionary<string, string> Variables { get; set; }
+        public List<TranscriptLineDto> Transcript { get; set; }
+    }
+
+    public sealed class TranscriptLineDto
+    {
+        public string Speaker { get; set; }
+        public string Text { get; set; }
+    }
+
+    public sealed class PlayerSocialDto
+    {
+        public List<FactionStandingDto> FactionStandings { get; set; }
+        public List<SettlementStandingDto> SettlementStandings { get; set; }
+        public int Notoriety { get; set; }
+        public List<ReputationChangeDto> Ledger { get; set; }
+        public List<string> KnownPlaces { get; set; }
+        public List<string> VisitedSettlements { get; set; }
+        public List<DiscoveryDto> Discoveries { get; set; }
+        public List<RumorDto> Rumors { get; set; }
+        public List<DecisionDto> Decisions { get; set; }
+        public List<string> AppliedKeys { get; set; }
+    }
+
+    public sealed class FactionStandingDto
+    {
+        public string FactionId { get; set; }
+        public int Standing { get; set; }
+    }
+
+    public sealed class SettlementStandingDto
+    {
+        public string SettlementId { get; set; }
+        public int Reputation { get; set; }
+    }
+
+    public sealed class ReputationChangeDto
+    {
+        public string Key { get; set; }
+        public long At { get; set; }
+        public string Target { get; set; }
+        public string Dimension { get; set; }
+        public int Amount { get; set; }
+        public string Reason { get; set; }
+    }
+
+    public sealed class DiscoveryDto
+    {
+        public string Key { get; set; }
+        public string Text { get; set; }
+        public long At { get; set; }
+        public string Source { get; set; }
+    }
+
+    public sealed class RumorDto
+    {
+        public string Key { get; set; }
+        public string Text { get; set; }
+        public long At { get; set; }
+        public string SourceNpcId { get; set; }
+        public int Confidence { get; set; }
+        public bool Verified { get; set; }
+    }
+
+    public sealed class DecisionDto
+    {
+        public string Key { get; set; }
+        public string Text { get; set; }
+        public long At { get; set; }
+        public string QuestInstanceId { get; set; }
     }
 }

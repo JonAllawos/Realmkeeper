@@ -34,6 +34,7 @@ namespace Realmkeeper.Infrastructure.Generation
             if (Simulation.Fauna.FaunaGenesis.Ensure(world, map)) changed = true; // wildlife, road bands, vermin, herds
             if (EnsureLayouts(world, map)) changed = true;
             if (Simulation.Items.ItemGenesis.Ensure(world)) changed = true; // Phase 11: chests, caches, gathering sites
+            if (Simulation.Quests.QuestGenesis.Ensure(world)) changed = true; // Phase 12: the authored quests and today's emergent ones
             return changed;
         }
 

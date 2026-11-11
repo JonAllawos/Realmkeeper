@@ -929,6 +929,7 @@ namespace Realmkeeper.Application
                             var made = ItemStacks.Create(NewStackId(context), outDef, ejob.OutputQuantity, "Made by you", now);
                             made.Quality = ejob.OutputQuality;
                             AddStack(player, made);
+                            context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = Realmkeeper.Simulation.Quests.QuestEventKind.Crafted, Subject = made.ItemId, Quantity = made.Quantity }); // Phase 12
                         }
                         else Returned(ejob, context, count: false, into: player);
 

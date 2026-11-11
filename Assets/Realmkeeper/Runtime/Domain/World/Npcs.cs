@@ -317,6 +317,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>A notable recent event (value: event type name; subject: event ID).</summary>
         RecentEvent = 5,
+
+        /// <summary>Phase 12: something the player did (subject: a deed key; value: the deed, "helped:{settlement}", "threatened:{npc}").</summary>
+        PlayerDeed = 6,
     }
 
     /// <summary>

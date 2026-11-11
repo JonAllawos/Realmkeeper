@@ -1,0 +1,15 @@
+Quest quest:granary_shortfall:b7525019-6757-4eea-9ee1-a49250513d13: giver Edda Thorne, keeper Ulric Dunmore, suspect Maud Redmayne; missing grain recorded in the Chronicle when the quest came to be.
+ok: "Well met. I'm Edda Thorne."
+p12_01_conversation: Talking to Edda Thorne: who they are, how they regard the player (A stranger to you), their greeting by mood and activity, and the responses — the quest hook first.
+p12_02_dialogue_choices: Asked about the place: the answer comes from the person's own knowledge of the stores (Phase 4), and the topics stay open.
+p12_03_quest_offer: The offer: the giver puts the real problem (the measures missing from the stores) and the player may accept, negotiate (a Persuasion check, shown before choosing) or decline.
+p12_04_journal_active: The Journal: the quest under Active with its next step; its detail shows only the objectives the player knows (the later ones are hidden), the people involved and the rewards promised.
+p12_05_world_interaction: Examining the granary ledger in the street: the stores, and the shortfall in a hand that is not the keeper's. The objective completes; the discovery is recorded.
+p12_06_skill_check: An Insight check with the keeper, rolled with the world's dice:  "Grain doesn't walk off by itself. I locked up as always. Maud Redmayne was hauling sacks late that night, and their cart was out past dark — make of that what you will."
+p12_07_confrontation: The suspect cornered: three ways to end it — persuade, intimidate (tagged as a threat), or take the silver — besides making the loss good.
+p12_08_quest_progress: The quest's detail now: the ledger and the keeper done, the suspect found, the alternative endings revealed by what the player learned.
+p12_09_quest_reward: The report: Quest completed: Short Measures. Experience and coin through the existing ledger and purse; the stores made whole.
+p12_10_reputation: Reputation: the town's standing, the giver's gratitude and trust as separate dimensions, and the latest changes with their reasons.
+p12_11_chronicle: The Chronicle as the player knows it: the grain going missing, the quest offered, accepted, the discovery, the delivery and the completion.
+p12_12_completed_quest: The completed quest: every objective, the ending chosen, the history with world times.
+p12_13_npc_reaction: The giver afterwards: ""There you are, Tamsin Vale. Good to see a friendly face."" — grateful.

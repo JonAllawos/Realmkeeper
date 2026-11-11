@@ -11,17 +11,17 @@ using UnityEngine;
 namespace Realmkeeper.Exploration.Presentation
 {
     /// <summary>
-    /// An interaction point in the environment. The granary ledger is informational: it reads
-    /// the settlement's food data and changes nothing. The labour notice board is state-changing:
-    /// it dispatches <see cref="PostLabourNoticeCommand"/>, which the simulation then honours.
+    /// An interaction point in the environment. The granary ledger reads the settlement's food data; since Phase 12 it is
+    /// also a world object a quest can turn on, so examining it goes through <see cref="InspectObjectCommand"/>, which records
+    /// what the player finds (and nothing else). The labour notice board posts a labour notice
+    /// (<see cref="PostLabourNoticeCommand"/>) and shows what is posted on it (quests, through the same inspect command).
     /// </summary>
     public sealed class EnvironmentInteractable : MonoBehaviour, IInteractable
     {
         public InteractableKind InteractableKind { get; private set; }
         public SettlementId SettlementId { get; private set; }
 
-        public InteractionKind Kind =>
-            InteractableKind == InteractableKind.GranaryLedger ? InteractionKind.Informational : InteractionKind.StateChanging;
+        public InteractionKind Kind => InteractionKind.StateChanging;
 
         public string Prompt => InteractableKind == InteractableKind.GranaryLedger ? "Read the granary ledger" : "Post a labour notice";
 
@@ -71,13 +71,18 @@ namespace Realmkeeper.Exploration.Presentation
                 var text = $"Food in store: {N(food.Stock)}. Brought in yesterday: {N(food.Produced)}. Eaten: {N(food.Demand)}. " +
                            (days.HasValue ? $"At this rate the stores last about {N(days.Value)} days." : "Stores are not running down.") +
                            (s.LabourFocus.HasValue ? $" Notice on the board: labour favours {Lower(s.LabourFocus.Value)}." : string.Empty);
-                return new InteractionResponse($"{s.Name} granary ledger", text, Kind);
+                var inspected = session.Dispatch(new InspectObjectCommand("ledger:" + SettlementId)); // Phase 12: what the player finds
+                var tally = inspected.IsSuccess ? inspected.Message.IndexOf(" The tally", System.StringComparison.Ordinal) : -1;
+                if (tally >= 0) text += inspected.Message.Substring(tally);
+                return new InteractionResponse($"{s.Name} granary ledger", text, Kind, inspected);
             }
 
             var focus = NextFocus(s.Production, s.LabourFocus);
             if (!focus.HasValue) return new InteractionResponse("Labour notice", $"{s.Name} has no work to favour.", Kind);
             var result = session.Dispatch(new PostLabourNoticeCommand(SettlementId, focus.Value));
-            return new InteractionResponse("Labour notice", result.IsSuccess ? result.Message : ResidentView.Describe(result), Kind, result);
+            var notices = session.Dispatch(new InspectObjectCommand("notice:" + SettlementId)); // Phase 12: what is posted
+            var posted = notices.IsSuccess && !notices.Message.Contains("nothing posted") ? " " + notices.Message : string.Empty;
+            return new InteractionResponse("Labour notice", (result.IsSuccess ? result.Message : ResidentView.Describe(result)) + posted, Kind, result);
         }
 
         /// <summary>The next production source after the current focus, cycling through the settlement's sources.</summary>

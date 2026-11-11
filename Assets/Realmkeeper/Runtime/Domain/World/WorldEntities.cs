@@ -288,6 +288,21 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 10: a world encounter's consequences were applied, once (facts: name, outcome, xp, loot, deaths).</summary>
         EncounterResolved = 60,
+
+        // Phase 12: quests, decisions, reputation, discoveries (facts: quest, instance, giver, settlement, outcome …).
+        QuestDiscovered = 61,
+        QuestOffered = 62,
+        QuestAccepted = 63,
+        QuestDeclined = 64,
+        QuestAbandoned = 65,
+        QuestCompleted = 66,
+        QuestFailed = 67,
+        DialogueDecision = 68,
+        ReputationChanged = 69,
+        SettlementProblemResolved = 70,
+        PlayerDiscovery = 71,
+        QuestItemDelivered = 72,
+        QuestConsequence = 73,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

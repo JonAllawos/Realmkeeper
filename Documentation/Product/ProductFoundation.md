@@ -151,3 +151,11 @@ This note does not change any requirement.
   - crafting, gathering and repair as work in world time;
   - merchants that keep particular goods and mend.
   The same binding requirements hold. Every item has one holder, every change is a validated command, the presentation only reads snapshots and asks, and v12 saves upgrade once (schema v13). The scope question above remains the owner's.
+- **Phase 12 (2026-11-11).** Phase 12 adds the Bible's quest, dialogue and reputation systems:
+  - quests as templates bound to the generated world's own people and places;
+  - objectives advanced by events from validated commands, in the same transaction;
+  - data-driven dialogue with rolled skill checks;
+  - reputation in separate dimensions, where deeds spread only through the people who hear of them;
+  - activities that arise from the settlement simulation;
+  - a journal that shows only what the player knows.
+  The binding requirements still hold: one world model, every change a command, nothing only in the scene, and older saves upgraded once (schema v14). No campaign canon is fixed. The scope question above remains the owner's.

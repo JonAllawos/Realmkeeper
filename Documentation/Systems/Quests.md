@@ -1,0 +1,68 @@
+# Quests (Phase 12)
+
+Decisions: ADR-0056 (templates bound to the world), ADR-0057 (objectives and quest events), ADR-0060 (emergent activities and discovery).
+
+## Model
+
+| Part | Where | What |
+|---|---|---|
+| Definition | `Domain/Quests/QuestModel.cs`, `QuestCatalog.cs` | Template: roles (`RoleSpec`), text with `{role}` tokens, prerequisites, availability, objectives, failures, rewards, consequences, follow-ups, expiry, dialogue, content tags, source, version |
+| Instance | `QuestInstanceData` (saved) | Bindings, state, objective progress, decisions, variables, outcome, rewards claimed, consequences applied, failure reason, history, tracked |
+| Binder | `Simulation/Quests/QuestWorld.cs` `QuestBinder` | Fills roles from the world, deterministically |
+| Engine | `QuestObjectives`, `QuestLifecycle`, `QuestEffects` (simulation); `QuestRuntime` (application) | Stages, alternatives, events, completion, rewards, consequences |
+| Daily pass | `QuestSystem` (order 480) | Offers lapse, quests fail, timers run out, emergent quests arise, people react to deeds they heard of |
+
+## States
+
+Quests move Unavailable → Available → Discovered → Offered → Accepted → Active → Completed, Failed or Abandoned. An offer can also be declined, which returns it to Discovered.
+
+Every move is checked (`QuestStates.CanMove`), stamped with world time and written to the quest's history, and reported to the Chronicle once. A closed quest reopens only if its definition is repeatable (none are yet).
+
+## Objectives
+
+There are 22 kinds:
+
+- talk to, discover a location, visit a location, investigate;
+- collect, deliver, acquire, craft;
+- defeat a creature, defeat a named person, protect, escort, rescue;
+- discover information, persuade, gain faction approval, a crafting task;
+- reach a settlement, resolve a settlement problem, complete another quest, survive an encounter, make a decision.
+
+How objectives combine:
+
+- **Stages** are sequential; one stage holds parallel objectives.
+- A **group** offers alternatives. Any member satisfies the group and can name the outcome it leads to.
+- An objective can be optional, hidden, timed, conditional, unavailable when a condition holds, or fail the quest.
+
+Events come from commands (ADR-0057) and are processed in the same transaction. Collect, acquire, faction approval and settlement problems are re-read from the world when an event arrives.
+
+| Status | Kinds |
+|---|---|
+| Fed by real systems | Talk, persuade, investigate, discover information, deliver, decide, defeat creature, survive encounter, reach settlement, craft |
+| Typed and evaluated, but no current world system emits their event | Escort, rescue, protect, defeat named (an NPC enemy in a world encounter) — **Partial** |
+
+## The quests (all original writing)
+
+| Quest | Category | Source | What makes it real |
+|---|---|---|---|
+| Short Measures (`granary_shortfall`) | Investigation | Authored, bound to the first town's elder, store-keeper and a member of a faction | The missing grain leaves the settlement's stores when the quest comes to be (Chronicle note). Three endings: the suspect returns it (Persuasion or Intimidation), the player makes it good (4 sacks of grain), or the player takes the suspect's silver. The stores, stability, the suspect's faction influence, regard, memories and notoriety change by ending. |
+| Teeth at the Folds (`predators_at_the_folds`) | Hunting | Emergent: wolves or dire wolves (3 or more) within reach of a settlement with herds | The giver's "Show me where" starts an outing that seeks the quarry where it lives. Only wolves slain near that settlement count. The surviving objective is optional. The reward includes a potion. |
+| Under Seal (`sealed_letter`) | Delivery | Authored: a town trader and a person in another settlement | The letter is a particular item instance. Reading it breaks the seal (a hidden objective) and reveals its contents. The recipient knows, and trusts the player less. |
+| Bread Before Winter (`food_relief`) | Emergent | Emergent: a settlement short of food | Delivered food goes into the settlement's stores (by the food the items are made of). It lapses if the shortage ends first. |
+| Empty Shelves (`shop_supplies`) | Crafting & gathering | Emergent: a shop out of a material it deals in | Delivered goods go onto the shelf (real stock). Payment is 125 % of the shop's price. |
+
+## Vertical slice: Short Measures
+
+The slice is played in the tests through the same commands the UI sends, and in PlayMode through the UI itself.
+
+1. A town elder has the quest. The town's stores are short by the missing measures, and the Chronicle records grain gone missing.
+2. Talking to the elder: "You look troubled…" leads to the offer. The player can negotiate (Persuasion), accept or decline. Declining keeps it Discovered, and it can be taken later.
+3. Accepting: the journal lists it, it is tracked, and the elder says to start with the ledger and the keeper (whose whereabouts become known).
+4. The ledger in the street (`InspectObjectCommand`) shows the shortfall in an unfamiliar hand. The objective is done and the discovery recorded.
+5. The keeper tells of the suspect's cart. An Insight check can reveal the suspect's debt to their faction. Stage 1 opens: find the suspect.
+6. Confronting the suspect reveals the three endings.
+7. Ending A, returned: Persuasion or Intimidation. The grain returns to the stores (+missing), stability +3, the suspect resents the player (hostility +30, fear +15, a memory), and the suspect's faction loses influence.
+   Ending B, made good: 4 sacks to the keeper. The stores are filled, stability +2, and the giver's gratitude rises.
+   Ending C, silver: +50 coin, notoriety +5, stability −2, and the grain stays gone. Reporting it is a lie (Deception check). If caught, the giver's trust falls by 25 and they remember the lie.
+8. Reporting to the elder completes the quest. Experience goes through the keyed ledger, coin into the purse, and regard, faction standing and settlement reputation through the keyed reputation ledger. The giver's deed spreads as a rumour.
+9. Saved and reloaded, everything is kept, nothing is paid twice, and the elder's greeting reflects their gratitude.

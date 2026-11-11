@@ -84,6 +84,7 @@ namespace Realmkeeper.Application
             CombatCommandHandlers.Register(_commands);
             SpellCommandHandlers.Register(_commands); // Phase 9
             ItemCommandHandlers.Register(_commands); // Phase 11
+            QuestCommandHandlers.Register(_commands); // Phase 12
             NpcCharacterCommandHandlers.Register(_commands); // Phase 10
         }
 
@@ -135,6 +136,13 @@ namespace Realmkeeper.Application
             finally
             {
                 _dispatching = false;
+            }
+
+            if (result.IsSuccess && context.QuestEvents.Count > 0)
+            {
+                // Phase 12: quest progress, completion and rewards, in the same transaction (ADR-0057).
+                var questFailure = QuestRuntime.Process(context);
+                if (questFailure != null) return questFailure;
             }
 
             if (!result.IsSuccess || !context.HasEdits) return result;

@@ -48,7 +48,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The shop whose window is open, or null.</summary>
         public ShopInteriorView TradingAt { get; private set; }
 
-        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen) || (Advancement != null && Advancement.IsOpen) || (Combat != null && Combat.IsOpen);
+        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen) || (Advancement != null && Advancement.IsOpen) || (Combat != null && Combat.IsOpen) || (Dialogue != null && Dialogue.IsOpen);
 
         /// <summary>The atmosphere (lighting) of the current visit.</summary>
         public ExplorationAtmosphere Atmosphere => _atmosphere;
@@ -136,6 +136,7 @@ namespace Realmkeeper.Exploration.Presentation
                 SetupCombat(); // Phase 8
                 SetupStructureSigns(layout); // Phase 8
                 SetupContainers(layout); // Phase 11
+                SetupQuests(); // Phase 12
             }
 
             if (CameraRig != null) CameraRig.Camera.cullingMask &= ~(1 << CharacterPreview.Layer);
@@ -177,6 +178,8 @@ namespace Realmkeeper.Exploration.Presentation
             TeardownCombat(); // Phase 8
             _signs.Clear();
             _containers.Clear(); // Phase 11
+            Dialogue = null; // Phase 12
+            _tracked = null;
         }
 
         private void AddClock()
@@ -482,6 +485,7 @@ namespace Realmkeeper.Exploration.Presentation
         public void CloseWindows()
         {
             if (Combat != null && Combat.IsOpen && !InFight) CloseFight(); // a finished fight's panel; an active one stays
+            if (Dialogue != null && Dialogue.IsOpen) { _session?.Dispatch(new EndConversationCommand()); Dialogue.Hide(); } // Phase 12
             Creator?.Hide();
             Advancement?.Hide();
             Trade?.Hide();
@@ -493,6 +497,8 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void SetWindowMode(bool open)
         {
+            if (!open) RefreshTracked(); // Phase 12: the tracked line returns when windows close
+            else _tracked?.AddToClassList("xk-hidden");
             if (Player != null) Player.MovementEnabled = !open && !InFight && !PlayerIsDead; // Phase 8: no walking off mid-fight, or when dead
             if (open) SetCursorFree(true);
         }
@@ -649,6 +655,7 @@ namespace Realmkeeper.Exploration.Presentation
                 return;
             }
 
+            if (UpdateDialogueInput(keys)) return; // Phase 12: a conversation takes the number keys
             if (keys.hKey.wasPressedThisFrame) ToggleHub();
             if (keys.cKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.NeedsCreation == true) OpenCreator();
             if (keys.lKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.CanAdvance == true) OpenAdvancement();

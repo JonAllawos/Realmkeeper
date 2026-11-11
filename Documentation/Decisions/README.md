@@ -57,5 +57,11 @@
 | [0053](ADR-0053-loot.md) | Loot is deterministic, filled once into a container, and bounded by rarity | Accepted (Phase 11) |
 | [0054](ADR-0054-crafting-gathering-repair.md) | Crafting, gathering, repair and attunement are work that holds its inputs and takes world time | Accepted (Phase 11) |
 | [0055](ADR-0055-item-ui.md) | The item screens are query snapshots plus command requests | Accepted (Phase 11) |
+| [0056](ADR-0056-quests-as-bound-templates.md) | Quests are templates bound to real entities; one engine for authored and emergent quests | Accepted (Phase 12) |
+| [0057](ADR-0057-objectives-and-quest-events.md) | Objectives advance from typed quest events inside the command's transaction | Accepted (Phase 12) |
+| [0058](ADR-0058-dialogue-graphs.md) | Dialogue is data — conditional lines and responses, rolled checks, typed consequences | Accepted (Phase 12) |
+| [0059](ADR-0059-reputation-dimensions.md) | Reputation has separate dimensions; deeds travel as knowledge, and only those who hear react | Accepted (Phase 12) |
+| [0060](ADR-0060-emergent-activities-and-discovery.md) | Activities arise from world conditions; the player discovers them; the journal shows only what is known | Accepted (Phase 12) |
+| [0061](ADR-0061-content-tags.md) | Quest and dialogue text carries content tags with configurable presentation; no campaign canon is fixed | Accepted (Phase 12) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

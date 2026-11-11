@@ -477,7 +477,7 @@ namespace Realmkeeper.Simulation.Npcs
         }
 
         /// <summary>What people would rather talk about: news of places, factions and events before who is where.</summary>
-        private static int Interest(NpcKnowledgeData k) => k.Confidence + (k.Topic == KnowledgeTopic.Whereabouts ? -60 : k.Topic == KnowledgeTopic.RecentEvent ? 20 : 0) - k.Hops * 5;
+        private static int Interest(NpcKnowledgeData k) => k.Confidence + (k.Topic == KnowledgeTopic.Whereabouts ? -60 : k.Topic == KnowledgeTopic.RecentEvent ? 20 : k.Topic == KnowledgeTopic.PlayerDeed ? 30 : 0) - k.Hops * 5;
 
         // ----- 4. Reactions to events ----------------------------------------------------------------------
 

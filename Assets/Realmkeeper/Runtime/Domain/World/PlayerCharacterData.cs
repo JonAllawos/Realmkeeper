@@ -101,6 +101,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>The RPG character (Phase 6): species, background, class, scores, choices, hit points, resources.</summary>
         public Realmkeeper.Domain.Rpg.CharacterSheetData Rpg { get; set; } = new Realmkeeper.Domain.Rpg.CharacterSheetData();
 
+        /// <summary>Phase 12: faction standing, settlement reputation, notoriety, the reputation ledger, discoveries, rumours and decisions.</summary>
+        public Realmkeeper.Domain.Quests.PlayerSocialData Social { get; set; } = new Realmkeeper.Domain.Quests.PlayerSocialData();
+
         public ItemStackData Equipped(EquipmentSlot slot) => Equipment.TryGetValue(slot, out var s) ? s : null;
 
         public PlayerCharacterData Clone()
@@ -124,6 +127,7 @@ namespace Realmkeeper.Domain.World
                 Fed = Fed,
                 IsOutfitted = IsOutfitted,
                 Rpg = Rpg?.Clone() ?? new Realmkeeper.Domain.Rpg.CharacterSheetData(),
+                Social = Social?.Clone() ?? new Realmkeeper.Domain.Quests.PlayerSocialData(),
             };
             foreach (var s in Inventory) c.Inventory.Add(s.Clone());
             foreach (var pair in Equipment) c.Equipment[pair.Key] = pair.Value.Clone();

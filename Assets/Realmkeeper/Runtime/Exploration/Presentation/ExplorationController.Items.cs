@@ -26,6 +26,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (_session == null || act == null) return CommandResult.InvalidState("No world session is active.");
             var result = act(_session) ?? CommandResult.Fail("Nothing happened.");
             LastItemResult = result;
+            AfterQuestCommand(); // Phase 12: a journal action, a delivery or a purchase may move a quest
             if (Trade != null && Trade.IsOpen && TradingAt != null)
             {
                 Trade.Show(_session.GetShopDetail(TradingAt.ShopId), ResidentView.Describe(result), !result.IsSuccess);

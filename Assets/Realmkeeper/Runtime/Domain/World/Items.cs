@@ -257,6 +257,14 @@ namespace Realmkeeper.Domain.World
         /// <summary>−100…100: how they feel about the player.</summary>
         public int Affinity { get => _affinity; set => _affinity = NpcBounds.Clamp(value, -100, 100); }
 
+        // Phase 12 (ADR-0059): the further dimensions of regard, each 0–100.
+        private int _trust, _respect, _fear, _gratitude, _hostility;
+        public int Trust { get => _trust; set => _trust = NpcBounds.Clamp(value, 0, 100); }
+        public int Respect { get => _respect; set => _respect = NpcBounds.Clamp(value, 0, 100); }
+        public int Fear { get => _fear; set => _fear = NpcBounds.Clamp(value, 0, 100); }
+        public int Gratitude { get => _gratitude; set => _gratitude = NpcBounds.Clamp(value, 0, 100); }
+        public int Hostility { get => _hostility; set => _hostility = NpcBounds.Clamp(value, 0, 100); }
+
         public int Trades { get; set; }
         public int Conversations { get; set; }
 

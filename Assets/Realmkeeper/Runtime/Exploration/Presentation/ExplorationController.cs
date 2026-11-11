@@ -319,6 +319,7 @@ namespace Realmkeeper.Exploration.Presentation
         private IReadOnlyList<(string, Action)> TopicButtons()
         {
             var list = new List<(string, Action)>();
+            if (TalkingTo != null) { var who = TalkingTo.NpcId; list.Add(("Talk…", () => StartDialogue(who))); } // Phase 12: the full conversation
             foreach (var (topic, label) in Topics)
             {
                 var t = topic;

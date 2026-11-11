@@ -22,11 +22,15 @@ namespace Realmkeeper.Domain.World
         /// <summary>Simulation system IDs that run each day. Unknown IDs are ignored by the scheduler.</summary>
         public List<string> EnabledSimulationSystems { get; set; } = new List<string>();
 
+        /// <summary>Phase 12 (ADR-0061): how tagged quest and dialogue content is presented.</summary>
+        public Realmkeeper.Domain.Quests.ContentSettingsData Content { get; set; } = new Realmkeeper.Domain.Quests.ContentSettingsData();
+
         public WorldSettings Clone() => new WorldSettings
         {
             SimulationSpeed = SimulationSpeed,
             StartingDate = StartingDate,
             EnabledSimulationSystems = new List<string>(EnabledSimulationSystems ?? new List<string>()),
+            Content = Content?.Clone() ?? new Realmkeeper.Domain.Quests.ContentSettingsData(),
         };
     }
 
@@ -38,7 +42,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 13;
+        public const int CurrentSchemaVersion = 14;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -115,6 +119,18 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 11: the item catalog version this world was saved with (ADR-0050).</summary>
         public int ItemCatalogVersion { get; set; } = ItemCatalog.Version;
+
+        /// <summary>Phase 12: the player's quests (instances bound to real entities; ADR-0056).</summary>
+        public List<Realmkeeper.Domain.Quests.QuestInstanceData> Quests { get; set; } = new List<Realmkeeper.Domain.Quests.QuestInstanceData>();
+
+        /// <summary>Phase 12: the conversation in progress, or null.</summary>
+        public Realmkeeper.Domain.Quests.ConversationData Conversation { get; set; }
+
+        public Realmkeeper.Domain.Quests.QuestInstanceData FindQuest(string instanceId)
+        {
+            if (instanceId != null && Quests != null) foreach (var q in Quests) if (q != null && q.InstanceId == instanceId) return q;
+            return null;
+        }
 
         public ContainerData FindContainer(string key)
         {
@@ -226,6 +242,8 @@ namespace Realmkeeper.Domain.World
             if (WorkJobs != null) foreach (var j in WorkJobs) copy.WorkJobs.Add(j?.Clone());
             if (GatheringSites != null) foreach (var g in GatheringSites) copy.GatheringSites.Add(g?.Clone());
             copy.ItemCatalogVersion = ItemCatalogVersion;
+            if (Quests != null) foreach (var q in Quests) copy.Quests.Add(q?.Clone());
+            copy.Conversation = Conversation?.Clone();
             return copy;
         }
 

@@ -39,6 +39,11 @@ Their statistics are Realmkeeper's own, written in the same format and labelled
 descriptions, behaviour summaries, settlement identities, district and landmark names, and the NPC
 archetypes are Realmkeeper's own.
 
+**Quests and dialogue (Phase 12).** Every quest, objective, dialogue line, rumour and reputation text is
+Realmkeeper's own, written for this project. No proprietary dialogue or setting content is used, and no
+campaign canon (kingdoms, the protagonist, a central antagonist) is established. Skill checks in
+conversation use the SRD 5.2.1 skills already credited above.
+
 Spell names are the SRD's; every spell and feature description, and all names and setting text,
 are Realmkeeper's own. Realmkeeper does not use the
 "Dungeons & Dragons" trademark and is not affiliated with or endorsed by Wizards of the Coast. Which

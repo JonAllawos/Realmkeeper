@@ -260,6 +260,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WriteCombatWorld(w, dto);
             WriteLivingWorld(w, dto); // Phase 10
             WriteItemWorld(w, dto); // Phase 11
+            WriteQuestWorld(w, dto); // Phase 12
             return dto;
         }
 
@@ -606,6 +607,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadCombatWorld(dto, world);
             ReadLivingWorld(dto, world); // Phase 10
             ReadItemWorld(dto, world); // Phase 11
+            ReadQuestWorld(dto, world); // Phase 12
             return world;
         }
 

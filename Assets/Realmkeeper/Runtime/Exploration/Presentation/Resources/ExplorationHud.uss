@@ -1090,3 +1090,19 @@
 .xk-inv-delta--up { color: rgb(126, 196, 112); }
 .xk-inv-delta--down { color: rgb(220, 110, 90); }
 .xk-store { padding: 6px; margin-bottom: 8px; background-color: rgba(0, 0, 0, 0.22); border-radius: 4px; }
+
+/* ----- Phase 12: dialogue and journal ----- */
+.xk-dialogue { position: absolute; left: 22%; right: 22%; bottom: 7%; max-height: 62%; padding: 14px 18px; }
+.xk-dialogue-quest { color: rgb(214, 188, 120); margin: 2px 0 6px 0; }
+.xk-dialogue-transcript { max-height: 160px; margin-bottom: 6px; }
+.xk-dialogue-said { color: rgb(170, 164, 150); white-space: normal; margin: 1px 0; }
+.xk-dialogue-check { color: rgb(150, 182, 236); font-size: 12px; margin: 1px 0 3px 0; }
+.xk-dialogue-line { color: rgb(240, 232, 212); font-size: 17px; white-space: normal; margin: 6px 0 10px 0; }
+.xk-dialogue-responses { margin-bottom: 4px; }
+.xk-dialogue-response { -unity-text-align: middle-left; white-space: normal; margin: 2px 0; padding: 5px 10px; }
+.xk-dialogue-response--quest { border-left-width: 3px; border-color: rgb(214, 188, 120); }
+.xk-dialogue-response--social { color: rgb(170, 200, 240); }
+.xk-journal-objective { white-space: normal; margin: 2px 0 2px 6px; }
+.xk-journal-objective--done { color: rgb(126, 196, 112); }
+.xk-journal-objective--locked { color: rgb(130, 126, 116); }
+.xk-tracked { position: absolute; right: 18px; top: 74px; max-width: 420px; padding: 8px 12px; background-color: rgba(18, 16, 12, 0.72); border-radius: 4px; color: rgb(236, 222, 186); white-space: normal; -unity-text-align: upper-left; }

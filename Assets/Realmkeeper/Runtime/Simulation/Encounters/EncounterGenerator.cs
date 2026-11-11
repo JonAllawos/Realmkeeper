@@ -30,6 +30,12 @@ namespace Realmkeeper.Simulation.Encounters
 
         /// <summary>Distinguishes repeated outings at the same hour (the count of generated encounters so far).</summary>
         public int Attempt { get; set; }
+
+        /// <summary>
+        /// Phase 12: a creature the player goes looking for (a hunting quest's quarry, as its giver described where to find
+        /// it). Only a population actually within reach can be found; it is then much more likely to be met, never conjured.
+        /// </summary>
+        public string Seek { get; set; }
     }
 
     /// <summary>A generated encounter before it starts: the setup the engine builds, its origin, and the individuals it draws.</summary>
@@ -93,6 +99,7 @@ namespace Realmkeeper.Simulation.Encounters
                 if (ChallengeRatings.Value(def.ChallengeRating) > level + 1) w *= 0.15; // the truly dangerous are rare near people
                 if (p.CreatureId == "highwayman") w *= 0.2; // the leader comes with the band, not alone
                 w /= 1 + distance / 12.0;
+                if (request.Seek != null && p.CreatureId == request.Seek) w *= 25; // Phase 12: sought by a quest (only where it lives)
                 if (w > 0) candidates.Add((p, def, w));
             }
 

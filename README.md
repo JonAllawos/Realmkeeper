@@ -9,7 +9,7 @@ simulation. See the [Product foundation](Documentation/Product/ProductFoundation
 This repository is an independent project. It shares no code, assets, packages or
 assemblies with any other Unity project, including Living Realms and The Tavern Table.
 
-> **Current status: Phase 11 (inventory, loot, equipment, crafting and item progression) complete and
+> **Current status: Phase 12 (quests, dialogue, reputation and world interaction) complete and
 > awaiting review.** Each phase's state is listed in [Documentation/Roadmap.md](Documentation/Roadmap.md),
 > and its report is in `Documentation/Reports/`. The note below describes Phase 2 as it was first delivered.
 >

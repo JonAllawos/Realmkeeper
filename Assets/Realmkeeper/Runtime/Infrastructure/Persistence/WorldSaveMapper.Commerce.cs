@@ -184,6 +184,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         private static PlayerRegardDto RegardDto(PlayerRegardData r) => new PlayerRegardDto
         {
             Familiarity = r.Familiarity, Affinity = r.Affinity, Trades = r.Trades, Conversations = r.Conversations, LastTradeDay = r.LastTradeDay, LastTalkDay = r.LastTalkDay,
+            Trust = r.Trust, Respect = r.Respect, Fear = r.Fear, Gratitude = r.Gratitude, Hostility = r.Hostility,
         };
 
         private static PlayerRegardData Regard(PlayerRegardDto d) => d == null
@@ -191,6 +192,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             : new PlayerRegardData
             {
                 Familiarity = d.Familiarity, Affinity = d.Affinity, Trades = d.Trades, Conversations = d.Conversations, LastTradeDay = d.LastTradeDay, LastTalkDay = d.LastTalkDay,
+                Trust = d.Trust, Respect = d.Respect, Fear = d.Fear, Gratitude = d.Gratitude, Hostility = d.Hostility,
             };
     }
 }

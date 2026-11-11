@@ -631,6 +631,13 @@ namespace Realmkeeper.Application
 
             var open = CommerceMath.Availability(world, shop);
             if (!open.IsOpen) { failure = CommandResult.InvalidState(open.Reason); return null; }
+            var keeper = world.FindNpc(shop.ShopkeeperNpcId);
+            if (keeper != null && (keeper.PlayerRegard.Hostility >= 70 || (!keeper.FactionId.IsEmpty && p.Social.StandingWith(keeper.FactionId) <= -50)))
+            {
+                failure = CommandResult.InvalidState(keeper.Name + " will not trade with you."); // Phase 12 (ADR-0059): merchant access
+                return null;
+            }
+
             return shop;
         }
 

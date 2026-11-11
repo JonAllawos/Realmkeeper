@@ -151,6 +151,7 @@ namespace Realmkeeper.Domain.World
             ValidateCommerce(world, settlementIds, npcIds, result);
             ValidateCombat(world, settlementIds, npcIds, result);
             ValidateLiving(world, settlementIds, npcIds, result); // Phase 10
+            ValidateQuests(world, result); // Phase 12
             if (world.Player != null) foreach (var e in Rpg.CharacterValidation.Check(world.Player)) result.AddError("Character: " + e);
             return result;
         }

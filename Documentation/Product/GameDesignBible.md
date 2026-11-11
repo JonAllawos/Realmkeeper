@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 11, 2026-11-11)
+## Implementation status (updated at the end of Phase 12, 2026-11-11)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -31,8 +31,9 @@ present but visibly temporary; **Not started**.
 | 8 | Combat (foundation) and settlement structures | Implemented (`2fe83eb`) |
 | 9 | Spellcasting, class features and combat integration | Implemented (`27a5261`) |
 | 10 | Bestiary, NPC character systems, encounters, settlement generation | Implemented (`1707805`) |
-| 11 | Inventory, loot, equipment, crafting and item progression | **Implemented, awaiting review.** See below. |
-| 12–16 | Onwards | Not started |
+| 11 | Inventory, loot, equipment, crafting and item progression | Implemented (`7b2831b`) |
+| 12 | Quests, dialogue, reputation and world interaction | **Implemented, awaiting review.** See below. |
+| 13–16 | Onwards | Not started |
 
 ### §7 Character and RPG system
 
@@ -67,6 +68,11 @@ present but visibly temporary; **Not started**.
 | §10.2 Loot | **Implemented** (Phase 11) | 15 tables, carried gear, seeded and filled once into a container per fight; caches per settlement; rarity bounded (ADR-0053) |
 | Inventory and storage | **Implemented** (Phase 11) | Instances with state; one holder each; weight-limited pack (SRD carrying capacity); the player's chest per settlement; search, filters, sorting, inspection and rules-engine comparison (ADR-0051, ADR-0055) |
 | Crafting, gathering, repair | **Implemented** (Phase 11), 11 recipes | Work that holds its materials, rolls a tool check and takes world time; finite gathering sites from the settlement economy, recovering weekly; mending by an armourer or by the player (ADR-0054). Armorsmithing and enchanting recipes Not started |
+| Quests | **Implemented** (Phase 12), 5 quests | Data-driven templates bound to real people and places; validated states; stages, alternatives, optional, hidden, timed objectives fed by events from commands; atomic, idempotent completion and rewards; 3 authored (a settlement problem with three endings, a hunt through the encounter system, a sealed-letter delivery) and 2 emergent (food shortage, empty shelves) (ADR-0056, ADR-0057). Escort and rescue objectives typed but unused (Partial) |
+| Dialogue | **Implemented** (Phase 12) | Conditional lines and responses, rolled skill checks (Persuasion, Intimidation, Deception, Insight), typed consequences through one command; the Phase 4 topics inside it; numbered keyboard choices (ADR-0058) |
+| Reputation and relationships | **Implemented** (Phase 12) | Seven regard dimensions per person, faction standing, settlement reputation, notoriety; keyed changes; deeds spread by Phase 4 sharing and only listeners react; standing moves prices and can close a shop (ADR-0059). Theft and assault as sources: Data-only |
+| Journal and discovery | **Implemented** (Phase 12) | Quests by state, detail with hidden objectives hidden, tracking (3), rumours, discoveries, decisions, player-known Chronicle; notice board and ledger as world objects (ADR-0060) |
+| Content settings | **Foundation** (Phase 12) | Tags and show/soften/hide rules on quest and dialogue text; no settings screen yet (ADR-0061) |
 
 ### §19 Design principles: how Phases 6–7 respect them
 
@@ -82,7 +88,7 @@ present but visibly temporary; **Not started**.
   mutation checks.
 - **17, 18 (honest placeholders, licensing):** no new art; SRD content attributed; deferred content
   listed rather than invented.
-- **20 (controlled phases):** Phases 7, 8, 9 and 10 stopped for review; Phase 11 stops here for review.
+- **20 (controlled phases):** Phases 7 to 11 stopped for review; Phase 12 stops here for review.
 - **Phase 8, principles 8, 16 and 17:** every combat number comes from the SRD 5.2.1 rules engine and is explained on screen; the rules are mutation-checked; ground markers and stand-in figures are labelled placeholders; the creature descriptions are Realmkeeper's own.
 - **Phase 9, principles 7, 8, 14 and 17:**
   - Spells and features are data resolved by the shared rules engine, and each one says honestly

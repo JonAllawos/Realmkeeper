@@ -114,6 +114,8 @@ namespace Realmkeeper.Exploration.Application
             p.SettlementId = settlement.SettlementId;
             p.RegionId = settlement.RegionId;
             p.Pose = layout.ArrivalPose;
+            QuestRuntime.Visit(context.Edit(), settlement.SettlementId); // Phase 12: visited, and known
+            context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = Realmkeeper.Simulation.Quests.QuestEventKind.ReachedSettlement, Subject = settlement.SettlementId.ToString(), Settlement = settlement.SettlementId });
             p.LastSettlementId = settlement.SettlementId;
             return CommandResult.Ok($"{player.Name} enters {settlement.Name}.");
         }

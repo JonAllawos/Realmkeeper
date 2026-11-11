@@ -136,6 +136,8 @@ namespace Realmkeeper.Simulation.Commerce
                 if (skill != 0) q.Factors.Add(new PriceFactor("Keeper's haggling", skill));
                 var regard = -keeper.PlayerRegard.Familiarity / 10 - Math.Max(0, keeper.PlayerRegard.Affinity) / 20;
                 if (regard != 0) q.Factors.Add(new PriceFactor("Knows you", regard));
+                var standing = world.Player?.Social == null || keeper.FactionId.IsEmpty ? 0 : -world.Player.Social.StandingWith(keeper.FactionId) / 10; // Phase 12 (ADR-0059)
+                if (standing != 0) q.Factors.Add(new PriceFactor((standing < 0 ? "Standing with " : "Bad blood with ") + (world.FindFaction(keeper.FactionId)?.Name ?? "their faction"), standing));
             }
 
             var trade = PlayerTradePercent(world);

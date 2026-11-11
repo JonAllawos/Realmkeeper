@@ -90,6 +90,20 @@ namespace Realmkeeper.Application
                     return $"{e.Get("name") ?? "A resident"} of {s} took up arms as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())} (level {e.Get("level") ?? "1"}).";
                 case HistoricalEventType.NpcLevelAdvanced:
                     return $"{e.Get("name") ?? "A resident"} of {s} rose to level {e.Get("to") ?? "?"} as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}.";
+                // Phase 12: quests, decisions, reputation and discoveries.
+                case HistoricalEventType.QuestDiscovered: return $"The player heard of \"{e.Get("quest")}\"" + (string.IsNullOrEmpty(e.Get("reason")) ? "." : " (" + e.Get("reason") + ").");
+                case HistoricalEventType.QuestOffered: return $"{e.Get("giver")} asked the player for help: \"{e.Get("quest")}\".";
+                case HistoricalEventType.QuestAccepted: return $"The player took on \"{e.Get("quest")}\" for {e.Get("giver")}.";
+                case HistoricalEventType.QuestDeclined: return $"The player turned down {e.Get("giver")}'s request, \"{e.Get("quest")}\".";
+                case HistoricalEventType.QuestAbandoned: return $"The player gave up \"{e.Get("quest")}\".";
+                case HistoricalEventType.QuestCompleted: return $"The player completed \"{e.Get("quest")}\" for {e.Get("giver")}" + (string.IsNullOrEmpty(e.Get("outcome")) ? "." : " (" + e.Get("outcome") + ").");
+                case HistoricalEventType.QuestFailed: return $"\"{e.Get("quest")}\" failed: {e.Get("reason")}";
+                case HistoricalEventType.DialogueDecision: return $"A decision: {e.Get("decision")}.";
+                case HistoricalEventType.ReputationChanged: return $"{e.Get("target")}: {e.Get("dimension")?.ToLowerInvariant()} {(N(e, "amount").StartsWith("-") ? string.Empty : "+")}{N(e, "amount")} ({e.Get("reason")}).";
+                case HistoricalEventType.SettlementProblemResolved: return $"A problem in {s} was resolved: {e.Get("what")}.";
+                case HistoricalEventType.PlayerDiscovery: return $"Discovered: {e.Get("what")}";
+                case HistoricalEventType.QuestItemDelivered: return $"The player delivered {e.Get("quantity")} × {e.Get("item")} to {e.Get("to")}.";
+                case HistoricalEventType.QuestConsequence: return $"In {s}, {e.Get("what")}.";
                 case HistoricalEventType.EncounterResolved:
                     return $"The aftermath of {e.Get("name") ?? "a fight"} near {s}: {e.Get("summary") ?? "nothing further"}.";
                 case HistoricalEventType.LabourNoticePosted:

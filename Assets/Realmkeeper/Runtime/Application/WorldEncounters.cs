@@ -19,14 +19,22 @@ namespace Realmkeeper.Application
     /// </summary>
     public sealed class StartWorldEncounterCommand : ICommand
     {
-        public StartWorldEncounterCommand(EncounterPurpose purpose) { Purpose = purpose; }
+        public StartWorldEncounterCommand(EncounterPurpose purpose, string seek = null)
+        {
+            Purpose = purpose;
+            Seek = seek;
+        }
+
         public EncounterPurpose Purpose { get; }
+
+        /// <summary>Phase 12: a creature sought (a hunting quest's quarry), or null.</summary>
+        public string Seek { get; }
     }
 
     public static class WorldEncounters
     {
         /// <summary>The plan an outing would produce now (the same world state gives the same plan), or the reason there is none.</summary>
-        public static EncounterPlan Preview(WorldData world, Domain.Geography.RegionMap map, EncounterPurpose purpose, out string problem)
+        public static EncounterPlan Preview(WorldData world, Domain.Geography.RegionMap map, EncounterPurpose purpose, out string problem, string seek = null)
         {
             problem = null;
             var p = world?.Player;
@@ -37,13 +45,13 @@ namespace Realmkeeper.Application
             if (map == null) { problem = "The region's geography is not loaded."; return null; }
             var attempt = 0;
             foreach (var e in world.Encounters) if (e.Origin != null) attempt++;
-            return EncounterGenerator.Plan(world, map, new EncounterRequest { Near = p.SettlementId, Purpose = purpose, Attempt = attempt });
+            return EncounterGenerator.Plan(world, map, new EncounterRequest { Near = p.SettlementId, Purpose = purpose, Attempt = attempt, Seek = seek });
         }
 
         internal static CommandResult Start(StartWorldEncounterCommand command, CommandContext context)
         {
             if (!context.HasWorld) return CommandResult.InvalidState("There is no active world.");
-            var plan = Preview(context.Committed, context.Map, command.Purpose, out var problem);
+            var plan = Preview(context.Committed, context.Map, command.Purpose, out var problem, command.Seek);
             if (plan == null) return CommandResult.InvalidState(problem);
             if (!plan.IsValid) return CommandResult.Invalid("Nothing comes of the outing: " + string.Join(" ", plan.Problems), plan.Problems);
 
@@ -139,6 +147,23 @@ namespace Realmkeeper.Application
                 : won;
             lines.Add(o.ObjectiveMet ? "objective met" : "objective failed");
             if (dead.Count > 0) lines.Add(dead.Count + " slain");
+
+            // Phase 12 (ADR-0057): what the fight did, for quests — each fallen foe, and whether the player came back on their feet.
+            var playerC = e.Combatants.Find(c => c.Kind == CombatantKind.Player);
+            var kinds = new HashSet<string>();
+            foreach (var c in dead)
+            {
+                if (c.CreatureId != null) context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = Realmkeeper.Simulation.Quests.QuestEventKind.Defeated, Subject = c.CreatureId, Settlement = o.NearSettlementId });
+                if (c.CreatureId != null) kinds.Add(c.CreatureId);
+            }
+
+            foreach (var c in e.Combatants)
+                if (c.Kind == CombatantKind.Npc && c.Side != playerSide && c.State == VitalState.Dead)
+                    context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = Realmkeeper.Simulation.Quests.QuestEventKind.DefeatedNamed, Subject = c.SourceId, Settlement = o.NearSettlementId });
+            foreach (var c in e.Combatants) if (c.CreatureId != null) kinds.Add(c.CreatureId);
+            var onFeet = won && playerC != null && playerC.State == VitalState.Conscious;
+            foreach (var k in kinds)
+                context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = onFeet ? Realmkeeper.Simulation.Quests.QuestEventKind.SurvivedEncounter : Realmkeeper.Simulation.Quests.QuestEventKind.LostEncounter, Subject = k, Settlement = o.NearSettlementId });
 
             // Experience: for those defeated (slain, or routed by the winners), to the player and to sheet-holders who fought with them.
             var xp = 0;

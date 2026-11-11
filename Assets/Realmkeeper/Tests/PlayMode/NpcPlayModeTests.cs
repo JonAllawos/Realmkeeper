@@ -139,7 +139,7 @@ namespace Realmkeeper.Tests.PlayMode
             var greeting = controller.Interact();
             Assert.That(greeting.Succeeded, Is.True, greeting.Text);
             Assert.That(controller.Hud.TopicsVisible, Is.True, "Conversation topics are offered.");
-            Assert.That(controller.Hud.Topics.Query<Button>().ToList().Count, Is.EqualTo(ExplorationController.Topics.Count));
+            Assert.That(controller.Hud.Topics.Query<Button>().ToList().Count, Is.EqualTo(ExplorationController.Topics.Count + 1), "The topics, and (Phase 12) Talk… for the full conversation.");
 
             var answer = controller.AskResident(ConversationTopic.Settlement);
             Assert.That(answer.IsSuccess, Is.True, answer.ToString());

@@ -39,11 +39,30 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
         /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
         /// <summary>
+        /// Rebuilds the v13 layout (Phase 11): no quest system, quests, conversation, player social record, content
+        /// settings, or further regard dimensions.
+        /// </summary>
+        public static void StripToV13(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 13;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;
+            systems?.FirstOrDefault(t => (string)t == Realmkeeper.Simulation.Quests.QuestSystem.Id)?.Remove();
+            (w["settings"] as Newtonsoft.Json.Linq.JObject)?.Remove("content");
+            foreach (var field in new[] { "quests", "conversation" }) w.Remove(field);
+            (w["player"] as Newtonsoft.Json.Linq.JObject)?.Remove("social");
+            foreach (Newtonsoft.Json.Linq.JObject n in (w["npcs"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+                if (n["playerRegard"] is Newtonsoft.Json.Linq.JObject r)
+                    foreach (var field in new[] { "trust", "respect", "fear", "gratitude", "hostility" }) r.Remove(field);
+        }
+
+        /// <summary>
         /// Rebuilds the v12 layout (Phase 10): no gathering system, containers, work, gathering sites, catalog version or
         /// shop goods, and item stacks with only their ID, item and quantity.
         /// </summary>
         public static void StripToV12(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV13(doc); // Phase 12
             doc["schemaVersion"] = 12;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;

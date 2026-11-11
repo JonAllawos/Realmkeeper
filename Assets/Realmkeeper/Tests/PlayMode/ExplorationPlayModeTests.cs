@@ -286,8 +286,13 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(Session.GetRecentEvents(5).Any(e => e.EventType == HistoricalEventType.PlayerMetResident), Is.True);
         }
 
+        /// <summary>
+        /// Phase 12 changed this test's premise: the ledger is now a world object a quest can turn on (ADR-0060), so examining
+        /// it goes through InspectObjectCommand and records what the player finds. It still shows the stores and changes
+        /// nothing else: no labour focus, and no Chronicle entries but the player's own discoveries.
+        /// </summary>
         [UnityTest]
-        public IEnumerator GranaryLedger_IsInformational_AndChangesNothing()
+        public IEnumerator GranaryLedger_ShowsTheStores_AndRecordsOnlyWhatThePlayerFinds()
         {
             var s = FirstSettlement;
             yield return Enter(s);
@@ -296,10 +301,12 @@ namespace Realmkeeper.Tests.PlayMode
 
             var response = ledger.Interact(Session, Controller.Player.transform);
 
-            Assert.That(response.Kind, Is.EqualTo(InteractionKind.Informational));
-            Assert.That(response.Command, Is.Null);
+            Assert.That(response.Command, Is.Not.Null);
+            Assert.That(response.Command.IsSuccess, Is.True, response.Command.Message);
             StringAssert.Contains(Session.FindSettlement(s.SettlementId).Food.Stock.ToString("N0", System.Globalization.CultureInfo.InvariantCulture), response.Text);
-            Assert.That(Session.GetOverview().EventCount, Is.EqualTo(eventsBefore));
+            var added = Session.GetOverview().EventCount - eventsBefore;
+            Assert.That(Session.GetRecentEvents(added + 1).Take(added).All(e => e.EventType == HistoricalEventType.PlayerDiscovery || e.EventType == HistoricalEventType.QuestDiscovered), Is.True,
+                "Only the player's discoveries are recorded.");
             Assert.That(Session.FindSettlement(s.SettlementId).LabourFocus, Is.EqualTo(s.LabourFocus));
         }
 

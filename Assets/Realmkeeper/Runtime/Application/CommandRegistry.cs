@@ -79,6 +79,20 @@ namespace Realmkeeper.Application
 
         internal IReadOnlyList<HistoricalEvent> Events => _events;
 
+        private readonly List<Realmkeeper.Simulation.Quests.QuestEvent> _questEvents = new List<Realmkeeper.Simulation.Quests.QuestEvent>();
+
+        /// <summary>
+        /// Phase 12 (ADR-0057): tells the quest engine what this command did (a delivery, a defeat, an object examined …).
+        /// The session applies the events to open quests inside this command's transaction, before validation: progress,
+        /// completion and rewards commit with the command or not at all.
+        /// </summary>
+        public void Quest(Realmkeeper.Simulation.Quests.QuestEvent e)
+        {
+            if (e != null) _questEvents.Add(e);
+        }
+
+        internal IReadOnlyList<Realmkeeper.Simulation.Quests.QuestEvent> QuestEvents => _questEvents;
+
         /// <summary>The working copy to change. Created on first use; discarded unless the command succeeds and validates.</summary>
         public WorldData Edit()
         {

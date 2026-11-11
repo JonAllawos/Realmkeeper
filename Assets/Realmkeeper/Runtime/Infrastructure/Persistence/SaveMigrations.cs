@@ -12,6 +12,36 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// effects, combatant resources and concentration as empty when absent (the mapper reads absent lists as empty).
     /// </summary>
     /// <summary>
+    /// v13 → v14 (Phase 12: quests, dialogue, reputation). Structural: an empty quest list, no conversation, an empty
+    /// social record on the player (no standing, no notoriety, nothing discovered), regard dimensions absent (read as 0),
+    /// content presentation absent (everything shown), and the quest system enabled after gathering. The authored quests
+    /// and today's emergent ones are not written here: the session adds them once with the rest of the living world, so an
+    /// old save and a fresh world of its seed agree (as Phases 10 and 11 do).
+    /// </summary>
+    public sealed class MigrationV13ToV14 : ISaveMigration
+    {
+        public int SourceVersion => 13;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["quests"] == null) world["quests"] = new JArray();
+            if (world["player"] is JObject player && player["social"] == null) player["social"] = new JObject();
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken after = null;
+            var has = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == Simulation.Items.GatheringSystem.Id) after = id;
+                if ((string)id == Simulation.Quests.QuestSystem.Id) has = true;
+            }
+
+            if (after != null && !has) after.AddAfterSelf(Simulation.Quests.QuestSystem.Id);
+        }
+    }
+
+    /// <summary>
     /// v12 → v13 (Phase 11: items). Structural: empty containers, work and gathering sites; catalog version 1 (the
     /// items the save was made with); every shop's particular goods empty; and the gathering system enabled after the
     /// fauna system. Existing stacks need nothing: absent instance state reads as good condition, common make, no

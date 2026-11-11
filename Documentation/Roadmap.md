@@ -15,9 +15,10 @@
 | Phase 7: Character Progression & Core Rules Engine | Done (`a3cd9f5`) | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
 | Phase 8: Combat Foundation, Encounter Engine & Settlement Structures | Done (`2fe83eb`) | `Systems/Combat.md`, `Systems/SettlementStructures.md`, `Phase8/Phase8-Report.md`, ADR-0030…0036 |
 | Phase 9: Spellcasting, Class Features & Combat Integration | Done (`27a5261`, committed locally) | `Systems/Spellcasting.md`, `Systems/ClassFeatures.md`, `Systems/RestAndRecovery.md`, `Systems/SpellCatalogAudit.md`, `Phase9/Phase9-Report.md`, ADR-0037…0042 |
-| Phase 10: Bestiary, NPC Character Systems, Encounter Intelligence & Living Settlement Generation | Done (`1707805`, committed locally) | `Phase10/SettlementGeneration.md`, `Phase10/CreatureAndNpcSystems.md`, `Phase10/Testing.md`, `Phase10/Performance.md`, `Phase10/Limitations.md`, `Reports/Phase10-Bestiary-NPCs-Settlements.md`, ADR-0043…0049 |
-| Phase 11: Inventory, Loot, Equipment, Crafting & Item Progression | Done (this milestone); awaiting review, committed locally and not pushed | `Phase11/Items.md`, `Phase11/Testing.md`, `Phase11/Performance.md`, `Phase11/Limitations.md`, `Phase11/PreFlight.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Reports/Phase11-Inventory-Items-Progression.md`, ADR-0050…0055 |
-| Phase 12 | **Not started.** Phase 11 stops for review; recommended priorities are in the Phase 11 report (§Q). | — |
+| Phase 10: Bestiary, NPC Character Systems, Encounter Intelligence & Living Settlement Generation | Done (`1707805`, pushed) | `Phase10/SettlementGeneration.md`, `Phase10/CreatureAndNpcSystems.md`, `Phase10/Testing.md`, `Phase10/Performance.md`, `Phase10/Limitations.md`, `Reports/Phase10-Bestiary-NPCs-Settlements.md`, ADR-0043…0049 |
+| Phase 11: Inventory, Loot, Equipment, Crafting & Item Progression | Done (`7b2831b`, pushed with Phases 9–10 on the owner's instruction) | `Phase11/Items.md`, `Phase11/Testing.md`, `Phase11/Performance.md`, `Phase11/Limitations.md`, `Phase11/PreFlight.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Reports/Phase11-Inventory-Items-Progression.md`, ADR-0050…0055 |
+| Phase 12: Quest, Dialogue, Reputation & World Interaction Engine | Done (this milestone); awaiting review, committed locally and not pushed | `Systems/Quests.md`, `Systems/Dialogue.md`, `Systems/Reputation.md`, `Phase12/PreFlight.md`, `Phase12/Testing.md`, `Phase12/Limitations.md`, `Reports/Phase12-Quest-Dialogue-Reputation.md`, ADR-0056…0061 |
+| Phase 13 | **Not started.** Phase 12 stops for review; recommended priorities are in the Phase 12 report (§T). | — |
 
 ## Phase 2 completion: what it added
 
