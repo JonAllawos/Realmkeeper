@@ -64,6 +64,7 @@ namespace Realmkeeper.Domain.Combat
             enc.EncounterId = new EncounterId(nextGuid("encounter"));
             enc.Seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "encounter:" + enc.EncounterId);
             enc.DifficultTerrain.AddRange(setup.DifficultTerrain);
+            enc.Blocked.AddRange(setup.Blocked);
             foreach (var p in setup.Participants)
             {
                 var c = BuildCombatant(world, enc, p, nextGuid, errors);
@@ -457,6 +458,9 @@ namespace Realmkeeper.Domain.Combat
             return cost;
         }
 
+        /// <summary>Phase 13: a wall or rock square (a place's geometry), which no one may enter.</summary>
+        public bool IsBlocked(GridPos p) => Encounter.Blocked.Count > 0 && Encounter.Blocked.Contains(p);
+
         public CombatantData At(GridPos p)
         {
             foreach (var c in Encounter.Combatants) if (c.Position.Equals(p) && c.State != VitalState.Dead && c.State != VitalState.Fled) return c;
@@ -476,6 +480,7 @@ namespace Realmkeeper.Domain.Combat
             {
                 var to = path[i];
                 if (!from.IsAdjacent(to)) return $"Step {i + 1} to {to} is not next to {from}.";
+                if (IsBlocked(to)) return $"{to} is solid wall.";
                 var there = At(to);
                 if (there != null && there != actor && Hostile(actor, there) && there.State == VitalState.Conscious) return $"{there.Name} blocks {to}.";
                 if (fear != null && fear.State != VitalState.Dead && to.DistanceFeet(fear.Position) < from.DistanceFeet(fear.Position))

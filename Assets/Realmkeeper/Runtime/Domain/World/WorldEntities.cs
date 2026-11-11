@@ -303,6 +303,16 @@ namespace Realmkeeper.Domain.World
         PlayerDiscovery = 71,
         QuestItemDelivered = 72,
         QuestConsequence = 73,
+
+        // Phase 13: places and exploration (ADR-0062 … ADR-0066).
+        PlaceDiscovered = 74,
+        PlaceEntered = 75,
+        PlaceCleared = 76,
+        TrapSprung = 77,
+        CaptiveFreed = 78,
+        EscortArrived = 79,
+        Trespass = 80,
+        PlaceSecretFound = 81,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

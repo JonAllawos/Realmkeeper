@@ -113,7 +113,6 @@ namespace Realmkeeper.Exploration.Presentation
         public event Action<EquipmentSlot> UnequipRequested;
         public event Action<ItemStackId> UseRequested;
         public event Action<ItemStackId, int> SplitRequested;
-        public event Action<ItemStackId, ItemStackId> CombineRequested;
         public event Action<ItemStackId, int> DiscardRequested;
         public event Action<string, int?, string, string> ProfileSaved;
         public event Action<PlayerAppearanceData> AppearanceChosen;

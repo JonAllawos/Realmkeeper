@@ -268,7 +268,7 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             var keys = Keyboard.current;
-            if (keys != null && !WindowOpen && !Typing() && keys.fKey.wasPressedThisFrame) StartPracticeFight();
+            if (keys != null && !WindowOpen && !Typing() && !InPlace && keys.fKey.wasPressedThisFrame) StartPracticeFight(); // Phase 13: not inside places
             if (keys != null && !WindowOpen && !Typing() && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
         }
 

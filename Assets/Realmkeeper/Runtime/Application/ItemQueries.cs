@@ -529,6 +529,14 @@ namespace Realmkeeper.Application
             {
                 if (!c.PlayerAccess) continue;
                 if (c.Kind == ContainerKind.Loot && c.IsEmpty) continue;
+                if (c.PlaceId != null)
+                {
+                    // Phase 13: in a place, the containers of that place the player has opened, and what fights left there.
+                    if (!p.IsInPlace || p.PlaceId != c.PlaceId || (!c.Opened && c.Kind != ContainerKind.Loot)) continue;
+                    list.Add(GetContainer(c.Key));
+                    continue;
+                }
+
                 if (!c.SettlementId.IsEmpty && (!p.IsInSettlement || p.SettlementId != c.SettlementId)) continue;
                 list.Add(GetContainer(c.Key));
             }

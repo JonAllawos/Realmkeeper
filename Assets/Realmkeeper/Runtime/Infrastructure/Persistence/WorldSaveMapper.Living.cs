@@ -128,7 +128,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             Type = o.Type.ToString(), Objective = o.Objective.ToString(), ProtectedNpcId = o.ProtectedNpcId.IsEmpty ? null : o.ProtectedNpcId.ToString(),
             NearSettlementId = o.NearSettlementId.IsEmpty ? null : o.NearSettlementId.ToString(), Context = o.Context, Terrain = o.Terrain, SourceIds = new List<string>(o.SourceIds),
             XpBudget = o.XpBudget, XpTotal = o.XpTotal, Difficulty = o.Difficulty, PlanSeed = o.PlanSeed.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            Resolved = o.Resolved, Result = o.Result, ObjectiveMet = o.ObjectiveMet,
+            Resolved = o.Resolved, Result = o.Result, ObjectiveMet = o.ObjectiveMet, PlaceId = o.PlaceId, GroupId = o.GroupId, Room = o.Room,
         };
 
         private static Domain.Combat.EncounterOriginData Origin(EncounterOriginDto d) => d == null ? null : new Domain.Combat.EncounterOriginData
@@ -138,7 +138,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             Context = d.Context ?? string.Empty, Terrain = d.Terrain ?? string.Empty, SourceIds = new List<string>(d.SourceIds ?? new List<string>()),
             XpBudget = d.XpBudget, XpTotal = d.XpTotal, Difficulty = d.Difficulty ?? string.Empty,
             PlanSeed = string.IsNullOrEmpty(d.PlanSeed) ? 0UL : ulong.Parse(d.PlanSeed, System.Globalization.CultureInfo.InvariantCulture),
-            Resolved = d.Resolved, Result = d.Result, ObjectiveMet = d.ObjectiveMet,
+            Resolved = d.Resolved, Result = d.Result, ObjectiveMet = d.ObjectiveMet, PlaceId = d.PlaceId, GroupId = d.GroupId, Room = d.Room,
         };
 
         // Settlement layouts (Workstream E) are mapped in WorldSaveMapper.Layouts.cs.

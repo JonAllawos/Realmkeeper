@@ -120,6 +120,13 @@ namespace Realmkeeper.Exploration.Presentation
         private void Sync(bool forceReload)
         {
             var player = _session != null && _session.HasWorld ? _session.GetPlayer() : null;
+            if (player != null && player.LocationKind == CharacterLocationKind.Place)
+            {
+                SyncPlace(player, forceReload); // Phase 13: a place, not a settlement
+                return;
+            }
+
+            if (InPlace) UnloadEnvironment(); // left a place: the settlement (or the map) is rebuilt
             if (player == null || !player.IsInSettlement)
             {
                 UnloadEnvironment();
@@ -206,6 +213,8 @@ namespace Realmkeeper.Exploration.Presentation
                 _detector.Register(view);
             }
 
+            SetupBuildingDoors(layout); // Phase 13: doors into buildings with interiors
+
             Hud = ExplorationHud.Create(null);
             Hud.ReturnRequested += OnReturnRequested;
             Hud.SaveRequested += OnSaveRequested;
@@ -221,6 +230,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void UnloadEnvironment()
         {
             if (!_streamer.IsLoaded) return;
+            TeardownPlace(); // Phase 13
             TeardownLiving();
             _input?.Disable();
             if (Hud != null)
@@ -263,6 +273,7 @@ namespace Realmkeeper.Exploration.Presentation
         public CommandResult RecordPose()
         {
             if (!IsExploring || Player == null || _session == null) return CommandResult.InvalidState("The character is not exploring.");
+            if (InPlace) return _placeScene.PlayerRoom == null ? CommandResult.Ok() : _session.Dispatch(new Realmkeeper.Application.Places.MoveInPlaceCommand(_placeScene.PlayerRoom, Player.CurrentPose)); // Phase 13
             var layout = _streamer.Current;
             var pose = Player.CurrentPose;
             var limit = layout.HalfExtent - 0.01f;
@@ -283,6 +294,15 @@ namespace Realmkeeper.Exploration.Presentation
         public InteractionResponse Interact()
         {
             if (!IsExploring || CurrentTarget == null) return null;
+            if (CurrentTarget is PlaceInteractable placed)
+            {
+                // Phase 13: places and building doors answer for themselves (choices stay on screen).
+                LastResponse = placed.Interact(_session, Player.transform);
+                if (LastResponse != null && !string.IsNullOrEmpty(LastResponse.Text)) Hud?.ShowResponse(LastResponse);
+                RefreshHud();
+                return LastResponse;
+            }
+
             LastResponse = CurrentTarget.Interact(_session, Player.transform);
             if (CurrentTarget is ContainerInteractable box && LastResponse != null && LastResponse.Succeeded)
             {
@@ -351,6 +371,7 @@ namespace Realmkeeper.Exploration.Presentation
         public CommandResult ReturnToWorldMap()
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            if (InPlace) return LeavePlace(); // Phase 13: only by the way out
             RecordPose();
             var result = _session.Dispatch(new ExitSettlementCommand());
             if (!result.IsSuccess) Hud?.ShowMessage(result);
@@ -374,6 +395,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             UpdateLivingInput();
             UpdateCombat(); // Phase 8
+            if (InPlace) UpdatePlace(Keyboard.current); // Phase 13
             if (WindowOpen)
             {
                 Hud?.SetPrompt(null);
@@ -428,6 +450,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void RefreshHud()
         {
+            if (InPlace) { RefreshPlaceHud(); return; } // Phase 13
             if (Hud == null || _session == null || !_session.HasWorld) return;
             var player = _session.GetPlayer();
             if (player == null || !player.IsInSettlement) return;

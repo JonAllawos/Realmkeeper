@@ -19,6 +19,7 @@ namespace Realmkeeper.Exploration.Application
             if (session == null) throw new ArgumentNullException(nameof(session));
             var commands = session.Commands;
             commands.Register<EnterSettlementCommand>(new EnterSettlementHandler());
+            commands.Register<EnterBuildingCommand>(new EnterBuildingHandler()); // Phase 13
             commands.Register<ExitSettlementCommand>(new ExitSettlementHandler());
             commands.Register<SetPlayerPoseCommand>(new SetPlayerPoseHandler());
             commands.Register<SetCameraPerspectiveCommand>(new SetCameraPerspectiveHandler());
@@ -33,7 +34,7 @@ namespace Realmkeeper.Exploration.Application
             var residents = new List<ResidentInput>();
             foreach (var n in world.Npcs)
             {
-                if (n.IsDeceased) continue;
+                if (n.IsDeceased || Simulation.Places.PlacePresence.IsAway(world, n)) continue; // Phase 13: held, following or posted elsewhere
                 var now = Simulation.Npcs.NpcActivityPlan.Now(world, n);
                 var placeId = now.IsKnown ? now.Location : n.CurrentLocationId;
                 var place = placeId.IsEmpty ? null : world.FindLocation(placeId);
@@ -101,6 +102,7 @@ namespace Realmkeeper.Exploration.Application
             if (settlement.RegionId.IsEmpty) return CommandResult.Invalid($"'{settlement.Name}' belongs to no region.");
             if (world.FindRegion(settlement.RegionId) == null)
                 return CommandResult.NotFound($"'{settlement.Name}' references region {settlement.RegionId}, which does not exist.");
+            if (player.IsInPlace) return CommandResult.InvalidState($"{player.Name} must leave {world.FindPlace(player.PlaceId)?.Name ?? "the place"} first."); // Phase 13
             if (player.IsInSettlement)
             {
                 return player.SettlementId == settlement.SettlementId
@@ -117,7 +119,8 @@ namespace Realmkeeper.Exploration.Application
             QuestRuntime.Visit(context.Edit(), settlement.SettlementId); // Phase 12: visited, and known
             context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = Realmkeeper.Simulation.Quests.QuestEventKind.ReachedSettlement, Subject = settlement.SettlementId.ToString(), Settlement = settlement.SettlementId });
             p.LastSettlementId = settlement.SettlementId;
-            return CommandResult.Ok($"{player.Name} enters {settlement.Name}.");
+            var home = Realmkeeper.Application.Places.PlaceRules.Arrive(context, context.Edit(), settlement.SettlementId); // Phase 13: an escort brought home
+            return CommandResult.Ok($"{player.Name} enters {settlement.Name}." + (home.Count > 0 ? " " + string.Join(", ", home) + " is home at last." : string.Empty));
         }
     }
 

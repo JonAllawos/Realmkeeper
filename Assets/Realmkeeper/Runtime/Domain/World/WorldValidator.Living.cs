@@ -135,7 +135,7 @@ namespace Realmkeeper.Domain.World
                 if (Combat.CreatureCatalog.Find(c.CreatureId) == null) result.AddError($"Creature {c.InstanceId} is of an unknown kind.");
                 if (c.State == CreatureInstanceState.Dead && c.CurrentHp != 0) result.AddError($"Creature {c.InstanceId} is dead with hit points.");
                 if (c.CurrentHp < 0) result.AddError($"Creature {c.InstanceId} has negative hit points.");
-                if (!string.IsNullOrEmpty(c.OriginId) && !populations.Contains(c.OriginId) && !herds.Contains(c.OriginId)) result.AddError($"Creature {c.InstanceId} comes from no population or herd.");
+                if (!string.IsNullOrEmpty(c.OriginId) && !populations.Contains(c.OriginId) && !herds.Contains(c.OriginId) && !FromPlace(world, c.OriginId)) result.AddError($"Creature {c.InstanceId} comes from no population, herd or place.");
             }
         }
     }

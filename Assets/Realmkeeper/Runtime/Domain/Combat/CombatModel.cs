@@ -403,6 +403,9 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>Squares that cost double movement.</summary>
         public List<GridPos> DifficultTerrain { get; set; } = new List<GridPos>();
 
+        /// <summary>Phase 13 (ADR-0064): squares nobody can enter (walls and rock around a room in a place).</summary>
+        public List<GridPos> Blocked { get; set; } = new List<GridPos>();
+
         public WorldDate StartedOn { get; set; }
         public int StartedAtMinute { get; set; }
         public WorldDate EndedOn { get; set; }
@@ -440,6 +443,7 @@ namespace Realmkeeper.Domain.Combat
             e.Combatants = new List<CombatantData>();
             foreach (var c in Combatants) e.Combatants.Add(c.Clone());
             e.DifficultTerrain = new List<GridPos>(DifficultTerrain);
+            e.Blocked = new List<GridPos>(Blocked);
             e.Log = new List<CombatLogEntry>();
             foreach (var l in Log) e.Log.Add(l.Clone());
             e.Effects = new List<ActiveEffectData>();

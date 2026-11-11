@@ -18,6 +18,23 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// and today's emergent ones are not written here: the session adds them once with the rest of the living world, so an
     /// old save and a fresh world of its seed agree (as Phases 10 and 11 do).
     /// </summary>
+    /// <summary>
+    /// v14 → v15 (Phase 13: places). Structural: empty lists of places and escorts. The places themselves are not written
+    /// here: the session adds them once with the rest of the living world, so an old save and a fresh world of its seed
+    /// get the same places. A player in a settlement or on the map stays where they were.
+    /// </summary>
+    public sealed class MigrationV14ToV15 : ISaveMigration
+    {
+        public int SourceVersion => 14;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            foreach (var list in new[] { "places", "escorts" })
+                if (world[list] == null) world[list] = new JArray();
+        }
+    }
+
     public sealed class MigrationV13ToV14 : ISaveMigration
     {
         public int SourceVersion => 13;

@@ -85,6 +85,7 @@ namespace Realmkeeper.Application
             SpellCommandHandlers.Register(_commands); // Phase 9
             ItemCommandHandlers.Register(_commands); // Phase 11
             QuestCommandHandlers.Register(_commands); // Phase 12
+            Places.PlaceCommandHandlers.Register(_commands); // Phase 13
             NpcCharacterCommandHandlers.Register(_commands); // Phase 10
         }
 

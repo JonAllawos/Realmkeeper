@@ -44,6 +44,8 @@ Realmkeeper's own, written for this project. No proprietary dialogue or setting 
 campaign canon (kingdoms, the protagonist, a central antagonist) is established. Skill checks in
 conversation use the SRD 5.2.1 skills already credited above.
 
+**Places (Phase 13).** Every place name, description, clue, document, trap and hazard text, and the rescue quest, is Realmkeeper's own, written for this project. Archetypes are generic kinds (mine, crypt, cave and so on), not any game's levels. Place geometry, props and figures are built at runtime from Unity primitives and generated meshes: no new art assets, no third-party models. Traps, hazards and checks use the SRD 5.2.1 rules already credited (skills, saves, damage types). No campaign canon is established.
+
 Spell names are the SRD's; every spell and feature description, and all names and setting text,
 are Realmkeeper's own. Realmkeeper does not use the
 "Dungeons & Dragons" trademark and is not affiliated with or endorsed by Wizards of the Coast. Which

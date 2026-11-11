@@ -18,6 +18,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Key = c.Key, Kind = c.Kind.ToString(), Name = c.Name, SettlementId = c.SettlementId.IsEmpty ? null : c.SettlementId.ToString(), LayoutKey = c.LayoutKey,
                     PlayerAccess = c.PlayerAccess, AcceptsDeposits = c.AcceptsDeposits, Items = c.Items.ConvertAll(StackDto), Coin = c.Coin, CapacityGrams = c.CapacityGrams,
                     SourceKey = c.SourceKey, CreatedAt = c.CreatedAt, Opened = c.Opened,
+                    PlaceId = c.PlaceId, FeatureId = c.FeatureId,
                 });
             }
 
@@ -57,6 +58,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     SettlementId = string.IsNullOrEmpty(d.SettlementId) ? default : new SettlementId(RequiredGuid(d.SettlementId, "container settlementId")),
                     LayoutKey = d.LayoutKey, PlayerAccess = d.PlayerAccess, AcceptsDeposits = d.AcceptsDeposits, Coin = d.Coin, CapacityGrams = d.CapacityGrams,
                     SourceKey = d.SourceKey, CreatedAt = d.CreatedAt, Opened = d.Opened,
+                    PlaceId = d.PlaceId, FeatureId = d.FeatureId,
                 };
                 foreach (var s in d.Items ?? new List<ItemStackDto>()) c.Items.Add(Stack(s, "container item"));
                 world.Containers.Add(c);

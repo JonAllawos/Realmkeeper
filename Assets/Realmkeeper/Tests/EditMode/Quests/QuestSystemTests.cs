@@ -736,6 +736,34 @@ namespace Realmkeeper.Tests.EditMode.Quests
         }
 
         [Test]
+        public void ARewardAlreadyClaimed_IsNeverPaidAgain_EvenIfCompletionRunsTwice()
+        {
+            // Phase 13 (preflight): the guard in QuestRuntime.Complete cannot be reached through the public commands
+            // (closed quests are skipped), so this calls it directly, twice, on the same quest.
+            Ready();
+            AcceptGranary();
+            var copy = W;
+            var q = copy.Quests.First(x => x.DefinitionId == QuestCatalog.GranaryShortfall && x.SourceKey == "authored");
+            var def = QuestCatalog.Find(q.DefinitionId);
+            q.Outcome = "returned";
+            foreach (var p in q.Objectives) p.Done = p.Id != "replaced" && p.Id != "covered";
+            var context = new CommandContext(_s, copy, new Realmkeeper.Infrastructure.Randomness.Xoshiro256RandomFactory());
+            var coin = copy.Player.Purse;
+            var xp = copy.Player.Rpg.Experience;
+            Assert.That(QuestRuntime.Complete(context, copy, q, def, QuestRuntime.Reporter(context)), Is.Null, "The first completion pays.");
+            Assert.That(q.RewardsClaimed, Is.True);
+            var paidCoin = copy.Player.Purse;
+            var paidXp = copy.Player.Rpg.Experience;
+            Assert.That(paidCoin + paidXp, Is.GreaterThan(coin + xp), "Something was paid the first time.");
+            Assert.That(QuestRuntime.Complete(context, copy, q, def, QuestRuntime.Reporter(context)), Is.Null);
+            Assert.That(copy.Player.Purse, Is.EqualTo(paidCoin), "No second payment of coin.");
+            Assert.That(copy.Player.Rpg.Experience, Is.EqualTo(paidXp), "No second payment of experience.");
+            q.State = QuestState.Active; // even an open quest whose rewards were claimed is refused
+            Assert.That(QuestRuntime.Complete(context, copy, q, def, QuestRuntime.Reporter(context)), Is.Null);
+            Assert.That(copy.Player.Purse, Is.EqualTo(paidCoin));
+        }
+
+        [Test]
         public void TheValidator_CatchesImpossibleQuestStates()
         {
             Ready();

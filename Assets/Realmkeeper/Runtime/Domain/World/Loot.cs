@@ -113,6 +113,16 @@ namespace Realmkeeper.Domain.World
             Add("old_cache", "An old cache", 2, Coin(10, 40), I("potion_healing", 1, 2, weight: 4), I("almanac", weight: 2), I("gold_ring", weight: 2), I("silver_amulet", weight: 2),
                 I("arrows", 6, 12, weight: 2), I("old_key", weight: 1), I("ring_of_protection", chance: 4, tags: new[] { "rare-allowed" }), I("dagger_plus1", chance: 8, tags: new[] { "rare-allowed" }),
                 I("goggles_of_night", chance: 6, tags: new[] { "rare-allowed" }));
+
+            // Phase 13: what explorable places hold (ADR-0064).
+            Add("miners_stores", "Miners' stores", 2, Coin(2, 12), I("iron_ore", 1, 3, weight: 3), I("silver_ore", 1, 2, weight: 3), I("hooded_lantern", weight: 2),
+                I("travel_rations", 1, 2, weight: 2), I("smiths_tools", weight: 1));
+            Add("tomb_offerings", "Grave offerings", 2, Coin(5, 30), I("silver_amulet", weight: 2), I("gold_ring", weight: 2), I("holy_symbol", weight: 1), I("old_key", weight: 1),
+                I("potion_healing", weight: 1));
+            Add("garrison_stores", "Garrison stores", 2, Coin(5, 25), I("crossbow_bolts", 4, 10, weight: 2), I("spear_ash", weight: 2, condition: ItemCondition.Worn),
+                I("shield_round", weight: 1, condition: ItemCondition.Worn), I("travel_rations", 1, 3, weight: 2), I("potion_healing", weight: 1));
+            Add("vault_treasure", "Hidden treasure", 3, Coin(30, 90), I("gold_ring", weight: 2), I("silver_amulet", weight: 2), I("potion_greater_healing", weight: 1),
+                I("ring_of_protection", chance: 15, tags: new[] { "rare-allowed" }), I("dagger_plus1", chance: 10, tags: new[] { "rare-allowed" }));
         }
 
         /// <summary>

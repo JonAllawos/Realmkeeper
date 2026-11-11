@@ -124,7 +124,7 @@ namespace Realmkeeper.Application
         }
 
         /// <summary>Completes a quest (atomic with the command): rewards, completion consequences, follow-ups, then the state.</summary>
-        private static CommandResult Complete(CommandContext context, WorldData w, QuestInstanceData q, QuestDefinition def, QuestReporter report)
+        internal static CommandResult Complete(CommandContext context, WorldData w, QuestInstanceData q, QuestDefinition def, QuestReporter report)
         {
             if (q.State == QuestState.Completed || q.RewardsClaimed) return null;
             var failure = GiveRewards(context, w, q, def, report);

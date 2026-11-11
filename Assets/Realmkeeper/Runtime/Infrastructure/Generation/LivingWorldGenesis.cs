@@ -35,6 +35,7 @@ namespace Realmkeeper.Infrastructure.Generation
             if (EnsureLayouts(world, map)) changed = true;
             if (Simulation.Items.ItemGenesis.Ensure(world)) changed = true; // Phase 11: chests, caches, gathering sites
             if (Simulation.Quests.QuestGenesis.Ensure(world)) changed = true; // Phase 12: the authored quests and today's emergent ones
+            if (PlaceGenesis.Ensure(world, map, random)) changed = true; // Phase 13: wilderness places, their contents, captive and garrison
             return changed;
         }
 

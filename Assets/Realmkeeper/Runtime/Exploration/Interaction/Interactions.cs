@@ -77,6 +77,9 @@ namespace Realmkeeper.Exploration.Interaction
             if (interactable != null && !_interactables.Contains(interactable)) _interactables.Add(interactable);
         }
 
+        /// <summary>Phase 13: a place's things come and go as the world changes.</summary>
+        public void Unregister(IInteractable interactable) => _interactables.Remove(interactable);
+
         public void Clear() => _interactables.Clear();
 
         public IInteractable FindTarget(Vector3 position, Vector3 forward)

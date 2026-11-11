@@ -159,3 +159,11 @@ This note does not change any requirement.
   - activities that arise from the settlement simulation;
   - a journal that shows only what the player knows.
   The binding requirements still hold: one world model, every change a command, nothing only in the scene, and older saves upgraded once (schema v14). No campaign canon is fixed. The scope question above remains the owner's.
+- **Phase 13 (2026-11-11).** Phase 13 adds places beyond the streets:
+  - persistent dungeons, ruins, caves, a fort and building interiors, all one architecture in the world's hierarchy;
+  - generated layouts that are validated and then saved, never regenerated;
+  - one interaction framework with rules checks, fair traps and hazards;
+  - fights with a place's own inhabitants among its walls, using the one combat engine;
+  - rescue and escort of a real resident;
+  - discovery from rumour to map marker.
+  The binding requirements still hold: one world model, every change a command, the scene rebuilt from the world, and older saves upgraded once (schema v15). No campaign canon is fixed.

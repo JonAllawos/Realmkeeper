@@ -1,6 +1,6 @@
 # Phase 12 report: Quest, Dialogue, Reputation & World Interaction Engine
 
-Date: 2026-11-11. Branch `feature/phase-0-1-foundation`, on top of Phase 11 (`7b2831b`). Committed locally only; not pushed.
+Date: 2026-11-11. Branch `feature/phase-0-1-foundation`, on top of Phase 11 (`7b2831b`). Committed locally, then pushed on the owner's instruction (`1e593ae`). Note added in Phase 13: the text below was written before the push.
 
 Status words: **Complete** = built, used, and tested through commands and the UI; **Partial** = works where named, with the gap stated; **Data-only** = typed and validated, with nothing in play using it yet; **Deferred** = not built; **Missing** = absent before this phase.
 
@@ -276,7 +276,7 @@ See `Documentation/Phase12/Limitations.md`.
 
 ## S. Final Git status and local commit hash
 
-- Phase 12 is one local commit on `feature/phase-0-1-foundation`, on top of `7b2831b`: "Phase 12: quests, dialogue, reputation and world interaction". A file cannot contain its own commit's hash, so the hash is given with the delivery and in `git log`. **Not pushed.** The branch is ahead of `origin` by 1.
+- Phase 12 is one local commit on `feature/phase-0-1-foundation`, on top of `7b2831b`: "Phase 12: quests, dialogue, reputation and world interaction". A file cannot contain its own commit's hash, so the hash is given with the delivery and in `git log`. **Not pushed at the time of writing**; pushed afterwards on the owner's instruction (`7b2831b..1e593ae`).
 - Staged with `git add -A -- . ':!ProjectSettings/GraphicsSettings.asset' ':!Assets/InitTestScene*'`. The owner's change to `ProjectSettings/GraphicsSettings.asset` is preserved, unstaged, in the working tree. No reset, clean or history rewrite.
 - Phase 13 has not been started.
 

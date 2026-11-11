@@ -54,7 +54,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         public void Queries_ListFilterAndInspectWithAllTenSections()
         {
             var all = _s.GetNpcs();
-            Assert.That(all.Count, Is.EqualTo(15 + 4), "15 by role, and (Phase 10) the people the places call for: a captain, a guard and a priest in the town, a warden in the hamlet.");
+            Assert.That(all.Count, Is.EqualTo(15 + 4 + 5), "15 by role, (Phase 13) the watch fort's garrison of five, and (Phase 10) the people the places call for: a captain, a guard and a priest in the town, a warden in the hamlet.");
             var town = _s.GetSettlements().First(x => x.SettlementType == SettlementType.Town);
             Assert.That(_s.GetNpcs(new NpcFilter { Settlement = town.SettlementId }).Count, Is.EqualTo(6 + 3));
             Assert.That(_s.GetNpcs(new NpcFilter { Role = NpcRole.Elder }).All(n => n.Role == NpcRole.Elder), Is.True);

@@ -184,7 +184,10 @@ namespace Realmkeeper.Exploration.Domain
         internal LocalPaths.RoadGraph Graph { get; set; }
 
         /// <summary>Stable key of the environment (one per settlement).</summary>
-        public string EnvironmentKey => "settlement:" + SettlementId;
+        /// <summary>Phase 13: set when the environment is a place (a mine, an interior), whose key is its own.</summary>
+        public string PlaceKey { get; set; }
+
+        public string EnvironmentKey => PlaceKey ?? "settlement:" + SettlementId;
 
         /// <summary>True when a point is inside the walkable area (with a small margin for walls).</summary>
         public bool Contains(float x, float z) => Math.Abs(x) <= HalfExtent && Math.Abs(z) <= HalfExtent;

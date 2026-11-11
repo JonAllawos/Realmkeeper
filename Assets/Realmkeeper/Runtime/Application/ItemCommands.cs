@@ -320,6 +320,13 @@ namespace Realmkeeper.Application
             var c = world.FindContainer(key);
             if (c == null) { failure = CommandResult.NotFound("There is no such container."); return null; }
             if (!c.PlayerAccess) { failure = CommandResult.InvalidState($"{c.Name} is not yours to take from."); return null; }
+            if (c.PlaceId != null)
+            {
+                // Phase 13: a container in a place is reached from inside that place.
+                if (!p.IsInPlace || p.PlaceId != c.PlaceId) { failure = CommandResult.InvalidState($"{c.Name} is in {world.FindPlace(c.PlaceId)?.Name ?? "another place"}."); return null; }
+                return c;
+            }
+
             if (!c.SettlementId.IsEmpty && (!p.IsInSettlement || p.SettlementId != c.SettlementId))
             {
                 failure = CommandResult.InvalidState($"{c.Name} is in {world.FindSettlement(c.SettlementId)?.Name ?? "another settlement"}.");

@@ -223,6 +223,7 @@ namespace Realmkeeper.Presentation
             EnterSettlementButton.clicked += () => EnterSelectedSettlement();
             BindPolitics();
             BindPeople();
+            BindPlaces(); // Phase 13
 
             PlayPauseButton.clicked += () => { if (_playback != null) _playback.Toggle(); else ShowMessage(NoSession()); };
             AdvanceDayButton.clicked += () => Advance(1);
@@ -341,6 +342,7 @@ namespace Realmkeeper.Presentation
             RefreshActivity();
             RefreshPolitics();
             RefreshPeople();
+            RefreshPlaces(); // Phase 13
         }
 
         private void OnPlayStateChanged(bool playing)
@@ -368,6 +370,7 @@ namespace Realmkeeper.Presentation
             RefreshActivity();
             RefreshPolitics();
             RefreshPeople();
+            RefreshPlaces(); // Phase 13
         }
 
         private void RefreshTopBar()
@@ -749,6 +752,9 @@ namespace Realmkeeper.Presentation
             if (_playback != null) _playback.PlayStateChanged -= OnPlayStateChanged;
             if (_selection != null) _selection.SelectionChanged -= OnSelectionChanged;
             if (_ownedPanelSettings != null) PresentationMaterials.DestroyObject(_ownedPanelSettings);
+            if (_placeMarkers != null) Destroy(_placeMarkers); // Phase 13
+            if (_markerMaterial != null) Destroy(_markerMaterial);
+            if (_markerDoneMaterial != null) Destroy(_markerDoneMaterial);
         }
     }
 }

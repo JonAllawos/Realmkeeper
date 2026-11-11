@@ -18,8 +18,9 @@ namespace Realmkeeper.Exploration.Presentation
         public Func<JournalView> JournalSource { get; set; }
         public Func<string, QuestDetailView> QuestSource { get; set; }
         public Func<ReputationView> ReputationSource { get; set; }
+        public Func<IReadOnlyList<PlaceSummaryView>> PlacesSource { get; set; } // Phase 13
 
-        public static readonly IReadOnlyList<string> JournalTabs = new[] { "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Reputation" };
+        public static readonly IReadOnlyList<string> JournalTabs = new[] { "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Places", "Reputation" };
 
         private string _journalTab = "Active";
         private string _selectedQuest;
@@ -72,6 +73,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Decisions": Lines(j.Decisions, "No decisions that matter yet."); break;
                 case "Events": Lines(j.Events, "Nothing yet."); break;
                 case "Reputation": ReputationPanel(); break;
+                case "Places": PlacesPanel(); break;
             }
         }
 
@@ -156,6 +158,30 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             _content.Add(panel);
+        }
+
+        /// <summary>Phase 13 (ADR-0065): the places the player knows of — a rumour gives only a name and a direction.</summary>
+        private void PlacesPanel()
+        {
+            var places = PlacesSource?.Invoke();
+            if (places == null || places.Count == 0)
+            {
+                _content.Add(Text("You know of no places beyond the towns. Ask people what they have heard.", "xk-w-empty"));
+                return;
+            }
+
+            var box = Column("xk-store");
+            box.name = "xk-journal-places";
+            foreach (var p in places)
+            {
+                var state = p.Discovery == Realmkeeper.Domain.Places.PlaceDiscovery.Rumored ? "Heard of" : p.Discovery.ToString();
+                var row = Pair(p.Name, $"{p.Kind} · {state} · {p.Direction}" + (p.Visits > 0 ? $" · visited {p.Visits}× · {p.Threat}" : string.Empty));
+                row.name = "xk-journal-place-" + p.PlaceId;
+                box.Add(row);
+                if (p.Discovery >= Realmkeeper.Domain.Places.PlaceDiscovery.Discovered) box.Add(Text(p.Description, "xk-w-desc"));
+            }
+
+            _content.Add(box);
         }
 
         private void ReputationPanel()

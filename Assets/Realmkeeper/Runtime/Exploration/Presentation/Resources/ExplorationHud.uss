@@ -1106,3 +1106,20 @@
 .xk-journal-objective--done { color: rgb(126, 196, 112); }
 .xk-journal-objective--locked { color: rgb(130, 126, 116); }
 .xk-tracked { position: absolute; right: 18px; top: 74px; max-width: 420px; padding: 8px 12px; background-color: rgba(18, 16, 12, 0.72); border-radius: 4px; color: rgb(236, 222, 186); white-space: normal; -unity-text-align: upper-left; }
+
+/* ----- Phase 13: places ----- */
+.xk-combat-cell--wall { background-color: rgba(24, 22, 20, 0.95); }
+.xk-place { position: absolute; left: 18px; bottom: 120px; max-width: 460px; padding: 8px 12px; background-color: rgba(18, 16, 12, 0.72); border-radius: 4px; }
+.xk-place-name { color: rgb(236, 222, 186); font-size: 18px; -unity-font-style: bold; }
+.xk-place-where { color: rgb(214, 200, 168); font-size: 14px; }
+.xk-place-status { color: rgb(226, 170, 110); font-size: 13px; white-space: normal; }
+.xk-place-hint { color: rgb(170, 160, 136); font-size: 12px; }
+.xk-place-map { position: absolute; right: 24px; top: 120px; width: 420px; padding: 10px; background-color: rgba(14, 12, 10, 0.9); border-radius: 6px; border-width: 1px; border-color: rgb(110, 92, 60); }
+.xk-place-map-title { color: rgb(236, 222, 186); font-size: 16px; -unity-font-style: bold; margin-bottom: 6px; }
+.xk-place-map-floor { color: rgb(200, 186, 150); font-size: 13px; margin-top: 4px; }
+.xk-place-map-canvas { position: relative; height: 260px; margin-top: 4px; background-color: rgba(30, 26, 20, 0.9); }
+.xk-place-map-room { position: absolute; background-color: rgba(150, 128, 92, 0.85); border-width: 1px; border-color: rgb(60, 48, 32); }
+.xk-place-map-room--here { background-color: rgba(214, 170, 92, 0.95); }
+.xk-place-map-room--secret { background-color: rgba(120, 96, 150, 0.85); }
+.xk-place-map-passage { position: absolute; background-color: rgba(110, 96, 70, 0.85); }
+.xk-place-map-legend { color: rgb(170, 160, 136); font-size: 11px; margin-top: 6px; white-space: normal; }

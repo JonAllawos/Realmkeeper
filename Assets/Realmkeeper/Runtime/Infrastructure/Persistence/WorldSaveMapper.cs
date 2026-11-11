@@ -54,6 +54,9 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Yaw = w.Player.Pose.Yaw,
                     Perspective = w.Player.Perspective.ToString(),
                     LastSettlementId = w.Player.LastSettlementId.IsEmpty ? null : w.Player.LastSettlementId.ToString(),
+                    PlaceId = w.Player.PlaceId,
+                    PlaceFloor = w.Player.PlaceFloor,
+                    PlaceRoom = w.Player.PlaceRoom,
                 },
             };
 
@@ -261,6 +264,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WriteLivingWorld(w, dto); // Phase 10
             WriteItemWorld(w, dto); // Phase 11
             WriteQuestWorld(w, dto); // Phase 12
+            WritePlaces(w, dto); // Phase 13
             return dto;
         }
 
@@ -394,6 +398,9 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Pose = new LocalPose(pd.X, pd.Y, pd.Z, pd.Yaw),
                     Perspective = ParseEnum<CameraPerspective>(pd.Perspective, "player perspective"),
                     LastSettlementId = new SettlementId(OptionalGuid(pd.LastSettlementId, "player lastSettlementId")),
+                    PlaceId = pd.PlaceId,
+                    PlaceFloor = pd.PlaceFloor,
+                    PlaceRoom = pd.PlaceRoom,
                 };
             }
 
@@ -608,6 +615,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadLivingWorld(dto, world); // Phase 10
             ReadItemWorld(dto, world); // Phase 11
             ReadQuestWorld(dto, world); // Phase 12
+            ReadPlaces(dto, world); // Phase 13
             return world;
         }
 

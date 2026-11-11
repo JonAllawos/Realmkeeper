@@ -869,3 +869,9 @@
 .rk-structure--decorative {
     color: rgb(150, 142, 126);
 }
+
+/* Phase 13: places on the map */
+.rk-place-row { padding: 4px 6px; margin-bottom: 4px; border-bottom-width: 1px; border-color: rgba(120, 100, 70, 0.4); }
+.rk-place-name { color: rgb(236, 222, 186); -unity-font-style: bold; font-size: 13px; }
+.rk-place-line { color: rgb(196, 182, 150); font-size: 11px; white-space: normal; }
+.rk-muted { color: rgb(160, 150, 128); font-size: 12px; white-space: normal; }

@@ -229,6 +229,8 @@ namespace Realmkeeper.Application
             }
 
             o.Result = string.Join("; ", lines) + ".";
+            if (o.PlaceId != null) Places.PlaceEncounters.Resolve(context, world, e); // Phase 13: the place remembers the fight
+
             context.ReportEvent(HistoricalEventType.EncounterResolved, o.ObjectiveMet ? EventSeverity.Positive : EventSeverity.Warning, EventImportance.Minor,
                 o.NearSettlementId.IsEmpty ? Array.Empty<SettlementId>() : new[] { o.NearSettlementId },
                 new Dictionary<string, string> { ["source"] = "combat", ["name"] = e.Name.Split('—')[0].Trim(), ["summary"] = o.Result, ["xp"] = xp.ToString(CultureInfo.InvariantCulture), ["deaths"] = dead.Count.ToString(CultureInfo.InvariantCulture) });

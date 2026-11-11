@@ -72,6 +72,11 @@ namespace Realmkeeper.Domain.Combat
 
         public bool ObjectiveMet { get; set; }
 
+        /// <summary>Phase 13 (ADR-0064): the place and inhabitant group the fight is with, and the room it is in (null for outings).</summary>
+        public string PlaceId { get; set; }
+        public string GroupId { get; set; }
+        public string Room { get; set; }
+
         public EncounterOriginData Clone()
         {
             var c = (EncounterOriginData)MemberwiseClone();

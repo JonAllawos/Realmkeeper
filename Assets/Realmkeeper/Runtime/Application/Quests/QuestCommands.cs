@@ -105,6 +105,8 @@ namespace Realmkeeper.Application
             var npc = NpcCommandHandlers.Living(w, id, out failure);
             if (npc == null) return null;
             var p = w.Player;
+            if (Realmkeeper.Application.Places.PlaceRules.Beside(w, npc)) return npc; // Phase 13: held, following, posted or at home in the same place
+            if (p.IsInPlace) { failure = CommandResult.Invalid($"{npc.Name} is not here."); return null; }
             if (!p.IsInSettlement) { failure = CommandResult.InvalidState($"{p.Name} is not in a settlement."); return null; }
             var now = NpcActivityPlan.Now(w, npc);
             var here = NpcMind.SettlementAt(w, now.IsKnown ? now.Location : npc.CurrentLocationId)?.SettlementId ?? npc.HomeSettlementId;
@@ -130,7 +132,7 @@ namespace Realmkeeper.Application
                 if (first)
                 {
                     e.MetPlayerOn = today;
-                    context.ReportEvent(HistoricalEventType.PlayerMetResident, EventSeverity.Info, EventImportance.Minor, new[] { w.Player.SettlementId },
+                    context.ReportEvent(HistoricalEventType.PlayerMetResident, EventSeverity.Info, EventImportance.Minor, new[] { w.Player.SettlementId.IsEmpty ? e.HomeSettlementId : w.Player.SettlementId },
                         new Dictionary<string, string> { ["source"] = "player", ["npc"] = e.Name, ["role"] = e.Role.ToString(), ["player"] = player.Name }, null, new[] { e.NpcId });
                 }
 
@@ -205,7 +207,18 @@ namespace Realmkeeper.Application
                     return CommandResult.Ok("The conversation ends." + outcome);
                 }
 
-                if (next != null && next.StartsWith(DialogueEngine.HookPrefix, StringComparison.Ordinal))
+                if (next != null && next.StartsWith(DialogueEngine.DialoguePrefix, StringComparison.Ordinal))
+                {
+                    // Phase 13: a dialogue of its own (a gate's watch): "@dialogue:{id}:{node}".
+                    var rest = next.Substring(DialogueEngine.DialoguePrefix.Length);
+                    var colon = rest.LastIndexOf(':');
+                    var dlg = DialogueCatalog.Find(rest.Substring(0, colon));
+                    if (dlg == null) return CommandResult.Fail("That conversation is missing.");
+                    conv.DialogueId = dlg.Id;
+                    conv.QuestInstanceId = null;
+                    conv.NodeId = rest.Substring(colon + 1);
+                }
+                else if (next != null && next.StartsWith(DialogueEngine.HookPrefix, StringComparison.Ordinal))
                 {
                     var rest = next.Substring(DialogueEngine.HookPrefix.Length);
                     var colon = rest.LastIndexOf(':');

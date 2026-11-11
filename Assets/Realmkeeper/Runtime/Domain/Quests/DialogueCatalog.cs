@@ -9,7 +9,7 @@ namespace Realmkeeper.Domain.Quests
     /// each quest they play a part in and their shop. Each quest's dialogue has one node per role. Lines and responses
     /// carry conditions; responses carry skill checks and consequences. All writing is Realmkeeper's own.
     /// </summary>
-    public static class DialogueCatalog
+    public static partial class DialogueCatalog
     {
         public const string General = "npc_general";
 
@@ -333,6 +333,7 @@ namespace Realmkeeper.Domain.Quests
                     },
                 },
             });
+            AddPhase13(); // Phase 13: dialogue for places
         }
 
         /// <summary>Checks every graph: a start node, unique node and response IDs, every Next pointing at a node, "end" or the hub.</summary>

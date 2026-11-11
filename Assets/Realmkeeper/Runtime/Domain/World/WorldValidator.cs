@@ -152,6 +152,7 @@ namespace Realmkeeper.Domain.World
             ValidateCombat(world, settlementIds, npcIds, result);
             ValidateLiving(world, settlementIds, npcIds, result); // Phase 10
             ValidateQuests(world, result); // Phase 12
+            ValidatePlaces(world, result); // Phase 13
             if (world.Player != null) foreach (var e in Rpg.CharacterValidation.Check(world.Player)) result.AddError("Character: " + e);
             return result;
         }
@@ -390,6 +391,14 @@ namespace Realmkeeper.Domain.World
                 if (settlement == null) result.AddError("Player character is in a settlement that does not exist.");
                 else if (p.RegionId != settlement.RegionId) result.AddError("Player character's region does not match their settlement's region.");
                 if (!regions.ContainsKey(p.RegionId)) result.AddError("Player character is in a region that does not exist.");
+            }
+            else if (p.LocationKind == CharacterLocationKind.Place)
+            {
+                // Phase 13: in a place, the region is the place's, and a settlement only for an interior (checked with the places).
+                var place = world.FindPlace(p.PlaceId);
+                if (place != null && p.RegionId != place.RegionId) result.AddError("Player character's region does not match their place's region.");
+                if (place != null && p.SettlementId != (place.Category == Realmkeeper.Domain.Places.PlaceCategory.Interior ? place.SettlementId : default))
+                    result.AddError("Player character in a place names the wrong settlement.");
             }
             else if (!p.SettlementId.IsEmpty || !p.RegionId.IsEmpty)
             {

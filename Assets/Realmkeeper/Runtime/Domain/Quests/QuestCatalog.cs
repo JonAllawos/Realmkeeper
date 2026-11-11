@@ -10,7 +10,7 @@ namespace Realmkeeper.Domain.Quests
     /// a merchant out of stock). All text is Realmkeeper's own; no setting canon (kingdoms, the protagonist's identity, a
     /// central antagonist) is fixed here. The main-campaign category exists and has no authored quests yet.
     /// </summary>
-    public static class QuestCatalog
+    public static partial class QuestCatalog
     {
         public const string GranaryShortfall = "granary_shortfall";
         public const string WolvesAtTheFolds = "predators_at_the_folds";
@@ -235,6 +235,7 @@ namespace Realmkeeper.Domain.Quests
                 },
                 Consequences = new[] { new ConsequenceDefinition { Kind = ConsequenceKind.PlayerDeed, Role = "giver", Key = "supplied_shop" } },
             });
+            AddPhase13(); // Phase 13: quests in places
         }
 
         /// <summary>Checks the templates: unique IDs, a giver first, objectives with IDs and stages, every role named in text and targets defined.</summary>
@@ -253,7 +254,7 @@ namespace Realmkeeper.Domain.Quests
                     if (string.IsNullOrEmpty(o.Id) || !ids.Add(o.Id)) errors.Add($"Quest '{d.Id}' has a missing or repeated objective ID.");
                     if (o.Quantity < 1) errors.Add($"Quest '{d.Id}' objective '{o.Id}' needs {o.Quantity}.");
                     if (!o.Optional) required++;
-                    if (o.Target != null && o.Target.StartsWith("role:", StringComparison.Ordinal) && !roles.Contains(o.Target.Substring(5))) errors.Add($"Quest '{d.Id}' objective '{o.Id}' targets unknown role '{o.Target}'.");
+                    if (o.Target != null && o.Target.StartsWith("role:", StringComparison.Ordinal) && !roles.Contains(o.Target.Substring(5).Split('#')[0])) errors.Add($"Quest '{d.Id}' objective '{o.Id}' targets unknown role '{o.Target}'.");
                     if (o.To != null && !roles.Contains(o.To)) errors.Add($"Quest '{d.Id}' objective '{o.Id}' delivers to unknown role '{o.To}'.");
                 }
 

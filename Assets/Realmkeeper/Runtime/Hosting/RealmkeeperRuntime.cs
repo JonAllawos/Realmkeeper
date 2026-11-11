@@ -178,7 +178,7 @@ namespace Realmkeeper.Hosting
         private void UpdateMode()
         {
             var player = Host.IsActive ? Host.Session.GetPlayer() : null;
-            SetMode(player != null && player.IsInSettlement ? ViewMode.Exploration : ViewMode.Strategic);
+            SetMode(player != null && (player.IsInSettlement || player.LocationKind == Realmkeeper.Domain.World.CharacterLocationKind.Place) ? ViewMode.Exploration : ViewMode.Strategic); // Phase 13: a place is explored too
         }
 
         private void SetMode(ViewMode mode)

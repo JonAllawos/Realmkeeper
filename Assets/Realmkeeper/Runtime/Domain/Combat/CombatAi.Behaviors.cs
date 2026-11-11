@@ -131,10 +131,21 @@ namespace Realmkeeper.Domain.Combat
             {
                 var away = PathAway(engine, actor, targets);
                 if (away.Count > 0) return new MoveAction(away.ToArray());
+
+                // Phase 13: cornered among walls (nowhere further to run), it turns and fights rather than dash in place for ever.
+                if (engine.Encounter.Blocked.Count > 0 && targets.Count > 0) return Close(engine, actor, Nearest(actor, targets));
             }
 
-            if (!t.ActionUsed && engine.Speed(actor) > 0 && !adjacent) return new DashAction();
+            if (!t.ActionUsed && engine.Speed(actor) > 0 && !adjacent && engine.Encounter.Blocked.Count == 0) return new DashAction();
+            if (engine.Encounter.Blocked.Count > 0 && targets.Count > 0 && !t.ActionUsed) return Close(engine, actor, Nearest(actor, targets));
             return null;
+        }
+
+        private static CombatantData Nearest(CombatantData actor, List<CombatantData> targets)
+        {
+            CombatantData best = null;
+            foreach (var c in targets) if (best == null || actor.Position.DistanceFeet(c.Position) < actor.Position.DistanceFeet(best.Position)) best = c;
+            return best;
         }
 
         /// <summary>Attack the target when in reach (a recharging attack only when ready); otherwise close in, or dash.</summary>
@@ -180,6 +191,7 @@ namespace Realmkeeper.Domain.Combat
                 foreach (var (dx, dy) in Directions)
                 {
                     var n = new GridPos(at.X + dx, at.Y + dy, at.Z);
+                    if (engine.IsBlocked(n)) continue;
                     var who = engine.At(n);
                     if (who != null && who != actor) continue;
                     if (Nearest(n) <= Nearest(at)) continue;
@@ -209,6 +221,7 @@ namespace Realmkeeper.Domain.Combat
                 foreach (var (dx, dy) in Directions)
                 {
                     var n = new GridPos(at.X + dx, at.Y + dy, at.Z);
+                    if (engine.IsBlocked(n)) continue;
                     var who = engine.At(n);
                     if (who != null && who != actor) continue;
                     if (n.DistanceFeet(goal) >= at.DistanceFeet(goal)) continue;

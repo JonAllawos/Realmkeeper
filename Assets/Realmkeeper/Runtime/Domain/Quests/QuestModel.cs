@@ -85,6 +85,12 @@ namespace Realmkeeper.Domain.Quests
         CompleteQuest = 19,
         SurviveEncounter = 20,
         Decision = 21,
+
+        // Phase 13 (ADR-0065): objectives in places. Targets: "role:place#roomId", "role:place#floor", a trap or feature as "role:place#featureId".
+        ExploreRoom = 22,
+        ReachFloor = 23,
+        DisarmTrap = 24,
+        UseFeature = 25,
     }
 
     /// <summary>

@@ -55,6 +55,7 @@ namespace Realmkeeper.Simulation.Npcs
         public static NpcWhereabouts At(WorldData world, NpcData npc, WorldDate date, int minuteOfDay, DayPartRules parts = null)
         {
             if (npc == null || npc.IsDeceased) return default;
+            if (Realmkeeper.Simulation.Places.PlacePresence.IsAway(world, npc)) return default; // Phase 13: held, following, or posted to a place
             parts = parts ?? DefaultParts;
             var m = WorldTime.Normalize(minuteOfDay);
             var home = npc.ResidenceId;

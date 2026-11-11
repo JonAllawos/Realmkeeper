@@ -1,0 +1,19 @@
+p13_11_settlement_interior: Inside House 4: the main room, built from the building's footprint and function (3 rooms on 2 floor(s)).
+p13_12_npc_inside_building: Edda Thorne, at home (Sitting), spoken to through the conversation window: ""Well met. I'm Edda Thorne.""
+p13_14_map_discovered_location: The strategic map after the giver told the way: a marker where The Hollow Seam lies, and the Places list with its way in. Places the player has not heard of are not shown.
+p13_02_mine_entrance: The Hollow Seam: the mouth of the mine from inside, daylight beyond the way out; timber shoring, the first room.
+p13_01_dungeon_entrance: The entrance room of The Hollow Seam: the HUD names the place, the floor and the room; the passages lead on.
+p13_03_mine_interior: Inside the workings: the office, timber shoring and beams (in the room: foreman's ledger).
+p13_07_discovery: A discovery: the foreman's ledger, read — why the mine was abandoned. It is kept in the journal's Discoveries.
+p13_05_vertical_connection: The ladder down the shaft to the lower level (taken with the interact key; the floor changes in the HUD).
+p13_04_multi_room: The place map (N): only the rooms already seen, on each floor, with the passages between them; gold marks where the player stands.
+p13_09_creature_encounter: A fight with the mine's inhabitants at the foot of the ladder, on the place's own grid: walls are dark squares nobody can enter; the combat window lists who acts.
+(at the captive: room f1r7 = f1r7)
+(free attempt: Athletics 25 (20+5) against 10: success. You heave the timber aside and cut the webbing. Wenna Fairweather stands, shaking: "Get me out of here. Please." (Wenna Fairweather follows you.))
+(after the den: room f1r7, in fight False, follower True)
+p13_10_loot_interaction: Loot in the place: the container opened in the Storage section, with Take and Take all — real items with one holder.
+p13_08_hazard: A hazard: foul air in the tomb (green haze), met through a Constitution save — the HUD's status line says so. Tomb. The air is close and sour; lamps burn low and blue. Constitution save 6 against 11: failure: 2 poison damage. You are left poisoned for a while.
+p13_06_ruin_or_crypt: The Fordkeepers' Crypt: the tomb, dressed-stone walls (nothing else in the room).
+p13_08b_trap: A trap the player noticed: the poisoned needle, drawn once found; Disarm needs the tools and a check.
+p13_13_faction_location: Watch Fort: the gatehouse and its watch (Neville Oakes); the gate is held until they give leave — by standing, Persuasion or coin.
+p13_15_after_return: Back in The Hollow Seam's den after the rescue: no fight, nobody held, the timber thrown aside — visits 2, state Cleared.

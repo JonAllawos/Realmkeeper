@@ -112,6 +112,15 @@ namespace Realmkeeper.Application
         /// <summary>Squares of difficult terrain (moving into one costs double).</summary>
         public IReadOnlyList<GridPos> DifficultTerrain { get; set; } = new List<GridPos>();
 
+        /// <summary>Phase 13: walls (a place's geometry) no one can enter.</summary>
+        public IReadOnlyList<GridPos> Blocked { get; set; } = new List<GridPos>();
+
+        public bool BlockedContains(GridPos p)
+        {
+            foreach (var d in Blocked) if (d.Equals(p)) return true;
+            return false;
+        }
+
         public bool DifficultTerrainContains(GridPos p)
         {
             foreach (var d in DifficultTerrain) if (d.Equals(p)) return true;
@@ -187,7 +196,7 @@ namespace Realmkeeper.Application
             var snap = new EncounterSnapshot
             {
                 Id = e.EncounterId, Name = e.Name, Kind = e.Kind, Lethality = e.Lethality, Status = e.Status, Outcome = e.Outcome, WinningSide = e.WinningSide,
-                Round = e.Round, Sequence = e.ActionSequence, Order = order, Log = e.Log, DifficultTerrain = e.DifficultTerrain,
+                Round = e.Round, Sequence = e.ActionSequence, Order = order, Log = e.Log, DifficultTerrain = e.DifficultTerrain, Blocked = e.Blocked,
                 Active = e.Active != null ? View(e.Active) : null, Player = player != null ? View(player) : null,
             };
             var loot = world.FindContainer(WorldEncounters.LootKey(e.EncounterId)); // Phase 11: what the fight left

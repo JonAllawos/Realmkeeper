@@ -118,6 +118,7 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>A greedy path toward a target (each step the free square closest to it) until within reach or out of movement.</summary>
         public static List<GridPos> PathToward(CombatEngine engine, CombatantData actor, CombatantData target, int reach)
         {
+            if (engine.Encounter.Blocked.Count > 0) return PathAround(engine, actor, target, reach); // Phase 13: walls need a real route
             var path = new List<GridPos>();
             var at = actor.Position;
             var left = engine.MovementLeft(actor);
@@ -127,6 +128,7 @@ namespace Realmkeeper.Domain.Combat
                 foreach (var (dx, dy) in Directions)
                 {
                     var n = new GridPos(at.X + dx, at.Y + dy, at.Z);
+                    if (engine.IsBlocked(n)) continue;
                     var who = engine.At(n);
                     if (who != null && who != actor) continue;
                     if (n.DistanceFeet(target.Position) >= at.DistanceFeet(target.Position)) continue;
@@ -144,6 +146,50 @@ namespace Realmkeeper.Domain.Combat
             return path;
         }
 
+        /// <summary>
+        /// Phase 13 (ADR-0064): the shortest route around walls (breadth-first over free squares, within 24 squares) to a
+        /// square in reach of the target, cut to the movement left. Deterministic: neighbours are tried in a fixed order.
+        /// </summary>
+        public static List<GridPos> PathAround(CombatEngine engine, CombatantData actor, CombatantData target, int reach)
+        {
+            var start = actor.Position;
+            var parent = new Dictionary<GridPos, GridPos>();
+            var queue = new Queue<GridPos>();
+            queue.Enqueue(start);
+            parent[start] = start;
+            GridPos? goal = null;
+            while (queue.Count > 0 && goal == null)
+            {
+                var at = queue.Dequeue();
+                foreach (var (dx, dy) in Directions)
+                {
+                    var n = new GridPos(at.X + dx, at.Y + dy, at.Z);
+                    if (parent.ContainsKey(n) || Math.Abs(n.X - start.X) > 24 || Math.Abs(n.Y - start.Y) > 24) continue;
+                    if (engine.IsBlocked(n)) continue;
+                    var who = engine.At(n);
+                    if (who != null && who != actor) continue;
+                    parent[n] = at;
+                    if (n.DistanceFeet(target.Position) <= reach) { goal = n; break; }
+                    queue.Enqueue(n);
+                }
+            }
+
+            var path = new List<GridPos>();
+            if (goal == null) return path;
+            for (var p = goal.Value; !p.Equals(start); p = parent[p]) path.Insert(0, p);
+            var left = engine.MovementLeft(actor);
+            var cut = new List<GridPos>();
+            foreach (var p in path)
+            {
+                var cost = engine.StepCost(actor, p);
+                if (cost > left) break;
+                left -= cost;
+                cut.Add(p);
+            }
+
+            return cut;
+        }
+
         private static MoveAction StepAway(CombatEngine engine, CombatantData actor, List<CombatantData> enemies)
         {
             GridPos? best = null;
@@ -151,7 +197,7 @@ namespace Realmkeeper.Domain.Combat
             foreach (var (dx, dy) in Directions)
             {
                 var n = new GridPos(actor.Position.X + dx, actor.Position.Y + dy, actor.Position.Z);
-                if (engine.At(n) != null || engine.StepCost(actor, n) > engine.MovementLeft(actor)) continue;
+                if (engine.At(n) != null || engine.IsBlocked(n) || engine.StepCost(actor, n) > engine.MovementLeft(actor)) continue;
                 var nearest = int.MaxValue;
                 foreach (var en in enemies) nearest = Math.Min(nearest, n.DistanceFeet(en.Position));
                 if (nearest > bestScore) { bestScore = nearest; best = n; }

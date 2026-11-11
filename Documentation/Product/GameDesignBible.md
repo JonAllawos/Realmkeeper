@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 12, 2026-11-11)
+## Implementation status (updated at the end of Phase 13, 2026-11-11)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -68,11 +68,16 @@ present but visibly temporary; **Not started**.
 | §10.2 Loot | **Implemented** (Phase 11) | 15 tables, carried gear, seeded and filled once into a container per fight; caches per settlement; rarity bounded (ADR-0053) |
 | Inventory and storage | **Implemented** (Phase 11) | Instances with state; one holder each; weight-limited pack (SRD carrying capacity); the player's chest per settlement; search, filters, sorting, inspection and rules-engine comparison (ADR-0051, ADR-0055) |
 | Crafting, gathering, repair | **Implemented** (Phase 11), 11 recipes | Work that holds its materials, rolls a tool check and takes world time; finite gathering sites from the settlement economy, recovering weekly; mending by an armourer or by the player (ADR-0054). Armorsmithing and enchanting recipes Not started |
-| Quests | **Implemented** (Phase 12), 5 quests | Data-driven templates bound to real people and places; validated states; stages, alternatives, optional, hidden, timed objectives fed by events from commands; atomic, idempotent completion and rewards; 3 authored (a settlement problem with three endings, a hunt through the encounter system, a sealed-letter delivery) and 2 emergent (food shortage, empty shelves) (ADR-0056, ADR-0057). Escort and rescue objectives typed but unused (Partial) |
+| Quests | **Implemented** (Phase 12), 6 quests | Data-driven templates bound to real people and places; validated states; stages, alternatives, optional, hidden, timed objectives fed by events from commands; atomic, idempotent completion and rewards; 3 authored (a settlement problem with three endings, a hunt through the encounter system, a sealed-letter delivery) and 2 emergent (food shortage, empty shelves) (ADR-0056, ADR-0057). Escort, rescue and protect used by "Lost Below" (Phase 13) |
 | Dialogue | **Implemented** (Phase 12) | Conditional lines and responses, rolled skill checks (Persuasion, Intimidation, Deception, Insight), typed consequences through one command; the Phase 4 topics inside it; numbered keyboard choices (ADR-0058) |
 | Reputation and relationships | **Implemented** (Phase 12) | Seven regard dimensions per person, faction standing, settlement reputation, notoriety; keyed changes; deeds spread by Phase 4 sharing and only listeners react; standing moves prices and can close a shop (ADR-0059). Theft and assault as sources: Data-only |
 | Journal and discovery | **Implemented** (Phase 12) | Quests by state, detail with hidden objectives hidden, tracking (3), rumours, discoveries, decisions, player-known Chronicle; notice board and ledger as world objects (ADR-0060) |
 | Content settings | **Foundation** (Phase 12) | Tags and show/soften/hide rules on quest and dialogue text; no settings screen yet (ADR-0061) |
+| Explorable places (dungeons, ruins, interiors) | **Implemented** (Phase 13), 5 wilderness places + interiors | Persistent places in a hierarchy (region, settlement, building, floor, room); 10 archetypes generated on a validated slot grid (2,500 seeds, 0 failures) and an authored fort; building interiors planned from function and footprint on first entry; state kept across visits and saves (ADR-0062, ADR-0063) |
+| Exploration interactions, traps and hazards | **Implemented** (Phase 13) | One framework: inspect, search, open, close, lock, unlock, pick, force, disarm, read, listen, activate, free, attack — each a validated command with rules checks; 6 trap kinds and 5 hazards, fair by design; lasting conditions after a trap: Not implemented (ADR-0064) |
+| Location-based encounters | **Implemented** (Phase 13) | A place's inhabitants are lasting individuals (or persistent people) fought with the one engine among the room's walls (blocked squares; AI routes around them); defeated stays defeated; loot lies in the room (ADR-0064) |
+| Escort, rescue, protect | **Implemented** (Phase 13), one quest | The same persistent person held, freed, following through every transition and brought home; protect when they fight beside the player; garrisons posted at their fort (ADR-0066) |
+| Map markers and place discovery | **Implemented** (Phase 13) | Unknown → Rumored (name and direction) → Discovered (marker, ways in) → Visited → Explored → Cleared; the in-place map shows only rooms seen (ADR-0065) |
 
 ### §19 Design principles: how Phases 6–7 respect them
 

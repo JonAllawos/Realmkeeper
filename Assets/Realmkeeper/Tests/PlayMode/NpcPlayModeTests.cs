@@ -56,7 +56,7 @@ namespace Realmkeeper.Tests.PlayMode
             hud.ShowPeople(true);
             yield return null;
             Assert.That(hud.PeoplePanelVisible, Is.True);
-            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(19), "Every named person is listed."); // Phase 10: the captain, guard, priest and warden the places call for (15 → 19)
+            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(24), "Every named person is listed."); // Phase 10: the captain, guard, priest and warden the places call for (15 → 19); Phase 13: the watch fort's garrison of five (19 → 24)
 
             var town = bootstrap.Session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
             hud.SetPeopleFilter(settlement: town.SettlementId);

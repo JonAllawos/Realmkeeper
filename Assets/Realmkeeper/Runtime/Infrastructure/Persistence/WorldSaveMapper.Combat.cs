@@ -39,6 +39,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                     });
                 foreach (var id in e.Order) d.Order.Add(id.ToString());
                 foreach (var p in e.DifficultTerrain) d.DifficultTerrain.Add(PosDto(p));
+                d.Blocked = new List<GridPosDto>();
+                foreach (var p in e.Blocked) d.Blocked.Add(PosDto(p));
                 foreach (var c in e.Combatants)
                 {
                     var cd = new CombatantDto
@@ -111,6 +113,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 };
                 foreach (var id in d.Order ?? new List<string>()) e.Order.Add(new CombatantId(RequiredGuid(id, "encounter order")));
                 foreach (var p in d.DifficultTerrain ?? new List<GridPosDto>()) e.DifficultTerrain.Add(Pos(p));
+                foreach (var p in d.Blocked ?? new List<GridPosDto>()) e.Blocked.Add(Pos(p));
                 foreach (var cd in d.Combatants ?? new List<CombatantDto>())
                 {
                     if (cd == null) throw new SaveDataException("Null combatant entry.");

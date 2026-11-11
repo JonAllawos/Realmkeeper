@@ -102,7 +102,6 @@ namespace Realmkeeper.Exploration.Presentation
                 HubWindow.UnequipRequested += s => HubCommand(new UnequipItemCommand(s));
                 HubWindow.UseRequested += s => HubCommand(new UseItemCommand(s));
                 HubWindow.SplitRequested += (s, n) => HubCommand(new SplitStackCommand(s, n));
-                HubWindow.CombineRequested += (a, b) => HubCommand(new CombineStacksCommand(a, b));
                 HubWindow.DiscardRequested += (s, n) => HubCommand(new DiscardItemCommand(s, n));
                 HubWindow.ProfileSaved += (n, age, bg, d) => HubCommand(new SetPlayerProfileCommand(n, age, bg, d));
                 HubWindow.AppearanceChosen += a => HubCommand(new SetPlayerAppearanceCommand(a));
@@ -235,6 +234,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// </summary>
         public void RefreshPresence(WorldTimeSummary time, bool snap)
         {
+            if (InPlace) { if (_session != null) RefreshPlace(_session.GetPlaceScene(), snap); return; } // Phase 13: a place shows its own people
             var layout = _streamer.Current;
             if (layout == null) return;
             var absolute = time.Date.ToDayNumber() * 1440L + time.MinuteOfDay;

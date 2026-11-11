@@ -40,6 +40,10 @@ namespace Realmkeeper.Domain.World
         public SettlementId SettlementId { get; set; }
         public string LayoutKey { get; set; }
 
+        /// <summary>Phase 13: the place and feature it stands at (a chest in a mine, a loot pile in a crypt's tomb), or null.</summary>
+        public string PlaceId { get; set; }
+        public string FeatureId { get; set; }
+
         /// <summary>True when the player may take from it and put into it (their chest, loot they won, a cache they found).</summary>
         public bool PlayerAccess { get; set; }
 

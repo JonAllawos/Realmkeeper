@@ -77,6 +77,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v14 (Phase 12): quests and the conversation in progress.
         public List<QuestInstanceDto> Quests { get; set; }
         public ConversationDto Conversation { get; set; }
+
+        // Schema v15 (Phase 13): explorable places and the people held in or brought out of them.
+        public List<PlaceDto> Places { get; set; }
+        public List<EscortDto> Escorts { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -402,6 +406,11 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string Perspective { get; set; }
         public string LastSettlementId { get; set; }
 
+        // Schema v15 (Phase 13): the place the character is in (with locationKind Place) and its floor.
+        public string PlaceId { get; set; }
+        public int PlaceFloor { get; set; }
+        public string PlaceRoom { get; set; }
+
         // Schema v7 (Phase 5). Absent in older saves.
         public string Species { get; set; }
         public int Age { get; set; }
@@ -657,6 +666,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<string> Order { get; set; }
         public List<CombatantDto> Combatants { get; set; }
         public List<GridPosDto> DifficultTerrain { get; set; }
+
+        // Schema v15 (Phase 13): walls around a fight in a place.
+        public List<GridPosDto> Blocked { get; set; }
         public string StartedOn { get; set; }
         public int StartedAtMinute { get; set; }
         public string EndedOn { get; set; }
@@ -689,6 +701,11 @@ namespace Realmkeeper.Infrastructure.Persistence
 
     public sealed class EncounterOriginDto
     {
+        // Schema v15 (Phase 13): a fight in a place.
+        public string PlaceId { get; set; }
+        public string GroupId { get; set; }
+        public string Room { get; set; }
+
         public string Type { get; set; }
         public string Objective { get; set; }
         public string ProtectedNpcId { get; set; }
@@ -973,6 +990,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string SourceKey { get; set; }
         public long CreatedAt { get; set; } = -1;
         public bool Opened { get; set; }
+
+        // Schema v15 (Phase 13): the place and feature it stands at.
+        public string PlaceId { get; set; }
+        public string FeatureId { get; set; }
     }
 
     /// <summary>Schema v13 (Phase 11): the player's work in progress (or finished, kept briefly as a record).</summary>

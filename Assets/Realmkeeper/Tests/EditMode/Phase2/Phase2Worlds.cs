@@ -39,11 +39,44 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
         /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
         /// <summary>
+        /// Rebuilds the v14 layout (Phase 12): no places, escorts, place containers, garrison people, the rescue quest or
+        /// place references on the player and containers.
+        /// </summary>
+        public static void StripToV14(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 14;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            var garrison = new System.Collections.Generic.HashSet<string>();
+            foreach (Newtonsoft.Json.Linq.JObject p in (w["places"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+                foreach (Newtonsoft.Json.Linq.JObject g in (p["layout"]?["groups"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+                    foreach (Newtonsoft.Json.Linq.JObject m in (g["members"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+                        if (m["npcId"] != null && m["npcId"].Type == Newtonsoft.Json.Linq.JTokenType.String) garrison.Add((string)m["npcId"]);
+            foreach (var field in new[] { "places", "escorts" }) w.Remove(field);
+            if (w["npcs"] is Newtonsoft.Json.Linq.JArray npcs)
+                foreach (var n in npcs.Where(n => garrison.Contains((string)n["npcId"])).ToList()) n.Remove();
+            if (w["quests"] is Newtonsoft.Json.Linq.JArray quests)
+                foreach (var q in quests.Where(q => (string)q["definitionId"] == "lost_below").ToList()) q.Remove();
+            bool Mentions(Newtonsoft.Json.Linq.JToken t) => (t is Newtonsoft.Json.Linq.JContainer jc ? jc.DescendantsAndSelf() : new[] { t }).OfType<Newtonsoft.Json.Linq.JValue>().Any(v => v.Type == Newtonsoft.Json.Linq.JTokenType.String && garrison.Contains((string)v));
+            if (w["npcRelations"] is Newtonsoft.Json.Linq.JArray rels)
+                foreach (var r in rels.Where(Mentions).ToList()) r.Remove();
+            if (w["historicalEvents"] is Newtonsoft.Json.Linq.JArray events)
+                foreach (var e in events.Where(Mentions).ToList()) e.Remove();
+            if (w["containers"] is Newtonsoft.Json.Linq.JArray boxes)
+            {
+                foreach (var b in boxes.Where(b => ((string)b["key"]).StartsWith("box:")).ToList()) b.Remove();
+                foreach (Newtonsoft.Json.Linq.JObject b in boxes) { b.Remove("placeId"); b.Remove("featureId"); }
+            }
+
+            if (w["player"] is Newtonsoft.Json.Linq.JObject player) foreach (var field in new[] { "placeId", "placeFloor", "placeRoom" }) player.Remove(field);
+        }
+
+        /// <summary>
         /// Rebuilds the v13 layout (Phase 11): no quest system, quests, conversation, player social record, content
         /// settings, or further regard dimensions.
         /// </summary>
         public static void StripToV13(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV14(doc); // Phase 13
             doc["schemaVersion"] = 13;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;

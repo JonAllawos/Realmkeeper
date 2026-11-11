@@ -46,6 +46,14 @@ namespace Realmkeeper.Simulation.Quests
         LostEncounter = 15,
         ItemsChanged = 16,
         ObjectiveCompleted = 17,
+
+        // Phase 13: places. Subject is the place id; Detail a room, floor or feature where it matters.
+        PlaceDiscovered = 18,
+        PlaceEntered = 19,
+        RoomExplored = 20,
+        FloorReached = 21,
+        TrapDisarmed = 22,
+        FeatureUsed = 23,
     }
 
     public sealed class QuestEvent
@@ -91,6 +99,8 @@ namespace Realmkeeper.Simulation.Quests
             if (item != null) return item.Name.ToLowerInvariant();
             var creature = CreatureCatalog.Find(id);
             if (creature != null) return creature.Name.ToLowerInvariant();
+            var place = w.FindPlace(id.Split('#')[0]);
+            if (place != null) return place.Name;
             if (id.StartsWith("ledger:", StringComparison.Ordinal)) return "the granary ledger";
             if (id.StartsWith("notice:", StringComparison.Ordinal)) return "the notice board";
             return id;
@@ -533,7 +543,12 @@ namespace Realmkeeper.Simulation.Quests
         private static string Resolve(QuestInstanceData q, string target)
         {
             if (target == null) return null;
-            if (target.StartsWith("role:", StringComparison.Ordinal)) return q.Bound(target.Substring(5));
+            if (target.StartsWith("role:", StringComparison.Ordinal))
+            {
+                var hash = target.IndexOf('#');
+                return hash < 0 ? q.Bound(target.Substring(5)) : q.Bound(target.Substring(5, hash - 5)) + target.Substring(hash); // Phase 13: "role:place#room"
+            }
+
             if (target.StartsWith("var:", StringComparison.Ordinal)) return q.Variables.TryGetValue(target.Substring(4), out var v) ? v : null;
             var colon = target.IndexOf(':');
             return colon < 0 ? target : target.Substring(colon + 1);
@@ -572,8 +587,17 @@ namespace Realmkeeper.Simulation.Quests
                 case ObjectiveKind.DiscoverInfo:
                     return e.Kind == QuestEventKind.Discovered && e.Subject == target;
                 case ObjectiveKind.DiscoverLocation:
+                    return (e.Kind == QuestEventKind.VisitedLocation || e.Kind == QuestEventKind.ReachedSettlement || e.Kind == QuestEventKind.PlaceDiscovered || e.Kind == QuestEventKind.PlaceEntered) && e.Subject == target;
                 case ObjectiveKind.VisitLocation:
-                    return (e.Kind == QuestEventKind.VisitedLocation || e.Kind == QuestEventKind.ReachedSettlement) && e.Subject == target;
+                    return (e.Kind == QuestEventKind.VisitedLocation || e.Kind == QuestEventKind.ReachedSettlement || e.Kind == QuestEventKind.PlaceEntered) && e.Subject == target;
+                case ObjectiveKind.ExploreRoom:
+                    return e.Kind == QuestEventKind.RoomExplored && e.Subject + "#" + e.Detail == target;
+                case ObjectiveKind.ReachFloor:
+                    return e.Kind == QuestEventKind.FloorReached && e.Subject + "#" + e.Detail == target;
+                case ObjectiveKind.DisarmTrap:
+                    return e.Kind == QuestEventKind.TrapDisarmed && (e.Subject + "#" + e.Detail == target || e.Subject == target);
+                case ObjectiveKind.UseFeature:
+                    return e.Kind == QuestEventKind.FeatureUsed && e.Subject + "#" + e.Detail == target;
                 case ObjectiveKind.ReachSettlement:
                     return e.Kind == QuestEventKind.ReachedSettlement && e.Subject == target;
                 case ObjectiveKind.Craft:

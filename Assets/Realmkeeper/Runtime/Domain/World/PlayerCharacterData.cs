@@ -11,6 +11,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Inside a settlement's local environment.</summary>
         Settlement = 1,
+
+        /// <summary>Phase 13: inside an explorable place (a mine, a crypt, a building's interior).</summary>
+        Place = 2,
     }
 
     /// <summary>Exploration camera perspective. Persisted by name.</summary>
@@ -75,6 +78,15 @@ namespace Realmkeeper.Domain.World
 
         public bool IsInSettlement => LocationKind == CharacterLocationKind.Settlement;
 
+        /// <summary>Phase 13 (ADR-0062): the place the character is in (with <see cref="CharacterLocationKind.Place"/>), and the floor; <see cref="Pose"/> is then in the place's own space.</summary>
+        public string PlaceId { get; set; }
+        public int PlaceFloor { get; set; }
+
+        /// <summary>The room the character was last recorded in (rooms are entered by command, so the world always knows).</summary>
+        public string PlaceRoom { get; set; }
+
+        public bool IsInPlace => LocationKind == CharacterLocationKind.Place;
+
         // ----- Phase 5: the player as a person with looks, belongings and standing -----------------
 
         public string Species { get; set; } = "Human";
@@ -118,6 +130,9 @@ namespace Realmkeeper.Domain.World
             Pose = Pose,
             Perspective = Perspective,
             LastSettlementId = LastSettlementId,
+            PlaceId = PlaceId,
+            PlaceFloor = PlaceFloor,
+            PlaceRoom = PlaceRoom,
                 Species = Species,
                 Age = Age,
                 Background = Background,

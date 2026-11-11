@@ -212,6 +212,7 @@ namespace Realmkeeper.Domain.World
             }
 
             AddPhase11(); // Phase 11: the rest of the catalog
+            AddPhase13(); // Phase 13: exploration items
             CompletePhase11();
         }
     }

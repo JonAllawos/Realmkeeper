@@ -118,6 +118,12 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>A hidden objective becomes visible (Key: objective ID).</summary>
         RevealObjective = 26,
+
+        /// <summary>Phase 13: the player learns of a place (Key: the quest role naming it, or a place id; Value: "Rumored" or "Discovered").</summary>
+        RevealPlace = 27,
+
+        /// <summary>Phase 13: the speaker gives leave to pass a place's guarded way (Key: place id or role; Value: the group id).</summary>
+        GrantPassage = 28,
     }
 
     public sealed class DialogueConsequence

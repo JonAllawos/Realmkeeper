@@ -231,6 +231,7 @@ namespace Realmkeeper.Exploration.Presentation
                     if (InPreview(pos)) cell.AddToClassList("xk-combat-cell--area");
                     if (Composing && NeedsPoint && yourTurn) { var aim = pos; cell.clicked += () => Aim(aim); }
                     if (s.DifficultTerrainContains(pos)) cell.AddToClassList("xk-combat-cell--difficult");
+                    if (s.BlockedContains(pos)) cell.AddToClassList("xk-combat-cell--wall"); // Phase 13
                     if (at.TryGetValue((pos.X, pos.Y), out var who))
                     {
                         cell.text = Initials(who.Name);

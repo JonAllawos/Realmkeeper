@@ -62,6 +62,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void SetupContainers(LocalEnvironmentLayout layout)
         {
             _containers.Clear();
+            if (InPlace) return; // Phase 13: a place's containers are its own things
             if (_session == null || EnvironmentRoot == null) return;
             var root = new GameObject("Containers").transform;
             var n = 0;

@@ -104,6 +104,15 @@ namespace Realmkeeper.Application
                 case HistoricalEventType.PlayerDiscovery: return $"Discovered: {e.Get("what")}";
                 case HistoricalEventType.QuestItemDelivered: return $"The player delivered {e.Get("quantity")} × {e.Get("item")} to {e.Get("to")}.";
                 case HistoricalEventType.QuestConsequence: return $"In {s}, {e.Get("what")}.";
+                // Phase 13: places.
+                case HistoricalEventType.PlaceDiscovered: return $"The player learned where {e.Get("place")} lies ({e.Get("how")}).";
+                case HistoricalEventType.PlaceEntered: return $"{e.Get("by") ?? "The player"} went into {e.Get("place")} for the first time.";
+                case HistoricalEventType.PlaceCleared: return $"{e.Get("place")} was cleared of its inhabitants by {e.Get("by") ?? "the player"}.";
+                case HistoricalEventType.TrapSprung: return $"{e.Get("by") ?? "Someone"} set off a {(e.Get("trap") ?? "trap").ToLowerInvariant()} in {e.Get("place")}.";
+                case HistoricalEventType.CaptiveFreed: return $"{e.Get("by") ?? "The player"} freed {e.Get("npc")} in {e.Get("place")}.";
+                case HistoricalEventType.EscortArrived: return $"{e.Get("npc")} was brought home to {s} by {e.Get("by") ?? "the player"}.";
+                case HistoricalEventType.Trespass: return $"{e.Get("by") ?? "A stranger"} was caught trespassing in the {(e.Get("room") ?? "keep").ToLowerInvariant()} of {e.Get("place")}.";
+                case HistoricalEventType.PlaceSecretFound: return $"A hidden way was found in {e.Get("place")}.";
                 case HistoricalEventType.EncounterResolved:
                     return $"The aftermath of {e.Get("name") ?? "a fight"} near {s}: {e.Get("summary") ?? "nothing further"}.";
                 case HistoricalEventType.LabourNoticePosted:

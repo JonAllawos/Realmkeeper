@@ -160,7 +160,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
             Assert.That(leaders.Distinct().Count(), Is.EqualTo(4), "Nobody leads two factions.");
             Assert.That(leaders.All(id => world.FindNpc(id) != null), Is.True);
             Assert.That(world.Factions.Single(f => f.Type == FactionType.ReligiousOrder).LeaderNpcId.IsEmpty, Is.True);
-            Assert.That(world.Npcs.Count, Is.EqualTo(15 + 4), "No resident was created for politics (the four Phase 10 people fill posts: guards, a priest, a warden).");
+            Assert.That(world.Npcs.Count, Is.EqualTo(15 + 4 + 5), "No resident was created for politics (Phase 13: five are the watch fort's garrison) (the four Phase 10 people fill posts: guards, a priest, a warden).");
 
             // Every pair has one relationship; the starting agreements are in place.
             Assert.That(world.Relations.Count, Is.EqualTo(10));

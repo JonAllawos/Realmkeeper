@@ -195,6 +195,9 @@ namespace Realmkeeper.Domain.Combat
         public SettlementId SettlementId { get; set; }
         public List<ParticipantSetup> Participants { get; set; } = new List<ParticipantSetup>();
         public List<GridPos> DifficultTerrain { get; set; } = new List<GridPos>();
+
+        /// <summary>Phase 13: squares nobody can enter (a place's walls).</summary>
+        public List<GridPos> Blocked { get; set; } = new List<GridPos>();
         public string QuestRef { get; set; }
         public string WorldEventRef { get; set; }
 

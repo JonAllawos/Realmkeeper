@@ -57,6 +57,7 @@ namespace Realmkeeper.Application
     public static class DialogueEngine
     {
         public const string HookPrefix = "@quest:";
+        public const string DialoguePrefix = "@dialogue:";
 
         public static string Now(WorldData w) => QuestClock.Now(w).ToString(CultureInfo.InvariantCulture);
 
@@ -126,6 +127,14 @@ namespace Realmkeeper.Application
                         var r = new DialogueResponse { Id = "hook:" + q.InstanceId + ":" + role, Text = text, Kind = ResponseKind.Continue, Next = HookPrefix + q.InstanceId + ":" + role };
                         list.Add((r, new ResponseView { Id = r.Id, Text = r.Text, Kind = r.Kind, QuestInstanceId = q.InstanceId }));
                     }
+                }
+
+                // Phase 13 (ADR-0066): a guard holding a place's way asks the player's business.
+                var gate = Realmkeeper.Application.Places.PlaceRules.GateHeldBy(w, npc.NpcId);
+                if (gate != null)
+                {
+                    var r = new DialogueResponse { Id = "gate:" + gate, Text = "I want to go in.", Kind = ResponseKind.Continue, Next = DialoguePrefix + "dlg_gate:start" };
+                    list.Add((r, new ResponseView { Id = r.Id, Text = r.Text, Kind = r.Kind }));
                 }
 
                 foreach (var shop in w.Shops)
@@ -237,6 +246,7 @@ namespace Realmkeeper.Application
                     if (!Enum.TryParse<ConversationTopic>(x.Key, out var topic)) return CommandResult.Invalid("Unknown topic.");
                     var answer = NpcDialogue.Answer(w, npc, topic, default, p.Name);
                     if (topic == ConversationTopic.Rumours || topic == ConversationTopic.News) answer = MentionQuests(w, npc, answer, report);
+                    if (topic == ConversationTopic.Rumours) answer = MentionPlaces(w, npc, answer, report, events); // Phase 13
                     c.Variables["answer"] = answer;
                     c.Variables["answered"] = "yes";
                     if (topic == ConversationTopic.Rumours && answer.StartsWith("Word is", StringComparison.Ordinal))
@@ -381,6 +391,26 @@ namespace Realmkeeper.Application
                     if (progress != null) progress.Revealed = true;
                     break;
                 }
+                case DialogueConsequenceKind.RevealPlace:
+                {
+                    // Phase 13 (ADR-0065): a name and a direction, or the way there.
+                    var place = w.FindPlace(q?.Bound(x.Key) ?? x.Key);
+                    if (place == null) return CommandResult.Invalid("That place is not known to the world.");
+                    var level = Enum.TryParse<Realmkeeper.Domain.Places.PlaceDiscovery>(x.Value ?? "Discovered", out var lv) ? lv : Realmkeeper.Domain.Places.PlaceDiscovery.Discovered;
+                    Realmkeeper.Simulation.Places.PlaceKnowledge.Raise(w, place, level, report, "told by " + npc?.Name);
+                    if (level >= Realmkeeper.Domain.Places.PlaceDiscovery.Discovered) events.Add(new QuestEvent { Kind = QuestEventKind.PlaceDiscovered, Subject = place.PlaceId });
+                    break;
+                }
+                case DialogueConsequenceKind.GrantPassage:
+                {
+                    var place = w.FindPlace(q?.Bound(x.Key) ?? x.Key) ?? (p.IsInPlace ? w.FindPlace(p.PlaceId) : null);
+                    if (place == null) return CommandResult.Invalid("There is nowhere to pass.");
+                    place.Variables["passage:" + x.Value] = "granted";
+                    var g = place.GroupOf(x.Value);
+                    if (g.State == Realmkeeper.Domain.Places.GroupState.Present) g.State = Realmkeeper.Domain.Places.GroupState.Peaceful;
+                    place.Note((npc?.Name ?? "The guard") + " let " + p.Name + " pass.");
+                    break;
+                }
                 case DialogueConsequenceKind.NpcMorale:
                     npc.Condition.Morale += x.Amount;
                     break;
@@ -413,6 +443,34 @@ namespace Realmkeeper.Application
         }
 
         /// <summary>A person mentions quests that need doing where they live (a discovery source): Available becomes Discovered.</summary>
+        /// <summary>
+        /// Phase 13 (ADR-0065): a resident's rumours include a place near their home the player does not know well: first its
+        /// name and rough direction (Rumored: no marker), asked again the way there (Discovered: on the map). One place per answer.
+        /// </summary>
+        public static string MentionPlaces(WorldData w, NpcData npc, string answer, QuestReporter report, List<QuestEvent> events)
+        {
+            if (npc == null) return answer;
+            Realmkeeper.Domain.Places.PlaceData pick = null;
+            foreach (var place in w.Places)
+            {
+                if (place.Category == Realmkeeper.Domain.Places.PlaceCategory.Interior || place.SettlementId != npc.HomeSettlementId) continue;
+                if (place.Discovery >= Realmkeeper.Domain.Places.PlaceDiscovery.Discovered) continue;
+                if (pick == null || string.CompareOrdinal(place.PlaceId, pick.PlaceId) < 0) pick = place;
+            }
+
+            if (pick == null) return answer;
+            var where = Realmkeeper.Simulation.Places.PlaceKnowledge.Direction(w, pick);
+            if (pick.Discovery == Realmkeeper.Domain.Places.PlaceDiscovery.Unknown)
+            {
+                Realmkeeper.Simulation.Places.PlaceKnowledge.Raise(w, pick, Realmkeeper.Domain.Places.PlaceDiscovery.Rumored, report, "rumour");
+                return answer + " And folk talk of " + pick.Name + ", somewhere " + where.Split(',')[0] + ". Nobody goes there now.";
+            }
+
+            Realmkeeper.Simulation.Places.PlaceKnowledge.Raise(w, pick, Realmkeeper.Domain.Places.PlaceDiscovery.Discovered, report, "told by " + npc.Name);
+            events?.Add(new QuestEvent { Kind = QuestEventKind.PlaceDiscovered, Subject = pick.PlaceId });
+            return answer + " " + pick.Name + "? It lies " + where + ". You can't miss it once you're off the road.";
+        }
+
         private static string MentionQuests(WorldData w, NpcData npc, string answer, QuestReporter report)
         {
             foreach (var q in w.Quests)

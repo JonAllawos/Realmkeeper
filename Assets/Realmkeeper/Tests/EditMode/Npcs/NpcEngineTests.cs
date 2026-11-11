@@ -39,7 +39,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         public void FreshWorld_InitialisesEveryNamedPerson_FromPresentFactsOnly()
         {
             var w = Phase2Worlds.Generated(4242);
-            Assert.That(w.Npcs.Count, Is.EqualTo(15 + 4), "15 by role; Phase 10 adds the posts the places call for (captain, guard, priest, warden).");
+            Assert.That(w.Npcs.Count, Is.EqualTo(15 + 4 + 5), "15 by role; Phase 13 adds the watch fort's garrison of five; Phase 10 adds the posts the places call for (captain, guard, priest, warden).");
             Assert.That(WorldValidator.Validate(w).IsValid, Is.True, string.Join("; ", WorldValidator.Validate(w).Errors));
             var leaders = new HashSet<NpcId>(w.Factions.Where(f => !f.LeaderNpcId.IsEmpty).Select(f => f.LeaderNpcId));
             foreach (var n in w.Npcs)

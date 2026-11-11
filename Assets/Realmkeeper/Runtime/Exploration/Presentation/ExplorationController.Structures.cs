@@ -40,6 +40,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void SetupStructureSigns(LocalEnvironmentLayout layout)
         {
             _signs.Clear();
+            if (InPlace) return; // Phase 13
             if (_session == null || EnvironmentRoot == null) return;
             var byBuilding = new Dictionary<string, List<string>>();
             foreach (var s in _session.GetStructures(layout.SettlementId))

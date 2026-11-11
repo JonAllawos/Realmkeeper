@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -76,6 +77,16 @@ namespace Realmkeeper.Tests.PlayMode
                     if (cell != null && cell.ClassListContains("xk-combat-cell--reachable"))
                     {
                         LevelUpDriver.Click(w.Root, cell.name);
+                        return;
+                    }
+
+                    // Phase 13: a wall in the way — the reachable square (as the grid shows them) nearest the enemy, as a player would click.
+                    var best = w.Root.Query<Button>().ToList().Where(b => b.ClassListContains("xk-combat-cell--reachable") && b.name.StartsWith("xk-combat-cell-"))
+                        .Select(b => { var m = System.Text.RegularExpressions.Regex.Match(b.name, @"^xk-combat-cell-(-?\d+)-(-?\d+)$"); return (b, x: m.Success ? int.Parse(m.Groups[1].Value) : int.MaxValue / 2, y: m.Success ? int.Parse(m.Groups[2].Value) : int.MaxValue / 2); })
+                        .OrderBy(t => Math.Max(Math.Abs(t.x - enemy.Position.X), Math.Abs(t.y - enemy.Position.Y))).FirstOrDefault();
+                    if (best.b != null && Math.Max(Math.Abs(best.x - enemy.Position.X), Math.Abs(best.y - enemy.Position.Y)) < Math.Max(Math.Abs(s.Player.Position.X - enemy.Position.X), Math.Abs(s.Player.Position.Y - enemy.Position.Y)))
+                    {
+                        LevelUpDriver.Click(w.Root, best.b.name);
                         return;
                     }
                 }

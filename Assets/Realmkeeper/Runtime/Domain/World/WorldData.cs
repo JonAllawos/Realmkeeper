@@ -42,7 +42,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 14;
+        public const int CurrentSchemaVersion = 15;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -125,6 +125,24 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 12: the conversation in progress, or null.</summary>
         public Realmkeeper.Domain.Quests.ConversationData Conversation { get; set; }
+
+        /// <summary>Phase 13 (ADR-0062): explorable places (wilderness places, and the interiors of buildings once entered).</summary>
+        public List<Realmkeeper.Domain.Places.PlaceData> Places { get; set; } = new List<Realmkeeper.Domain.Places.PlaceData>();
+
+        /// <summary>Phase 13 (ADR-0066): people held captive, following the player, or brought home.</summary>
+        public List<Realmkeeper.Domain.Places.EscortData> Escorts { get; set; } = new List<Realmkeeper.Domain.Places.EscortData>();
+
+        public Realmkeeper.Domain.Places.PlaceData FindPlace(string placeId)
+        {
+            if (placeId != null && Places != null) foreach (var p in Places) if (p != null && p.PlaceId == placeId) return p;
+            return null;
+        }
+
+        public Realmkeeper.Domain.Places.EscortData FindEscort(NpcId npc)
+        {
+            if (Escorts != null) foreach (var e in Escorts) if (e != null && e.NpcId == npc) return e;
+            return null;
+        }
 
         public Realmkeeper.Domain.Quests.QuestInstanceData FindQuest(string instanceId)
         {
@@ -244,6 +262,8 @@ namespace Realmkeeper.Domain.World
             copy.ItemCatalogVersion = ItemCatalogVersion;
             if (Quests != null) foreach (var q in Quests) copy.Quests.Add(q?.Clone());
             copy.Conversation = Conversation?.Clone();
+            if (Places != null) foreach (var p in Places) copy.Places.Add(p?.Clone());
+            if (Escorts != null) foreach (var e in Escorts) copy.Escorts.Add(e?.Clone());
             return copy;
         }
 

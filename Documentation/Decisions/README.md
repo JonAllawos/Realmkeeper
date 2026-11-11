@@ -63,5 +63,10 @@
 | [0059](ADR-0059-reputation-dimensions.md) | Reputation has separate dimensions; deeds travel as knowledge, and only those who hear react | Accepted (Phase 12) |
 | [0060](ADR-0060-emergent-activities-and-discovery.md) | Activities arise from world conditions; the player discovers them; the journal shows only what is known | Accepted (Phase 12) |
 | [0061](ADR-0061-content-tags.md) | Quest and dialogue text carries content tags with configurable presentation; no campaign canon is fixed | Accepted (Phase 12) |
+| [0062](ADR-0062-places-as-persistent-world-entities.md) | Explorable places are persistent world entities in a hierarchy, with one architecture for every kind | Accepted (Phase 13) |
+| [0063](ADR-0063-layout-generation-and-validation.md) | Layouts are generated on a slot grid from archetypes, validated, and saved — never regenerated | Accepted (Phase 13) |
+| [0064](ADR-0064-interaction-framework-traps-hazards.md) | One interaction framework for places; traps and hazards through the rules; fights among real walls | Accepted (Phase 13) |
+| [0065](ADR-0065-discovery-and-player-knowledge-of-places.md) | What the player knows of a place is a state; the map, journal and scene show only that | Accepted (Phase 13) |
+| [0066](ADR-0066-people-in-places-escort-rescue-garrisons.md) | People in places are the same persistent identities — held, following, posted or at home | Accepted (Phase 13) |
 
 Template: Context · Decision · Consequences · Alternatives considered.
