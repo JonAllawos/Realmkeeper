@@ -605,7 +605,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             Assert.That(Sheet.Resources["hit_dice"], Is.EqualTo(0));
             Assert.That(_s.Dispatch(new RecoverResourcesCommand(ResourceRecovery.LongRest)).IsSuccess, Is.True);
             Assert.That(Sheet.Resources["magical_cunning"], Is.EqualTo(1));
-            Assert.That(Sheet.Resources["hit_dice"], Is.EqualTo(1), "Half the hit dice (3 / 2, rounded down) return on a long rest.");
+            Assert.That(Sheet.Resources["hit_dice"], Is.EqualTo(3), "All spent hit dice return on a long rest (SRD 5.2.1; Phase 7 returned half, the 2014 rule).");
             Assert.That(_s.Dispatch(new RestoreResourceCommand("hit_dice")).IsSuccess, Is.True);
             Assert.That(Sheet.Resources["hit_dice"], Is.EqualTo(3));
             Assert.That(_s.Dispatch(new RestoreResourceCommand("hit_dice", 5)).IsSuccess, Is.True);

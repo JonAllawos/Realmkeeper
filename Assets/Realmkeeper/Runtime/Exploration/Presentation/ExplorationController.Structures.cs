@@ -65,3 +65,29 @@ namespace Realmkeeper.Exploration.Presentation
         }
     }
 }
+
+namespace Realmkeeper.Exploration.Presentation
+{
+    using Realmkeeper.Application;
+    using Realmkeeper.Domain.Rpg;
+
+    public sealed partial class ExplorationController
+    {
+        /// <summary>Phase 9: a short or long rest from the Hub. The world clock moves (an hour or eight), then recovery applies.</summary>
+        public RestResult Rest(RestKind kind, int hitDice)
+        {
+            if (_session == null) return new RestResult { Message = "No world session is active." };
+            Hud?.HideResponse();
+            TalkingTo = null;
+            var r = kind == RestKind.Short ? _session.ShortRest(hitDice) : _session.LongRest();
+            LastRest = r;
+            RefreshLiving(snap: true);
+            ShowHub(r.IsSuccess ? r.Message + " " + string.Join(" ", r.Lines) : r.Message, !r.IsSuccess);
+            HubWindow?.Select("Spells & rest");
+            return r;
+        }
+
+        /// <summary>The last rest's outcome (tests and captures read it).</summary>
+        public RestResult LastRest { get; private set; }
+    }
+}

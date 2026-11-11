@@ -68,7 +68,7 @@ namespace Realmkeeper.Domain.Rpg
             var list = new List<ChoiceSlot>();
             if (sheet.State != CreationState.Complete) return list;
             foreach (var slot in Choices(sheet, sheet.Level))
-                if (slot.Choice.IntroducedInRules > sheet.RulesVersion && slot.Choice.Kind != ChoiceKind.Subclass && sheet.Chosen(slot.Choice.Id).Count == 0)
+                if (slot.Choice.IntroducedInRules > sheet.RulesVersion && !slot.Choice.UpTo && slot.Choice.Kind != ChoiceKind.Subclass && sheet.Chosen(slot.Choice.Id).Count == 0)
                     list.Add(slot);
             return list;
         }

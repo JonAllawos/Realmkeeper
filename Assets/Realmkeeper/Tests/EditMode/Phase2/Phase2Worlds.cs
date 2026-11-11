@@ -29,9 +29,28 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         }
 
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
+        /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
+        public static void StripToV10(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 10;
+            if (doc["world"]["player"]?["rpg"] is Newtonsoft.Json.Linq.JObject rpg)
+            {
+                rpg.Remove("spellcasting");
+                if ((int?)rpg["rulesVersion"] == 8) rpg["rulesVersion"] = 7;
+            }
+
+            foreach (var e in (doc["world"]["encounters"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+            {
+                ((Newtonsoft.Json.Linq.JObject)e).Remove("effects");
+                foreach (Newtonsoft.Json.Linq.JObject c in (Newtonsoft.Json.Linq.JArray)e["combatants"])
+                    foreach (var field in new[] { "resources", "concentration", "formCreatureId" }) c.Remove(field);
+            }
+        }
+
         /// <summary>Rebuilds the v9 layout: no encounters, structures or dying state (Phase 8).</summary>
         public static void StripToV9(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV10(doc);
             doc["schemaVersion"] = 9;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             w.Remove("encounters");

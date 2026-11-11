@@ -181,7 +181,7 @@ namespace Realmkeeper.Domain.Rpg
                     continue;
                 }
 
-                if (next.Chosen(slot.Choice.Id).Count != slot.Choice.Count) problems.Add($"{slot.Choice.Name}: choose {slot.Choice.Count}.");
+                if (!slot.Choice.CountAllowed(next.Chosen(slot.Choice.Id).Count)) problems.Add($"{slot.Choice.Name}: choose {slot.Choice.Count}.");
             }
 
             foreach (var id in outstanding)

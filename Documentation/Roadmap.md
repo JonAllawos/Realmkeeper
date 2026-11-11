@@ -13,8 +13,9 @@
 | Phase 5: Living World, Player Hub & Commerce | Done (`1f37bb6`) | `Systems/WorldTime.md`, `Systems/Player.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Systems/Commerce.md`, `Reports/Phase5-Living-World.md` |
 | Phase 6: Character Creation & Core RPG Foundation | Done (`f2682a2`) | `Systems/Characters.md`, `Systems/Species.md`, `Systems/Backgrounds.md`, `Systems/Classes.md`, `Systems/SkillsAndAbilities.md`, `Systems/CharacterCreation.md`, `Reports/Phase6-Character-Creation.md` |
 | Phase 7: Character Progression & Core Rules Engine | Done (`a3cd9f5`) | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
-| Phase 8: Combat Foundation, Encounter Engine & Settlement Structures | Done (this milestone); awaiting review. See the test results for what was run | `Systems/Combat.md`, `Systems/SettlementStructures.md`, `Phase8/Phase8-Report.md`, ADR-0030…0036 |
-| Phase 9 | **Not started.** Waits for review of Phase 8 and its own brief. | — |
+| Phase 8: Combat Foundation, Encounter Engine & Settlement Structures | Done (`2fe83eb`) | `Systems/Combat.md`, `Systems/SettlementStructures.md`, `Phase8/Phase8-Report.md`, ADR-0030…0036 |
+| Phase 9: Spellcasting, Class Features & Combat Integration | Done (this milestone); awaiting review, committed locally and not pushed. See the test results for what was run | `Systems/Spellcasting.md`, `Systems/ClassFeatures.md`, `Systems/RestAndRecovery.md`, `Systems/SpellCatalogAudit.md`, `Phase9/Phase9-Report.md`, ADR-0037…0042 |
+| Phase 10 | **Not started.** Waits for review of Phase 9 and its own brief. | — |
 
 ## Phase 2 completion: what it added
 
@@ -185,9 +186,56 @@ Main limitations (full list in `Phase8/Phase8-Report.md`):
 | Area | Limitation |
 |---|---|
 | Encounters | The labelled practice fight is the only way to start one in play; no encounter generator |
-| Class features | Second Wind and Cunning Action only; Sneak Attack, Rage, Action Surge, Smite and the rest wait |
-| Spells, concentration | Not started (Phase 9 per the Bible) |
+| Class features | Second Wind and Cunning Action only (the rest came in Phase 9) |
+| Spells, concentration | Done in Phase 9 |
 | Presentation | Placeholder ground markers and stand-in figures; no creature models or animations; the grid lives in the panel |
 | NPC statistics | Residents use SRD Guard or Commoner profiles until NPCs have character sheets |
 | Rewards, recovery | No experience from combat; no resurrection or medical system |
 | Structures | Informational ones simulate nothing yet; no construction or upkeep |
+
+## Phase 9: what it added
+
+- **One spell engine for every caster** (ADR-0037).
+  - **Catalog:** 47 SRD 5.2.1 spells, cantrips to level 5, each with an honest status: 27
+    functional, 10 partial, 4 data-only and 6 deferred.
+  - **Targeting:** creatures, points, self, and sphere, cube, cone, line and cylinder areas on the
+    grid.
+  - **Resolution:** spell attacks and saves through the shared rolls; upcasting and cantrip scaling;
+    one levelled slot per turn.
+  - **Effects:** a stored effect model with concentration, repeat saves and turn-based expiry
+    (ADR-0039).
+- **Spell state** (ADR-0038).
+  - **Picks:** known spells, cantrips and wizard spellbooks are ordinary character choices, offered
+    at creation and level-up and fillable later from the Hub.
+  - **Preparation:** after a long rest; paladins and rangers swap one.
+  - **Pact Magic:** kept distinct from spell slots.
+  - **Rules version 8.**
+- **Class features in play for all twelve classes** (ADR-0041): 38 combat features through one
+  activation model, among them Rage, Sneak Attack, Action Surge, Channel Divinity, Wild Shape (one
+  form), Martial Arts, Lay on Hands, Smite, Font of Magic, Metamagic and the Evoker features.
+- **NPC casters** (ADR-0042): the SRD 5.1 Acolyte and Cult Fanatic cast through the same engine; a
+  deterministic caster AI; a "Practice vs caster (G)" fight.
+- **Rest and recovery** (ADR-0040):
+  - short and long rests pass world time;
+  - hit-die spending, and explicit recovery per resource;
+  - Arcane Recovery;
+  - one long rest per 24 hours;
+  - idempotent.
+- **UI:**
+  - **Hub, Spells & rest:** the spellbook with search, filters, details, preparation, open picks,
+    slots, rests and features.
+  - **Encounter panel:** Spells and Class features sections; a cast composer with slot level,
+    targets, metamagic and grid aiming with area preview; effects and concentration on the rows and
+    in the inspector.
+- **Save schema v11:** Phase 5–8 saves load.
+
+Main limitations (full list in `Phase9/Phase9-Report.md`):
+
+| Area | Limitation |
+|---|---|
+| Reactions | Automatic (ADR-0033); Shield, Hellish Rebuke, Counterspell and reaction features wait for a prompt |
+| Durations | Effects end with the fight; out-of-combat durations (Mage Armour, Aid) are not tracked |
+| Spells | Levels 6–9 have no catalog entries yet; summons, moving auras, light, stealth and terrain effects wait |
+| Wild Shape | One form (wolf) |
+| Metamagic | Four of ten options not simulated |
+| NPC casters | Two SRD 5.1 stat blocks; slots refill per encounter |

@@ -21,8 +21,16 @@ namespace Realmkeeper.Application
     /// </summary>
     public sealed class StartPracticeEncounterCommand : ICommand
     {
-        public StartPracticeEncounterCommand(bool lethal = true) { Lethal = lethal; }
+        public StartPracticeEncounterCommand(bool lethal = true, bool withCaster = false)
+        {
+            Lethal = lethal;
+            WithCaster = withCaster;
+        }
+
         public bool Lethal { get; }
+
+        /// <summary>Phase 9: a Cult Fanatic (an SRD spellcaster) joins the bandits.</summary>
+        public bool WithCaster { get; }
     }
 
     /// <summary>One action of the active combatant. <see cref="ExpectedSequence"/>, when given, must match: a stale or repeated action is refused.</summary>
@@ -153,7 +161,7 @@ namespace Realmkeeper.Application
         }
 
         /// <summary>The practice encounter's setup for the player's current settlement, or null with the reason.</summary>
-        public static EncounterSetup PracticeSetup(WorldData world, bool lethal, out string error)
+        public static EncounterSetup PracticeSetup(WorldData world, bool lethal, out string error, bool withCaster = false)
         {
             error = null;
             var p = world.Player;
@@ -174,6 +182,12 @@ namespace Realmkeeper.Application
             foreach (var n in world.Npcs)
                 if (!n.IsDeceased && n.Role == NpcRole.Guard && n.HomeSettlementId == p.SettlementId && (guard == null || n.NpcId.CompareTo(guard.NpcId) < 0)) guard = n;
             if (guard != null) setup.Participants.Add(new ParticipantSetup { Kind = CombatantKind.Npc, NpcId = guard.NpcId, Side = PlayerSide, Position = new GridPos(-1, 0) });
+            if (withCaster)
+            {
+                setup.Name = "Practice: a cult fanatic and bandits";
+                setup.Participants.Add(new ParticipantSetup { Kind = CombatantKind.Creature, CreatureId = "cult_fanatic", Name = "Cult Fanatic", Side = "bandits", Position = new GridPos(1, 9) });
+            }
+
             return setup;
         }
 
@@ -256,6 +270,7 @@ namespace Realmkeeper.Application
             world.Encounters.Add(enc);
             var engine = new CombatEngine(world, enc);
             engine.Begin();
+            if (world.Player?.Rpg?.Spellcasting != null && enc.Combatants.Exists(c => c.Kind == CombatantKind.Player)) world.Player.Rpg.Spellcasting.PreparationChanges = 0; // Phase 9: a fight closes the preparation window
             Settle(context, engine);
             return CommandResult.Ok($"{enc.Name}: round {enc.Round}, {enc.Active?.Name ?? "nobody"}'s turn.");
         }
@@ -270,7 +285,7 @@ namespace Realmkeeper.Application
             public CommandResult Handle(StartPracticeEncounterCommand command, CommandContext context)
             {
                 if (!context.HasWorld) return CommandResult.InvalidState("There is no active world.");
-                var setup = PracticeSetup(context.Committed, command.Lethal, out var error);
+                var setup = PracticeSetup(context.Committed, command.Lethal, out var error, command.WithCaster);
                 return setup == null ? CommandResult.InvalidState(error) : Start(context, setup);
             }
         }

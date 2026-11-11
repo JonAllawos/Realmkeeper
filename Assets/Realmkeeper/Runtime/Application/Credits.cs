@@ -20,8 +20,9 @@ namespace Realmkeeper.Application
             "International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.";
 
         public const string RulesUse =
-            "Rules mechanics (species, classes, progression, armour, weapons, conditions, combat and the bandit, guard, commoner " +
-            "and wolf statistics) follow the SRD; all descriptions, names and setting text are Realmkeeper's own. Realmkeeper does " +
+            "Rules mechanics (species, classes, progression, armour, weapons, conditions, combat, spells and spellcasting, class " +
+            "features, rests, the bandit, guard, commoner and wolf statistics, and the acolyte and cult fanatic statistics from " +
+            "SRD 5.1) follow the SRD; spell names are the SRD's, and every description, name and setting text is Realmkeeper's own. Realmkeeper does " +
             "not use the \"Dungeons & Dragons\" trademark and is not affiliated with or endorsed by Wizards of the Coast.";
 
         /// <summary>Third-party art: (what, by whom, licence).</summary>

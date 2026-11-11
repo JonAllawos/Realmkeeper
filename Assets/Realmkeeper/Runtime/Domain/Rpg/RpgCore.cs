@@ -332,7 +332,7 @@ namespace Realmkeeper.Domain.Rpg
         public const int MaxExperience = 10000000;
 
         /// <summary>The rules version new characters are built under (6 = Phase 6 data; 7 adds level-1 choices).</summary>
-        public const int CurrentRulesVersion = 7;
+        public const int CurrentRulesVersion = 8;
 
         /// <summary>The experience a level needs.</summary>
         public static int ExperienceFor(int level) => Thresholds[Math.Max(1, Math.Min(AbilityRules.MaxLevel, level)) - 1];

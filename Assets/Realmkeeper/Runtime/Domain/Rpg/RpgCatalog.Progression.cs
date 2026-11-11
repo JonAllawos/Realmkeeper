@@ -152,7 +152,7 @@ namespace Realmkeeper.Domain.Rpg
             switch (c.Id)
             {
                 case "barbarian":
-                    Replace(resources, RT("rage", "Rage", ResourceRecovery.LongRest, "Enter a rage: bonus damage and resistance to physical damage for a minute. One use returns on a short rest (rest phase).",
+                    Replace(resources, RT("rage", "Rage", ResourceRecovery.LongRest, "Enter a rage: bonus damage and resistance to physical damage for a minute. One use returns on a short rest.",
                         2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6));
                     c.Scalings = new[]
                     {
@@ -207,7 +207,7 @@ namespace Realmkeeper.Domain.Rpg
                     break;
 
                 case "cleric":
-                    resources.Add(RT("channel_divinity", "Channel Divinity", ResourceRecovery.LongRest, "Channel divine power (Divine Spark, Turn Undead). One use returns on a short rest (rest phase).",
+                    resources.Add(RT("channel_divinity", "Channel Divinity", ResourceRecovery.LongRest, "Channel divine power (Divine Spark, Turn Undead). One use returns on a short rest.",
                         Steps(0, (2, 2), (6, 3), (18, 4))));
                     c.SubclassFeatureLevels = new[] { 3, 6, 17 };
                     c.LaterFeatures = Levels(
@@ -229,7 +229,7 @@ namespace Realmkeeper.Domain.Rpg
                     break;
 
                 case "druid":
-                    resources.Add(RT("wild_shape", "Wild Shape", ResourceRecovery.LongRest, "Take the shape of a beast. One use returns on a short rest (rest phase).", Steps(0, (2, 2), (6, 3), (17, 4))));
+                    resources.Add(RT("wild_shape", "Wild Shape", ResourceRecovery.LongRest, "Take the shape of a beast. One use returns on a short rest.", Steps(0, (2, 2), (6, 3), (17, 4))));
                     c.SubclassFeatureLevels = new[] { 3, 6, 10, 14 };
                     c.LaterFeatures = Levels(
                         (2, LF("wild_shape", "Wild Shape", "Magically take the form of a beast you have seen.", FeatureKind.LimitedUse, Combat | Explore)),
@@ -303,7 +303,7 @@ namespace Realmkeeper.Domain.Rpg
                     break;
 
                 case "paladin":
-                    resources.Add(RT("channel_divinity", "Channel Divinity", ResourceRecovery.LongRest, "Channel divine power (Divine Sense and your oath's options). One use returns on a short rest (rest phase).",
+                    resources.Add(RT("channel_divinity", "Channel Divinity", ResourceRecovery.LongRest, "Channel divine power (Divine Sense and your oath's options). One use returns on a short rest.",
                         Steps(0, (3, 2), (11, 3))));
                     c.FightingStyleLevel = 2;
                     c.SubclassFeatureLevels = new[] { 3, 7, 15, 20 };
@@ -491,7 +491,7 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>Hit dice: one per level, half of them back on a long rest (all classes; Phase 7).</summary>
         public static readonly ResourceDefinition HitDice = new ResourceDefinition
         {
-            Id = "hit_dice", Name = "Hit dice", Formula = ResourceFormula.PerLevel, Value = 1, Recovery = ResourceRecovery.LongRest, Amount = RecoveryAmount.Half,
+            Id = "hit_dice", Name = "Hit dice", Formula = ResourceFormula.PerLevel, Value = 1, Recovery = ResourceRecovery.LongRest, Amount = RecoveryAmount.All, // Phase 9: SRD 5.2.1 — a long rest restores all spent hit point dice
             Description = "Spent on a short rest to recover hit points (rest phase). Half return on a long rest.", Origin = "Level",
         };
     }

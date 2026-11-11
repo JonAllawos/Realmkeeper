@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Realmkeeper.Domain.Identifiers;
+using Realmkeeper.Domain.Magic;
 using Realmkeeper.Domain.Randomness;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
@@ -16,7 +17,7 @@ namespace Realmkeeper.Domain.Combat
     /// save). The player's hit points and death saves are read and written on their character sheet through the
     /// Phase 7 vitals rules; everyone else's live on the combatant.
     /// </summary>
-    public sealed class CombatEngine
+    public sealed partial class CombatEngine
     {
         public const string Neutral = "neutral";
 
@@ -128,6 +129,8 @@ namespace Realmkeeper.Domain.Combat
                 if (def == null) { errors.Add($"Unknown creature profile '{c.CreatureId}'."); return null; }
                 c.MaxHp = def.MaxHp;
                 c.CurrentHp = def.MaxHp;
+                if (def.Spellcasting != null) // Phase 9: a caster profile's slots, on the combatant
+                    for (var l = 0; l < def.Spellcasting.Slots.Count; l++) c.Resources["spell_slots_" + (l + 1)] = def.Spellcasting.Slots[l];
             }
 
             c.CombatantId = new CombatantId(nextGuid("combatant"));
@@ -209,7 +212,7 @@ namespace Realmkeeper.Domain.Combat
         private void AdvanceTurn()
         {
             var e = Encounter;
-            if (e.TurnIndex >= 0 && e.Active != null) Expire(ConditionDuration.EndOfTurn, e.Active);
+            if (e.TurnIndex >= 0 && e.Active != null) EndTurn(e.Active);
             for (var guard = 0; guard < e.Order.Count * 3 + 3 && e.IsActive; guard++)
             {
                 e.TurnIndex++;
@@ -224,7 +227,7 @@ namespace Realmkeeper.Domain.Combat
                 StartTurn(c);
                 if (CheckEnd()) return;
                 if (c.State == VitalState.Conscious) return;
-                Expire(ConditionDuration.EndOfTurn, c); // dying or stable: the turn passes after its death save
+                EndTurn(c); // dying or stable: the turn passes after its death save
             }
 
             if (e.IsActive) Finish(EncounterOutcome.Stalemate, null);
@@ -232,11 +235,9 @@ namespace Realmkeeper.Domain.Combat
 
         private void StartTurn(CombatantData c)
         {
-            var t = c.Turn;
-            t.ActionUsed = t.BonusActionUsed = t.InteractionUsed = t.Disengaged = t.Dodging = t.ReactionUsed = false;
-            t.MovementUsed = t.MovementGranted = t.AttacksLeft = 0;
-            t.LightAttackWeapon = null;
+            c.Turn = new TurnResources(); // every per-turn resource and flag resets
             Expire(ConditionDuration.StartOfTurn, c);
+            ExpireEffects(EffectExpiry.StartOfTurn, c);
             Log(CombatLogKind.TurnStarted, c.CombatantId, default, $"Round {Encounter.Round}: {c.Name}'s turn.");
             if (c.State == VitalState.Dying) DeathSave(c);
         }
@@ -272,17 +273,17 @@ namespace Realmkeeper.Domain.Combat
                 case MoveAction m: DoMove(actor, m); break;
                 case AttackAction a: DoAttack(actor, a); break;
                 case DashAction _:
-                    actor.Turn.ActionUsed = true;
+                    UseAction(actor);
                     actor.Turn.MovementGranted += Speed(actor);
                     Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} dashes (+{Speed(actor)} ft of movement).");
                     break;
                 case DisengageAction _:
-                    actor.Turn.ActionUsed = true;
+                    UseAction(actor);
                     actor.Turn.Disengaged = true;
                     Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} disengages: no opportunity attacks this turn.");
                     break;
                 case DodgeAction _:
-                    actor.Turn.ActionUsed = true;
+                    UseAction(actor);
                     actor.Turn.Dodging = true;
                     Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} dodges: attacks against it have disadvantage until its next turn.");
                     break;
@@ -294,7 +295,9 @@ namespace Realmkeeper.Domain.Combat
                     break;
                 case EscapeAction _: DoEscape(actor); break;
                 case StabilizeAction s: DoStabilize(actor, e.Find(s.Target)); break;
-                case BonusAbilityAction b: DoBonus(actor, b.AbilityId); break;
+                case BonusAbilityAction b: DoFeature(actor, new UseFeatureAction(b.AbilityId)); break;
+                case UseFeatureAction f: DoFeature(actor, f); break;
+                case CastSpellAction cs: DoCastSpell(actor, cs); break;
                 case EndTurnAction _:
                     Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} ends their turn.");
                     AdvanceTurn();
@@ -343,7 +346,7 @@ namespace Realmkeeper.Domain.Combat
                 {
                     if (incapacitated) return $"{actor.Name} is incapacitated.";
                     if (t.ActionUsed) return "The action this turn is used.";
-                    if (action is EscapeAction && !Has(actor, ConditionType.Grappled)) return $"{actor.Name} is not grappled.";
+                    if (action is EscapeAction && !Has(actor, ConditionType.Grappled) && EscapableRestraint(actor) == null) return $"{actor.Name} is not grappled or held by something it can break free of.";
                     if (action is StabilizeAction st)
                     {
                         var target = Encounter.Find(st.Target);
@@ -359,36 +362,12 @@ namespace Realmkeeper.Domain.Combat
                     if (Speed(actor) == 0) return "Standing needs movement, and speed is 0.";
                     return MovementLeft(actor) < Speed(actor) / 2 ? $"Standing costs {Speed(actor) / 2} ft; {MovementLeft(actor)} ft left." : null;
 
-                case BonusAbilityAction b:
-                    if (incapacitated) return $"{actor.Name} is incapacitated.";
-                    if (t.BonusActionUsed) return "The bonus action this turn is used.";
-                    foreach (var opt in BonusAbilities(actor)) if (opt.id == b.AbilityId) return opt.unavailable;
-                    return "That bonus action is not available.";
+                case BonusAbilityAction b: return FeatureProblem(actor, new UseFeatureAction(b.AbilityId));
+                case UseFeatureAction f: return FeatureProblem(actor, f);
+                case CastSpellAction cs: return SpellProblem(actor, cs);
             }
 
             return "Unknown action.";
-        }
-
-        /// <summary>The bonus actions a combatant's features give (Phase 8: Second Wind, Cunning Action), each with why it is unavailable.</summary>
-        public IReadOnlyList<(string id, string name, string unavailable)> BonusAbilities(CombatantData actor)
-        {
-            var list = new List<(string, string, string)>();
-            var rules = Stats(actor).Rules;
-            if (rules == null) return list;
-            var sheet = rules.Sheet;
-            if (rules.HasFeature("second_wind"))
-            {
-                var left = sheet.Resources.TryGetValue("second_wind", out var n) ? n : 0;
-                list.Add(("second_wind", $"Second Wind (heal 1d10 + {rules.Level}; {left} left)", left <= 0 ? "No uses of Second Wind left." : null));
-            }
-
-            if (rules.HasFeature("cunning_action"))
-            {
-                list.Add(("cunning_dash", "Cunning Action: Dash", null));
-                list.Add(("cunning_disengage", "Cunning Action: Disengage", null));
-            }
-
-            return list;
         }
 
         // ===== Movement ====================================================================================
@@ -404,7 +383,15 @@ namespace Realmkeeper.Domain.Combat
         {
             if (c.State != VitalState.Conscious) return 0;
             if (Has(c, ConditionType.Grappled) || Has(c, ConditionType.Restrained) || Has(c, ConditionType.Paralyzed) || Has(c, ConditionType.Petrified) || Has(c, ConditionType.Unconscious)) return 0;
-            return Math.Max(0, Stats(c).BaseSpeed - 5 * ExhaustionLevel(c));
+            var speed = Stats(c).BaseSpeed - 5 * ExhaustionLevel(c);
+            var multiplier = 1;
+            foreach (var e in EffectsOn(c))
+            {
+                if (e.Kind == Realmkeeper.Domain.Magic.CombatEffectKind.SpeedChange) speed += e.Value;
+                if (e.Kind == Realmkeeper.Domain.Magic.CombatEffectKind.SpeedMultiplier) multiplier = Math.Max(multiplier, e.Value);
+            }
+
+            return Math.Max(0, speed * multiplier); // Phase 9: Ray of Frost, Slow, Haste
         }
 
         public int MovementLeft(CombatantData c) => Math.Max(0, Speed(c) + c.Turn.MovementGranted - c.Turn.MovementUsed);
@@ -490,7 +477,7 @@ namespace Realmkeeper.Domain.Combat
         }
 
         /// <summary>Can make a reaction now: conscious, not incapacitated, reaction unused, and able to see.</summary>
-        public bool CanReact(CombatantData c) => c.State == VitalState.Conscious && !Incapacitated(c) && !c.Turn.ReactionUsed && !Has(c, ConditionType.Blinded);
+        public bool CanReact(CombatantData c) => c.State == VitalState.Conscious && !Incapacitated(c) && !c.Turn.ReactionUsed && !Has(c, ConditionType.Blinded) && !HasEffect(c, Realmkeeper.Domain.Magic.CombatEffectKind.NoReactions);
 
         private void ReleaseBrokenGrapples()
         {
@@ -503,144 +490,6 @@ namespace Realmkeeper.Domain.Combat
                     if (g == null || g.State != VitalState.Conscious || Incapacitated(g) || !g.Position.IsAdjacent(c.Position))
                         RemoveCondition(c, ConditionType.Grappled, "the grappler let go");
                 }
-        }
-
-        // ===== Attacks =====================================================================================
-
-        private void DoAttack(CombatantData actor, AttackAction a)
-        {
-            var t = actor.Turn;
-            var stats = Stats(actor);
-            if (!t.ActionUsed)
-            {
-                t.ActionUsed = true;
-                t.AttacksLeft = stats.AttacksPerAction;
-            }
-
-            t.AttacksLeft--;
-            var o = stats.Find(a.OptionId);
-            if (o.Light && o.Kind == AttackKind.Weapon) t.LightAttackWeapon = o.ItemId;
-            ResolveAttack(actor, Encounter.Find(a.Target), o, false);
-        }
-
-        /// <summary>Resolves one attack (weapon, unarmed strike, grapple or shove) fully, including its damage and effects.</summary>
-        public AttackResult ResolveAttack(CombatantData attacker, CombatantData target, AttackOption o, bool opportunity)
-        {
-            var r = new AttackResult { AttackerId = attacker.CombatantId, TargetId = target.CombatantId, AttackName = o.Name, Kind = o.Kind, Opportunity = opportunity };
-            _current?.Attacks.Add(r);
-            if (o.Kind == AttackKind.Grapple || o.Kind == AttackKind.Shove)
-            {
-                // Unarmed Strike options: the target saves with Strength or Dexterity (its choice: the better bonus).
-                var ts = Stats(target);
-                var ability = ts.SaveBonus(Ability.Strength).Total >= ts.SaveBonus(Ability.Dexterity).Total ? Ability.Strength : Ability.Dexterity;
-                r.Save = SavingThrow(target, ability, o.SaveDc, $"{attacker.Name}'s {o.Name.ToLowerInvariant()}");
-                r.Hit = !r.Save.Success;
-                if (r.Hit)
-                {
-                    r.ConditionApplied = o.Kind == AttackKind.Grapple ? ConditionType.Grappled : ConditionType.Prone;
-                    ApplyCondition(target, r.ConditionApplied.Value, attacker.CombatantId, attacker.Name + "'s " + o.Name.ToLowerInvariant(), ConditionDuration.UntilRemoved, default, 0, 1, o.SaveDc);
-                }
-
-                Log(CombatLogKind.Attack, attacker.CombatantId, target.CombatantId,
-                    $"{attacker.Name} tries to {(o.Kind == AttackKind.Grapple ? "grapple" : "shove")} {target.Name}: {target.Name} {(r.Hit ? "fails" : "succeeds on")} a DC {o.SaveDc} {ability} save ({r.Save.Total}).", r.Save.Total, r.Save.Roll);
-                return r;
-            }
-
-            var roll = new D20Roll();
-            var modes = Stats(attacker).RollModes("attack:" + o.Ability);
-            roll.AdvantageSources.AddRange(modes.Advantage);
-            roll.DisadvantageSources.AddRange(modes.Disadvantage);
-            AttackModes(attacker, target, o, roll);
-            Roll(roll);
-            var exhaustion = ExhaustionLevel(attacker);
-            r.Roll = roll;
-            r.AttackBonus = o.AttackBonus;
-            r.Total = roll.Natural + o.AttackBonus.Total - 2 * exhaustion;
-            r.TargetAcBreakdown = Stats(target).ArmorClass;
-            r.TargetAc = r.TargetAcBreakdown.Total;
-            if (roll.Natural == 1) { r.Hit = false; r.MissReason = "a natural 1 always misses"; }
-            else if (roll.Natural == 20) { r.Hit = true; r.Critical = true; }
-            else { r.Hit = r.Total >= r.TargetAc; if (!r.Hit) r.MissReason = $"{r.Total} is below AC {r.TargetAc}"; }
-            var within5 = attacker.Position.DistanceFeet(target.Position) <= 5;
-            if (r.Hit && !r.Critical && within5 && (Has(target, ConditionType.Paralyzed) || Has(target, ConditionType.Unconscious))) r.Critical = true;
-
-            var verb = opportunity ? "Opportunity attack" : o.Name;
-            Log(CombatLogKind.Attack, attacker.CombatantId, target.CombatantId,
-                $"{attacker.Name} → {target.Name}: {verb}, d20 {roll.Natural}{(roll.Advantage || roll.Disadvantage ? $" ({roll.First}/{roll.Second}, {roll.ModeText})" : string.Empty)} " +
-                $"{Breakdown.Signed(o.AttackBonus.Total)}{(exhaustion > 0 ? $" −{2 * exhaustion} exhaustion" : string.Empty)} = {r.Total} vs AC {r.TargetAc}: " +
-                (r.Critical ? "critical hit!" : r.Hit ? "hit." : "miss (" + r.MissReason + ")."), r.Total, roll);
-            if (!r.Hit) return r;
-
-            // Damage: the dice (twice on a critical) plus the bonus; Great Weapon Fighting lifts low dice.
-            var dice = r.Critical ? o.Damage.Count * 2 : o.Damage.Count;
-            var total = 0;
-            for (var i = 0; i < dice; i++)
-            {
-                var d = Die(o.Damage.Sides);
-                if (o.DieFloor > 0 && d < o.DieFloor) d = o.DieFloor;
-                r.DamageDice.Add(d);
-                total += d;
-            }
-
-            r.DamageBreakdown = new Breakdown();
-            if (dice > 0) r.DamageBreakdown.Add($"{dice}d{o.Damage.Sides}{(r.Critical ? " (critical)" : string.Empty)} [{string.Join(", ", r.DamageDice)}]", total);
-            if (o.Damage.Bonus != 0) r.DamageBreakdown.Add("bonus", o.Damage.Bonus);
-            if (o.DamageBonus != null) foreach (var (label, value) in o.DamageBonus.Parts) if (value != 0) r.DamageBreakdown.Add(label, value);
-            var amount = Math.Max(0, r.DamageBreakdown.Total);
-            r.Damage = ApplyDamage(target, amount, o.DamageType, r.Critical, attacker.Name);
-            if (o.OnHit.HasValue && target.State == VitalState.Conscious)
-            {
-                r.ConditionApplied = o.OnHit;
-                ApplyCondition(target, o.OnHit.Value, attacker.CombatantId, attacker.Name + "'s " + o.Name.ToLowerInvariant(), ConditionDuration.UntilRemoved, default, 0);
-            }
-
-            return r;
-        }
-
-        /// <summary>Advantage and disadvantage from conditions, dodging, range, nearby enemies and pack tactics.</summary>
-        private void AttackModes(CombatantData attacker, CombatantData target, AttackOption o, D20Roll roll)
-        {
-            var d = attacker.Position.DistanceFeet(target.Position);
-            void Adv(string s) { if (!roll.AdvantageSources.Contains(s)) roll.AdvantageSources.Add(s); }
-            void Dis(string s) { if (!roll.DisadvantageSources.Contains(s)) roll.DisadvantageSources.Add(s); }
-
-            if (Has(attacker, ConditionType.Blinded)) Dis("blinded");
-            if (Has(attacker, ConditionType.Frightened)) Dis("frightened");
-            if (Has(attacker, ConditionType.Poisoned)) Dis("poisoned");
-            if (Has(attacker, ConditionType.Prone)) Dis("prone");
-            if (Has(attacker, ConditionType.Restrained)) Dis("restrained");
-            foreach (var k in attacker.Conditions)
-                if (k.Type == ConditionType.Grappled && k.SourceId != target.CombatantId) Dis("grappled (attacking someone else)");
-            if (Has(attacker, ConditionType.Invisible)) Adv("invisible");
-
-            if (Has(target, ConditionType.Blinded)) Adv("target blinded");
-            if (Has(target, ConditionType.Paralyzed)) Adv("target paralyzed");
-            if (Has(target, ConditionType.Petrified)) Adv("target petrified");
-            if (Has(target, ConditionType.Restrained)) Adv("target restrained");
-            if (Has(target, ConditionType.Stunned)) Adv("target stunned");
-            if (Has(target, ConditionType.Unconscious)) Adv("target unconscious");
-            if (Has(target, ConditionType.Invisible)) Dis("target invisible");
-            if (Has(target, ConditionType.Prone)) { if (d <= 5) Adv("target prone, within 5 ft"); else Dis("target prone, at range"); }
-            if (target.Turn.Dodging && !Incapacitated(target) && Speed(target) > 0 && !Has(attacker, ConditionType.Invisible)) Dis("target dodging");
-
-            if (!o.Melee)
-            {
-                if (d > o.Range) Dis("long range");
-                foreach (var x in Encounter.Combatants)
-                    if (x != attacker && Hostile(x, attacker) && x.State == VitalState.Conscious && !Incapacitated(x) && x.Position.IsAdjacent(attacker.Position))
-                    {
-                        Dis("an enemy within 5 ft");
-                        break;
-                    }
-            }
-
-            if (Stats(attacker).PackTactics)
-                foreach (var ally in Encounter.Combatants)
-                    if (ally != attacker && ally.Side == attacker.Side && ally.State == VitalState.Conscious && !Incapacitated(ally) && ally.Position.IsAdjacent(target.Position))
-                    {
-                        Adv("pack tactics");
-                        break;
-                    }
         }
 
         // ===== Damage, healing, death ======================================================================
@@ -690,7 +539,7 @@ namespace Realmkeeper.Domain.Combat
             if (s.Immune(type)) { final = 0; r.Adjustments.Add("immune"); }
             else
             {
-                if (s.Resists(type) || Has(target, ConditionType.Petrified)) { final /= 2; r.Adjustments.Add("resistance (halved)"); }
+                if (s.Resists(type) || Has(target, ConditionType.Petrified) || RageResists(target, type)) { final /= 2; r.Adjustments.Add("resistance (halved)"); }
                 if (s.Vulnerable(type)) { final *= 2; r.Adjustments.Add("vulnerability (doubled)"); }
             }
 
@@ -732,7 +581,15 @@ namespace Realmkeeper.Domain.Combat
             Log(CombatLogKind.Damage, target.CombatantId, default,
                 $"{target.Name} takes {final} {name} damage{(r.Adjustments.Count > 0 ? " (" + string.Join(", ", r.Adjustments) + $", from {amount})" : string.Empty)}" +
                 (absorbed > 0 ? $"; {absorbed} absorbed by temporary hit points" : string.Empty) + $": {r.HpBefore} → {r.HpAfter} HP.", final);
-            if (r.HpAfter > 0) return r;
+            if (r.HpAfter > 0)
+            {
+                ConcentrationCheck(target, final); // Phase 9
+                return r;
+            }
+
+            EndConcentration(target, "dropped to 0 hit points"); // Phase 9: concentration, rage and Wild Shape end
+            EndOwnEffects(target, CombatEffectKind.Raging, "dropped to 0 hit points");
+            EndOwnEffects(target, CombatEffectKind.WildShapeForm, "dropped to 0 hit points");
 
             var overflow = final - absorbed - r.HpBefore;
             if (overflow >= MaxHp(target) && Encounter.Lethality == Lethality.Lethal)
@@ -777,6 +634,8 @@ namespace Realmkeeper.Domain.Combat
         private void Kill(CombatantData c, string how, string byName)
         {
             SetState(c, VitalState.Dead);
+            EndConcentration(c, "died"); // Phase 9: the dead sustain nothing, and nothing lingers on them
+            foreach (var e in new List<ActiveEffectData>(EffectsOn(c))) RemoveEffect(e, "the creature died");
             if (c.Kind == CombatantKind.Player) _world.Player.Rpg.CurrentHp = 0;
             else c.CurrentHp = 0;
             c.Conditions.Clear();
@@ -839,7 +698,7 @@ namespace Realmkeeper.Domain.Combat
 
         private void DoStabilize(CombatantData actor, CombatantData target)
         {
-            actor.Turn.ActionUsed = true;
+            UseAction(actor);
             var check = Check(actor, Ability.Wisdom, Skill.Medicine, 10, $"stabilizing {target.Name}");
             if (check.Success)
             {
@@ -852,8 +711,18 @@ namespace Realmkeeper.Domain.Combat
 
         private void DoEscape(CombatantData actor)
         {
-            actor.Turn.ActionUsed = true;
+            UseAction(actor);
             var k = Find(actor, ConditionType.Grappled);
+            if (k == null)
+            {
+                // Phase 9: tearing free of a spell's restraint (Entangle): a Strength (Athletics) check against its DC.
+                var hold = EscapableRestraint(actor);
+                var pull = Check(actor, Ability.Strength, Skill.Athletics, hold.EscapeDc, "breaking free");
+                Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} strains against {(string.IsNullOrEmpty(hold.Reason) ? "the restraint" : hold.Reason)} (Athletics {pull.Total} vs DC {hold.EscapeDc}): {(pull.Success ? "free" : "still held")}.", pull.Total, pull.Roll);
+                if (pull.Success) RemoveCondition(actor, hold.Type, "broke free");
+                return;
+            }
+
             var athletics = Check(actor, Ability.Strength, Skill.Athletics, k.EscapeDc, "escaping", dryRun: true);
             var acrobatics = Check(actor, Ability.Dexterity, Skill.Acrobatics, k.EscapeDc, "escaping", dryRun: true);
             var useStrength = athletics.Bonus.Total >= acrobatics.Bonus.Total;
@@ -862,64 +731,12 @@ namespace Realmkeeper.Domain.Combat
             if (check.Success) RemoveCondition(actor, ConditionType.Grappled, "escaped");
         }
 
-        private void DoBonus(CombatantData actor, string id)
-        {
-            actor.Turn.BonusActionUsed = true;
-            var rules = Stats(actor).Rules;
-            switch (id)
-            {
-                case "second_wind":
-                    var sheet = rules.Sheet;
-                    sheet.Resources["second_wind"] = sheet.Resources["second_wind"] - 1;
-                    var d = Die(10);
-                    Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} uses Second Wind: d10 {d} + level {rules.Level}.", d + rules.Level, new D20Roll { First = d, Natural = d });
-                    Heal(actor, d + rules.Level, "Second Wind");
-                    break;
-                case "cunning_dash":
-                    actor.Turn.MovementGranted += Speed(actor);
-                    Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} dashes as a bonus action (Cunning Action).");
-                    break;
-                case "cunning_disengage":
-                    actor.Turn.Disengaged = true;
-                    Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} disengages as a bonus action (Cunning Action).");
-                    break;
-            }
-        }
-
-        // ===== Saving throws and checks ====================================================================
 
         /// <summary>
         /// A saving throw against a DC: the save bonus (proficiency included), roll modes from features and conditions,
         /// exhaustion (−2 per level), and automatic failures (Strength and Dexterity saves while paralyzed, petrified,
         /// stunned or unconscious).
         /// </summary>
-        public SaveResult SavingThrow(CombatantData c, Ability ability, int dc, string against)
-        {
-            var s = Stats(c);
-            var r = new SaveResult { Ability = ability, Dc = dc, Bonus = s.SaveBonus(ability) };
-            if ((ability == Ability.Strength || ability == Ability.Dexterity) &&
-                (Has(c, ConditionType.Paralyzed) || Has(c, ConditionType.Petrified) || Has(c, ConditionType.Stunned) || Has(c, ConditionType.Unconscious)))
-            {
-                r.AutomaticFailure = "fails Strength and Dexterity saves automatically while " + (Has(c, ConditionType.Unconscious) ? "unconscious" : Has(c, ConditionType.Paralyzed) ? "paralyzed" : Has(c, ConditionType.Petrified) ? "petrified" : "stunned");
-                r.Roll = new D20Roll();
-                r.Success = false;
-                Log(CombatLogKind.Save, c.CombatantId, default, $"{c.Name} {r.AutomaticFailure} (DC {dc} {ability}, against {against}).");
-                return r;
-            }
-
-            var roll = new D20Roll();
-            var modes = s.RollModes("save:" + ability);
-            roll.AdvantageSources.AddRange(modes.Advantage);
-            roll.DisadvantageSources.AddRange(modes.Disadvantage);
-            if (ability == Ability.Dexterity && Has(c, ConditionType.Restrained)) roll.DisadvantageSources.Add("restrained");
-            if (ability == Ability.Dexterity && c.Turn.Dodging && !Incapacitated(c)) roll.AdvantageSources.Add("dodging");
-            Roll(roll);
-            r.Roll = roll;
-            r.Total = roll.Natural + r.Bonus.Total - 2 * ExhaustionLevel(c);
-            r.Success = r.Total >= dc;
-            Log(CombatLogKind.Save, c.CombatantId, default, $"{c.Name}'s {ability} save against {against}: d20 {roll.Natural} {Breakdown.Signed(r.Bonus.Total)} = {r.Total} vs DC {dc}: {(r.Success ? "success" : "failure")}.", r.Total, roll);
-            return r;
-        }
 
         /// <summary>An ability check with a skill (the player's skill bonus; a creature's ability modifier).</summary>
         public SaveResult Check(CombatantData c, Ability ability, Skill skill, int dc, string purpose, bool dryRun = false)
@@ -1002,6 +819,8 @@ namespace Realmkeeper.Domain.Combat
                 ExpiresRound = expiresRound, Level = t == ConditionType.Exhaustion ? Math.Max(1, level) : 0, EscapeDc = escapeDc,
             });
             Log(CombatLogKind.ConditionApplied, c.CombatantId, source, $"{c.Name} is {Describe(t)}{(string.IsNullOrEmpty(reason) ? string.Empty : $" ({reason})")}.");
+            if (c.Concentration != null && Incapacitated(c)) EndConcentration(c, "incapacitated"); // Phase 9
+            if (c.FormCreatureId != null && Incapacitated(c)) EndOwnEffects(c, Realmkeeper.Domain.Magic.CombatEffectKind.WildShapeForm, "incapacitated");
             if (t == ConditionType.Exhaustion && level >= 6) Kill(c, "exhaustion", null);
             return null;
         }
@@ -1048,6 +867,7 @@ namespace Realmkeeper.Domain.Combat
             e.Outcome = outcome;
             e.WinningSide = winner;
             e.EndedOn = _world.CurrentSimulationDate;
+            EndAllEffects(); // Phase 9: spell and feature effects are encounter time only
             foreach (var c in e.Combatants)
                 if (c.Kind == CombatantKind.Player && c.State == VitalState.Dying)
                 {

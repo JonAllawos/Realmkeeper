@@ -39,6 +39,24 @@ namespace Realmkeeper.Application
 
         /// <summary>For the stand-in figure: a beast (the wolf) rather than a person.</summary>
         public bool CreatureIsBeast { get; set; }
+
+        // ----- Phase 9 -----
+
+        /// <summary>What it concentrates on, or null.</summary>
+        public string Concentration { get; set; }
+
+        /// <summary>Spell and feature effects on it, in words ("Bless (from Ada)", "Rage" …).</summary>
+        public IReadOnlyList<string> Effects { get; set; } = new List<string>();
+
+        public bool IsCaster { get; set; }
+        public int SpellSaveDc { get; set; }
+        public int SpellAttack { get; set; }
+
+        /// <summary>Spell slots and class resources left, in words.</summary>
+        public string Resources { get; set; }
+
+        /// <summary>Wild Shape: the beast form it is in, or null.</summary>
+        public string Form { get; set; }
     }
 
     /// <summary>An action the player can take now, or why not.</summary>
@@ -78,6 +96,12 @@ namespace Realmkeeper.Application
 
         /// <summary>Attacks, actions and bonus actions for the player's turn (empty otherwise), each with why it is unavailable.</summary>
         public IReadOnlyList<CombatOption> PlayerOptions { get; set; }
+
+        /// <summary>Phase 9: the spells the player can try to cast this turn, each with its slot levels, targets and why not.</summary>
+        public IReadOnlyList<SpellCastOption> PlayerSpells { get; set; } = new List<SpellCastOption>();
+
+        /// <summary>Phase 9: the player's targeted or optioned class features (Bardic Inspiration, Lay on Hands, Flurry of Blows …).</summary>
+        public IReadOnlyList<FeatureOption> PlayerFeatures { get; set; } = new List<FeatureOption>();
     }
 
     public sealed partial class WorldSession
@@ -119,13 +143,16 @@ namespace Realmkeeper.Application
                 {
                     Id = c.CombatantId, Name = c.Name, Kind = c.Kind, Side = c.Side, Control = c.Control, IsActive = c == e.Active,
                     HostileToPlayer = player != null && CombatEngine.Hostile(player, c), Initiative = c.Initiative,
-                    Hp = engine.Hp(c), MaxHp = engine.MaxHp(c), TempHp = engine.TempHp(c), ArmorClass = s.ArmorClass.Total, ArmorClassText = s.ArmorClass.Text,
+                    Hp = engine.Hp(c), MaxHp = engine.MaxHp(c), TempHp = engine.TempHp(c), ArmorClass = engine.ArmorClass(c).Total, ArmorClassText = engine.ArmorClass(c).Text,
                     Speed = engine.Speed(c), MovementLeft = c == e.Active ? engine.MovementLeft(c) : engine.Speed(c), Position = c.Position, State = c.State,
                     Conditions = conditions, Weapon = s.WeaponName, Attacks = string.Join("; ", attacks),
                     DeathSaveSuccesses = engine.Successes(c), DeathSaveFailures = engine.Failures(c),
                     ActionUsed = c.Turn.ActionUsed, BonusActionUsed = c.Turn.BonusActionUsed, ReactionUsed = c.Turn.ReactionUsed, AttacksLeft = c.Turn.AttacksLeft,
                     Stats = string.Join(" · ", scores) + $" · speed {s.BaseSpeed} ft · proficiency +{s.ProficiencyBonus}",
-                    CreatureIsBeast = s.Creature != null && s.Creature.Type == "Beast",
+                    CreatureIsBeast = s.Creature != null && s.Creature.Type == "Beast" || c.FormCreatureId != null,
+                    Concentration = c.Concentration?.Name, Effects = EffectLines(engine, c), IsCaster = s.IsCaster && c.FormCreatureId == null,
+                    SpellSaveDc = s.IsCaster ? engine.SpellSaveDc(c) : 0, SpellAttack = s.IsCaster ? s.SpellAttack().Total : 0, Resources = ResourceText(engine, c),
+                    Form = c.FormCreatureId == null ? null : CreatureCatalog.Find(c.FormCreatureId)?.Name,
                 };
             }
 
@@ -138,6 +165,11 @@ namespace Realmkeeper.Application
                 Active = e.Active != null ? View(e.Active) : null, Player = player != null ? View(player) : null,
             };
             snap.PlayerOptions = player != null && e.Active == player && e.IsActive ? Options(engine, player) : new List<CombatOption>();
+            if (player != null && e.Active == player && e.IsActive)
+            {
+                snap.PlayerSpells = SpellOptions(engine, player);
+                snap.PlayerFeatures = FeatureOptions(engine, player);
+            }
             return snap;
         }
 

@@ -38,5 +38,11 @@
 | [0034](ADR-0034-death-and-dying.md) | Death saves for characters; creatures die; nothing comes back | Accepted (Phase 8) |
 | [0035](ADR-0035-settlement-structures.md) | Settlement structures built on existing places, honestly classified | Accepted (Phase 8) |
 | [0036](ADR-0036-combat-chronicle.md) | Combat reaches the chronicle as a few moments, never a log of swings | Accepted (Phase 8) |
+| [0037](ADR-0037-shared-spell-engine.md) | One spell engine, driven by data, for every caster | Accepted (Phase 9) |
+| [0038](ADR-0038-spell-state-as-character-choices.md) | Spell picks are character choices; preparation is separate state | Accepted (Phase 9) |
+| [0039](ADR-0039-effects-and-concentration.md) | Lasting effects live in the encounter; concentration per caster; all end with the fight | Accepted (Phase 9) |
+| [0040](ADR-0040-rests-and-recovery.md) | Rests pass world time first, then recover through one idempotent command | Accepted (Phase 9) |
+| [0041](ADR-0041-class-feature-activation.md) | Class features act through one activation model matched by feature ID | Accepted (Phase 9) |
+| [0042](ADR-0042-npc-spellcasting.md) | Creatures and residents cast through the same engine; caster stat blocks from SRD 5.1 | Accepted (Phase 9) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

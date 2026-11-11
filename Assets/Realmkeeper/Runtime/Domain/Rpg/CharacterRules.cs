@@ -587,6 +587,9 @@ namespace Realmkeeper.Domain.Rpg
         public bool UntrainedArmor => _loadout.BodyArmor != null && !TrainedIn(_loadout.BodyArmor.Training);
 
         /// <summary>True when the worn armour's Strength requirement is not met (speed −10 ft).</summary>
+        /// <summary>Phase 9: wearing heavy armour (no rage in it).</summary>
+        public bool HeavyArmorWorn => _loadout.BodyArmor != null && _loadout.BodyArmor.Category == Realmkeeper.Domain.World.ArmorCategory.Heavy;
+
         public bool ArmorTooHeavy => _loadout.BodyArmor != null && _loadout.BodyArmor.StrengthRequirement > 0 && Score(Ability.Strength) < _loadout.BodyArmor.StrengthRequirement;
 
         /// <summary>

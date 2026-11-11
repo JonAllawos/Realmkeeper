@@ -69,6 +69,29 @@ namespace Realmkeeper.Domain.World
                     if (c.Turn == null || c.Turn.MovementUsed < 0 || c.Turn.AttacksLeft < 0) result.AddError($"{who} has invalid turn resources.");
                 }
 
+                // Phase 9: effects, concentration, forms and resources.
+                var effectIds = new HashSet<int>();
+                foreach (var x in e.Effects)
+                {
+                    if (x == null) { result.AddError($"{label} has a null effect."); continue; }
+                    if (!effectIds.Add(x.Id)) result.AddError($"{label}: effect {x.Id} is recorded twice.");
+                    if (!ids.Contains(x.TargetId)) result.AddError($"{label}: effect {x.Name} is on no combatant.");
+                    if (!x.SourceId.IsEmpty && !ids.Contains(x.SourceId)) result.AddError($"{label}: effect {x.Name} comes from no combatant.");
+                    if (x.InstanceId <= 0 || x.InstanceId >= e.NextInstanceId) result.AddError($"{label}: effect {x.Name} belongs to no cast or use.");
+                    if (x.DiceCount < 0 || x.DiceSides < 0) result.AddError($"{label}: effect {x.Name} has negative dice.");
+                }
+
+                foreach (var c in e.Combatants)
+                {
+                    if (c == null) continue;
+                    foreach (var r in c.Resources) if (r.Value < 0) result.AddError($"{label}: {c.Name} has negative {r.Key}.");
+                    if (c.FormCreatureId != null && CreatureCatalog.Find(c.FormCreatureId) == null) result.AddError($"{label}: {c.Name} is in an unknown form.");
+                    if (c.Concentration != null && (c.Concentration.InstanceId <= 0 || c.Concentration.InstanceId >= e.NextInstanceId)) result.AddError($"{label}: {c.Name} concentrates on nothing known.");
+                    foreach (var k in c.Conditions) if (k != null && (k.InstanceId < 0 || k.InstanceId >= e.NextInstanceId)) result.AddError($"{label}: {c.Name} has a condition from an unknown cast.");
+                }
+
+                if (!e.IsActive && e.Effects.Count > 0) result.AddError($"{label} is over but still has effects in force.");
+
                 if (players > 1) result.AddError($"{label} has the player twice.");
                 var ordered = new HashSet<CombatantId>();
                 foreach (var id in e.Order)

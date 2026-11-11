@@ -65,6 +65,16 @@ under: 6 for Phase 6 characters, 7 from Phase 7.
   refused without it. Afterwards the sheet is at version 7.
 - **Nothing is invented.** The migration never guesses these choices.
 
+**Rules version 8 (Phase 9)** adds the spell picks: cantrips, known spells and wizard spellbook
+entries (ADR-0038).
+- **"Up to" picks.** Unlike earlier choices, they are marked `UpTo`, so they are never outstanding:
+  an open spell pick does not block a level-up. It is offered in the level-up window and can be
+  filled later from the Hub (`ChooseSpellCommand`).
+- **Characters still in creation** are moved to version 8 by `MigrationV10ToV11`. Finished
+  characters keep their version.
+
+Detail: `Spellcasting.md`.
+
 ## Class progression (levels 1–20)
 
 Each class keeps its Phase 6 level-1 definition and adds:
@@ -158,21 +168,23 @@ after confirming.
   - healing stops at the maximum;
   - temporary hit points do not stack (the higher amount stays).
 - **Hit dice** are a resource: one per level.
-  - Half return on a long rest (at least one).
-  - Spending them to heal on a short rest belongs to the rest phase.
+  - All return on a long rest (SRD 5.2.1; Phase 9 corrected the earlier "half").
+  - On a short rest the player spends any number to heal (each die + Constitution). See
+    `RestAndRecovery.md`.
 
 ## Resources
 
 Each resource is defined by an ID, a formula (fixed, ability modifier, per level, proficiency
 bonus, or a 20-level table), the first level it exists at, and its recovery (short or long rest;
 Font of Inspiration switches Bardic Inspiration to short rests from level 5). Each has an amount
-(all, or half).
+(all, or half). Phase 9 adds `ShortRestRegain`: Rage, Channel Divinity and Wild Shape regain one use
+on a short rest.
 
 | Command | What it does |
 |---|---|
 | `SpendResourceCommand(id, n)` | Refused if the resource is unknown, the amount is below 1, or not enough uses are left. A refused spend changes nothing. |
 | `RestoreResourceCommand(id, n?)` | Restores up to the maximum (all, when no amount is given). |
-| `RecoverResourcesCommand(rest)` | What a short or long rest restores. It **passes no time**: it is the hook the rest phase will call. |
+| `RecoverResourcesCommand(rest)` | What a short or long rest restores, without passing time (kept for tools and tests). Play uses the Phase 9 rests, which pass world time first (`RestAndRecovery.md`). |
 
 The same operations exist for any sheet in `CharacterVitals`.
 

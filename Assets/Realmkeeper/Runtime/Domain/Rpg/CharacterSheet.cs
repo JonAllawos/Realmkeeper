@@ -65,6 +65,11 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>Dead (three failed death saves, or massive damage). Resurrection is not part of Phase 8.</summary>
         public bool IsDead { get; set; }
 
+        // ----- Phase 9: spellcasting and rests -----
+
+        /// <summary>Prepared spells, the preparation window and rest history (spell picks themselves are choices).</summary>
+        public SpellcastingData Spellcasting { get; set; } = new SpellcastingData();
+
         /// <summary>Uses left of each resource (rage, spell slots, hit dice …), by resource ID.</summary>
         public Dictionary<string, int> Resources { get; set; } = new Dictionary<string, int>();
 
@@ -100,6 +105,7 @@ namespace Realmkeeper.Domain.Rpg
             foreach (var a in ExperienceLog) c.ExperienceLog.Add(a.Clone());
             c.Advancements = new List<AdvancementRecord>();
             foreach (var a in Advancements) c.Advancements.Add(a.Clone());
+            c.Spellcasting = (Spellcasting ?? new SpellcastingData()).Clone();
             return c;
         }
     }
@@ -192,5 +198,64 @@ namespace Realmkeeper.Domain.Rpg
                 default: return true;
             }
         }
+    }
+}
+
+namespace Realmkeeper.Domain.Rpg
+{
+    using System.Collections.Generic;
+
+    /// <summary>
+    /// Phase 9: a character's spellcasting state that is not a choice — the prepared list (cleric, druid, paladin,
+    /// ranger; the wizard from the spellbook), how much of it may change now, and the rest history. Definitions are never
+    /// copied here: spells are referenced by catalog ID.
+    /// </summary>
+    public sealed class SpellcastingData
+    {
+        public const int MaxRestLog = 20;
+
+        /// <summary>Prepared spell IDs (prepared casters and the wizard); empty for known casters.</summary>
+        public List<string> Prepared { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Prepared spells that may be replaced now: −1 = the whole list (after a long rest, for the cleric, druid and
+        /// wizard), 1 = one (after a long rest, for the paladin and ranger), 0 = none until the next long rest. Adding
+        /// spells while the list is below its limit is always allowed outside fights.
+        /// </summary>
+        public int PreparationChanges { get; set; } = -1;
+
+        /// <summary>World minute (absolute: day × 1440 + minute) a long rest last finished, or −1 when never.</summary>
+        public long LastLongRestEnded { get; set; } = -1;
+
+        /// <summary>Rests taken, newest last (bounded by <see cref="MaxRestLog"/>).</summary>
+        public List<RestRecord> RestLog { get; set; } = new List<RestRecord>();
+
+        public SpellcastingData Clone()
+        {
+            var c = (SpellcastingData)MemberwiseClone();
+            c.Prepared = new List<string>(Prepared);
+            c.RestLog = new List<RestRecord>();
+            foreach (var r in RestLog) c.RestLog.Add(r.Clone());
+            return c;
+        }
+    }
+
+    public enum RestKind
+    {
+        Short = 0,
+        Long = 1,
+    }
+
+    /// <summary>One finished rest: when, what kind, and what it gave back.</summary>
+    public sealed class RestRecord
+    {
+        /// <summary>Unique within the character (the absolute world minute the rest finished, with its kind); repeats are refused.</summary>
+        public string Key { get; set; }
+
+        public RestKind Kind { get; set; }
+        public long EndedAt { get; set; }
+        public string Summary { get; set; } = string.Empty;
+
+        public RestRecord Clone() => (RestRecord)MemberwiseClone();
     }
 }

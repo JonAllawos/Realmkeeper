@@ -41,7 +41,7 @@ namespace Realmkeeper.Domain.Rpg
 
         /// <summary>
         /// Restores what a rest restores: on a short rest, every resource that returns on one; on a long rest, every
-        /// resource (half the hit dice, at least one). Returns what came back ("Rage 1→3").
+        /// resource (all hit dice, SRD 5.2.1; one use of Rage, Channel Divinity and Wild Shape on a short rest). Returns what came back ("Rage 1→3").
         /// </summary>
         public static List<string> Recover(CharacterSheetData s, ResourceRecovery rest)
         {
@@ -49,10 +49,11 @@ namespace Realmkeeper.Domain.Rpg
             var changes = new List<string>();
             foreach (var r in rules.ResourceDefinitions)
             {
-                if (rest == ResourceRecovery.ShortRest && rules.RecoveryOf(r) != ResourceRecovery.ShortRest) continue;
+                var partial = rest == ResourceRecovery.ShortRest && rules.RecoveryOf(r) != ResourceRecovery.ShortRest;
+                if (partial && r.ShortRestRegain <= 0) continue;
                 var max = rules.ResourceMax(r);
                 var left = s.Resources.TryGetValue(r.Id, out var v) ? v : 0;
-                var back = r.Amount == RecoveryAmount.Half ? Math.Max(1, max / 2) : max;
+                var back = partial ? r.ShortRestRegain : r.Amount == RecoveryAmount.Half ? Math.Max(1, max / 2) : max;
                 var now = Math.Min(max, left + back);
                 if (now == left) continue;
                 s.Resources[r.Id] = now;

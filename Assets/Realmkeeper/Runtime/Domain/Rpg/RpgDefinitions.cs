@@ -133,6 +133,12 @@ namespace Realmkeeper.Domain.Rpg
         public string Prompt { get; set; }
         public ChoiceKind Kind { get; set; }
         public int Count { get; set; } = 1;
+
+        /// <summary>Phase 9: may be made with fewer picks than <see cref="Count"/> (spell picks: the catalog may hold fewer spells than the class table allows; open picks can be made later).</summary>
+        public bool UpTo { get; set; }
+
+        /// <summary>Whether this many picks complete the choice.</summary>
+        public bool CountAllowed(int picked) => UpTo ? picked <= Count : picked == Count;
         public IReadOnlyList<ChoiceOption> Options { get; set; } = Array.Empty<ChoiceOption>();
         public IReadOnlyList<Skill> Skills { get; set; } = Array.Empty<Skill>();
 
@@ -181,6 +187,9 @@ namespace Realmkeeper.Domain.Rpg
 
         /// <summary>From this level the resource also returns on a short rest (0 = never; Font of Inspiration).</summary>
         public int ShortRestFromLevel { get; set; }
+
+        /// <summary>Phase 9: uses regained on a short rest by a resource that otherwise returns on a long rest (Rage, Channel Divinity, Wild Shape: one).</summary>
+        public int ShortRestRegain { get; set; }
 
         /// <summary>How much a recovery restores.</summary>
         public RecoveryAmount Amount { get; set; }

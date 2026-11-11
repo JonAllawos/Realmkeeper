@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 8, 2026-11-11)
+## Implementation status (updated at the end of Phase 9, 2026-11-11)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -28,8 +28,9 @@ present but visibly temporary; **Not started**.
 | 5 | Living World & Player Hub | Implemented (`1f37bb6`) |
 | 6 | Character Creation | Implemented (`f2682a2`) |
 | 7 | RPG Progression | Implemented (`a3cd9f5`) |
-| 8 | Combat (foundation) and settlement structures | **Implemented, awaiting review.** See below. |
-| 9–16 | Magic onwards | Not started |
+| 8 | Combat (foundation) and settlement structures | Implemented (`2fe83eb`) |
+| 9 | Spellcasting, class features and combat integration | **Implemented, awaiting review.** See below. |
+| 10–16 | Onwards | Not started |
 
 ### §7 Character and RPG system
 
@@ -47,12 +48,12 @@ present but visibly temporary; **Not started**.
 | XP and levelling | **Implemented** | Keyed ledger; explicit level-up window; multi-level transactions |
 | Hit points, hit dice | Implemented | Fixed averages; current HP rises with the maximum; damage, healing, temporary HP |
 | Armour class | **Implemented** (SRD armour, Phase 8) | Categories, Dex caps, shields, training penalties, Strength requirements, breakdown (ADR-0033) |
-| Class resources | **Implemented** | Spend, restore and recover commands; rests that pass time are Not started |
-| Spellcasting | Foundation | Slots, cantrips, prepared counts, DC and attack per level; no spells (Phase 9) |
-| Combat features | Foundation, partly used | Second Wind and Cunning Action work in combat; Extra Attack sets attacks per action; Archery, Duelling and Great Weapon Fighting apply; the rest wait |
+| Class resources | **Implemented** | Spend, restore and recover; short and long rests pass world time and recover explicitly per resource (Phase 9, `Systems/RestAndRecovery.md`) |
+| Spellcasting | **Implemented** (Phase 9) | 47 SRD 5.2.1 spells (27 functional, 10 partial, 4 data-only, 6 deferred), with known, prepared and spellbook state and picks at creation and level-up. Slots and Pact Magic, upcasting, areas, concentration. One engine for player and NPCs. Spellbook in the Hub, casting from the encounter panel (`Systems/Spellcasting.md`, `SpellCatalogAudit.md`) |
+| Combat features | **Implemented**, partly simulated | 38 combat features across the twelve classes through one activation model, each Functional or Partial with its gap named; reaction features wait for a reaction prompt (`Systems/ClassFeatures.md`) |
 | Turn-based combat | **Implemented** (Phase 8) | Encounters, initiative, action economy, 5-ft grid, opportunity attacks, SRD attacks and damage, 15 conditions, death saves; deterministic AI; the practice encounter is the only way in (`Systems/Combat.md`) |
 | Death and dying | **Implemented** (Phase 8) | Death saves for the player and residents; creatures die; non-lethal knock-outs; no resurrection (ADR-0034) |
-| Bestiary | Foundation | Four SRD creatures (commoner, bandit, guard, wolf); stand-in figures, no models |
+| Bestiary | Foundation | Six SRD creatures (commoner, bandit, guard and wolf from SRD 5.2.1; acolyte and cult fanatic casters from SRD 5.1); stand-in figures, no models |
 | Settlement structures | **Implemented** (Phase 8), simulation partly | Functional ones are the existing places and shops; informational and decorative ones are listed and signed, with no production (`Systems/SettlementStructures.md`) |
 | Character creator | Implemented | Now includes the rules-v7 level-1 choices |
 | Character sheet in the Player Hub | Implemented | Adds Progression, breakdowns, roll modes, senses, movement |
@@ -72,8 +73,13 @@ present but visibly temporary; **Not started**.
   mutation checks.
 - **17, 18 (honest placeholders, licensing):** no new art; SRD content attributed; deferred content
   listed rather than invented.
-- **20 (controlled phases):** Phase 7 stopped for review; Phase 8 stops here for review.
+- **20 (controlled phases):** Phases 7 and 8 stopped for review; Phase 9 stops here for review.
 - **Phase 8, principles 8, 16 and 17:** every combat number comes from the SRD 5.2.1 rules engine and is explained on screen; the rules are mutation-checked; ground markers and stand-in figures are labelled placeholders; the creature descriptions are Realmkeeper's own.
+- **Phase 9, principles 7, 8, 14 and 17:**
+  - Spells and features are data resolved by the shared rules engine, and each one says honestly
+    how complete it is.
+  - Spell names are the SRD's; every description is Realmkeeper's own.
+  - No non-SRD subclass, spell or creature was added.
 
 ### §20 Open questions
 

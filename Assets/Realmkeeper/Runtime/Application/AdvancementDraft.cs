@@ -159,7 +159,7 @@ namespace Realmkeeper.Application
             }
 
             var picked = Picked(c.Id).Count;
-            if (picked != c.Count) list.Add($"Choose {c.Count} ({picked} chosen).");
+            if (!c.CountAllowed(picked)) list.Add($"Choose {c.Count} ({picked} chosen).");
             return list;
         }
 

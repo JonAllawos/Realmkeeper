@@ -15,6 +15,9 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>Unarmed Strike option: the target saves or is knocked Prone.</summary>
         Shove = 3,
+
+        /// <summary>Phase 9: a spell attack (resolved through the same attack roll).</summary>
+        Spell = 4,
     }
 
     /// <summary>One way a combatant can attack, with everything needed to resolve and explain it.</summary>
@@ -97,6 +100,16 @@ namespace Realmkeeper.Domain.Combat
                 s.ProficiencyBonus = s.Rules.ProficiencyBonus;
                 s.AttacksPerAction = s.Rules.HasFeature("three_extra_attacks") ? 4 : s.Rules.HasFeature("two_extra_attacks") ? 3 : s.Rules.HasFeature("extra_attack") ? 2 : 1;
                 s.BuildPlayerAttacks();
+                if (c.FormCreatureId != null && CreatureCatalog.Find(c.FormCreatureId) is CreatureDefinition form)
+                {
+                    // Wild Shape (Phase 9 foundation): the beast's armour class, speed, physical scores and attacks; the druid's own hit points, mind and proficiencies.
+                    s.Form = form;
+                    s.ArmorClass = new Breakdown().Add(form.Name + " form (" + form.ArmorNote + ")", form.ArmorClass);
+                    s.BaseSpeed = form.Speed;
+                    s._attacks.Clear();
+                    foreach (var a in form.Attacks) s.BuildCreatureAttacks(a);
+                    s.WeaponName = form.Name + " form";
+                }
             }
             else
             {
@@ -106,6 +119,7 @@ namespace Realmkeeper.Domain.Combat
                 s.BaseSpeed = def.Speed;
                 s.ProficiencyBonus = def.ProficiencyBonus;
                 foreach (var a in def.Attacks) s.BuildCreatureAttacks(a);
+                s.AttacksPerAction = Math.Max(1, def.Multiattack);
                 s.WeaponName = def.Attacks.Count > 0 ? def.Attacks[0].Name : "Unarmed";
             }
 
@@ -114,7 +128,32 @@ namespace Realmkeeper.Domain.Combat
 
         // ----- Abilities and defences -----------------------------------------------------------------------
 
-        public int Score(Ability a) => Rules != null ? Rules.Score(a) : Creature.Scores[(int)a];
+        public int Score(Ability a) =>
+            Form != null && (a == Ability.Strength || a == Ability.Dexterity || a == Ability.Constitution) ? Form.Scores[(int)a] :
+            Rules != null ? Rules.Score(a) : Creature.Scores[(int)a];
+
+        /// <summary>Phase 9: the beast form a druid fights in (Wild Shape), or null.</summary>
+        public CreatureDefinition Form { get; private set; }
+
+        // ----- Phase 9: spellcasting (the player's from the rules; a creature's from its stat block) -----
+
+        public bool IsCaster => Rules != null ? Rules.Class?.Spellcasting != null : Creature?.Spellcasting != null;
+
+        public Ability SpellAbility => Rules != null ? (Rules.Class?.Spellcasting?.Ability ?? Ability.Intelligence) : (Creature?.Spellcasting?.Ability ?? Ability.Intelligence);
+
+        public Breakdown SpellSaveDc() => Rules != null ? Rules.SpellSaveDc() : new Breakdown().Add(Creature.Name + " spell save DC", Creature.Spellcasting?.SaveDc ?? 10);
+
+        public Breakdown SpellAttack() => Rules != null ? Rules.SpellAttack() : new Breakdown().Add(Creature.Name + " spell attack", Creature.Spellcasting?.AttackBonus ?? 0);
+
+        /// <summary>The level cantrips scale with (character level; the stat block's caster level).</summary>
+        public int CasterLevel => Rules != null ? Rules.Level : Creature?.Spellcasting?.CasterLevel ?? 1;
+
+        /// <summary>A spell attack as an attack option (the shared attack roll resolves it).</summary>
+        public AttackOption SpellAttackOption(Realmkeeper.Domain.Magic.SpellDefinition s, int rangeMultiplier = 1) => new AttackOption
+        {
+            Id = "spell:" + s.Id, Name = s.Name, Kind = AttackKind.Spell, Melee = s.Touch, Reach = s.Touch ? 5 : 0, Range = s.Range * rangeMultiplier, LongRange = s.Range * rangeMultiplier,
+            AttackBonus = SpellAttack(), Damage = default, DamageBonus = new Breakdown(), Ability = SpellAbility, Proficient = true,
+        };
         public int Modifier(Ability a) => AbilityRules.Modifier(Score(a));
 
         /// <summary>A saving throw's bonus and how it is made up.</summary>
@@ -254,11 +293,16 @@ namespace Realmkeeper.Domain.Combat
             }
             else WeaponName = "Unarmed";
 
-            var unarmed = new Breakdown().Add("Strength", str).Add("proficiency", pb);
+            // Martial Arts (Phase 9): the monk's unarmed strike uses the martial arts die and Dexterity when it is higher.
+            var martial = Rules.HasFeature("martial_arts") ? Math.Max(4, Rules.Scaling("martial_arts")) : 0;
+            var unarmedAbility = martial > 0 && Modifier(Ability.Dexterity) > str ? Ability.Dexterity : Ability.Strength;
+            var um = Modifier(unarmedAbility);
+            var unarmed = new Breakdown().Add(unarmedAbility.ToString(), um).Add("proficiency", pb);
             _attacks.Add(new AttackOption
             {
-                Id = "unarmed", Name = "Unarmed strike", Kind = AttackKind.Unarmed, Melee = true, Reach = 5, AttackBonus = unarmed, Damage = new Dice(0, 0, 1),
-                DamageBonus = new Breakdown().Add("Strength", str), DamageType = DamageType.Bludgeoning, Ability = Ability.Strength, Proficient = true,
+                Id = "unarmed", Name = martial > 0 ? "Unarmed strike (d" + martial + ")" : "Unarmed strike", Kind = AttackKind.Unarmed, Melee = true, Reach = 5, AttackBonus = unarmed,
+                Damage = martial > 0 ? new Dice(1, martial) : new Dice(0, 0, 1),
+                DamageBonus = new Breakdown().Add(unarmedAbility.ToString(), um), DamageType = DamageType.Bludgeoning, Ability = unarmedAbility, Proficient = true,
             });
             var dc = 8 + str + pb;
             var freeHand = main == null || off == null && !(main.TwoHanded && main.Weapon != null && main.Weapon.Has(WeaponProperty.TwoHanded));

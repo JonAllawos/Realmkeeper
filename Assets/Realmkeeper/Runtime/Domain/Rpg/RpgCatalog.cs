@@ -237,7 +237,7 @@ namespace Realmkeeper.Domain.Rpg
         private static void CheckChoice(List<string> errors, string where, ChoiceDefinition c, HashSet<string> resources)
         {
             if (string.IsNullOrEmpty(c.Id) || c.Count < 1) errors.Add($"{where}: bad choice {c.Id}.");
-            if (c.Kind == ChoiceKind.Option && c.Options.Count < c.Count) errors.Add($"{where}: choice {c.Id} has too few options.");
+            if (c.Kind == ChoiceKind.Option && !c.UpTo && c.Options.Count < c.Count) errors.Add($"{where}: choice {c.Id} has too few options.");
             foreach (var o in c.Options) CheckEffects(errors, where + " " + c.Id, o.Effects, resources);
         }
 

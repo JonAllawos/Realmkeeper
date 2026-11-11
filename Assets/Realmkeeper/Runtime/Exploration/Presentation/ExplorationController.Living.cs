@@ -115,6 +115,11 @@ namespace Realmkeeper.Exploration.Presentation
                 Creator.PreviewTurned += d => { Preview?.Rotate(d); Preview?.RenderNow(); };
                 Creator.PreviewZoomed += d => { Preview?.Zoom(d); Preview?.RenderNow(); };
                 HubWindow.LevelUpRequested += () => OpenAdvancement();
+                HubWindow.PrepareRequested += list => HubCommand(new PrepareSpellsCommand(list)); // Phase 9
+                HubWindow.ChooseSpellRequested += (choice, spell) => HubCommand(new ChooseSpellCommand(choice, spell));
+                HubWindow.HealOutsideRequested += (spell, level) => HubCommand(new CastHealingOutsideCombatCommand(spell, level));
+                HubWindow.ShortRestRequested += dice => Rest(Realmkeeper.Domain.Rpg.RestKind.Short, dice);
+                HubWindow.LongRestRequested += () => Rest(Realmkeeper.Domain.Rpg.RestKind.Long, 0);
                 Advancement = new CharacterAdvancementWindow(Hud.Root);
                 Advancement.CloseRequested += CloseWindows;
                 Advancement.ConfirmRequested += c => ConfirmAdvancement(c);
@@ -451,6 +456,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             Hud?.HideResponse();
             HubWindow.Sheet = _session.GetCharacter();
+            HubWindow.Spellbook = _session.GetSpellbook(); // Phase 9
             HubWindow.Show(hub, _session.GetWorldTime(), message, failed);
             SetWindowMode(true);
         }

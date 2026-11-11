@@ -1,0 +1,21 @@
+p9_01_spellbook: The wizard's spellbook: Intelligence, save DC and attack with their breakdowns, level 1 slots, the open spell picks, the preparation editor, and the spell list with filters.
+p9_02_spell_details: Inspecting Burning Hands: casting time, 15-ft cone, components, duration, effects (Dexterity save, 3d6 fire, half on a save), upcasting, classes, status and SRD source.
+p9_03_preparation_and_picks: Open spell picks (spellbook and cantrips left to choose) and the preparation editor: prepared spells toggled, saved with the button.
+p9_06_combat_spell_selection: The encounter panel's Spells section: each spell with its cost (cantrip, slot levels) and why it cannot be cast now; the attacks section folded away above, class features below.
+p9_07_target_selection: The cast composer for Fire Bolt: the action, range and targets (out-of-range creatures disabled, with the reason).
+Fire Bolt: Tamsin Vale casts Fire Bolt (cantrip). Tamsin Vale → Bandit archer: Fire Bolt, d20 17 +5 = 22 vs AC 12: hit. Fire Bolt → Bandit archer: 1d10 [6] = 6 fire. Bandit archer takes 6 fire damage: 11 → 5 HP.
+p9_08_spell_attack_result: Fire Bolt resolved by the shared attack roll: d20, spell attack bonus, total against AC, damage dice — in the result and the log.
+p9_10_area_aim: Burning Hands aimed on the grid: the 15-ft cone's squares shaded before casting; slot level 1.
+Burning Hands: Tamsin Vale casts Burning Hands at level 1 (a level 1 slot). Bandit archer's Dexterity save against Tamsin Vale's Burning Hands: d20 12 +1 = 13 vs DC 13: success. Burning Hands → Bandit archer: 3d6 [3, 5, 6] = 14, half on a successful save: 7 fire. Bandit archer takes 7 fire damage: 5 → 0 HP. Bandit archer dies (dropped to 0 hit points). Neville Wade's Dexterity save against Tamsin Vale's Burning Hands: d20 9 +1 = 10 vs DC 13: failure. Burning Hands → Neville Wade: 3d6 [1, 4, 3] = 8 fire. Neville Wade takes 8 fire damage: 5 → 0 HP. Neville Wade is unconscious (dropped to 0 hit points). Neville Wade is prone (dropped to 0 hit points). Neville Wade falls unconscious and is dying.
+p9_09_saving_throw_and_area_result: The cone resolved: every creature in it makes its own Dexterity save against the spell DC; damage in full or halved, each line explained.
+p9_05_slot_display: Back in the Hub during the fight: the slots spent show as empty pips (1 of 2 level 1 slots left).
+p9_04_sheet_spellcasting_section: A cleric's spellcasting section: Wisdom, DC and attack, slots, prepared spells (3 of 4), the spell list with its filters, and the rest controls.
+Bless: Tamsin Vale concentrates on Bless. Tamsin Vale casts Bless at level 1 (a level 1 slot; concentration).
+p9_11_concentration: Bless under concentration: the initiative rows and the inspector show the concentration and the effect on each target (+1d4 to attacks and saves).
+NPC cast: Cult Fanatic casts Hold Person at level 2 (a level 2 slot; concentration).
+p9_13_npc_spellcasting: The Cult Fanatic (SRD caster) casting on its own turn through the same engine: its spell, the save or attack, and its slots in the inspector.
+p9_12_class_feature: Rage from the panel (a bonus action, one use spent): the effect on the barbarian, the log line, and Rage now shown unavailable with the reason.
+Short rest: Short rest (1 hour). Spent 1 hit die (d8 [8] +2 each): +4 hit points. Recovered: Pact slots 0→1.
+p9_14_short_rest: After a short rest (one hit die spent): an hour passed, hit points regained, the pact slot back; the rest recorded.
+Long rest: Long rest (8 hours). Recovered: Hit dice 0→1.
+p9_15_long_rest: After a long rest: eight hours passed, everything restored, and the long rest now unavailable for 24 hours (the reason shown).

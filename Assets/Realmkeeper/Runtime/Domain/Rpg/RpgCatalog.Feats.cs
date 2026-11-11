@@ -311,6 +311,7 @@ namespace Realmkeeper.Domain.Rpg
         {
             Inv("armor_of_shadows", "Armour of Shadows", "Cast Mage Armour on yourself at will.", Magic, 1),
             Inv("eldritch_mind", "Eldritch Mind", "Advantage on saves to keep concentrating.", Magic, 1),
+            Inv("agonizing_blast", "Agonizing Blast", "Add your Charisma modifier to the damage of each Eldritch Blast beam (Phase 9).", Combat | Magic, 2),
             Inv("pact_of_the_blade", "Pact of the Blade", "Conjure a pact weapon and fight with Charisma.", Combat, 1),
             Inv("pact_of_the_chain", "Pact of the Chain", "Call an unusual familiar.", Magic, 1),
             Inv("pact_of_the_tome", "Pact of the Tome", "A Book of Shadows holds extra cantrips and rituals.", Magic, 1),

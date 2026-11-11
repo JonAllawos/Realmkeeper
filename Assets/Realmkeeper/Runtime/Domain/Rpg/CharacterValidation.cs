@@ -28,6 +28,21 @@ namespace Realmkeeper.Domain.Rpg
             return errors;
         }
 
+        /// <summary>Phase 9: the prepared list fits the class, level and book; the preparation window and rest log are in range.</summary>
+        private static void CheckSpellcasting(CharacterSheetData s, List<string> errors)
+        {
+            var sc = s.Spellcasting;
+            if (sc == null) { errors.Add("The character has no spellcasting record."); return; }
+            if (sc.PreparationChanges < -1 || sc.PreparationChanges > 1) errors.Add("The preparation window is out of range.");
+            if (sc.RestLog.Count > SpellcastingData.MaxRestLog) errors.Add("More than " + SpellcastingData.MaxRestLog + " rests are kept.");
+            var keys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var r in sc.RestLog) if (string.IsNullOrEmpty(r.Key) || !keys.Add(r.Key)) errors.Add("A rest is recorded twice.");
+            if (s.State != CreationState.Complete) { if (sc.Prepared.Count > 0) errors.Add("A character not yet created has prepared spells."); return; }
+            var rules = new CharacterRules(s);
+            if (rules.Class == null) return;
+            foreach (var e in new Realmkeeper.Domain.Magic.SpellAccess(rules).StoredPreparedProblems()) errors.Add(e);
+        }
+
         /// <summary>Phase 8: death saves 0–3 each; stable and dead only at 0 hit points, and never both.</summary>
         private static void CheckDeathState(CharacterSheetData s, List<string> errors)
         {
@@ -52,6 +67,7 @@ namespace Realmkeeper.Domain.Rpg
             if (s.History != null && s.History.Length > CharacterSheetData.MaxHistoryLength) errors.Add($"A history is at most {CharacterSheetData.MaxHistoryLength} characters.");
             CheckExperience(s, errors);
             CheckDeathState(s, errors);
+            CheckSpellcasting(s, errors);
 
             if (s.State != CreationState.Complete)
             {
@@ -183,7 +199,7 @@ namespace Realmkeeper.Domain.Rpg
                 known.Add(c.Id);
                 var chosen = s.Chosen(c.Id);
                 if (chosen.Count == 0 && c.IntroducedInRules > s.RulesVersion) continue; // outstanding: made at the next advancement
-                if (chosen.Count != c.Count) { errors.Add($"{c.Name}: choose {c.Count} (got {chosen.Count})."); continue; }
+                if (!c.CountAllowed(chosen.Count)) { errors.Add($"{c.Name}: choose {c.Count} (got {chosen.Count})."); continue; }
                 var seen = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var k in chosen)
                 {
@@ -233,7 +249,7 @@ namespace Realmkeeper.Domain.Rpg
                     var c = slot.Choice;
                     var chosen = s.Chosen(c.Id);
                     if (chosen.Count == 0 && c.IntroducedInRules > s.RulesVersion) continue;
-                    if (chosen.Count != c.Count) errors.Add($"Level {level} {c.Name}: choose {c.Count} (got {chosen.Count}).");
+                    if (!c.CountAllowed(chosen.Count)) errors.Add($"Level {level} {c.Name}: choose {c.Count} (got {chosen.Count}).");
                 }
 
                 if (!any) continue;

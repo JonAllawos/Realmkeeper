@@ -15,7 +15,7 @@ namespace Realmkeeper.Exploration.Presentation
     /// reason — the last result explained roll by roll, an inspector for any combatant, and the combat log. It only
     /// shows the engine's snapshot and raises requests; the controller dispatches commands. Nothing here changes the world.
     /// </summary>
-    public sealed class CombatWindow
+    public sealed partial class CombatWindow
     {
         public const int GridColumns = 15;
         public const int GridRows = 11;
@@ -200,7 +200,8 @@ namespace Realmkeeper.Exploration.Presentation
                 var hp = c.State == VitalState.Dead ? "dead" : c.State == VitalState.Fled ? "fled" : $"{c.Hp}/{c.MaxHp} HP{(c.TempHp > 0 ? $" +{c.TempHp}" : string.Empty)}";
                 var state = c.State == VitalState.Dying ? $" · dying ({c.DeathSaveSuccesses}✓ {c.DeathSaveFailures}✗)" : c.State == VitalState.Stable ? " · unconscious, stable" : string.Empty;
                 var conditions = c.Conditions.Count > 0 ? " · " + string.Join(", ", c.Conditions) : string.Empty;
-                row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Initiative,2}  {c.Name}\n     {hp} · AC {c.ArmorClass}{state}{conditions}";
+                var magic = (c.Concentration != null ? " · concentrating on " + c.Concentration : string.Empty) + (c.Effects.Count > 0 ? " · " + string.Join(", ", c.Effects) : string.Empty);
+                row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Initiative,2}  {c.Name}\n     {hp} · AC {c.ArmorClass}{state}{conditions}{magic}";
                 _order.Add(row);
             }
         }
@@ -223,6 +224,8 @@ namespace Realmkeeper.Exploration.Presentation
                     var pos = new GridPos(x0 + col, y0 - r);
                     var cell = new Button { name = $"xk-combat-cell-{pos.X}-{pos.Y}" };
                     cell.AddToClassList("xk-combat-cell");
+                    if (InPreview(pos)) cell.AddToClassList("xk-combat-cell--area");
+                    if (Composing && NeedsPoint && yourTurn) { var aim = pos; cell.clicked += () => Aim(aim); }
                     if (s.DifficultTerrainContains(pos)) cell.AddToClassList("xk-combat-cell--difficult");
                     if (at.TryGetValue((pos.X, pos.Y), out var who))
                     {
@@ -234,6 +237,7 @@ namespace Realmkeeper.Exploration.Presentation
                         var id = who.Id;
                         cell.clicked += () => Inspect(id);
                     }
+                    else if (Composing && NeedsPoint) { }
                     else if (yourTurn && s.Status == EncounterStatus.Active)
                     {
                         var problem = MoveProblem?.Invoke(pos);
@@ -264,14 +268,20 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (!s.IsPlayersTurn)
             {
+                CancelCast();
                 _actions.Add(TradeWindow.Text($"{s.Active?.Name} is acting. Your options return on your turn.", "xk-w-empty"));
                 return;
             }
+
+            if (Composing) { FillComposer(s); return; } // Phase 9: aiming a spell
 
             var p = s.Player;
             _actions.Add(TradeWindow.Text(
                 $"Action {(p.ActionUsed ? (p.AttacksLeft > 0 ? $"attacking ({p.AttacksLeft} left)" : "used") : "ready")} · bonus action {(p.BonusActionUsed ? "used" : "ready")} · reaction {(p.ReactionUsed ? "used" : "ready")}",
                 "xk-combat-economy"));
+            var basics = Fold("Attacks and actions", "xk-combat-fold-actions");
+            basics.AddToClassList("xk-combat-fold");
+            _actions.Add(basics);
             for (var i = 0; i < s.PlayerOptions.Count; i++)
             {
                 var o = s.PlayerOptions[i];
@@ -285,8 +295,10 @@ namespace Realmkeeper.Exploration.Presentation
                 b.tooltip = o.Unavailable ?? o.Action.Describe;
                 row.Add(b);
                 if (o.Unavailable != null) row.Add(TradeWindow.Text(o.Unavailable, "xk-combat-why"));
-                _actions.Add(row);
+                basics.Add(row);
             }
+
+            FillMagic(s); // Phase 9: spells and class features
         }
 
         private void FillInspector(EncounterSnapshot s)
@@ -305,6 +317,10 @@ namespace Realmkeeper.Exploration.Presentation
             };
             if (c.State == VitalState.Dying) lines.Add($"Death saves: {c.DeathSaveSuccesses} successes, {c.DeathSaveFailures} failures (three of either decides).");
             lines.Add(c.Conditions.Count > 0 ? "Conditions: " + string.Join(", ", c.Conditions) : "No conditions.");
+            if (c.Concentration != null) lines.Add("Concentrating on " + c.Concentration + " (a Constitution save when damaged keeps it).");
+            if (c.Effects.Count > 0) lines.Add("Effects: " + string.Join(", ", c.Effects));
+            if (c.IsCaster) lines.Add($"Spell save DC {c.SpellSaveDc}, spell attack {(c.SpellAttack >= 0 ? "+" : string.Empty)}{c.SpellAttack}");
+            if (!string.IsNullOrEmpty(c.Resources)) lines.Add("Resources: " + c.Resources);
             InspectorText = string.Join("\n", lines);
             foreach (var l in lines) _inspector.Add(TradeWindow.Text(l, "xk-combat-inspect-line"));
         }

@@ -929,3 +929,117 @@
     color: rgb(240, 200, 110);
     -unity-font-style: bold;
 }
+
+/* ----- Phase 9: spells and features -------------------------------------------------------------- */
+
+.xk-combat-fold {
+    margin-bottom: 4px;
+}
+
+.xk-combat-fold > .unity-foldout__toggle {
+    color: rgb(240, 200, 110);
+    -unity-font-style: bold;
+    font-size: 12px;
+    margin: 2px 0;
+}
+
+.xk-combat-fold > .unity-foldout__content {
+    margin-left: 4px;
+}
+
+.xk-combat-feature-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+}
+
+.xk-combat-feature-row > .xk-button {
+    font-size: 11px;
+    margin: 1px 2px 1px 0;
+}
+
+.xk-combat-cell--area {
+    background-color: rgba(190, 120, 40, 0.75);
+}
+
+.xk-sp-slots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 4px 0;
+}
+
+.xk-sp-slot {
+    font-size: 13px;
+    margin-right: 18px;
+    color: rgb(240, 220, 170);
+}
+
+.xk-sp-search {
+    width: 180px;
+    margin-right: 8px;
+}
+
+.xk-sp-list {
+    margin: 4px 0;
+}
+
+.xk-sp-row {
+    -unity-text-align: middle-left;
+    white-space: normal;
+    font-size: 12px;
+    margin: 1px 0;
+    padding: 3px 6px;
+    background-color: rgba(40, 36, 30, 0.9);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.15);
+    border-radius: 4px;
+    color: rgb(232, 223, 204);
+}
+
+.xk-sp-row:hover {
+    background-color: rgba(60, 52, 40, 0.95);
+}
+
+.xk-sp-row--selected {
+    border-color: rgb(240, 200, 110);
+}
+
+.xk-sp-row--inactive {
+    color: rgb(150, 142, 126);
+}
+
+.xk-sp-detail {
+    margin: 6px 0;
+    padding: 8px;
+    background-color: rgba(30, 27, 22, 0.95);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.35);
+    border-radius: 6px;
+}
+
+/* Phase 9: the spell stats sit side by side; each value keeps its width */
+#xk-sp-stats > .xk-w-pair {
+    margin-right: 28px;
+}
+
+#xk-sp-stats > .xk-w-pair > .xk-w-key {
+    width: auto;
+    margin-right: 8px;
+}
+
+#xk-sp-stats > .xk-w-pair > .xk-w-value {
+    flex-basis: auto;
+    flex-shrink: 0;
+}
+
+.xk-sp-search .unity-base-text-field__input {
+    background-color: rgb(40, 34, 28);
+    color: rgb(240, 225, 190);
+    border-color: rgb(120, 96, 60);
+}
+
+.xk-combat-aim-hint {
+    white-space: normal;
+    color: rgb(214, 180, 116);
+    -unity-font-style: bold;
+}

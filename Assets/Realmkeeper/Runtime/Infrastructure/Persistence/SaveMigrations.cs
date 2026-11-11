@@ -5,6 +5,26 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v10 → v11 (Phase 9: spellcasting, class features, rests). Adds the character's spellcasting record (no prepared
+    /// spells, the preparation window open, no rests yet) and moves a character not yet created to rules version 8 (it has
+    /// made no choices, so nothing changes for it). A created character keeps its rules version: its spell picks are
+    /// new "up to" choices it can make in the spellbook; nothing is chosen or reset for it. Encounters gain their active
+    /// effects, combatant resources and concentration as empty when absent (the mapper reads absent lists as empty).
+    /// </summary>
+    public sealed class MigrationV10ToV11 : ISaveMigration
+    {
+        public int SourceVersion => 10;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world) || !(world["player"] is JObject player) || !(player["rpg"] is JObject rpg)) return;
+            if (rpg["spellcasting"] == null)
+                rpg["spellcasting"] = new JObject { ["prepared"] = new JArray(), ["preparationChanges"] = -1, ["lastLongRestEnded"] = -1, ["restLog"] = new JArray() };
+            if ((string)rpg["state"] != "Complete") rpg["rulesVersion"] = 8;
+        }
+    }
+
+    /// <summary>
     /// v9 → v10 (Phase 8: combat foundation, settlement structures). Adds an empty encounter list and the
     /// character's dying state (no death saves, not stable, not dead). Structures are not written here: the loader
     /// builds them from the save's own locations and shops after mapping (deterministic, once). Everything else,

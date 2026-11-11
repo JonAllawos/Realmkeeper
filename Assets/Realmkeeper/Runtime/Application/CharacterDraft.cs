@@ -284,7 +284,7 @@ namespace Realmkeeper.Application
                     if (Species == null) list.Add("Choose a species.");
                     else
                         foreach (var ch in Species.Choices)
-                            if (ch.Kind == ChoiceKind.Option && Picked(ch.Id).Count != ch.Count) list.Add($"{ch.Name}: {ch.Prompt}");
+                            if (ch.Kind == ChoiceKind.Option && !ch.CountAllowed(Picked(ch.Id).Count)) list.Add($"{ch.Name}: {ch.Prompt}");
                     break;
                 case CreationStep.Background:
                     if (Background == null) list.Add("Choose a background.");
@@ -293,7 +293,7 @@ namespace Realmkeeper.Application
                     if (Class == null) list.Add("Choose a class.");
                     else
                         foreach (var ch in Class.Choices)
-                            if (ch.Kind == ChoiceKind.Option && Picked(ch.Id).Count != ch.Count) list.Add($"{ch.Name}: {ch.Prompt}");
+                            if (ch.Kind == ChoiceKind.Option && !ch.CountAllowed(Picked(ch.Id).Count)) list.Add($"{ch.Name}: {ch.Prompt}");
                     break;
                 case CreationStep.Abilities:
                     var scores = AbilityRules.Check(c.Method, c.BaseScores);

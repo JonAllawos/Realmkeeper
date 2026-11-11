@@ -632,3 +632,70 @@ held 60 fps.
 **Not measured:** a development-build frame-time probe with the encounter panel open. The panel is UI Toolkit, and the markers add a few primitives per combatant.
 
 **After the PlayMode run:** the marker labels were made smaller, and the player's own label was removed (they overlapped in the first capture). This is a presentation-only change. The capture set was re-run after it and passed; the PlayMode suite was not re-run.
+
+## Phase 9: Spellcasting, Class Features & Combat Integration (2026-11-11)
+
+| Suite | Environment | Result |
+|---|---|---|
+| .NET harness (`dotnet test Tools/DotNet/Realmkeeper.Verification.sln -c Release`) | Windows 11, .NET 8.0.427, i9-14900HX | **520 passed, 0 failed, 0 skipped** (470 before Phase 9 + 50 new) |
+| Unity EditMode (batch, `-runTests -testPlatform EditMode`) | Unity 6000.0.47f1 | **520 passed, 0 failed, 0 skipped** (100 s); 0 compiler errors |
+| Unity PlayMode (batch, `-runTests -testPlatform PlayMode`) | Unity 6000.0.47f1 | **70 passed, 0 failed, 10 skipped** (33 s). The ten skipped are the capture sets, which run only with `RK_CAPTURE_DIR` |
+| Phase 9 capture (`Phase9CaptureTests`, `RK_CAPTURE_DIR` set) | Unity 6000.0.47f1 | 4 passed; 15 screenshots in `Documentation/Screenshots/Phase9/` |
+
+**Run order.** The final .NET, EditMode and PlayMode runs above came after the last code change.
+- **The capture set** ran before the last test-only change (the cylinder assertions in
+  `SpellTests`), with the same runtime code.
+- **One hung batch run.** A PlayMode run was found waiting on a build backend that no longer
+  existed; it was stopped and run again. The figures above come from that clean run.
+
+**New tests (50):**
+
+| Fixture | Count | Covers |
+|---|---|---|
+| `SpellTests` | 16 | Catalog validity and honest status; area shapes on the grid (sphere, cone, line, cube, cylinder, cube at a point); spell attacks and saves through the shared rolls; areas with separate saves; upcasting; Magic Missile; healing; Bless and concentration replacement; concentration checks; Hold Person repeat saves; failed casts spend nothing; Pact Magic; Eldritch Blast beams; Misty Step; NPC casters |
+| `FeatureTests` | 13 | Rage, Reckless Attack, Sneak Attack, Action Surge, Second Wind and Cunning Action through the shared path, Smite, Lay on Hands and Bardic Inspiration, Wild Shape, Flurry of Blows and Stunning Strike, Font of Magic and Metamagic, Agonizing Blast, Vex, deferred features not offered |
+| `SpellProgressionTests` | 20 (12 tests + 8 cases) | Picks for each casting class; level-up and later picks; pick-level limits; preparation rules and the long-rest window; short rest, long rest, refusals and Arcane Recovery; healing outside a fight; a fight with concentration and effects saved and loaded; v10 → v11 migration; the caster AI; a resident as a caster |
+| `MagicPerformanceTests` | 1 | Benchmarks in the Phase 9 report, section J |
+
+**Earlier tests updated to intended Phase 9 behaviour** (none weakened or removed):
+- `ProgressionTests`: all hit dice return on a long rest (SRD 5.2.1), with the reason stated.
+- `CombatIntegrationTests`: the schema assertion uses `CurrentSchemaVersion`.
+- `Phase2Worlds`: `StripToV10` was added and is called from `StripToV9`, so old-save fixtures stay
+  faithful.
+
+**New PlayMode tests in the shipped scene** (`Phase9PlayModeTests`, all passed):
+1. `Spellbook_FiltersInspectsAndPrepares`.
+2. `Combat_CastsASpellAttack_AndAnAreaSpell_ThroughTheComposer`.
+3. `Combat_ActivatesAClassFeature_FromThePanel`.
+4. `Rests_FromTheHub_RecoverAndShowResources_AndStateSurvivesReload`.
+
+**A test failure during development.** Test 2 first failed: the level-1 wizard was knocked out by
+the bandit archer's opening shot before its first turn, which is legitimate dice behaviour. The
+driver now calls such a fight off, recovers the character in game (a hit die, a day, a long rest)
+and starts again. The dice are not touched.
+
+**Mutation checks:** 12 mutants. Each was introduced, run against the full .NET suite and reverted;
+all were caught.
+
+| Mutant | Result |
+|---|---|
+| Slot not spent | Caught |
+| Sneak Attack not limited to once per turn | Caught |
+| Rage resistance removed | Caught |
+| Long-rest 16-hour gap removed | Caught |
+| Short-rest regain removed | Caught |
+| AI heal threshold changed | Caught |
+| Half damage on a successful save | **Survived at first.** Caught after a deterministic raw-damage check that loops to a success |
+| Concentration DC floor of 10 | **Survived at first.** Caught after asserting "vs DC 10" |
+| Upcast dice | **Survived at first.** Caught by the new `Upcasting_AddsTheSpellsOwnDice` |
+| One levelled slot per turn | **Survived at first.** Caught by the Misty Step assertion |
+| Preparation limit | **Survived at first.** Caught after asserting the "At most 4" message |
+| Pact slots usable at other levels | **Survived at first.** Caught after asserting `SlotsLeft(1) == 0` |
+
+**Presentation bugs found by the captures and fixed** (re-tested and re-captured):
+- the Hub's spell stats row wrapped its values;
+- the aim hint was clipped;
+- the Spells section was pushed out of view (panel sections now fold and stay folded);
+- concentration and effects were missing from the initiative rows and the inspector.
+
+**Not run:** a development-build frame-time probe, and manual play beyond the automated captures.

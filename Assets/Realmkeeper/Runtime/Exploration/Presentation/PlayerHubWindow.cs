@@ -18,11 +18,11 @@ namespace Realmkeeper.Exploration.Presentation
     /// (drag to turn, wheel to zoom). It shows a <see cref="PlayerHub"/> snapshot and raises an event for
     /// every action; the controller dispatches the command and refreshes it. Nothing here changes the world.
     /// </summary>
-    public sealed class PlayerHubWindow
+    public sealed partial class PlayerHubWindow
     {
         public static readonly IReadOnlyList<string> Sections = new[]
         {
-            "Character", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Currency & possessions", "Info",
+            "Character", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Currency & possessions", "Info",
         };
 
         private readonly Dictionary<string, Button> _tabs = new Dictionary<string, Button>(StringComparer.Ordinal);
@@ -161,6 +161,7 @@ namespace Realmkeeper.Exploration.Presentation
             switch (Section)
             {
                 case "Character": Character(h); break;
+                case "Spells & rest": Spells(); break; // Phase 9
                 case "Appearance": Appearance(h); break;
                 case "Inventory": Inventory(h); break;
                 case "Equipment": Equipment(h); break;

@@ -32,6 +32,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 DeathSaveFailures = s.DeathSaveFailures,
                 IsStable = s.IsStable,
                 IsDead = s.IsDead,
+                Spellcasting = SpellcastingToDto(s.Spellcasting),
                 RulesVersion = s.RulesVersion,
                 ExperienceLog = new List<ExperienceAwardDto>(),
                 Advancements = new List<AdvancementRecordDto>(),
@@ -44,6 +45,30 @@ namespace Realmkeeper.Infrastructure.Persistence
             keys.Sort(System.StringComparer.Ordinal);
             foreach (var k in keys) d.Choices[k] = new List<string>(s.Choices[k]);
             return d;
+        }
+
+        private static SpellcastingDto SpellcastingToDto(SpellcastingData s)
+        {
+            s = s ?? new SpellcastingData();
+            var d = new SpellcastingDto { Prepared = new List<string>(s.Prepared), PreparationChanges = s.PreparationChanges, LastLongRestEnded = s.LastLongRestEnded, RestLog = new List<RestRecordDto>() };
+            foreach (var r in s.RestLog) d.RestLog.Add(new RestRecordDto { Key = r.Key, Kind = r.Kind.ToString(), EndedAt = r.EndedAt, Summary = r.Summary });
+            return d;
+        }
+
+        private static SpellcastingData SpellcastingFromDto(SpellcastingDto d)
+        {
+            var s = new SpellcastingData();
+            if (d == null) return s;
+            s.Prepared = new List<string>(d.Prepared ?? new List<string>());
+            s.PreparationChanges = d.PreparationChanges;
+            s.LastLongRestEnded = d.LastLongRestEnded;
+            foreach (var r in d.RestLog ?? new List<RestRecordDto>())
+            {
+                if (r == null) throw new SaveDataException("A rest record is empty.");
+                s.RestLog.Add(new RestRecord { Key = r.Key, Kind = ParseEnum<RestKind>(r.Kind, "rest kind"), EndedAt = r.EndedAt, Summary = r.Summary ?? string.Empty });
+            }
+
+            return s;
         }
 
         private static CharacterSheetData Sheet(CharacterSheetDto d)
@@ -71,6 +96,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 IsStable = d.IsStable,
                 IsDead = d.IsDead,
             };
+            s.Spellcasting = SpellcastingFromDto(d.Spellcasting);
             if (d.BaseScores != null)
             {
                 if (d.BaseScores.Count != 6) throw new SaveDataException("A character needs six base scores.");

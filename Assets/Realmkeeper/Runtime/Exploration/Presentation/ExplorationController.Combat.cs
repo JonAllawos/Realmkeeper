@@ -21,6 +21,7 @@ namespace Realmkeeper.Exploration.Presentation
         public const float SquareMetres = 1.5f;
 
         private Button _practiceButton;
+        private Button _casterPracticeButton;
         private GameObject _markers;
         private readonly Dictionary<string, GameObject> _markerViews = new Dictionary<string, GameObject>();
         private Vector3 _gridOrigin;
@@ -53,12 +54,16 @@ namespace Realmkeeper.Exploration.Presentation
             Combat.CallOffRequested += () => EndFight(withdraw: false);
             Combat.ContinueRequested += () => RunAiTurn();
             Combat.CloseRequested += CloseFight;
+            Combat.CastRequested += a => CombatAct(a); // Phase 9
+            Combat.FeatureRequested += f => CombatAct(f);
             Combat.MoveProblem = p => _session?.PlayerMoveProblem(p, out _);
             var row = Hud.Root.Q<VisualElement>("xk-clock-row");
             if (row != null)
             {
                 _practiceButton = TimeButton(row, "Practice fight (F)", "xk-open-practice", () => StartPracticeFight());
                 _practiceButton.tooltip = "A labelled practice encounter: two bandits at the edge of town, with the local guard beside you if there is one. Lethal: the fallen can die.";
+                _casterPracticeButton = TimeButton(row, "Practice vs caster (G)", "xk-open-practice-caster", () => StartPracticeFight(true, true));
+                _casterPracticeButton.tooltip = "The practice fight with a Cult Fanatic (an SRD spellcaster) among the bandits.";
             }
         }
 
@@ -68,6 +73,7 @@ namespace Realmkeeper.Exploration.Presentation
             ClearMarkers();
             Combat = null;
             _practiceButton = null;
+            _casterPracticeButton = null;
             _fightOpen = false;
             _gridOriginSet = false;
         }
@@ -75,11 +81,11 @@ namespace Realmkeeper.Exploration.Presentation
         // ----- Commands --------------------------------------------------------------------------------
 
         /// <summary>Starts the practice fight here (refused with the reason: no character yet, dead, another fight …).</summary>
-        public CommandResult StartPracticeFight(bool lethal = true)
+        public CommandResult StartPracticeFight(bool lethal = true, bool withCaster = false)
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
             CloseWindows();
-            var result = _session.Dispatch(new StartPracticeEncounterCommand(lethal));
+            var result = _session.Dispatch(new StartPracticeEncounterCommand(lethal, withCaster));
             if (!result.IsSuccess)
             {
                 Hud?.ShowMessage(result);
@@ -185,6 +191,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (_practiceButton == null) return;
             var character = _session?.GetCharacter();
             _practiceButton.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
+            _casterPracticeButton?.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
         }
 
         private void PauseTimeForFight()
@@ -215,6 +222,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             var keys = Keyboard.current;
             if (keys != null && !WindowOpen && !Typing() && keys.fKey.wasPressedThisFrame) StartPracticeFight();
+            if (keys != null && !WindowOpen && !Typing() && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
         }
 
         // ----- Placeholder ground markers --------------------------------------------------------------

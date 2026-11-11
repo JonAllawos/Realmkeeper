@@ -162,6 +162,20 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>For Grappled: the DC to escape.</summary>
         public int EscapeDc { get; set; }
 
+        // ----- Phase 9 -----
+
+        /// <summary>The spell or feature use that caused it (0 = none); ending that use ends the condition.</summary>
+        public int InstanceId { get; set; }
+
+        /// <summary>The holder repeats this save at the end of each of its turns, ending the condition on a success (Hold Person).</summary>
+        public bool RepeatSave { get; set; }
+
+        public int SaveDc { get; set; }
+        public Realmkeeper.Domain.Rpg.Ability SaveAbility { get; set; }
+
+        /// <summary>The holder can spend its action on a Strength (Athletics) check against <see cref="EscapeDc"/> to end it (Entangle).</summary>
+        public bool EscapeByCheck { get; set; }
+
         public ConditionInstance Clone() => (ConditionInstance)MemberwiseClone();
     }
 
@@ -189,6 +203,35 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>Dodging until the start of its next turn.</summary>
         public bool Dodging { get; set; }
+
+        // ----- Phase 9 -----
+
+        /// <summary>A spell with a slot was cast this turn (only one slot spell per turn).</summary>
+        public bool SlotSpellCast { get; set; }
+
+        public bool SneakAttackUsed { get; set; }
+        public bool ActionSurgeUsed { get; set; }
+
+        /// <summary>The current action comes from Action Surge (it cannot be a Magic action).</summary>
+        public bool SurgeActionPending { get; set; }
+
+        public bool Reckless { get; set; }
+
+        /// <summary>Made an attack roll or forced a saving throw this turn (keeps a rage going).</summary>
+        public bool AttackedOrForcedSave { get; set; }
+
+        /// <summary>The last creature this combatant hit this turn, how, and whether it was a critical (smites, Stunning Strike).</summary>
+        public CombatantId LastHitTargetId { get; set; }
+        public bool LastHitMelee { get; set; }
+        public bool LastHitCritical { get; set; }
+        public bool LastHitMonkWeapon { get; set; }
+
+        /// <summary>Took the Attack action this turn (the monk's bonus unarmed strike follows it).</summary>
+        public bool AttackActionTaken { get; set; }
+
+        public bool StunningStrikeUsed { get; set; }
+        public bool FrenzyUsed { get; set; }
+        public bool SacredWeaponUsed { get; set; }
 
         public TurnResources Clone() => (TurnResources)MemberwiseClone();
     }
@@ -237,12 +280,25 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>The round it joined (reinforcements join mid-fight).</summary>
         public int JoinedRound { get; set; }
 
+        // ----- Phase 9 -----
+
+        /// <summary>Uses left of a resident's or creature's spell slots and features (the player's live on the sheet).</summary>
+        public Dictionary<string, int> Resources { get; set; } = new Dictionary<string, int>();
+
+        /// <summary>The spell or feature it is concentrating on, or null.</summary>
+        public ConcentrationData Concentration { get; set; }
+
+        /// <summary>Wild Shape: the beast form it fights in (a creature catalog ID), or null.</summary>
+        public string FormCreatureId { get; set; }
+
         public CombatantData Clone()
         {
             var c = (CombatantData)MemberwiseClone();
             c.Conditions = new List<ConditionInstance>();
             foreach (var x in Conditions) c.Conditions.Add(x.Clone());
             c.Turn = Turn.Clone();
+            c.Resources = new Dictionary<string, int>(Resources);
+            c.Concentration = Concentration?.Clone();
             return c;
         }
     }
@@ -266,6 +322,11 @@ namespace Realmkeeper.Domain.Combat
         Died = 14,
         Action = 15,
         Ended = 16,
+
+        // Phase 9
+        Spell = 17,
+        Feature = 18,
+        Effect = 19,
     }
 
     /// <summary>One line of the encounter's log: structured enough to explain and replay, readable as text.</summary>
@@ -333,6 +394,14 @@ namespace Realmkeeper.Domain.Combat
         public string QuestRef { get; set; }
         public string WorldEventRef { get; set; }
 
+        // ----- Phase 9 -----
+
+        /// <summary>Spell and feature effects in force (buffs, debuffs, marks, rages, forms …).</summary>
+        public List<ActiveEffectData> Effects { get; set; } = new List<ActiveEffectData>();
+
+        /// <summary>The next spell or feature use number (ties its effects and conditions together).</summary>
+        public int NextInstanceId { get; set; } = 1;
+
         public bool IsActive => Status == EncounterStatus.Active;
 
         public CombatantData Find(CombatantId id)
@@ -352,7 +421,80 @@ namespace Realmkeeper.Domain.Combat
             e.DifficultTerrain = new List<GridPos>(DifficultTerrain);
             e.Log = new List<CombatLogEntry>();
             foreach (var l in Log) e.Log.Add(l.Clone());
+            e.Effects = new List<ActiveEffectData>();
+            foreach (var x in Effects) e.Effects.Add(x.Clone());
             return e;
         }
+    }
+}
+
+namespace Realmkeeper.Domain.Combat
+{
+    using Realmkeeper.Domain.Magic;
+    using Realmkeeper.Domain.World;
+
+    /// <summary>What a combatant concentrates on (Phase 9): one spell or feature use at a time.</summary>
+    public sealed class ConcentrationData
+    {
+        public int InstanceId { get; set; }
+        public string SpellId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int StartedRound { get; set; }
+        public ConcentrationData Clone() => (ConcentrationData)MemberwiseClone();
+    }
+
+    /// <summary>When an effect ends on its own (besides concentration ending, or the fight ending).</summary>
+    public enum EffectExpiry
+    {
+        /// <summary>Lasts until its concentration or the fight ends.</summary>
+        None = 0,
+
+        /// <summary>At the start of <see cref="ActiveEffectData.ExpiresOn"/>'s turn, from <see cref="ActiveEffectData.ExpiresRound"/>.</summary>
+        StartOfTurn = 1,
+
+        /// <summary>At the end of <see cref="ActiveEffectData.ExpiresOn"/>'s turn, from <see cref="ActiveEffectData.ExpiresRound"/>.</summary>
+        EndOfTurn = 2,
+    }
+
+    /// <summary>
+    /// A spell or feature effect in force on one creature (Phase 9). The engine reads these live (armour class, speed,
+    /// attack and save modifiers, extra damage, resistances); they are saved with the encounter and end when their
+    /// time, their concentration or the fight ends.
+    /// </summary>
+    public sealed class ActiveEffectData
+    {
+        public int Id { get; set; }
+
+        /// <summary>The cast or feature use it belongs to (shared with conditions it applied).</summary>
+        public int InstanceId { get; set; }
+
+        /// <summary>"spell:bless", "feature:rage" …</summary>
+        public string Origin { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+        public CombatantId SourceId { get; set; }
+        public CombatantId TargetId { get; set; }
+
+        /// <summary>A second creature it concerns (Vex: the creature the advantage is against).</summary>
+        public CombatantId RelatedId { get; set; }
+
+        public CombatEffectKind Kind { get; set; }
+        public int Value { get; set; }
+        public int DiceCount { get; set; }
+        public int DiceSides { get; set; }
+        public DamageType DamageType { get; set; }
+
+        /// <summary>The spell's level as cast (Dispel Magic ends spells up to a level); 0 for features.</summary>
+        public int SpellLevel { get; set; }
+
+        public bool Concentration { get; set; }
+        public EffectExpiry Expiry { get; set; }
+        public CombatantId ExpiresOn { get; set; }
+        public int ExpiresRound { get; set; }
+
+        /// <summary>Used up on its first use (next-attack advantage, inspiration).</summary>
+        public bool SingleUse { get; set; }
+
+        public ActiveEffectData Clone() => (ActiveEffectData)MemberwiseClone();
     }
 }

@@ -25,6 +25,10 @@ namespace Realmkeeper.Domain.Rpg
         {
             var list = BuildLevelOneClasses();
             foreach (var c in list) ApplyProgression(c);
+            foreach (var c in list) AddSpellChoices(c); // Phase 9
+            foreach (var c in list) // Phase 9: "one use returns on a short rest" (SRD 5.2.1)
+                foreach (var r in c.Resources)
+                    if (r.Id == "rage" || r.Id == "channel_divinity" || r.Id == "wild_shape") r.ShortRestRegain = 1;
             return list;
         }
 

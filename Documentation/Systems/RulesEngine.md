@@ -100,12 +100,14 @@ pact of the blade invocation"). The level-up window shows that text beside each 
 
 ## What the engine does not do yet
 
-Phase 8 added dice, attacks, damage, the conditions' combat mechanics and SRD armour (`Systems/Combat.md`). The engine's roll modes now include untrained-armour disadvantage on Strength and Dexterity tests and armour Stealth disadvantage. Still deferred:
+Phase 8 added dice, attacks, damage, the conditions' combat mechanics and SRD armour (`Systems/Combat.md`). The engine's roll modes now include untrained-armour disadvantage on Strength and Dexterity tests and armour Stealth disadvantage. Phase 9 added spells, concentration, rests that pass time and the class features in combat
+(`Spellcasting.md`, `ClassFeatures.md`, `RestAndRecovery.md`). The shared `AttackRoll` and
+`SavingThrow` now serve weapons, spells and features alike. Spell DC and attack come from the
+engine's `SpellSaveDc` and `SpellAttack` breakdowns. Still deferred:
 
-- spells;
-- concentration;
-- rests that pass time;
-- most class combat features (see `Systems/Combat.md`, Deferred).
+- a reaction prompt (reactions are taken automatically);
+- durations outside fights;
+- features outside combat (exploration, social).
 
 Features whose effects need these systems are acquired, validated and shown. Each carries an
 `IntegrationNeed` (combat, magic, rest, dialogue, exploration), so the sheet says what each waits

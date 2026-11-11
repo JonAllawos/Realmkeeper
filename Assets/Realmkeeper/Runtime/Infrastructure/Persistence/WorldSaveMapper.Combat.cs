@@ -28,8 +28,15 @@ namespace Realmkeeper.Infrastructure.Persistence
                     WinningSide = e.WinningSide, Round = e.Round, TurnIndex = e.TurnIndex, Order = new List<string>(), Combatants = new List<CombatantDto>(),
                     DifficultTerrain = new List<GridPosDto>(), StartedOn = DateText(e.StartedOn), StartedAtMinute = e.StartedAtMinute, EndedOn = DateText(e.EndedOn),
                     Seed = e.Seed.ToString(CultureInfo.InvariantCulture), RollCount = e.RollCount, ActionSequence = e.ActionSequence, Log = new List<CombatLogEntryDto>(),
-                    QuestRef = e.QuestRef, WorldEventRef = e.WorldEventRef,
+                    QuestRef = e.QuestRef, WorldEventRef = e.WorldEventRef, NextInstanceId = e.NextInstanceId, Effects = new List<ActiveEffectDto>(),
                 };
+                foreach (var x in e.Effects)
+                    d.Effects.Add(new ActiveEffectDto
+                    {
+                        Id = x.Id, InstanceId = x.InstanceId, Origin = x.Origin, Name = x.Name, SourceId = IdText(x.SourceId), TargetId = IdText(x.TargetId), RelatedId = IdText(x.RelatedId),
+                        Kind = x.Kind.ToString(), Value = x.Value, DiceCount = x.DiceCount, DiceSides = x.DiceSides, DamageType = x.DamageType.ToString(), SpellLevel = x.SpellLevel,
+                        Concentration = x.Concentration, Expiry = x.Expiry.ToString(), ExpiresOn = IdText(x.ExpiresOn), ExpiresRound = x.ExpiresRound, SingleUse = x.SingleUse,
+                    });
                 foreach (var id in e.Order) d.Order.Add(id.ToString());
                 foreach (var p in e.DifficultTerrain) d.DifficultTerrain.Add(PosDto(p));
                 foreach (var c in e.Combatants)
@@ -41,11 +48,17 @@ namespace Realmkeeper.Infrastructure.Persistence
                         MaxHp = c.MaxHp, CurrentHp = c.CurrentHp, TemporaryHp = c.TemporaryHp, DeathSaveSuccesses = c.DeathSaveSuccesses, DeathSaveFailures = c.DeathSaveFailures,
                         State = c.State.ToString(), UsesDeathSaves = c.UsesDeathSaves, Position = PosDto(c.Position), Conditions = new List<ConditionDto>(),
                         InitiativeRoll = c.InitiativeRoll, Initiative = c.Initiative, TieBreak = c.TieBreak, JoinedRound = c.JoinedRound,
+                        Resources = new Dictionary<string, int>(c.Resources), FormCreatureId = c.FormCreatureId,
+                        Concentration = c.Concentration == null ? null : new ConcentrationDto { InstanceId = c.Concentration.InstanceId, SpellId = c.Concentration.SpellId, Name = c.Concentration.Name, StartedRound = c.Concentration.StartedRound },
                         Turn = new TurnResourcesDto
                         {
                             ActionUsed = c.Turn.ActionUsed, BonusActionUsed = c.Turn.BonusActionUsed, ReactionUsed = c.Turn.ReactionUsed, InteractionUsed = c.Turn.InteractionUsed,
                             MovementUsed = c.Turn.MovementUsed, MovementGranted = c.Turn.MovementGranted, LightAttackWeapon = c.Turn.LightAttackWeapon,
                             AttacksLeft = c.Turn.AttacksLeft, Disengaged = c.Turn.Disengaged, Dodging = c.Turn.Dodging,
+                            SlotSpellCast = c.Turn.SlotSpellCast, SneakAttackUsed = c.Turn.SneakAttackUsed, ActionSurgeUsed = c.Turn.ActionSurgeUsed, SurgeActionPending = c.Turn.SurgeActionPending,
+                            Reckless = c.Turn.Reckless, AttackedOrForcedSave = c.Turn.AttackedOrForcedSave, LastHitTargetId = IdText(c.Turn.LastHitTargetId), LastHitMelee = c.Turn.LastHitMelee,
+                            LastHitCritical = c.Turn.LastHitCritical, LastHitMonkWeapon = c.Turn.LastHitMonkWeapon, AttackActionTaken = c.Turn.AttackActionTaken,
+                            StunningStrikeUsed = c.Turn.StunningStrikeUsed, FrenzyUsed = c.Turn.FrenzyUsed, SacredWeaponUsed = c.Turn.SacredWeaponUsed,
                         },
                     };
                     foreach (var k in c.Conditions)
@@ -53,6 +66,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                         {
                             Type = k.Type.ToString(), SourceId = IdText(k.SourceId), Reason = k.Reason, AppliedRound = k.AppliedRound, Duration = k.Duration.ToString(),
                             ExpiresOn = IdText(k.ExpiresOn), ExpiresRound = k.ExpiresRound, Level = k.Level, EscapeDc = k.EscapeDc,
+                            InstanceId = k.InstanceId, RepeatSave = k.RepeatSave, SaveDc = k.SaveDc, SaveAbility = k.SaveAbility.ToString(), EscapeByCheck = k.EscapeByCheck,
                         });
                     d.Combatants.Add(cd);
                 }
@@ -91,6 +105,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Outcome = ParseEnum<EncounterOutcome>(d.Outcome, "encounter outcome"), WinningSide = d.WinningSide, Round = d.Round, TurnIndex = d.TurnIndex,
                     StartedOn = OptionalDate(d.StartedOn, "encounter startedOn"), StartedAtMinute = d.StartedAtMinute, EndedOn = OptionalDate(d.EndedOn, "encounter endedOn"),
                     Seed = seed, RollCount = d.RollCount, ActionSequence = d.ActionSequence, QuestRef = d.QuestRef, WorldEventRef = d.WorldEventRef,
+                    NextInstanceId = System.Math.Max(1, d.NextInstanceId),
                 };
                 foreach (var id in d.Order ?? new List<string>()) e.Order.Add(new CombatantId(RequiredGuid(id, "encounter order")));
                 foreach (var p in d.DifficultTerrain ?? new List<GridPosDto>()) e.DifficultTerrain.Add(Pos(p));
@@ -107,11 +122,17 @@ namespace Realmkeeper.Infrastructure.Persistence
                         DeathSaveSuccesses = cd.DeathSaveSuccesses, DeathSaveFailures = cd.DeathSaveFailures, State = ParseEnum<VitalState>(cd.State, "combatant state"),
                         UsesDeathSaves = cd.UsesDeathSaves, Position = Pos(cd.Position), InitiativeRoll = cd.InitiativeRoll, Initiative = cd.Initiative,
                         TieBreak = cd.TieBreak, JoinedRound = cd.JoinedRound,
+                        Resources = new Dictionary<string, int>(cd.Resources ?? new Dictionary<string, int>()), FormCreatureId = cd.FormCreatureId,
+                        Concentration = cd.Concentration == null ? null : new ConcentrationData { InstanceId = cd.Concentration.InstanceId, SpellId = cd.Concentration.SpellId, Name = cd.Concentration.Name ?? string.Empty, StartedRound = cd.Concentration.StartedRound },
                         Turn = new TurnResources
                         {
                             ActionUsed = t.ActionUsed, BonusActionUsed = t.BonusActionUsed, ReactionUsed = t.ReactionUsed, InteractionUsed = t.InteractionUsed,
                             MovementUsed = t.MovementUsed, MovementGranted = t.MovementGranted, LightAttackWeapon = t.LightAttackWeapon,
                             AttacksLeft = t.AttacksLeft, Disengaged = t.Disengaged, Dodging = t.Dodging,
+                            SlotSpellCast = t.SlotSpellCast, SneakAttackUsed = t.SneakAttackUsed, ActionSurgeUsed = t.ActionSurgeUsed, SurgeActionPending = t.SurgeActionPending,
+                            Reckless = t.Reckless, AttackedOrForcedSave = t.AttackedOrForcedSave, LastHitTargetId = CombatantRef(t.LastHitTargetId, "turn lastHitTargetId"), LastHitMelee = t.LastHitMelee,
+                            LastHitCritical = t.LastHitCritical, LastHitMonkWeapon = t.LastHitMonkWeapon, AttackActionTaken = t.AttackActionTaken,
+                            StunningStrikeUsed = t.StunningStrikeUsed, FrenzyUsed = t.FrenzyUsed, SacredWeaponUsed = t.SacredWeaponUsed,
                         },
                     };
                     foreach (var k in cd.Conditions ?? new List<ConditionDto>())
@@ -122,6 +143,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                             Type = ParseEnum<ConditionType>(k.Type, "condition type"), SourceId = CombatantRef(k.SourceId, "condition sourceId"), Reason = k.Reason ?? string.Empty,
                             AppliedRound = k.AppliedRound, Duration = ParseEnum<ConditionDuration>(k.Duration, "condition duration"),
                             ExpiresOn = CombatantRef(k.ExpiresOn, "condition expiresOn"), ExpiresRound = k.ExpiresRound, Level = k.Level, EscapeDc = k.EscapeDc,
+                            InstanceId = k.InstanceId, RepeatSave = k.RepeatSave, SaveDc = k.SaveDc, EscapeByCheck = k.EscapeByCheck,
+                            SaveAbility = string.IsNullOrEmpty(k.SaveAbility) ? default : ParseEnum<Realmkeeper.Domain.Rpg.Ability>(k.SaveAbility, "condition saveAbility"),
                         });
                     }
 
@@ -136,6 +159,20 @@ namespace Realmkeeper.Infrastructure.Persistence
                         Sequence = l.Sequence, Round = l.Round, Kind = ParseEnum<CombatLogKind>(l.Kind, "combat log kind"),
                         ActorId = CombatantRef(l.ActorId, "log actorId"), TargetId = CombatantRef(l.TargetId, "log targetId"),
                         Text = l.Text ?? string.Empty, Rolls = new List<int>(l.Rolls ?? new List<int>()), Value = l.Value,
+                    });
+                }
+
+                foreach (var x in d.Effects ?? new List<ActiveEffectDto>())
+                {
+                    if (x == null) throw new SaveDataException("Null effect entry.");
+                    e.Effects.Add(new ActiveEffectData
+                    {
+                        Id = x.Id, InstanceId = x.InstanceId, Origin = x.Origin, Name = x.Name ?? string.Empty, SourceId = CombatantRef(x.SourceId, "effect sourceId"),
+                        TargetId = new CombatantId(RequiredGuid(x.TargetId, "effect targetId")), RelatedId = CombatantRef(x.RelatedId, "effect relatedId"),
+                        Kind = ParseEnum<Realmkeeper.Domain.Magic.CombatEffectKind>(x.Kind, "effect kind"), Value = x.Value, DiceCount = x.DiceCount, DiceSides = x.DiceSides,
+                        DamageType = string.IsNullOrEmpty(x.DamageType) ? default : ParseEnum<DamageType>(x.DamageType, "effect damageType"), SpellLevel = x.SpellLevel,
+                        Concentration = x.Concentration, Expiry = string.IsNullOrEmpty(x.Expiry) ? EffectExpiry.None : ParseEnum<EffectExpiry>(x.Expiry, "effect expiry"),
+                        ExpiresOn = CombatantRef(x.ExpiresOn, "effect expiresOn"), ExpiresRound = x.ExpiresRound, SingleUse = x.SingleUse,
                     });
                 }
 

@@ -18,12 +18,17 @@ https://creativecommons.org/licenses/by/4.0/legalcode.
 The SRD supplies the rules mechanics:
 - species, classes and progression;
 - armour, weapons, conditions and combat;
-- the bandit, guard, commoner and wolf statistics.
+- spells (levels, ranges, areas, damage, saves, durations) and spellcasting;
+- class features in combat, rests and recovery;
+- the bandit, guard, commoner and wolf statistics (SRD 5.2.1), and the acolyte and cult fanatic
+  statistics with their spellcasting (SRD 5.1).
 
-All descriptions, names and setting text are Realmkeeper's own. Realmkeeper does not use the
+Spell names are the SRD's; every spell and feature description, and all names and setting text,
+are Realmkeeper's own. Realmkeeper does not use the
 "Dungeons & Dragons" trademark and is not affiliated with or endorsed by Wizards of the Coast. Which
 content comes from which SRD is listed per definition (`ContentSource`) and in
-`Documentation/Systems/Characters.md` and `Documentation/Systems/Combat.md`.
+`Documentation/Systems/Characters.md`, `Documentation/Systems/Combat.md` and
+`Documentation/Systems/SpellCatalogAudit.md`.
 
 ## Art (CC0 1.0 Universal: no credit required, credited anyway)
 

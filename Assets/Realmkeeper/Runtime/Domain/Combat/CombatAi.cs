@@ -26,7 +26,7 @@ namespace Realmkeeper.Domain.Combat
     /// Order of thought: stand up if prone; get away when badly hurt; attack someone in reach (the weakest);
     /// otherwise shoot when no enemy is next to it; otherwise close in (Dash if too far); otherwise end the turn.
     /// </summary>
-    public static class CombatAi
+    public static partial class CombatAi
     {
         private static readonly (int dx, int dy)[] Directions = { (0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1) };
 
@@ -68,6 +68,10 @@ namespace Realmkeeper.Domain.Combat
 
                 return new EndTurnAction();
             }
+
+            // Phase 9: spells first when they pay (healing the hurt, a blessing, damage or control worth a slot).
+            var spell = SpellChoice(engine, actor, targets, profile);
+            if (spell != null) return spell;
 
             var canAttack = !t.ActionUsed || t.AttacksLeft > 0;
             var melee = stats.BestMelee();

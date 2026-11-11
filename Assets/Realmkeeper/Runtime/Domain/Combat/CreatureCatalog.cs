@@ -58,6 +58,12 @@ namespace Realmkeeper.Domain.Combat
         public IReadOnlyList<DamageType> Vulnerabilities { get; set; } = Array.Empty<DamageType>();
         public IReadOnlyList<DamageType> Immunities { get; set; } = Array.Empty<DamageType>();
         public IReadOnlyList<ConditionType> ConditionImmunities { get; set; } = Array.Empty<ConditionType>();
+        /// <summary>Attacks one Attack action makes (Multiattack).</summary>
+        public int Multiattack { get; set; } = 1;
+
+        /// <summary>Phase 9: spellcasting from the stat block (null for non-casters).</summary>
+        public CreatureSpellcasting Spellcasting { get; set; }
+
         public ContentSource Source { get; set; } = ContentSource.Srd521;
 
         public int Modifier(Ability a) => AbilityRules.Modifier(Scores[(int)a]);
@@ -110,6 +116,59 @@ namespace Realmkeeper.Domain.Combat
                 PackTactics = true, Darkvision = 60,
                 Attacks = new[] { new CreatureAttack { Id = "bite", Name = "Bite", AttackBonus = 4, Damage = new Dice(1, 6, 2), DamageType = DamageType.Piercing, Reach = 5, OnHit = ConditionType.Prone } },
             },
+
+            // ----- Phase 9: casters (SRD 5.1 stat blocks; spells not in the catalog are left out of their lists) -----
+            new CreatureDefinition
+            {
+                Id = "acolyte", Name = "Acolyte", Description = "A temple servant who tends the sick and keeps the rites.", Source = ContentSource.Srd51,
+                ArmorClass = 10, ArmorNote = "no armour", HitDice = new Dice(2, 8), MaxHp = 9, Scores = new[] { 10, 10, 10, 10, 14, 11 },
+                Attacks = new[] { new CreatureAttack { Id = "club", Name = "Club", AttackBonus = 2, Damage = new Dice(1, 4), DamageType = DamageType.Bludgeoning, Reach = 5 } },
+                Spellcasting = new CreatureSpellcasting
+                {
+                    Ability = Ability.Wisdom, SaveDc = 12, AttackBonus = 4, CasterLevel = 1, Cantrips = new[] { "light", "sacred_flame" },
+                    Spells = new[] { "bless", "cure_wounds" }, Slots = new[] { 3 },
+                    Omitted = "Thaumaturgy and Sanctuary (not in the catalog)",
+                },
+            },
+            new CreatureDefinition
+            {
+                Id = "cult_fanatic", Name = "Cult Fanatic", Description = "A zealot whose devotion is backed by real power.", Source = ContentSource.Srd51,
+                ArmorClass = 13, ArmorNote = "leather armour", HitDice = new Dice(6, 8, 6), MaxHp = 33, Scores = new[] { 11, 14, 12, 10, 13, 14 }, Multiattack = 2, ProficiencyBonus = 2,
+                Attacks = new[] { new CreatureAttack { Id = "dagger", Name = "Dagger", AttackBonus = 4, Damage = new Dice(1, 4, 2), DamageType = DamageType.Piercing, Reach = 5, Range = 20, LongRange = 60 } },
+                Spellcasting = new CreatureSpellcasting
+                {
+                    Ability = Ability.Wisdom, SaveDc = 11, AttackBonus = 3, CasterLevel = 4, Cantrips = new[] { "light", "sacred_flame" },
+                    Spells = new[] { "inflict_wounds", "shield_of_faith", "hold_person" }, Slots = new[] { 4, 3 },
+                    Omitted = "Thaumaturgy, Command and Spiritual Weapon (not in the catalog or not castable); Dark Devotion",
+                },
+            },
         };
+    }
+}
+
+namespace Realmkeeper.Domain.Combat
+{
+    using System;
+    using System.Collections.Generic;
+    using Realmkeeper.Domain.Rpg;
+
+    /// <summary>A creature's spellcasting (Phase 9): the same spells and engine the player uses, with the stat block's numbers.</summary>
+    public sealed class CreatureSpellcasting
+    {
+        public Ability Ability { get; set; }
+        public int SaveDc { get; set; }
+        public int AttackBonus { get; set; }
+
+        /// <summary>Caster level for cantrip scaling.</summary>
+        public int CasterLevel { get; set; } = 1;
+
+        public IReadOnlyList<string> Cantrips { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<string> Spells { get; set; } = Array.Empty<string>();
+
+        /// <summary>Slots per spell level (index 0 = level 1).</summary>
+        public IReadOnlyList<int> Slots { get; set; } = Array.Empty<int>();
+
+        /// <summary>What of the stat block's spellcasting is not modelled.</summary>
+        public string Omitted { get; set; }
     }
 }

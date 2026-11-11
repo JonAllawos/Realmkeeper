@@ -1,4 +1,4 @@
-# Combat (Phase 8)
+# Combat (Phase 8; spells and features from Phase 9)
 
 Turn-based tactical combat on a 5-ft grid, following the SRD 5.2.1 rules. The engine is
 `Runtime/Domain/Combat`, the commands and queries are in `Runtime/Application`, and the panel is
@@ -289,11 +289,22 @@ The panel is docked along the bottom of the screen, so the fight stays visible a
   player's body moves to its square.
 - **Timing.** Computer-controlled turns run one every 0.6 s, or at once with Continue.
 
-## Deferred (not in Phase 8)
+## Phase 9 additions
 
-- **Magic:** spells and concentration.
-- **Class features:** most class combat features (Sneak Attack, Rage, Action Surge, Smite and the
-  rest) and weapon mastery effects.
+- **Spells** cast through the engine with the shared rolls: `Spellcasting.md`.
+- **Class features:** `ClassFeatures.md`.
+- **Lasting effects and concentration:** in the encounter (ADR-0039).
+- **Weapon Mastery:** Vex, Sap, Slow, Topple, Push and Graze.
+- **Creature casters:** the SRD 5.1 Acolyte and Cult Fanatic.
+- **Schema v11:** encounters also save effects, concentration, combatant resources and Wild Shape
+  forms.
+- **Panel:** Spells and Class features sections, the cast composer with grid aiming, and folding
+  sections. Effects and concentration are on the initiative rows and in the inspector.
+
+## Deferred (not in Phase 9)
+
+- **Reactions:** a reaction prompt. Reactions are automatic, so reaction spells and features wait.
+- **Weapon Mastery:** the chosen-weapons limit, Nick and Cleave.
 - **Weapons:** off-hand attacks, and ammunition counts.
 - **Sight and terrain:** cover, line of sight, lighting and elevation rules.
 - **Companions:** companions and their control, and NPC character sheets.

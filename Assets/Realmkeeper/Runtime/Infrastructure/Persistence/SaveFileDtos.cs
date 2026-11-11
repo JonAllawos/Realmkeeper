@@ -554,6 +554,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int DeathSaveFailures { get; set; }
         public bool IsStable { get; set; }
         public bool IsDead { get; set; }
+
+        // Schema v11 (Phase 9): prepared spells, the preparation window and rests.
+        public SpellcastingDto Spellcasting { get; set; }
     }
 
     public sealed class ExperienceAwardDto
@@ -607,6 +610,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<CombatLogEntryDto> Log { get; set; }
         public string QuestRef { get; set; }
         public string WorldEventRef { get; set; }
+
+        // Schema v11 (Phase 9).
+        public List<ActiveEffectDto> Effects { get; set; }
+        public int NextInstanceId { get; set; } = 1;
     }
 
     public sealed class GridPosDto
@@ -640,6 +647,11 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int Initiative { get; set; }
         public int TieBreak { get; set; }
         public int JoinedRound { get; set; }
+
+        // Schema v11 (Phase 9).
+        public Dictionary<string, int> Resources { get; set; }
+        public ConcentrationDto Concentration { get; set; }
+        public string FormCreatureId { get; set; }
     }
 
     public sealed class ConditionDto
@@ -653,6 +665,13 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int ExpiresRound { get; set; }
         public int Level { get; set; }
         public int EscapeDc { get; set; }
+
+        // Schema v11 (Phase 9).
+        public int InstanceId { get; set; }
+        public bool RepeatSave { get; set; }
+        public int SaveDc { get; set; }
+        public string SaveAbility { get; set; }
+        public bool EscapeByCheck { get; set; }
     }
 
     public sealed class TurnResourcesDto
@@ -667,6 +686,22 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int AttacksLeft { get; set; }
         public bool Disengaged { get; set; }
         public bool Dodging { get; set; }
+
+        // Schema v11 (Phase 9).
+        public bool SlotSpellCast { get; set; }
+        public bool SneakAttackUsed { get; set; }
+        public bool ActionSurgeUsed { get; set; }
+        public bool SurgeActionPending { get; set; }
+        public bool Reckless { get; set; }
+        public bool AttackedOrForcedSave { get; set; }
+        public string LastHitTargetId { get; set; }
+        public bool LastHitMelee { get; set; }
+        public bool LastHitCritical { get; set; }
+        public bool LastHitMonkWeapon { get; set; }
+        public bool AttackActionTaken { get; set; }
+        public bool StunningStrikeUsed { get; set; }
+        public bool FrenzyUsed { get; set; }
+        public bool SacredWeaponUsed { get; set; }
     }
 
     public sealed class CombatLogEntryDto
@@ -695,5 +730,62 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string LayoutKey { get; set; }
         public string Condition { get; set; }
         public string EstablishedOn { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    using System.Collections.Generic;
+
+    /// <summary>Schema v11 (Phase 9): the character's prepared spells and rests (spell picks are in <c>choices</c>).</summary>
+    public sealed class SpellcastingDto
+    {
+        public List<string> Prepared { get; set; }
+        public int PreparationChanges { get; set; } = -1;
+        public long LastLongRestEnded { get; set; } = -1;
+        public List<RestRecordDto> RestLog { get; set; }
+    }
+
+    public sealed class RestRecordDto
+    {
+        public string Key { get; set; }
+        public string Kind { get; set; }
+        public long EndedAt { get; set; }
+        public string Summary { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    /// <summary>Schema v11 (Phase 9): what a combatant concentrates on.</summary>
+    public sealed class ConcentrationDto
+    {
+        public int InstanceId { get; set; }
+        public string SpellId { get; set; }
+        public string Name { get; set; }
+        public int StartedRound { get; set; }
+    }
+
+    /// <summary>Schema v11 (Phase 9): a spell or feature effect in force.</summary>
+    public sealed class ActiveEffectDto
+    {
+        public int Id { get; set; }
+        public int InstanceId { get; set; }
+        public string Origin { get; set; }
+        public string Name { get; set; }
+        public string SourceId { get; set; }
+        public string TargetId { get; set; }
+        public string RelatedId { get; set; }
+        public string Kind { get; set; }
+        public int Value { get; set; }
+        public int DiceCount { get; set; }
+        public int DiceSides { get; set; }
+        public string DamageType { get; set; }
+        public int SpellLevel { get; set; }
+        public bool Concentration { get; set; }
+        public string Expiry { get; set; }
+        public string ExpiresOn { get; set; }
+        public int ExpiresRound { get; set; }
+        public bool SingleUse { get; set; }
     }
 }

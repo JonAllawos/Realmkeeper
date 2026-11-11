@@ -82,6 +82,7 @@ namespace Realmkeeper.Application
             CharacterCommandHandlers.Register(_commands);
             ProgressionCommandHandlers.Register(_commands);
             CombatCommandHandlers.Register(_commands);
+            SpellCommandHandlers.Register(_commands); // Phase 9
         }
 
         public EconomyRules Rules => _rules;

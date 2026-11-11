@@ -142,6 +142,9 @@ namespace Realmkeeper.Domain.Combat
         public List<CombatLogEntry> Entries { get; } = new List<CombatLogEntry>();
         public List<AttackResult> Attacks { get; } = new List<AttackResult>();
 
+        /// <summary>Phase 9: spells cast, each with its per-target outcomes.</summary>
+        public List<SpellCastResult> Spells { get; } = new List<SpellCastResult>();
+
         public static ActionOutcome Refused(string why) => new ActionOutcome { Ok = false, Error = why };
     }
 
@@ -182,5 +185,85 @@ namespace Realmkeeper.Domain.Combat
         public HistoricalEventType Type { get; set; }
         public Dictionary<string, string> Facts { get; set; } = new Dictionary<string, string>();
         public NpcId NpcId { get; set; }
+    }
+}
+
+namespace Realmkeeper.Domain.Combat
+{
+    using System.Collections.Generic;
+    using System.Linq;
+    using Realmkeeper.Domain.Magic;
+
+    /// <summary>
+    /// Phase 9: cast a spell. Targets are creatures (for creature spells; one per beam or dart in order, repeating the
+    /// last), or a point (area spells aimed at a point or from the caster, and Misty Step). The slot level is 0 for
+    /// cantrips. Metamagic names the sorcerer's options to apply; <see cref="FreeWith"/> names a feature resource that
+    /// pays for the cast instead of a slot (Favoured Enemy for Hunter's Mark).
+    /// </summary>
+    public sealed class CastSpellAction : CombatAction
+    {
+        public CastSpellAction(string spellId, int slotLevel, IEnumerable<CombatantId> targets = null, GridPos? point = null, IEnumerable<string> metamagic = null, string freeWith = null)
+        {
+            SpellId = spellId;
+            SlotLevel = slotLevel;
+            Targets = targets?.ToList() ?? new List<CombatantId>();
+            Point = point;
+            Metamagic = metamagic?.ToList() ?? new List<string>();
+            FreeWith = freeWith;
+        }
+
+        public string SpellId { get; }
+        public int SlotLevel { get; }
+        public IReadOnlyList<CombatantId> Targets { get; }
+        public GridPos? Point { get; }
+        public IReadOnlyList<string> Metamagic { get; }
+        public string FreeWith { get; }
+        public override string Describe => "Cast " + (SpellCatalog.Find(SpellId)?.Name ?? SpellId) + (SlotLevel > 0 ? $" (level {SlotLevel})" : string.Empty);
+    }
+
+    /// <summary>Phase 9: use a class feature (Rage, Action Surge, Flurry of Blows, Lay on Hands …), with a target, an option or an amount where it needs one.</summary>
+    public sealed class UseFeatureAction : CombatAction
+    {
+        public UseFeatureAction(string featureId, CombatantId target = default, string option = null, int amount = 0)
+        {
+            FeatureId = featureId;
+            Target = target;
+            Option = option;
+            Amount = amount;
+        }
+
+        public string FeatureId { get; }
+        public CombatantId Target { get; }
+        public string Option { get; }
+        public int Amount { get; }
+        public override string Describe => CombatFeatureCatalog.Find(FeatureId)?.Name ?? FeatureId;
+    }
+
+    /// <summary>What one target of a spell went through.</summary>
+    public sealed class SpellTargetResult
+    {
+        public CombatantId TargetId { get; set; }
+        public string Name { get; set; }
+        public List<AttackResult> Attacks { get; } = new List<AttackResult>();
+        public SaveResult Save { get; set; }
+        public int Damage { get; set; }
+
+        /// <summary>The damage rolled before halving (saves, Potent Cantrip) and before defences.</summary>
+        public int RawDamage { get; set; }
+
+        public int Healing { get; set; }
+        public List<string> Effects { get; } = new List<string>();
+    }
+
+    /// <summary>A spell as cast: who, at what level, what it cost, and each target's outcome, explained.</summary>
+    public sealed class SpellCastResult
+    {
+        public string SpellId { get; set; }
+        public string Name { get; set; }
+        public CombatantId CasterId { get; set; }
+        public int SlotLevel { get; set; }
+        public string Cost { get; set; }
+        public bool Concentration { get; set; }
+        public List<SpellTargetResult> Targets { get; } = new List<SpellTargetResult>();
     }
 }

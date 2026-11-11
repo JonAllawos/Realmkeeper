@@ -275,7 +275,7 @@ namespace Realmkeeper.Tests.EditMode.Combat
             var loaded = serializer.Deserialize(doc.ToString());
             Assert.That(loaded.IsSuccess, Is.True, string.Join("; ", loaded.Errors));
             var w = loaded.World;
-            Assert.That(w.SchemaVersion, Is.EqualTo(10));
+            Assert.That(w.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion)); // v10 when written (Phase 8)
             Assert.That(w.Encounters, Is.Empty);
             Assert.That(w.Player.Rpg.DeathSaveSuccesses + w.Player.Rpg.DeathSaveFailures, Is.Zero);
             Assert.That(w.Player.Rpg.IsStable || w.Player.Rpg.IsDead, Is.False);
