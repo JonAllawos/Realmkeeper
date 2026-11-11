@@ -15,8 +15,9 @@
 | Phase 7: Character Progression & Core Rules Engine | Done (`a3cd9f5`) | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
 | Phase 8: Combat Foundation, Encounter Engine & Settlement Structures | Done (`2fe83eb`) | `Systems/Combat.md`, `Systems/SettlementStructures.md`, `Phase8/Phase8-Report.md`, ADR-0030…0036 |
 | Phase 9: Spellcasting, Class Features & Combat Integration | Done (`27a5261`, committed locally) | `Systems/Spellcasting.md`, `Systems/ClassFeatures.md`, `Systems/RestAndRecovery.md`, `Systems/SpellCatalogAudit.md`, `Phase9/Phase9-Report.md`, ADR-0037…0042 |
-| Phase 10: Bestiary, NPC Character Systems, Encounter Intelligence & Living Settlement Generation | Done (this milestone); awaiting review, committed locally and not pushed. See the test results for what was run | `Phase10/SettlementGeneration.md`, `Phase10/CreatureAndNpcSystems.md`, `Phase10/Testing.md`, `Phase10/Performance.md`, `Phase10/Limitations.md`, `Reports/Phase10-Bestiary-NPCs-Settlements.md`, ADR-0043…0049 |
-| Phase 11: Inventory, Loot, Equipment, Crafting & Item Progression | **Not started.** Brief received; begins after Phase 10 is committed. | — |
+| Phase 10: Bestiary, NPC Character Systems, Encounter Intelligence & Living Settlement Generation | Done (`1707805`, committed locally) | `Phase10/SettlementGeneration.md`, `Phase10/CreatureAndNpcSystems.md`, `Phase10/Testing.md`, `Phase10/Performance.md`, `Phase10/Limitations.md`, `Reports/Phase10-Bestiary-NPCs-Settlements.md`, ADR-0043…0049 |
+| Phase 11: Inventory, Loot, Equipment, Crafting & Item Progression | Done (this milestone); awaiting review, committed locally and not pushed | `Phase11/Items.md`, `Phase11/Testing.md`, `Phase11/Performance.md`, `Phase11/Limitations.md`, `Phase11/PreFlight.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Reports/Phase11-Inventory-Items-Progression.md`, ADR-0050…0055 |
+| Phase 12 | **Not started.** Phase 11 stops for review; recommended priorities are in the Phase 11 report (§Q). | — |
 
 ## Phase 2 completion: what it added
 
@@ -263,3 +264,27 @@ Main limitations (full list in `Phase9/Phase9-Report.md`):
   - The walkable settlement, the strategic map and the inspector all read it.
   - People walk its road graph and stand on its ground.
 - **Schema v12** with migration; older saves gain the Phase 10 data once on load.
+
+## Phase 11: what it added
+
+- **An item model with instances** (ADR-0050). 114 items, 66 of them SRD 5.2.1. Each instance carries its own condition, make, charges, attunement, curse binding and provenance. One factory makes every instance.
+- **One holder per instance, atomic transfers, a weight-limited pack** (ADR-0051).
+  - The player's chest in every settlement, a cache filled once, loot piles.
+  - Take, put, take all and coin.
+  - SRD carrying capacity: over it Speed is 5 ft; past twice it nothing more can be taken.
+- **Equipment and magic through the rules** (ADR-0052).
+  - Condition that wears in play and changes attack and AC.
+  - 11 magic items: +1 weapons, armour and shield, rings and cloaks of protection, gauntlets, goggles, boots, a wand with charges, and a cursed axe.
+  - Attunement (three, an hour each).
+  - Ammunition spent and half recovered.
+  - Rings on either hand, and off-hand Light weapons.
+- **Loot** (ADR-0053). 15 tables and carried gear, seeded and filled once into a container per fight, bounded by rarity. It opens from the combat panel.
+- **Crafting, gathering, repair and attunement as work** (ADR-0054). 11 recipes; materials held; a tool check rolled when the work starts; world time passes. Gathering sites come from the settlement economy and recover weekly. An armourer mends for a price.
+- **Merchants.** Offers count condition and make. Distinct items keep their identity as a shop's particular goods.
+- **Screens** (ADR-0055).
+  - Inventory search, filters, sorting, inspection and rules-engine comparison.
+  - Eleven equipment slots.
+  - Crafting & work, and Storage.
+  - The chest and cache in the street.
+  - The shop's particular goods and mending.
+- **Schema v13** with migration; v12 saves gain the item world once on load.

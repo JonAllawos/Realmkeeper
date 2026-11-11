@@ -66,6 +66,14 @@ namespace Realmkeeper.Domain.Combat
 
     public sealed class EndTurnAction : CombatAction { public override string Describe => "End turn"; }
 
+    /// <summary>Phase 11: use an item from the pack in a fight (drink a potion: a bonus action in SRD 5.2.1).</summary>
+    public sealed class UseItemAction : CombatAction
+    {
+        public UseItemAction(ItemStackId stackId) { StackId = stackId; }
+        public ItemStackId StackId { get; }
+        public override string Describe => "Use an item";
+    }
+
     /// <summary>How a d20 roll went: both dice when rolled with advantage or disadvantage, and why.</summary>
     public sealed class D20Roll
     {

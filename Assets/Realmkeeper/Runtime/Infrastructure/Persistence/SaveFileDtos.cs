@@ -67,6 +67,12 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<CreatureInstanceDto> Creatures { get; set; }
         public List<LivestockHerdDto> Livestock { get; set; }
         public List<SettlementLayoutDto> SettlementLayouts { get; set; }
+
+        // Schema v13 (Phase 11): items in the world.
+        public List<ContainerDto> Containers { get; set; }
+        public List<WorkJobDto> WorkJobs { get; set; }
+        public List<GatheringSiteDto> GatheringSites { get; set; }
+        public int? ItemCatalogVersion { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -422,6 +428,15 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string StackId { get; set; }
         public string ItemId { get; set; }
         public int Quantity { get; set; }
+
+        // Schema v13 (Phase 11): the instance's own state (absent: good, common, no charges, not attuned).
+        public string Condition { get; set; }
+        public string Quality { get; set; }
+        public int? Charges { get; set; }
+        public bool Attuned { get; set; }
+        public bool Bound { get; set; }
+        public string Provenance { get; set; }
+        public long? AcquiredAt { get; set; }
     }
 
     public sealed class ShopDto
@@ -438,6 +453,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string LastRestockedOn { get; set; }
         public int TotalSales { get; set; }
         public int TotalPurchases { get; set; }
+
+        /// <summary>Schema v13 (Phase 11): particular items the shop holds.</summary>
+        public List<ItemStackDto> Goods { get; set; }
     }
 
     public sealed class TransactionDto
@@ -915,5 +933,67 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string ExpiresOn { get; set; }
         public int ExpiresRound { get; set; }
         public bool SingleUse { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    using System.Collections.Generic;
+
+    /// <summary>Schema v13 (Phase 11): a container and what it holds.</summary>
+    public sealed class ContainerDto
+    {
+        public string Key { get; set; }
+        public string Kind { get; set; }
+        public string Name { get; set; }
+        public string SettlementId { get; set; }
+        public string LayoutKey { get; set; }
+        public bool PlayerAccess { get; set; }
+        public bool AcceptsDeposits { get; set; }
+        public List<ItemStackDto> Items { get; set; }
+        public int Coin { get; set; }
+        public int CapacityGrams { get; set; }
+        public string SourceKey { get; set; }
+        public long CreatedAt { get; set; } = -1;
+        public bool Opened { get; set; }
+    }
+
+    /// <summary>Schema v13 (Phase 11): the player's work in progress (or finished, kept briefly as a record).</summary>
+    public sealed class WorkJobDto
+    {
+        public string Key { get; set; }
+        public string Kind { get; set; }
+        public string SettlementId { get; set; }
+        public string RecipeId { get; set; }
+        public string SiteKey { get; set; }
+        public string StackId { get; set; }
+        public List<ItemStackDto> Held { get; set; }
+        public long StartedAt { get; set; }
+        public long ReadyAt { get; set; }
+        public int Roll { get; set; }
+        public int Total { get; set; }
+        public int Dc { get; set; }
+        public bool Succeeded { get; set; }
+        public string OutputItemId { get; set; }
+        public int OutputQuantity { get; set; }
+        public string OutputQuality { get; set; }
+        public string Outcome { get; set; }
+        public bool Done { get; set; }
+    }
+
+    /// <summary>Schema v13 (Phase 11): a place to gather a material.</summary>
+    public sealed class GatheringSiteDto
+    {
+        public string Key { get; set; }
+        public string SettlementId { get; set; }
+        public string Kind { get; set; }
+        public string Name { get; set; }
+        public string ItemId { get; set; }
+        public string ToolDiscipline { get; set; }
+        public int Available { get; set; }
+        public int Capacity { get; set; }
+        public int PerWeek { get; set; }
+        public int Yield { get; set; }
+        public int Minutes { get; set; }
     }
 }

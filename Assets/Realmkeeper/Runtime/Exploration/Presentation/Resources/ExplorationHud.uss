@@ -1072,3 +1072,21 @@
     margin-left: 8px;
     min-width: 110px;
 }
+
+/* ----- Phase 11: items (ADR-0055) ----- */
+.xk-inv-load { align-items: center; margin-bottom: 2px; }
+.xk-inv-bar { width: 160px; height: 8px; margin-right: 8px; background-color: rgba(255, 255, 255, 0.10); border-radius: 4px; overflow: hidden; }
+.xk-inv-bar-fill { height: 100%; background-color: rgb(196, 168, 102); }
+.xk-inv-bar-fill--over { background-color: rgb(200, 92, 64); }
+.xk-inv-tools { align-items: center; flex-wrap: wrap; margin: 4px 0 2px 0; }
+.xk-inv-search { width: 180px; margin-right: 4px; }
+.xk-inv-groups { flex-wrap: wrap; margin-bottom: 6px; }
+.xk-inv-item { margin-bottom: 2px; }
+.xk-inv-magic { color: rgb(150, 182, 236); }
+.xk-inv-details { padding: 8px; margin: 4px 0 8px 0; background-color: rgba(0, 0, 0, 0.30); border-width: 1px; border-color: rgba(196, 168, 102, 0.45); border-radius: 4px; }
+.xk-inv-warning { color: rgb(232, 128, 96); white-space: normal; margin: 2px 0; }
+.xk-inv-compare { margin-top: 6px; padding-top: 4px; border-top-width: 1px; border-color: rgba(255, 255, 255, 0.12); }
+.xk-inv-delta { width: 56px; -unity-text-align: middle-right; color: rgb(170, 170, 160); }
+.xk-inv-delta--up { color: rgb(126, 196, 112); }
+.xk-inv-delta--down { color: rgb(220, 110, 90); }
+.xk-store { padding: 6px; margin-bottom: 8px; background-color: rgba(0, 0, 0, 0.22); border-radius: 4px; }

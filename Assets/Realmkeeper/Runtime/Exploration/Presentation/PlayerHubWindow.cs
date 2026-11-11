@@ -13,7 +13,7 @@ using static Realmkeeper.Exploration.Presentation.TradeWindow;
 namespace Realmkeeper.Exploration.Presentation
 {
     /// <summary>
-    /// The Player Hub (Phase 5): eight sections — Character, Appearance, Inventory, Equipment, Weapons,
+    /// The Player Hub (Phase 5; Phase 11 adds Crafting &amp; work and Storage): Character, Appearance, Inventory, Equipment, Weapons,
     /// Clothing &amp; armour, Currency &amp; possessions, Info — beside a live 3D view of the character
     /// (drag to turn, wheel to zoom). It shows a <see cref="PlayerHub"/> snapshot and raises an event for
     /// every action; the controller dispatches the command and refreshes it. Nothing here changes the world.
@@ -22,7 +22,7 @@ namespace Realmkeeper.Exploration.Presentation
     {
         public static readonly IReadOnlyList<string> Sections = new[]
         {
-            "Character", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Currency & possessions", "Info",
+            "Character", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Currency & possessions", "Info",
         };
 
         private readonly Dictionary<string, Button> _tabs = new Dictionary<string, Button>(StringComparer.Ordinal);
@@ -165,8 +165,10 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Appearance": Appearance(h); break;
                 case "Inventory": Inventory(h); break;
                 case "Equipment": Equipment(h); break;
-                case "Weapons": Filtered(h, i => i.Category == ItemCategory.Weapon || i.Category == ItemCategory.Shield, true); break;
-                case "Clothing & armour": Filtered(h, i => i.Category == ItemCategory.Clothing || i.Category == ItemCategory.Armour || i.Category == ItemCategory.Headwear, false); break;
+                case "Weapons": Filtered(h, "Weapons & armour"); break; // Phase 11: inventory groups (ADR-0055)
+                case "Clothing & armour": Filtered(h, "Clothing"); break;
+                case "Crafting & work": Workshop(); break;
+                case "Storage": Storage(); break;
                 case "Currency & possessions": Possessions(h); break;
                 default: Info(h); break;
             }
@@ -495,98 +497,6 @@ namespace Realmkeeper.Exploration.Presentation
             HairColour = hairColour ?? a.HairColour,
             ClothTint = tint ?? a.ClothTint,
         };
-
-        private void Inventory(PlayerHub h)
-        {
-            _content.Add(Text($"{h.InventoryStacks} of {h.MaxInventoryStacks} stacks · {Kg(h.CarriedGrams)} carried (unburdened up to {Kg(h.EncumbranceGrams)}). Sell at a shop's counter.", "xk-w-note"));
-            if (h.Inventory.Count == 0) _content.Add(Text("Your pack is empty.", "xk-w-empty"));
-            foreach (var item in h.Inventory)
-            {
-                var i = item;
-                var row = Row("xk-w-row");
-                row.name = "xk-hub-item-" + i.ItemId;
-                row.Add(Text(i.Name, "xk-w-name"));
-                row.Add(Text("×" + i.Quantity, "xk-w-qty"));
-                row.Add(Text(i.Weight, "xk-w-price"));
-                if (i.CanEquip) row.Add(Act("Equip", () => EquipRequested?.Invoke(i.StackId)));
-                if (i.CanUse) row.Add(Act("Eat", () => UseRequested?.Invoke(i.StackId)));
-                if (i.Quantity > 1) row.Add(Act("Split", () => SplitRequested?.Invoke(i.StackId, i.Quantity / 2)));
-                foreach (var other in h.Inventory)
-                {
-                    if (other.StackId == i.StackId || other.ItemId != i.ItemId || !i.Stackable || other.Quantity >= other.MaxStack) continue;
-                    var into = other.StackId;
-                    row.Add(Act("Combine", () => CombineRequested?.Invoke(i.StackId, into)));
-                    break;
-                }
-
-                row.Add(Act("Drop 1", () => DiscardRequested?.Invoke(i.StackId, 1)));
-                _content.Add(row);
-                _content.Add(Text(i.Description, "xk-w-desc"));
-            }
-        }
-
-        private void Equipment(PlayerHub h)
-        {
-            foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))
-            {
-                if (slot == EquipmentSlot.None) continue;
-                var s = slot;
-                var row = Row("xk-w-row");
-                row.name = "xk-hub-slot-" + slot;
-                row.Add(Text(PlayerCommandHandlers.Slot(slot), "xk-w-slot"));
-                if (h.Equipment.TryGetValue(slot, out var item))
-                {
-                    row.Add(Text(item.Name, "xk-w-name"));
-                    row.Add(Text(item.Damage > 0 ? "dmg " + item.Damage : item.Protection > 0 ? "prot " + item.Protection : string.Empty, "xk-w-price"));
-                    row.Add(Act("Unequip", () => UnequipRequested?.Invoke(s)));
-                }
-                else
-                {
-                    var none = Text(slot == EquipmentSlot.MainHand ? "Bare hands" : "—", "xk-w-name");
-                    none.AddToClassList("xk-w-faint");
-                    row.Add(none);
-                }
-
-                _content.Add(row);
-            }
-
-            _content.Add(Text($"Total protection {h.Protection} · {h.Weapon} (damage {h.Damage}). Equipment shows on your character.", "xk-w-note"));
-        }
-
-        private void Filtered(PlayerHub h, Func<ItemView, bool> which, bool weapons)
-        {
-            var any = false;
-            foreach (var pair in h.Equipment)
-            {
-                if (!which(pair.Value)) continue;
-                any = true;
-                var i = pair.Value;
-                var slot = pair.Key;
-                var row = Row("xk-w-row");
-                row.AddToClassList("xk-w-row--worn");
-                row.Add(Text(i.Name + " (" + PlayerCommandHandlers.Slot(slot) + ")", "xk-w-name"));
-                row.Add(Text(Stats(i, weapons), "xk-w-price"));
-                row.Add(Act("Unequip", () => UnequipRequested?.Invoke(slot)));
-                _content.Add(row);
-            }
-
-            foreach (var item in h.Inventory)
-            {
-                if (!which(item)) continue;
-                any = true;
-                var i = item;
-                var row = Row("xk-w-row");
-                row.Add(Text(i.Name + (i.Quantity > 1 ? " ×" + i.Quantity : string.Empty), "xk-w-name"));
-                row.Add(Text(Stats(i, weapons), "xk-w-price"));
-                if (i.CanEquip) row.Add(Act("Equip", () => EquipRequested?.Invoke(i.StackId)));
-                _content.Add(row);
-            }
-
-            if (!any) _content.Add(Text(weapons ? "You carry no weapons or shields." : "You have no clothing or armour beyond what is listed.", "xk-w-empty"));
-        }
-
-        private static string Stats(ItemView i, bool weapons) =>
-            weapons ? (i.Damage > 0 ? $"{i.WeaponClass} · dmg {i.Damage}{(i.TwoHanded ? " · two-handed" : string.Empty)}" : $"prot {i.Protection}") : $"prot {i.Protection} · {i.Weight}";
 
         private void Possessions(PlayerHub h)
         {

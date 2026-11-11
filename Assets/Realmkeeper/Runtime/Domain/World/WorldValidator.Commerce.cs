@@ -42,6 +42,8 @@ namespace Realmkeeper.Domain.World
 
             if (world.Transactions.Count > TransactionData.MaxHistory)
                 result.AddError($"Transaction history holds {world.Transactions.Count} entries (limit {TransactionData.MaxHistory}).");
+            ValidateItems(world, settlementIds, stackIds, result); // Phase 11
+
             var transactionIds = new HashSet<TransactionId>();
             foreach (var t in world.Transactions)
             {
@@ -87,7 +89,7 @@ namespace Realmkeeper.Domain.World
                 Check(pair.Value, pair.Key + " slot");
                 var def = pair.Value == null ? null : ItemCatalog.Find(pair.Value.ItemId);
                 if (def == null) continue;
-                if (pair.Key == EquipmentSlot.None || def.Slot != pair.Key)
+                if (pair.Key == EquipmentSlot.None || !SlotFits(def, pair.Key))
                     result.AddError($"'{def.Name}' cannot be worn in the {pair.Key} slot.");
                 if (pair.Value.Quantity != 1) result.AddError($"The {pair.Key} slot holds {pair.Value.Quantity} items.");
             }

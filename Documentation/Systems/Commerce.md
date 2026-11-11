@@ -183,3 +183,10 @@ window shows:
 - the player's purse;
 - how well the keeper knows them;
 - the shop's recent trades.
+
+## Phase 11: condition, particular goods and mending
+
+- **Offers count condition and make.** `PlayerCommandHandlers.OfferFor` scales the shop's offer by the instance's condition (Pristine 110 %, Worn 75 %, Damaged 50 %, Broken 25 %) and make (Fine 150 %, Poor 50 %). It names that as a price factor. The trade window and the sell command use the same function, so the price shown is the price paid. Attuned or bound items cannot be sold.
+- **Particular goods.** A plain item sold joins the shop's counted stock as before. A distinct one (worn, fine, part-charged) keeps its identity in `ShopData.Goods`, at most 24 per shop. It is offered back under **Particular goods** at its own price, and `BuyGoodsCommand` buys that very instance.
+- **Mending.** A shop that deals in weapons and armour mends what the player carries, worn or in the pack, to good condition: 15 % of base value per step below Good, paid to the keeper (`RepairAtShopCommand`). The prices are listed under **Mending**.
+- **Shrines.** A settlement with a place of worship lifts a curse for a 60-coin offering (`LiftCurseCommand`).

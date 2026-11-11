@@ -1,0 +1,34 @@
+Pack: 23 rows, 63270 g of 108862 g capacity.
+p11_01_inventory: The inventory: 23 instances with their condition, make, charges and attunement; the load bar from SRD carrying capacity (63.3 kg of 108.9 kg), the rules' AC and attack, search, group filters and sorting.
+p11_02_inventory_filtered_sorted: Filtered to weapons and armour, sorted by value (highest first); each row's value reflects its condition (the damaged shortsword is worth half).
+p11_03_inspect_wand: Inspecting the Wand of Magic Missiles: its spell, charges (4 of 7) and recharge, rarity, weight, value and SRD 5.2.1 source.
+p11_04_compare_armour: Comparing the +1 chain shirt with what is worn (Chain shirt), computed by the rules engine: Armour class 17 → 18; Speed (ft) 30 → 30.
+ok: Equipped +1 Longsword (main hand). Put away: Arming sword.
+ok: Equipped +1 Chain Shirt (chest). Put away: Chain shirt.
+ok: Equipped Ring of Protection (left ring).
+ok: Equipped Gold ring (right ring).
+ok: Equipped Iron dagger (off hand). Put away: Round shield.
+ok: Equipped Cloak of Protection (back).
+ok: You settle down to attune to the Cloak of Protection: a short rest (1 h).
+ok: Attuned to the Cloak of Protection.
+ok: You settle down to attune to the Ring of Protection: a short rest (1 h).
+ok: Attuned to the Ring of Protection.
+p11_05_equipment: Equipment: the +1 longsword, a dagger in the off hand (two-weapon fighting), rings on both hands, the cloak and ring of protection attuned; AC 18 from the rules (+1 Chain Shirt (medium) +13, Dexterity +2, +1 Chain Shirt +1, Ring of Protection +1, Cloak of Protection +1).
+ok: Equipped Berserker Axe (main hand). Put away: +1 Longsword.
+ok: You settle down to attune to the Berserker Axe: a short rest (1 h).
+ok: Attuned to the Berserker Axe. Once attuned, you cannot willingly part with the axe: it cannot be unequipped or unattuned.
+refused: A curse binds the berserker axe to you; a shrine's priest can lift it.
+p11_06_cursed_axe: A cursed Berserker Axe, attuned and now bound: unequipping is refused with the reason, and the inspection names the curse (a shrine's priest can lift it).
+p11_07_chest_in_the_street: Your chest at Tavern: the player's chest stands by the tavern door; walking up to it and pressing E opens it in the hub's Storage section.
+ok: Put 6 × Iron ore in Your chest at Tavern.
+ok: Left 50 coin in Your chest at Tavern.
+p11_08_storage: Storage: the chest (ore and coin left in it, its capacity) and the town's cache under a loose flagstone, filled once from its loot table.
+ok: Started: Stitch a leather jerkin. Ready in 6 h.
+p11_09_crafting: Crafting & work: recipes by discipline with materials held and needed, the tool and proficiency, the station, the DC and the chance; the jerkin in progress holds its leather.
+ok: Stitch a leather jerkin: failed (Dexterity check: d20 6 + 2 = 8 vs DC 12); 34% of the materials are spoiled.
+ok: Started gathering at Deadfall in Bramhaven's woods. Ready in 2 h.
+ok: Deadfall in Bramhaven's woods: gathered 1 timber plank.
+p11_10_work_outcomes: After the work: the check rolled when it began (d20 + bonus against the DC), the outcome, the gathering site's stock fallen, mending and attunement listed.
+p11_11_armourer_goods_and_mending: The armourer: the damaged shortsword just sold now sits among the particular goods at its own price; Mending lists the worn mace with the smith's price.
+p11_12_fight_leaves_loot: The fight is over: the panel offers what the fallen left (19 items and 7 coin) — nothing went straight into the pack.
+p11_13_loot_in_storage: The loot opens in Storage: the weapons the foes carried (worn or damaged, as used) and their purses, kept in a container keyed by the encounter until taken.

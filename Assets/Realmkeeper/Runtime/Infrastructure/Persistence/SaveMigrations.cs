@@ -12,6 +12,40 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// effects, combatant resources and concentration as empty when absent (the mapper reads absent lists as empty).
     /// </summary>
     /// <summary>
+    /// v12 → v13 (Phase 11: items). Structural: empty containers, work and gathering sites; catalog version 1 (the
+    /// items the save was made with); every shop's particular goods empty; and the gathering system enabled after the
+    /// fauna system. Existing stacks need nothing: absent instance state reads as good condition, common make, no
+    /// charges, not attuned. The player's chests, caches and gathering sites are not written here: the session adds them
+    /// once with the rest of the living world (as for Phase 10), so an old save and a fresh world of its seed agree.
+    /// </summary>
+    public sealed class MigrationV12ToV13 : ISaveMigration
+    {
+        public int SourceVersion => 12;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            foreach (var list in new[] { "containers", "workJobs", "gatheringSites" })
+                if (world[list] == null) world[list] = new JArray();
+            if (world["itemCatalogVersion"] == null) world["itemCatalogVersion"] = 1;
+            if (world["shops"] is JArray shops)
+                foreach (var shop in shops)
+                    if (shop is JObject s && s["goods"] == null) s["goods"] = new JArray();
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken after = null;
+            var has = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == Simulation.Fauna.FaunaSystem.Id) after = id;
+                if ((string)id == Simulation.Items.GatheringSystem.Id) has = true;
+            }
+
+            if (after != null && !has) after.AddAfterSelf(Simulation.Items.GatheringSystem.Id);
+        }
+    }
+
+    /// <summary>
     /// v11 → v12 (Phase 10: the living world). Structural only: empty creature populations, creatures, herds and settlement
     /// layouts, and the fauna system enabled after the chronicle's predecessors (where the standard systems run). NPC
     /// character records, populations, herds and layouts are not written here: the session adds them once, after the

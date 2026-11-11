@@ -33,6 +33,7 @@ namespace Realmkeeper.Infrastructure.Generation
             if (NpcCharacterGenesis.Ensure(world) > 0) changed = true;
             if (Simulation.Fauna.FaunaGenesis.Ensure(world, map)) changed = true; // wildlife, road bands, vermin, herds
             if (EnsureLayouts(world, map)) changed = true;
+            if (Simulation.Items.ItemGenesis.Ensure(world)) changed = true; // Phase 11: chests, caches, gathering sites
             return changed;
         }
 

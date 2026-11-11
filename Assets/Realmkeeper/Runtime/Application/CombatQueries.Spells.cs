@@ -22,6 +22,12 @@ namespace Realmkeeper.Application
     public sealed class SpellCastOption
     {
         public SpellDefinition Spell { get; set; }
+
+        /// <summary>Phase 11: the option's key (the spell ID; "spell@item" for a wand's cast).</summary>
+        public string Key { get; set; }
+
+        /// <summary>Phase 11: the item whose charges cast it ("Wand of Magic Missiles"), or null.</summary>
+        public string FromItem { get; set; }
         public string Explanation { get; set; }
         public IReadOnlyList<int> CastLevels { get; set; } = new List<int>();
 
@@ -124,7 +130,7 @@ namespace Realmkeeper.Application
                 var level = atWill ? 0 : free != null ? s.Level : levels.Count > 0 ? levels[0] : s.Level;
                 var o = new SpellCastOption
                 {
-                    Spell = s, Explanation = Explain(s), CastLevels = levels, FreeWith = free, AtWill = atWill, MaxTargets = engine.MaxTargets(s, Math.Max(level, s.Level), false),
+                    Key = s.Id, Spell = s, Explanation = Explain(s), CastLevels = levels, FreeWith = free, AtWill = atWill, MaxTargets = engine.MaxTargets(s, Math.Max(level, s.Level), false),
                     CostText = atWill ? (s.IsCantrip ? "cantrip" : "at will") : free != null ? "free (Favoured Enemy) or a slot" : levels.Count == 0 ? "no slot left" : "slot level " + string.Join("/", levels),
                 };
                 if (s.Targeting == SpellTargeting.Creatures)
@@ -145,6 +151,35 @@ namespace Realmkeeper.Application
                     if (engine.SpellProblem(player, new CastSpellAction(s.Id, level, probeTargets, point, new[] { m })) == null) meta.Add((m, m == "quickened" || m == "heightened" ? 2 : 1));
                 o.Metamagic = meta;
                 list.Add(o);
+            }
+
+            // Phase 11 (ADR-0052): spells cast from items' charges (a wand), one level per charge spent.
+            var p = engine.World.Player;
+            if (player.Kind == CombatantKind.Player && p != null)
+            {
+                var held = new List<ItemStackData>(p.Inventory);
+                held.AddRange(p.Equipment.Values);
+                foreach (var stack in held)
+                {
+                    var def = ItemCatalog.Find(stack.ItemId);
+                    var spell = def?.Magic?.SpellId != null ? SpellCatalog.Find(def.Magic.SpellId) : null;
+                    if (spell == null) continue;
+                    var free = CombatEngine.ItemCast + stack.StackId;
+                    var levels = new List<int>();
+                    for (var l = spell.Level; l <= Math.Min(9, spell.Level + Math.Max(0, stack.Charges) - 1); l++) levels.Add(l);
+                    var o = new SpellCastOption
+                    {
+                        Key = spell.Id + "@" + stack.StackId, FromItem = def.Name, Spell = spell, Explanation = Explain(spell), CastLevels = levels, FreeWith = free,
+                        MaxTargets = engine.MaxTargets(spell, spell.Level, false), CostText = Math.Max(0, stack.Charges) + " charge(s): 1 per spell level",
+                    };
+                    var level = levels.Count > 0 ? levels[0] : spell.Level;
+                    if (spell.Targeting == SpellTargeting.Creatures)
+                        o.Targets = Targets(engine, player, c => engine.SpellProblem(player, new CastSpellAction(spell.Id, level, new[] { c.CombatantId }, null, null, free)));
+                    var probe = new List<CombatantId>();
+                    foreach (var t in o.Targets) if (t.Problem == null) { probe.Add(t.Id); break; }
+                    o.Unavailable = engine.SpellProblem(player, new CastSpellAction(spell.Id, level, probe, null, null, free));
+                    list.Add(o);
+                }
             }
 
             return list;

@@ -164,38 +164,27 @@ namespace Realmkeeper.Application
                 }
             }
 
-            // Loot from the slain, for the winners to take (seeded by the encounter: the same fight leaves the same things).
+            // Loot from the slain (Phase 11, ADR-0053): not dropped into the pack but left in one container keyed by the
+            // encounter, filled once, from what each creature carried (its weapons, as used) and its loot table, seeded by
+            // the encounter and the combatant (the same fight leaves the same things). The player takes what they want.
             if (won && world.Player != null && !world.Player.Rpg.IsDead)
             {
-                var coin = 0;
-                var found = new List<string>();
+                var pile = FillLoot(context, world, e, dead);
+                if (pile != null)
+                {
+                    var count = 0;
+                    foreach (var s in pile.Items) count += s.Quantity;
+                    lines.Add($"left behind: {count} item{(count == 1 ? string.Empty : "s")}{(pile.Coin > 0 ? $" and {pile.Coin} coin" : string.Empty)}");
+                }
+
                 var remains = new List<string>();
-                var n = 0;
                 foreach (var c in dead)
                 {
-                    var def = CreatureCatalog.Find(c.CreatureId);
-                    var loot = def?.Loot ?? LootProfile.None;
-                    ulong Roll() => SeedMixer.Mix(SeedMixer.Combine(e.Seed, "loot:" + c.CombatantId + ":" + (n++).ToString(CultureInfo.InvariantCulture)));
-                    if (loot.CoinMax > 0) coin += loot.CoinMin + (int)(Roll() % (ulong)(loot.CoinMax - loot.CoinMin + 1));
-                    foreach (var l in loot.Items)
-                    {
-                        if ((int)(Roll() % 100) >= l.ChancePercent) continue;
-                        var qty = l.Min + (int)(Roll() % (ulong)(l.Max - l.Min + 1));
-                        AddItem(context, world.Player, l.ItemId, qty);
-                        found.Add(qty > 1 ? $"{qty} × {ItemCatalog.Find(l.ItemId)?.Name}" : ItemCatalog.Find(l.ItemId)?.Name);
-                    }
-
-                    if (!string.IsNullOrEmpty(loot.Remains)) remains.Add(loot.Remains);
+                    var r = CreatureCatalog.Find(c.CreatureId)?.Loot?.Remains;
+                    if (!string.IsNullOrEmpty(r)) remains.Add(r);
                 }
 
-                if (coin > 0)
-                {
-                    world.Player.Purse += coin;
-                    lines.Add($"{coin} coin");
-                }
-
-                if (found.Count > 0) lines.Add("found " + string.Join(", ", found));
-                if (remains.Count > 0) lines.Add("left: " + string.Join("; ", Distinct(remains)));
+                if (remains.Count > 0) lines.Add("remains: " + string.Join("; ", Distinct(remains)));
             }
 
             // The farmer remembers who stood by them.
@@ -220,6 +209,77 @@ namespace Realmkeeper.Application
                 new Dictionary<string, string> { ["source"] = "combat", ["name"] = e.Name.Split('—')[0].Trim(), ["summary"] = o.Result, ["xp"] = xp.ToString(CultureInfo.InvariantCulture), ["deaths"] = dead.Count.ToString(CultureInfo.InvariantCulture) });
         }
 
+        public static string LootKey(EncounterId id) => "loot:encounter:" + id;
+
+        /// <summary>
+        /// Fills the encounter's loot container once (ADR-0053): returns it, or null when nothing was left. Called again
+        /// for the same encounter it changes nothing (the key is stable and an existing container is kept as it is).
+        /// </summary>
+        public static ContainerData FillLoot(CommandContext context, WorldData world, EncounterData e, List<CombatantData> dead)
+        {
+            var key = LootKey(e.EncounterId);
+            var existing = world.FindContainer(key);
+            if (existing != null) return existing;
+            var pile = new ContainerData
+            {
+                Key = key, Kind = ContainerKind.Loot, Name = "What the fight left — " + e.Name.Split('—')[0].Trim(), PlayerAccess = true, AcceptsDeposits = false,
+                SourceKey = "encounter:" + e.EncounterId, CreatedAt = SpellCommandHandlers.Now(world),
+            };
+            var ctx = new LootContext { MaxRarity = ItemRarity.Uncommon };
+            foreach (var c in dead)
+            {
+                var def = CreatureCatalog.Find(c.CreatureId);
+                if (def == null) continue;
+                var seed = SeedMixer.Combine(e.Seed, "loot:" + c.CombatantId);
+                var results = new List<LootResult>();
+
+                // What it carried: its weapons, as used (falling back to the bestiary's own line for creatures without one).
+                if (LootTables.Carried.TryGetValue(def.Id, out var carried)) results.Add(LootTables.RollLines(carried, ctx, SeedMixer.Combine(seed, "carried")));
+                else if (def.Loot != null)
+                {
+                    var lines = new List<LootTableEntry>();
+                    foreach (var l in def.Loot.Items) lines.Add(new LootTableEntry { ItemId = l.ItemId, Min = l.Min, Max = l.Max, ChancePercent = l.ChancePercent, Condition = ItemCondition.Worn });
+                    results.Add(LootTables.RollLines(lines, ctx, SeedMixer.Combine(seed, "carried")));
+                }
+
+                // Its purse or what a hunter takes from it; the bestiary's coin when it has no table.
+                if (LootTables.ForCreature.TryGetValue(def.Id, out var table)) results.Add(LootTables.Roll(table, ctx, SeedMixer.Combine(seed, "table")));
+                else if (def.Loot != null && def.Loot.CoinMax > 0)
+                    pile.Coin += def.Loot.CoinMin + (int)(SeedMixer.Mix(SeedMixer.Combine(seed, "coin")) % (ulong)(def.Loot.CoinMax - def.Loot.CoinMin + 1));
+
+                foreach (var r in results)
+                {
+                    pile.Coin += r.Coin;
+                    foreach (var d in r.Items)
+                    {
+                        var item = ItemCatalog.Find(d.ItemId);
+                        if (item == null) continue;
+                        var s = ItemStacks.Create(ItemCommandHandlers.NewStackId(context), item, d.Quantity, "Taken from " + Article(def.Name), -1);
+                        s.Condition = d.Condition;
+                        ItemCommandHandlers.Merge(pile.Items, s);
+                    }
+                }
+            }
+
+            if (pile.IsEmpty) return null;
+            world.Containers.Add(pile);
+            while (world.Containers.Count > MaxLootPiles + 64)
+            {
+                // The oldest emptied or long-left loot piles are cleared away (never chests or caches).
+                var oldest = world.Containers.FindIndex(x => x.Kind == ContainerKind.Loot);
+                if (oldest < 0 || world.Containers[oldest] == pile) break;
+                world.Containers.RemoveAt(oldest);
+            }
+
+            return pile;
+        }
+
+        /// <summary>Loot piles kept (beyond the settlements' own containers); the oldest are cleared first.</summary>
+        public const int MaxLootPiles = 30;
+
+        private static string Article(string name) => (name.Length > 0 && "AEIOUaeiou".IndexOf(name[0]) >= 0 ? "an " : "a ") + name.ToLowerInvariant();
+
+
         private static IEnumerable<string> Distinct(List<string> list)
         {
             var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -232,28 +292,6 @@ namespace Realmkeeper.Application
             return false;
         }
 
-        private static void AddItem(CommandContext context, PlayerCharacterData p, string itemId, int quantity)
-        {
-            var def = ItemCatalog.Find(itemId);
-            if (def == null || quantity < 1) return;
-            var max = def.Stackable ? Math.Max(1, def.MaxStack) : 1;
-            var left = quantity;
-            foreach (var s in p.Inventory)
-            {
-                if (left == 0) break;
-                if (s.ItemId != def.Id || s.Quantity >= max) continue;
-                var add = Math.Min(left, max - s.Quantity);
-                s.Quantity += add;
-                left -= add;
-            }
-
-            while (left > 0)
-            {
-                var add = Math.Min(left, max);
-                p.Inventory.Add(new ItemStackData { StackId = new ItemStackId(context.NextGuid("item-stack")), ItemId = def.Id, Quantity = add });
-                left -= add;
-            }
-        }
     }
 
     public sealed partial class WorldSession

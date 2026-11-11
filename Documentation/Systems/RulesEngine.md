@@ -112,3 +112,21 @@ engine's `SpellSaveDc` and `SpellAttack` breakdowns. Still deferred:
 Features whose effects need these systems are acquired, validated and shown. Each carries an
 `IntegrationNeed` (combat, magic, rest, dialogue, exploration), so the sheet says what each waits
 for instead of pretending.
+
+## Phase 11: items as rule effects (ADR-0052)
+
+`Loadout` now carries:
+
+- the body armour's and the shield's condition;
+- the weight carried;
+- the effects of worn items, each with its source.
+
+`CharacterRules.LoadoutOf(player)` builds it. A magic item's AC bonus becomes `ArmorClassBonus`, its save bonus `SaveBonus` (new), and its own effects follow: `AbilityMinimum` (new: the gauntlets set Strength to 19 unless it is higher), `Darkvision`, `Advantage` and `MaxHpPerLevel`. An item that needs attunement adds nothing until attuned, and a broken item adds nothing.
+
+Carrying capacity is part of the rules:
+
+- `CarryingCapacityGrams` = Strength × 15 lb × the carry percentage (Powerful Build 200 %).
+- `Encumbered` is true over capacity.
+- `SpeedBreakdown` then sets Speed to 5 ft, with the reason.
+
+Damaged armour or a damaged shield is −1 to AC, and broken gives none, as named parts of the armour class breakdown. Weapon attacks take the magic bonus and the damaged penalty in their attack breakdown (`CombatStats`).

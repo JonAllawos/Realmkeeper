@@ -194,8 +194,32 @@ namespace Realmkeeper.Application
                 var lines = command.Kind == RestKind.Short
                     ? CharacterRest.ShortRest(world.Player.Rpg, command.HitDice, Dice(world, command.Key), now, command.Key)
                     : CharacterRest.LongRest(world.Player.Rpg, now, command.Key);
+                if (command.Kind == RestKind.Long) lines.AddRange(RechargeItems(world.Player, Dice(world, command.Key + ":recharge")));
                 return CommandResult.Ok(string.Join("\n", lines));
             }
+        }
+
+        /// <summary>
+        /// Phase 11: items with charges regain them after a long rest (their rolled recharge, up to the maximum). SRD 5.2.1
+        /// says "daily at dawn"; Realmkeeper ties it to the long rest so it cannot be farmed by waiting (ADR-0052).
+        /// </summary>
+        internal static List<string> RechargeItems(PlayerCharacterData p, Func<int, int> die)
+        {
+            var lines = new List<string>();
+            var stacks = new List<ItemStackData>(p.Inventory);
+            stacks.AddRange(p.Equipment.Values);
+            foreach (var s in stacks)
+            {
+                var m = ItemCatalog.Find(s.ItemId)?.Magic;
+                if (m == null || m.MaxCharges <= 0 || m.Recharge.IsEmpty || s.Charges >= m.MaxCharges) continue;
+                var roll = m.Recharge.Bonus;
+                for (var i = 0; i < m.Recharge.Count; i++) roll += die(m.Recharge.Sides);
+                var before = Math.Max(0, s.Charges);
+                s.Charges = Math.Min(m.MaxCharges, before + Math.Max(0, roll));
+                lines.Add($"The {ItemCatalog.Find(s.ItemId).Name} regains charges ({m.Recharge} = {roll}): {before} → {s.Charges}.");
+            }
+
+            return lines;
         }
 
         private static bool Contains(IReadOnlyList<string> list, string x)

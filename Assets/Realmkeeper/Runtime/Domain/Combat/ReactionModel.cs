@@ -123,6 +123,7 @@ namespace Realmkeeper.Domain.Combat
                 case EndTurnAction _: return new ActionRecord { Kind = "end" };
                 case StabilizeAction s: return new ActionRecord { Kind = "stabilize", Target = s.Target };
                 case BonusAbilityAction b: return new ActionRecord { Kind = "bonus", Id = b.AbilityId };
+                case UseItemAction u: return new ActionRecord { Kind = "item", Id = u.StackId.ToString() }; // Phase 11
                 case UseFeatureAction f: return new ActionRecord { Kind = "feature", Id = f.FeatureId, Target = f.Target, Option = f.Option, Amount = f.Amount };
                 case CastSpellAction c:
                     return new ActionRecord
@@ -149,6 +150,7 @@ namespace Realmkeeper.Domain.Combat
                 case "end": return new EndTurnAction();
                 case "stabilize": return new StabilizeAction(r.Target);
                 case "bonus": return new BonusAbilityAction(r.Id);
+                case "item": return System.Guid.TryParse(r.Id, out var stack) ? new UseItemAction(new Realmkeeper.Domain.Identifiers.ItemStackId(stack)) : null; // Phase 11
                 case "feature": return new UseFeatureAction(r.Id, r.Target, r.Option, r.Amount);
                 case "spell": return new CastSpellAction(r.Id, r.Level, r.Targets, r.HasPoint ? r.Point : (GridPos?)null, r.Metamagic, r.FreeWith);
                 default: return null;

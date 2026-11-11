@@ -112,7 +112,9 @@ namespace Realmkeeper.Domain.Combat
             if (!s.Castable) return $"{s.Name} cannot be cast yet: {s.StatusNote}";
             if (s.CastingTime == CastingTime.Reaction) return $"{s.Name} is cast as a reaction, when its trigger happens (you will be asked)."; // Phase 10
             if (Incapacitated(actor)) return $"{actor.Name} is incapacitated.";
-            if (!SpellsOf(actor).Exists(x => x.Id == s.Id)) return $"{actor.Name} does not have {s.Name} ready.";
+            var fromItem = a.FreeWith != null && a.FreeWith.StartsWith(ItemCast, StringComparison.Ordinal); // Phase 11: a wand's charges
+            if (fromItem) { var itemProblem = ItemCastProblem(actor, a, s); if (itemProblem != null) return itemProblem; }
+            else if (!SpellsOf(actor).Exists(x => x.Id == s.Id)) return $"{actor.Name} does not have {s.Name} ready.";
             if (HasEffect(actor, CombatEffectKind.Raging)) return "No spells while raging.";
             if (actor.FormCreatureId != null) return "No spells in Wild Shape.";
             if (s.CastingTime == CastingTime.Longer) return $"{s.Name} takes longer than a turn to cast.";
@@ -132,6 +134,7 @@ namespace Realmkeeper.Domain.Combat
             {
                 if (a.SlotLevel != 0) return $"{s.Name} needs no spell slot.";
             }
+            else if (fromItem) { } // the wand's charges pay: no slot is spent
             else if (a.FreeWith != null)
             {
                 if (a.FreeWith != FreeCastResource(actor, s)) return $"{s.Name} cannot be cast free that way now.";
@@ -353,6 +356,7 @@ namespace Realmkeeper.Domain.Combat
             if (Counterspelled(actor, s, level)) return; // Phase 10: a foe's Counterspell (the action is wasted, the slot kept)
             string cost;
             if (AtWill(actor, s)) cost = s.IsCantrip ? "cantrip" : "at will";
+            else if (a.FreeWith != null && a.FreeWith.StartsWith(ItemCast, StringComparison.Ordinal)) cost = SpendItemCharges(actor, a, s); // Phase 11
             else if (a.FreeWith != null)
             {
                 SpendResource(actor, a.FreeWith, 1);

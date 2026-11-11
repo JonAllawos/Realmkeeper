@@ -18,6 +18,15 @@ namespace Realmkeeper.Domain.Combat
         {
             var t = actor.Turn;
             var stats = Stats(actor);
+            var offHand = stats.Find(a.OptionId);
+            if (offHand != null && offHand.OffHand)
+            {
+                // Phase 11: the Light property's extra attack, a bonus action (it does not use the Attack action's attacks).
+                t.BonusActionUsed = true;
+                ResolveAttack(actor, Encounter.Find(a.Target), offHand, false);
+                return;
+            }
+
             if (!t.ActionUsed)
             {
                 t.ActionUsed = true;
@@ -58,7 +67,9 @@ namespace Realmkeeper.Domain.Combat
             }
 
             SpendRecharge(attacker, o); // Phase 10: a recharging attack is spent when used
+            SpendAmmunition(attacker, o); // Phase 11: a shot uses a piece of ammunition from the pack
             var r = AttackRoll(attacker, target, o, opportunity);
+            WearOnAttack(attacker, target, o, r); // Phase 11: a natural 1 wears the weapon; a critical hit taken wears the armour
             ReactToHit(attacker, target, o, r, r.Critical ? 20 : 0); // Phase 10: Shield, Parry, Cutting Words
             var weapon = o.ItemId != null ? ItemCatalog.Find(o.ItemId)?.Weapon : null;
             if (!r.Hit)

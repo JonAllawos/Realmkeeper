@@ -11,7 +11,7 @@ namespace Realmkeeper.Domain.World
     /// headwear map to procedural models. Materials link each item to the settlement economy.
     /// Item IDs are stable and saved; never rename one.
     /// </summary>
-    public static class ItemCatalog
+    public static partial class ItemCatalog
     {
         private static readonly Dictionary<string, ItemDefinition> ById = new Dictionary<string, ItemDefinition>(StringComparer.Ordinal);
         private static readonly List<ItemDefinition> All = new List<ItemDefinition>();
@@ -210,6 +210,9 @@ namespace Realmkeeper.Domain.World
                 if (ItemCombat.Weapons.TryGetValue(d.Id, out var w)) { d.Weapon = w; d.RulesSource = ItemCombat.Srd; }
                 if (ItemCombat.Armor.TryGetValue(d.Id, out var a)) { d.Armor = a; d.RulesSource = ItemCombat.Srd; }
             }
+
+            AddPhase11(); // Phase 11: the rest of the catalog
+            CompletePhase11();
         }
     }
 }

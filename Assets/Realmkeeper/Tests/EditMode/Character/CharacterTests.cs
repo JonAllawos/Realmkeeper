@@ -450,8 +450,10 @@ namespace Realmkeeper.Tests.EditMode.Character
             var after = CommerceMath.SellingPrice(W, W.FindShop(shop.ShopId), item);
             Assert.That(after.Factors.Select(f => f.ToString()), Has.Member("Trade connections -5%"));
             Assert.That(before.Factors.Select(f => f.Label), Has.No.Member("Trade connections"));
-            Assert.That(PlayerMovement.UnencumberedFor(W.Player), Is.EqualTo(2 * PlayerMovement.UnencumberedGrams));
-            Assert.That(_s.GetPlayerHub().EncumbranceGrams, Is.EqualTo(50000));
+            // Powerful Build doubles carrying capacity (Phase 11: the SRD rule, Strength × 15 lb × 2).
+            var str = new CharacterRules(W.Player.Rpg).Score(Ability.Strength);
+            Assert.That(PlayerMovement.UnencumberedFor(W.Player), Is.EqualTo(Carrying.CapacityGrams(str, 200)));
+            Assert.That(_s.GetPlayerHub().EncumbranceGrams, Is.EqualTo(Carrying.CapacityGrams(str, 200)));
         }
 
         [Test]

@@ -122,7 +122,11 @@ namespace Realmkeeper.Application
         public int Fed { get; internal set; }
         public string FedText { get; internal set; }
         public int CarriedGrams { get; internal set; }
-        public int EncumbranceGrams { get; internal set; } = PlayerMovement.UnencumberedGrams;
+        /// <summary>Carrying capacity (Phase 11: the SRD rule); over it Speed is 5 ft.</summary>
+        public int EncumbranceGrams { get; internal set; }
+
+        /// <summary>The most the player may carry at all (twice the capacity).</summary>
+        public int PackLimitGrams { get; internal set; }
         public float SpeedFactor { get; internal set; }
         public string SpeedReason { get; internal set; }
         public int Protection { get; internal set; }
@@ -137,11 +141,14 @@ namespace Realmkeeper.Application
         public List<TransactionView> RecentTrades { get; } = new List<TransactionView>();
     }
 
-    /// <summary>How fast the player walks, and why (encumbrance and hunger; Phase 5).</summary>
+    /// <summary>
+    /// How fast the player walks, and why. Phase 11 (ADR-0051) replaces Phase 5's separate 25 kg pace curve with the
+    /// one rule the character sheet uses: carrying capacity (Strength × 15 lb, more with Powerful Build). Within it the
+    /// load does not slow the player; over it their Speed is 5 ft (SRD 5.2.1); past twice it nothing more can be picked
+    /// up (<see cref="ItemCommandHandlers.PackLimitGrams"/>). Hunger still slows the walk.
+    /// </summary>
     public static class PlayerMovement
     {
-        public const int UnencumberedGrams = 25000;
-        public const int OverloadedGrams = 50000;
         public const int HungryBelow = 25;
 
         public static float SpeedFactor(PlayerCharacterData p, out string reason)
@@ -149,24 +156,27 @@ namespace Realmkeeper.Application
             var grams = PlayerCommandHandlers.CarriedGrams(p);
             var factor = 1f;
             var reasons = new List<string>();
-            var light = UnencumberedFor(p);
-            var heavy = light * OverloadedGrams / UnencumberedGrams;
 
-            // Phase 6: a created character walks at their speed (30 ft is the norm): the species' pace and, since
-            // Phase 7, class features whose conditions the worn equipment meets (Unarmoured Movement, Fast Movement).
+            // A created character walks at their speed (30 ft is the norm): the species' pace, class features whose
+            // conditions the worn equipment meets, and — over carrying capacity — 5 ft.
             var rules = p.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete ? new Domain.Rpg.CharacterRules(p.Rpg, Domain.Rpg.CharacterRules.LoadoutOf(p)) : null;
-            if (rules != null && rules.Speed != 30)
+            if (rules != null)
             {
-                factor *= rules.Speed / 30f;
-                var speed = rules.SpeedBreakdown();
-                reasons.Add((speed.Parts.Count > 1 ? "speed" : rules.Species.Name.ToLowerInvariant() + " pace") + " (" + rules.Speed + " ft)");
+                if (rules.Speed != 30)
+                {
+                    factor *= rules.Speed / 30f;
+                    if (rules.Encumbered) reasons.Add($"over carrying capacity ({Carrying.Pounds(grams)} of {Carrying.Pounds(rules.CarryingCapacityGrams)} lb): speed 5 ft");
+                    else
+                    {
+                        var speed = rules.SpeedBreakdown();
+                        reasons.Add((speed.Parts.Count > 1 ? "speed" : rules.Species.Name.ToLowerInvariant() + " pace") + " (" + rules.Speed + " ft)");
+                    }
+                }
             }
-
-            if (grams > light)
+            else if (grams > UnencumberedFor(p))
             {
-                var over = Math.Min(1f, (grams - light) / (float)(heavy - light));
-                factor *= 1f - 0.45f * over;
-                reasons.Add("carrying " + (grams / 1000f).ToString("0.#", CultureInfo.InvariantCulture) + " kg");
+                factor *= 5f / 30f;
+                reasons.Add($"over carrying capacity ({Carrying.Pounds(grams)} lb)");
             }
 
             if (p.Fed < HungryBelow)
@@ -179,11 +189,11 @@ namespace Realmkeeper.Application
             return factor;
         }
 
-        /// <summary>How much the player carries before it slows them (Phase 6: a powerful build carries more).</summary>
+        /// <summary>Carrying capacity: how much the player carries before it slows them (SRD 5.2.1; Powerful Build doubles it).</summary>
         public static int UnencumberedFor(PlayerCharacterData p)
         {
-            var percent = p?.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete ? new Domain.Rpg.CharacterRules(p.Rpg).CarryPercent : 100;
-            return UnencumberedGrams * percent / 100;
+            if (p?.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete) return new Domain.Rpg.CharacterRules(p.Rpg, Domain.Rpg.CharacterRules.LoadoutOf(p)).CarryingCapacityGrams;
+            return Carrying.CapacityGrams(10, 100);
         }
 
         public static string FedText(int fed) => fed >= 75 ? "Well fed" : fed >= 50 ? "Fed" : fed >= HungryBelow ? "Peckish" : fed > 0 ? "Hungry" : "Starving";
@@ -260,6 +270,12 @@ namespace Realmkeeper.Application
         public ShopSummary Summary { get; internal set; }
         public List<PriceLine> ForSale { get; } = new List<PriceLine>();
         public List<PriceLine> Offers { get; } = new List<PriceLine>();
+
+        /// <summary>Phase 11: particular items the shop holds (worn, fine, part-charged), with prices.</summary>
+        public List<(InventoryRow Row, int Price)> Goods { get; } = new List<(InventoryRow, int)>();
+
+        /// <summary>Phase 11: what mending each worn thing the player carries costs here (an armourer only).</summary>
+        public List<(InventoryRow Row, int Price)> Repairs { get; } = new List<(InventoryRow, int)>();
         public int KeeperWealth { get; internal set; }
         public int PlayerPurse { get; internal set; }
         public int Familiarity { get; internal set; }
@@ -312,6 +328,7 @@ namespace Realmkeeper.Application
                 FedText = PlayerMovement.FedText(p.Fed),
                 CarriedGrams = PlayerCommandHandlers.CarriedGrams(p),
                 EncumbranceGrams = PlayerMovement.UnencumberedFor(p),
+                PackLimitGrams = ItemCommandHandlers.PackLimitGrams(p),
                 InventoryStacks = p.Inventory.Count,
             };
             hub.SpeedFactor = PlayerMovement.SpeedFactor(p, out var why);
@@ -431,10 +448,16 @@ namespace Realmkeeper.Application
                 {
                     var d = ItemCatalog.Find(s.ItemId);
                     if (d == null) continue;
-                    var q = CommerceMath.BuyingPrice(_world, shop, d);
-                    detail.Offers.Add(Line(d, q, s.Quantity, s.StackId));
+                    var q = PlayerCommandHandlers.OfferFor(_world, shop, s); // Phase 11: condition and quality count
+                    var line = Line(d, q, s.Quantity, s.StackId);
+                    if (d.Wears && s.Condition != ItemCondition.Good) line.Name += " (" + ItemConditions.Name(s.Condition) + ")";
+                    if (s.Quality == ItemQuality.Fine) line.Name += " (fine)";
+                    detail.Offers.Add(line);
                 }
             }
+
+            detail.Goods.AddRange(GetShopGoods(shop.ShopId)); // Phase 11
+            detail.Repairs.AddRange(GetRepairQuotes(shop.ShopId));
 
             for (var i = _world.Transactions.Count - 1; i >= 0 && detail.Ledger.Count < 8; i--)
                 if (_world.Transactions[i].ShopId == shop.ShopId) detail.Ledger.Add(View(_world.Transactions[i]));

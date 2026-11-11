@@ -20,8 +20,10 @@ namespace Realmkeeper.Application
             "International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.";
 
         public const string RulesUse =
-            "Rules mechanics (species, classes, progression, armour, weapons, conditions, combat, spells and spellcasting, class " +
-            "features, rests, the bandit, guard, commoner and wolf statistics, and from SRD 5.1 the acolyte and cult fanatic and the " +
+            "Rules mechanics (species, classes, progression, armour, weapons, ammunition, tools, conditions, combat, spells and spellcasting, class " +
+            "features, rests, carrying capacity, attunement, the SRD 5.2.1 magic items used (potions of healing, +1 weapons, armour and shield, ring and cloak of protection, " +
+            "gauntlets of ogre power, goggles of night, boots of elvenkind, wand of magic missiles, Berserker Axe), " +
+            "the bandit, guard, commoner and wolf statistics, and from SRD 5.1 the acolyte and cult fanatic and the " +
             "bestiary: deer, boar, black and brown bears, dire wolf, giant rat, giant spider, goat, riding and draft horses, mastiff, goblin, " +
             "thug (the game's highwayman), bandit captain, cultist, veteran, skeleton, zombie, ogre and troll, with their traits) follow the SRD; " +
             "the rabbit, fox, cattle, sheep and chicken are Realmkeeper originals, labelled as such; spell names are the SRD's, and every description, name and setting text is Realmkeeper's own. Realmkeeper does " +

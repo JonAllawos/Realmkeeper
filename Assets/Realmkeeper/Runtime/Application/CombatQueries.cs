@@ -88,6 +88,10 @@ namespace Realmkeeper.Application
 
     public sealed class EncounterSnapshot
     {
+        /// <summary>Phase 11: the container of what this fight left (null when nothing), and what it holds in words.</summary>
+        public string LootKey { get; set; }
+        public string LootSummary { get; set; }
+
         /// <summary>Phase 10: the reaction or decision the player is being asked for, or null.</summary>
         public ReactionPromptView Prompt { get; set; }
 
@@ -186,6 +190,15 @@ namespace Realmkeeper.Application
                 Round = e.Round, Sequence = e.ActionSequence, Order = order, Log = e.Log, DifficultTerrain = e.DifficultTerrain,
                 Active = e.Active != null ? View(e.Active) : null, Player = player != null ? View(player) : null,
             };
+            var loot = world.FindContainer(WorldEncounters.LootKey(e.EncounterId)); // Phase 11: what the fight left
+            if (loot != null && !loot.IsEmpty)
+            {
+                snap.LootKey = loot.Key;
+                var n = 0;
+                foreach (var x in loot.Items) n += x.Quantity;
+                snap.LootSummary = $"{n} item{(n == 1 ? string.Empty : "s")}{(loot.Coin > 0 ? $" and {loot.Coin} coin" : string.Empty)}";
+            }
+
             if (e.PendingReaction != null)
             {
                 var o = e.PendingReaction.Opportunity;
@@ -218,7 +231,7 @@ namespace Realmkeeper.Application
                     var d = player.Position.DistanceFeet(target.Position);
                     list.Add(new CombatOption
                     {
-                        Label = $"{a.Name} → {target.Name} ({d} ft)", Action = action, Unavailable = engine.Unavailable(player, action),
+                        Label = $"{a.Name} → {target.Name} ({d} ft)", Action = action, Unavailable = engine.Unavailable(player, action), IsBonus = a.OffHand, // Phase 11: the off-hand attack is a bonus action
                     });
                 }
 
@@ -239,6 +252,17 @@ namespace Realmkeeper.Application
                 var action = new BonusAbilityAction(id);
                 list.Add(new CombatOption { Label = name, Action = action, IsBonus = true, Unavailable = unavailable ?? engine.Unavailable(player, action) });
             }
+
+            // Phase 11: potions and other things from the pack that can be used in a fight (a bonus action).
+            var pack = engine.World.Player;
+            if (player.Kind == CombatantKind.Player && pack != null)
+                foreach (var stack in pack.Inventory)
+                {
+                    var def = ItemCatalog.Find(stack.ItemId);
+                    if (def?.Consumable?.InCombat == null) continue;
+                    var action = new UseItemAction(stack.StackId);
+                    list.Add(new CombatOption { Label = $"{def.Consumable.Verb} {def.Name} ({stack.Quantity} left)", Action = action, IsBonus = true, Unavailable = engine.Unavailable(player, action) });
+                }
 
             list.Add(new CombatOption { Label = "End turn", Action = new EndTurnAction() });
             return list;

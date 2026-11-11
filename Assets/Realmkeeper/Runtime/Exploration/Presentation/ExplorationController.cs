@@ -284,6 +284,12 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (!IsExploring || CurrentTarget == null) return null;
             LastResponse = CurrentTarget.Interact(_session, Player.transform);
+            if (CurrentTarget is ContainerInteractable box && LastResponse != null && LastResponse.Succeeded)
+            {
+                OpenStorage(box.Key); // Phase 11: the chest opens in the hub's Storage section
+                return LastResponse;
+            }
+
             Hud?.ShowResponse(LastResponse);
             TalkingTo = LastResponse != null && LastResponse.Succeeded ? CurrentTarget as ResidentView : null;
             Hud?.ShowTopics(TalkingTo == null ? null : TopicButtons());

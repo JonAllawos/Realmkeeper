@@ -300,17 +300,17 @@ namespace Realmkeeper.Tests.EditMode.Commerce
             AssertRejectedAndUnchanged(new EquipItemCommand(knife.StackId), CommandStatus.InvalidSessionState); // already equipped
             AssertRejectedAndUnchanged(new UnequipItemCommand(EquipmentSlot.Back), CommandStatus.InvalidSessionState);
 
-            // A two-handed spear clears the off hand; a shield then displaces the spear.
+            // A two-handed greatsword clears the off hand; a shield then displaces it (Phase 11: the SRD spear is Versatile, so it no longer serves here).
             var w = W;
             Give(w, "shield_round");
-            Give(w, "spear_ash");
+            Give(w, "greatsword");
             _s = Reload(w);
             Assert.That(_s.Dispatch(new EquipItemCommand(W.Player.Inventory.First(i => i.ItemId == "shield_round").StackId)).IsSuccess, Is.True);
-            Assert.That(_s.Dispatch(new EquipItemCommand(W.Player.Inventory.First(i => i.ItemId == "spear_ash").StackId)).IsSuccess, Is.True);
-            Assert.That(W.Player.Equipped(EquipmentSlot.OffHand), Is.Null, "The spear needs both hands.");
+            Assert.That(_s.Dispatch(new EquipItemCommand(W.Player.Inventory.First(i => i.ItemId == "greatsword").StackId)).IsSuccess, Is.True);
+            Assert.That(W.Player.Equipped(EquipmentSlot.OffHand), Is.Null, "The greatsword needs both hands.");
             Assert.That(W.Player.Inventory.Select(i => i.ItemId), Has.Member("shield_round").And.Member("dagger_iron"));
             Assert.That(_s.Dispatch(new EquipItemCommand(W.Player.Inventory.First(i => i.ItemId == "shield_round").StackId)).IsSuccess, Is.True);
-            Assert.That(W.Player.Equipped(EquipmentSlot.MainHand), Is.Null, "Taking up a shield puts the spear away.");
+            Assert.That(W.Player.Equipped(EquipmentSlot.MainHand), Is.Null, "Taking up a shield puts the greatsword away.");
 
             Assert.That(_s.Dispatch(new UnequipItemCommand(EquipmentSlot.Chest)).IsSuccess, Is.True);
             Assert.That(W.Player.Equipped(EquipmentSlot.Chest), Is.Null);

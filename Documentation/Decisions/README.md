@@ -51,5 +51,11 @@
 | [0047](ADR-0047-settlement-layouts.md) | Settlements have a persisted identity and a terrain-first plan | Accepted (Phase 10) |
 | [0048](ADR-0048-persisted-spatial-data.md) | Spatial plans are persisted, versioned and generated once; schema v12 | Accepted (Phase 10) |
 | [0049](ADR-0049-settlement-navigation.md) | People walk the plan's own roads: a road graph, ground heights and one leaving point | Accepted (Phase 10) |
+| [0050](ADR-0050-item-model.md) | Items are definitions plus instances; every instance is made in one place | Accepted (Phase 11) |
+| [0051](ADR-0051-holders-and-transfers.md) | Every instance has one holder; transfers are atomic commands; weight limits the pack | Accepted (Phase 11) |
+| [0052](ADR-0052-equipment-and-magic-in-the-rules.md) | Equipment state and magic items act only through the rules engine | Accepted (Phase 11) |
+| [0053](ADR-0053-loot.md) | Loot is deterministic, filled once into a container, and bounded by rarity | Accepted (Phase 11) |
+| [0054](ADR-0054-crafting-gathering-repair.md) | Crafting, gathering, repair and attunement are work that holds its inputs and takes world time | Accepted (Phase 11) |
+| [0055](ADR-0055-item-ui.md) | The item screens are query snapshots plus command requests | Accepted (Phase 11) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

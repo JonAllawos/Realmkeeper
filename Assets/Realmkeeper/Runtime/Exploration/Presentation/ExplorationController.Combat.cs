@@ -56,6 +56,7 @@ namespace Realmkeeper.Exploration.Presentation
             Combat.CallOffRequested += () => EndFight(withdraw: false);
             Combat.ContinueRequested += () => RunAiTurn();
             Combat.CloseRequested += CloseFight;
+            Combat.LootRequested += key => { CloseFight(); OpenStorage(key); }; // Phase 11
             Combat.CastRequested += a => CombatAct(a); // Phase 9
             Combat.FeatureRequested += f => CombatAct(f);
             Combat.ReactionAnswered += (id, accept) => AnswerReaction(id, accept); // Phase 10

@@ -198,6 +198,10 @@ namespace Realmkeeper.Domain.Rpg
             _choices = Class != null || Species != null ? CharacterProgression.Choices(_sheet, Level) : Array.Empty<ChoiceSlot>();
             foreach (var slot in _choices) CollectChoice(slot);
 
+            // Phase 11 (ADR-0052): worn magic items, through the same effects as features (filtered by the loadout's owner).
+            if (_loadout.ItemEffects != null)
+                foreach (var (source, effect) in _loadout.ItemEffects) Add(effect, source, 1);
+
             // Order by level so ability increases apply in the order they were gained (caps depend on it).
             var ordered = new List<(int index, SourcedEffect effect)>();
             for (var i = 0; i < _effects.Count; i++) ordered.Add((i, _effects[i]));
@@ -299,6 +303,10 @@ namespace Realmkeeper.Domain.Rpg
                 b.Add(se.Source + (gain < se.Effect.Value ? $" (capped at {limit})" : string.Empty), gain);
             }
 
+            // Phase 11: an ability set to a minimum while an item is worn (Gauntlets of Ogre Power: Strength 19).
+            foreach (var se in Of(EffectKind.AbilityMinimum))
+                if (se.Effect.Key == a.ToString() && b.Total < se.Effect.Value) b.Add(se.Source + " (" + a + " " + se.Effect.Value + ")", se.Effect.Value - b.Total);
+
             return b;
         }
 
@@ -341,6 +349,8 @@ namespace Realmkeeper.Domain.Rpg
                 if (se.Effect.Key != skill.ToString() || !Enum.TryParse<Ability>(se.Effect.Text, out var extra)) continue;
                 b.Add(se.Source + " (" + extra + ")", Math.Max(se.Effect.Limit, Modifier(extra)));
             }
+
+            foreach (var se in Of(EffectKind.SaveBonus)) b.Add(se.Source, se.Effect.Value); // Phase 11: Ring and Cloak of Protection
 
             return b;
         }
@@ -501,6 +511,8 @@ namespace Realmkeeper.Domain.Rpg
             }
 
             if (ArmorTooHeavy) b.Add($"{ItemCatalog.Find(_loadout.BodyArmorId)?.Name ?? "armour"} (Strength below {_loadout.BodyArmor.StrengthRequirement})", -10);
+            // Phase 11 (SRD 5.2.1 carrying): more than the carrying capacity leaves a Speed of 5 ft.
+            if (Encumbered) b.Add($"encumbered ({Carrying.Pounds(_loadout.CarriedGrams)} of {Carrying.Pounds(CarryingCapacityGrams)} lb)", 5 - b.Total);
             return b;
         }
 
@@ -521,6 +533,12 @@ namespace Realmkeeper.Domain.Rpg
                 return list;
             }
         }
+
+        /// <summary>Phase 11: carrying capacity in grams (SRD 5.2.1: Strength × 15 lb, scaled by Powerful Build and the like).</summary>
+        public int CarryingCapacityGrams => Carrying.CapacityGrams(Score(Ability.Strength), CarryPercent);
+
+        /// <summary>Phase 11: carrying more than the capacity (Speed 5 ft).</summary>
+        public bool Encumbered => _loadout.CarriedGrams > CarryingCapacityGrams;
 
         public int CarryPercent
         {
@@ -571,9 +589,23 @@ namespace Realmkeeper.Domain.Rpg
         public static Loadout LoadoutOf(PlayerCharacterData player)
         {
             if (player == null) return Loadout.Unarmored;
-            var body = player.Equipped(EquipmentSlot.Chest)?.ItemId;
-            var shield = player.Equipped(EquipmentSlot.OffHand)?.ItemId;
-            return new Loadout(body, shield);
+            var body = player.Equipped(EquipmentSlot.Chest);
+            var shield = player.Equipped(EquipmentSlot.OffHand);
+
+            // Phase 11 (ADR-0052): worn magic items' effects, only those that apply now (attuned where it is required, not broken).
+            var effects = new List<(string Source, RuleEffect Effect)>();
+            foreach (var pair in player.Equipment)
+            {
+                var stack = pair.Value;
+                var def = ItemCatalog.Find(stack?.ItemId);
+                var m = def?.Magic;
+                if (m == null || (m.RequiresAttunement && !stack.Attuned) || ItemConditions.Unusable(stack.Condition)) continue;
+                if (m.AcBonus != 0) effects.Add((def.Name, new RuleEffect(EffectKind.ArmorClassBonus, value: m.AcBonus)));
+                if (m.SaveBonus != 0) effects.Add((def.Name, new RuleEffect(EffectKind.SaveBonus, value: m.SaveBonus)));
+                foreach (var e in m.Effects) effects.Add((def.Name, e));
+            }
+
+            return new Loadout(body?.ItemId, shield?.ItemId, body?.Condition ?? ItemCondition.Good, shield?.Condition ?? ItemCondition.Good, ItemWeights.CarriedGrams(player), effects);
         }
 
         /// <summary>The armour training the character has ("light", "medium", "heavy", "shields").</summary>
@@ -608,11 +640,13 @@ namespace Realmkeeper.Domain.Rpg
             var loadout = player != null ? LoadoutOf(player) : _loadout;
             var dex = Modifier(Ability.Dexterity);
             var b = new Breakdown();
-            var body = loadout.BodyArmor;
+            var body = ItemConditions.Unusable(loadout.BodyCondition) ? null : loadout.BodyArmor; // Phase 11: broken armour gives no AC
+            if (loadout.BodyArmor != null && body == null) b.Note((ItemCatalog.Find(loadout.BodyArmorId)?.Name ?? "armour") + " is broken: it gives no AC until repaired");
             if (body != null)
             {
                 var name = ItemCatalog.Find(loadout.BodyArmorId)?.Name ?? "armour";
                 b.Add(name + " (" + body.Category.ToString().ToLowerInvariant() + ")", body.BaseAc);
+                if (ItemConditions.Penalty(loadout.BodyCondition) > 0) b.Add(name + " (damaged)", -ItemConditions.Penalty(loadout.BodyCondition));
                 var dexPart = body.DexCap < 0 ? dex : Math.Min(dex, body.DexCap);
                 if (body.DexCap == 0) b.Note("Dexterity does not apply to heavy armour");
                 else b.Add("Dexterity" + (body.DexCap > 0 && dex > body.DexCap ? $" (max {body.DexCap})" : string.Empty), dexPart);
@@ -638,8 +672,10 @@ namespace Realmkeeper.Domain.Rpg
             }
 
             var shield = loadout.ShieldArmor;
+            if (shield != null && ItemConditions.Unusable(loadout.ShieldCondition)) { b.Note((ItemCatalog.Find(loadout.ShieldId)?.Name ?? "shield") + " is broken: it gives no AC until repaired"); shield = null; }
             if (shield != null)
             {
+                if (TrainedIn("shields") && ItemConditions.Penalty(loadout.ShieldCondition) > 0) b.Add((ItemCatalog.Find(loadout.ShieldId)?.Name ?? "shield") + " (damaged)", -ItemConditions.Penalty(loadout.ShieldCondition));
                 if (TrainedIn("shields")) b.Add(ItemCatalog.Find(loadout.ShieldId)?.Name ?? "shield", shield.BaseAc);
                 else b.Note("untrained with shields: the shield gives no AC");
             }

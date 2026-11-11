@@ -157,6 +157,10 @@ namespace Realmkeeper.Domain.Rpg
             HeavyArmor = heavyArmor;
             BodyArmorId = null;
             ShieldId = null;
+            BodyCondition = Realmkeeper.Domain.World.ItemCondition.Good;
+            ShieldCondition = Realmkeeper.Domain.World.ItemCondition.Good;
+            CarriedGrams = 0;
+            ItemEffects = null;
         }
 
         /// <summary>Phase 8: the loadout of a worn suit of armour and shield, by item ID (either may be null).</summary>
@@ -168,6 +172,10 @@ namespace Realmkeeper.Domain.Rpg
             Armor = BodyArmorId != null;
             Shield = ShieldId != null;
             HeavyArmor = BodyArmorId != null && body.Category == Realmkeeper.Domain.World.ArmorCategory.Heavy;
+            BodyCondition = Realmkeeper.Domain.World.ItemCondition.Good;
+            ShieldCondition = Realmkeeper.Domain.World.ItemCondition.Good;
+            CarriedGrams = 0;
+            ItemEffects = null;
         }
 
         public bool Armor { get; }
@@ -181,6 +189,29 @@ namespace Realmkeeper.Domain.Rpg
 
         /// <summary>Phase 8: the shield's item ID, or null.</summary>
         public string ShieldId { get; }
+
+        /// <summary>
+        /// Phase 11 (ADR-0052): the loadout of actual worn objects — their condition, the weight carried, and the rule
+        /// effects of worn magic items (already filtered: attuned where attunement is required, not broken).
+        /// </summary>
+        public Loadout(string bodyArmorId, string shieldId, Realmkeeper.Domain.World.ItemCondition bodyCondition, Realmkeeper.Domain.World.ItemCondition shieldCondition,
+            int carriedGrams, IReadOnlyList<(string Source, RuleEffect Effect)> itemEffects) : this(bodyArmorId, shieldId)
+        {
+            BodyCondition = BodyArmorId != null ? bodyCondition : Realmkeeper.Domain.World.ItemCondition.Good;
+            ShieldCondition = ShieldId != null ? shieldCondition : Realmkeeper.Domain.World.ItemCondition.Good;
+            CarriedGrams = carriedGrams;
+            ItemEffects = itemEffects;
+        }
+
+        /// <summary>Phase 11: the worn armour's and shield's condition (Good when unknown or absent).</summary>
+        public Realmkeeper.Domain.World.ItemCondition BodyCondition { get; }
+        public Realmkeeper.Domain.World.ItemCondition ShieldCondition { get; }
+
+        /// <summary>Phase 11: grams carried and worn (0 when unknown: an NPC sheet or a test).</summary>
+        public int CarriedGrams { get; }
+
+        /// <summary>Phase 11: rule effects from worn magic items, each with the item's name as its source.</summary>
+        public IReadOnlyList<(string Source, RuleEffect Effect)> ItemEffects { get; }
 
         public Realmkeeper.Domain.World.ArmorProfile BodyArmor => Realmkeeper.Domain.World.ItemCatalog.Find(BodyArmorId)?.Armor;
         public Realmkeeper.Domain.World.ArmorProfile ShieldArmor => Realmkeeper.Domain.World.ItemCatalog.Find(ShieldId)?.Armor;

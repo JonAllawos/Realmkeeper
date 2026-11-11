@@ -39,12 +39,37 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
         /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
         /// <summary>
+        /// Rebuilds the v12 layout (Phase 10): no gathering system, containers, work, gathering sites, catalog version or
+        /// shop goods, and item stacks with only their ID, item and quantity.
+        /// </summary>
+        public static void StripToV12(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 12;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;
+            systems?.FirstOrDefault(t => (string)t == Realmkeeper.Simulation.Items.GatheringSystem.Id)?.Remove();
+            foreach (var field in new[] { "containers", "workJobs", "gatheringSites", "itemCatalogVersion" }) w.Remove(field);
+            foreach (Newtonsoft.Json.Linq.JObject s in (w["shops"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray()) s.Remove("goods");
+            void Plain(Newtonsoft.Json.Linq.JObject stack)
+            {
+                foreach (var field in new[] { "condition", "quality", "charges", "attuned", "bound", "provenance", "acquiredAt" }) stack.Remove(field);
+            }
+
+            if (w["player"] is Newtonsoft.Json.Linq.JObject p)
+            {
+                foreach (Newtonsoft.Json.Linq.JObject s in (p["inventory"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray()) Plain(s);
+                if (p["equipment"] is Newtonsoft.Json.Linq.JObject eq) foreach (var pair in eq) Plain((Newtonsoft.Json.Linq.JObject)pair.Value);
+            }
+        }
+
+        /// <summary>
         /// Rebuilds the v11 layout (Phase 9): no fauna system, no creature populations, creatures or herds, no settlement
         /// layouts or identities, no NPC character records, no Phase 10 combatant fields. Expects a world generated
         /// before the living world (<see cref="GeneratedBeforeLivingWorld"/>), so no Phase 10 person exists to remove.
         /// </summary>
         public static void StripToV11(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV12(doc); // Phase 11
             doc["schemaVersion"] = 11;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;

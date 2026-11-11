@@ -143,3 +143,11 @@ This note does not change any requirement.
   These respect the binding requirements above: one world model, changes through commands, nothing only in the
   scene, older saves upgraded once. The scope difference between this document's §1 and the Bible is still
   unresolved. Phase 10 records it and does not settle it; the decision remains the owner's.
+- **Phase 11 (2026-11-11).** Phase 11 adds the Bible's item systems (§10):
+  - item instances with their own state;
+  - containers and the player's chest;
+  - loot filled once per fight;
+  - magic items acting through the rules engine;
+  - crafting, gathering and repair as work in world time;
+  - merchants that keep particular goods and mend.
+  The same binding requirements hold. Every item has one holder, every change is a validated command, the presentation only reads snapshots and asks, and v12 saves upgrade once (schema v13). The scope question above remains the owner's.

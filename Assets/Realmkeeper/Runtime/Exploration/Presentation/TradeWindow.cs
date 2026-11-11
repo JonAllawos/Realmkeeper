@@ -20,6 +20,8 @@ namespace Realmkeeper.Exploration.Presentation
         private readonly VisualElement _forSale;
         private readonly VisualElement _offers;
         private readonly VisualElement _ledger;
+        private readonly VisualElement _goods;
+        private readonly VisualElement _repairs;
         private readonly Label _title;
         private readonly Label _subtitle;
         private readonly Label _status;
@@ -70,6 +72,22 @@ namespace Realmkeeper.Exploration.Presentation
             columns.Add(right);
             Root.Add(columns);
 
+            // Phase 11: particular items (worn, fine, part-charged) and an armourer's mending.
+            var extra = Row("xk-w-columns");
+            var goodsCol = Column("xk-w-col");
+            goodsCol.Add(Text("Particular goods", "xk-w-heading"));
+            _goods = new ScrollView { name = "xk-trade-goods" };
+            _goods.AddToClassList("xk-w-list");
+            goodsCol.Add(_goods);
+            var repairCol = Column("xk-w-col");
+            repairCol.Add(Text("Mending", "xk-w-heading"));
+            _repairs = new ScrollView { name = "xk-trade-repairs" };
+            _repairs.AddToClassList("xk-w-list");
+            repairCol.Add(_repairs);
+            extra.Add(goodsCol);
+            extra.Add(repairCol);
+            Root.Add(extra);
+
             _detail = Text("Select an item to see how its price is made.", "xk-w-detail");
             _detail.name = "xk-trade-detail";
             Root.Add(_detail);
@@ -90,6 +108,12 @@ namespace Realmkeeper.Exploration.Presentation
         public event Action<string, int> BuyRequested;
         public event Action<ItemStackId, int> SellRequested;
         public event Action CloseRequested;
+
+        /// <summary>Phase 11: buy one particular item (stack, price shown).</summary>
+        public event Action<ItemStackId, int> BuyGoodsRequested;
+
+        /// <summary>Phase 11: have the armourer mend an item (stack, price shown).</summary>
+        public event Action<ItemStackId, int> RepairRequested;
 
         public void Show(ShopDetail detail, string message = null, bool failed = false)
         {
@@ -130,6 +154,30 @@ namespace Realmkeeper.Exploration.Presentation
                 row.name = "xk-trade-offer-" + o.ItemId;
                 if (!o.Accepted) row.AddToClassList("xk-w-row--refused");
                 _offers.Add(row);
+            }
+
+            _goods.Clear();
+            if (detail.Goods.Count == 0) _goods.Add(Text("Nothing out of the ordinary.", "xk-w-empty"));
+            foreach (var (g, price) in detail.Goods)
+            {
+                var id = g.StackId;
+                var p = price;
+                var row = ItemRow(g.Name + (string.IsNullOrEmpty(g.Badges) ? string.Empty : " (" + g.Badges + ")"), "×" + g.Quantity, p + " c", s.IsOpen && p <= detail.PlayerPurse, "Buy",
+                    () => BuyGoodsRequested?.Invoke(id, p), () => _detail.text = g.Name + ": " + g.Badges + " — " + p + " coin.");
+                row.name = "xk-trade-goods-" + g.ItemId;
+                _goods.Add(row);
+            }
+
+            _repairs.Clear();
+            if (detail.Repairs.Count == 0) _repairs.Add(Text(detail.Summary.Name + " has nothing of yours to mend (an armourer mends arms and armour).", "xk-w-empty"));
+            foreach (var (r, price) in detail.Repairs)
+            {
+                var id = r.StackId;
+                var p = price;
+                var row = ItemRow(r.Name + " (" + Realmkeeper.Domain.World.ItemConditions.Name(r.Condition) + ")", string.Empty, p + " c", s.IsOpen && p <= detail.PlayerPurse, "Mend",
+                    () => RepairRequested?.Invoke(id, p), () => _detail.text = r.Name + ": mended to good condition for " + p + " coin.");
+                row.name = "xk-trade-repair-" + r.ItemId;
+                _repairs.Add(row);
             }
 
             _ledger.Clear();

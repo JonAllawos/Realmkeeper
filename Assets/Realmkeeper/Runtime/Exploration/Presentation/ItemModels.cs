@@ -25,7 +25,9 @@ namespace Realmkeeper.Exploration.Presentation
             var root = new GameObject("Item " + def.Id);
             root.transform.SetParent(parent, false);
             var k = new Kit(root.transform, catalog, assets);
-            switch (def.Id)
+            // Phase 11: an item drawn like another (a greatsword like the arming sword) until it has its own model.
+            var model = def.Visual != null && def.Visual.StartsWith("like:", System.StringComparison.Ordinal) ? def.Visual.Substring(5) : def.Id;
+            switch (model)
             {
                 case "dagger_iron":
                     k.Box("Grip", new Vector3(0.03f, 0.11f, 0.03f), "Wood", new Vector3(0f, 0f, 0f));

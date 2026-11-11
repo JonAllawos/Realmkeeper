@@ -48,11 +48,19 @@ namespace Realmkeeper.Domain.Combat
             public readonly Dictionary<NpcCharacterData, CharacterSheetData> Sheets = new Dictionary<NpcCharacterData, CharacterSheetData>();
             public int Chronicle;
             public int Deaths;
+            public List<ItemStackData> Pack; // Phase 11: ammunition spent and wear are undone with the rest
+            public Dictionary<EquipmentSlot, ItemStackData> Worn;
         }
 
         private Snapshot Take()
         {
             var s = new Snapshot { Encounter = Encounter.Clone(), Player = _world.Player?.Rpg?.Clone(), Chronicle = Chronicle.Count, Deaths = ResidentDeaths.Count };
+            if (_world.Player != null)
+            {
+                s.Pack = _world.Player.Inventory.ConvertAll(x => x.Clone());
+                s.Worn = new Dictionary<EquipmentSlot, ItemStackData>();
+                foreach (var pair in _world.Player.Equipment) s.Worn[pair.Key] = pair.Value.Clone();
+            }
             foreach (var c in Encounter.Combatants)
             {
                 if (c.Kind != CombatantKind.Npc || !Guid.TryParse(c.SourceId, out var g)) continue;
@@ -76,6 +84,7 @@ namespace Realmkeeper.Domain.Combat
 
             Encounter.Combatants = live;
             if (s.Player != null) CopyInto(s.Player, _world.Player.Rpg);
+            if (s.Pack != null) { _world.Player.Inventory = s.Pack; _world.Player.Equipment = s.Worn; }
             foreach (var pair in s.Sheets) CopyInto(pair.Value, pair.Key.Sheet);
             Chronicle.RemoveRange(s.Chronicle, Chronicle.Count - s.Chronicle);
             ResidentDeaths.RemoveRange(s.Deaths, ResidentDeaths.Count - s.Deaths);

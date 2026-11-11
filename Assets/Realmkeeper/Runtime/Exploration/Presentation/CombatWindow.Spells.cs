@@ -55,10 +55,10 @@ namespace Realmkeeper.Exploration.Presentation
             var s = Snapshot;
             if (s == null) return;
             foreach (var o in s.PlayerSpells)
-                if (o.Spell.Id == spellId)
+                if (o.Key == spellId)
                 {
                     _cast = o;
-                    _castFree = o.FreeWith != null && o.CastLevels.Count == 0;
+                    _castFree = o.FromItem != null || o.FreeWith != null && o.CastLevels.Count == 0; // Phase 11: a wand always pays with charges
                     _castLevel = o.AtWill || _castFree ? (o.AtWill ? 0 : o.Spell.Level) : o.CastLevels.Count > 0 ? o.CastLevels[0] : o.Spell.Level;
                     _castTargets.Clear();
                     _castPoint = null;
@@ -114,9 +114,9 @@ namespace Realmkeeper.Exploration.Presentation
                 for (var i = 0; i < s.PlayerSpells.Count; i++)
                 {
                     var o = s.PlayerSpells[i];
-                    var id = o.Spell.Id;
+                    var id = o.Key;
                     var row = TradeWindow.Column("xk-combat-option");
-                    var b = new Button(() => BeginCast(id)) { text = $"{o.Spell.Name} · {(o.Spell.IsCantrip ? "cantrip" : "level " + o.Spell.Level)} · {o.CostText}", name = "xk-combat-spell-" + id };
+                    var b = new Button(() => BeginCast(id)) { text = $"{o.Spell.Name}{(o.FromItem != null ? " (" + o.FromItem + ")" : string.Empty)} · {(o.Spell.IsCantrip ? "cantrip" : "level " + o.Spell.Level)} · {o.CostText}", name = "xk-combat-spell-" + id };
                     b.AddToClassList("xk-button");
                     b.AddToClassList("xk-combat-act");
                     b.tooltip = o.Explanation;
@@ -194,14 +194,14 @@ namespace Realmkeeper.Exploration.Presentation
                 foreach (var l in o.CastLevels)
                 {
                     var level = l;
-                    var b = new Button(() => { _castLevel = level; _castFree = false; Show(Snapshot); }) { text = "Level " + level, name = "xk-combat-cast-level-" + level };
+                    var b = new Button(() => { _castLevel = level; _castFree = _cast?.FromItem != null; Show(Snapshot); }) { text = "Level " + level, name = "xk-combat-cast-level-" + level };
                     b.AddToClassList("xk-button");
                     b.AddToClassList("xk-w-choice");
-                    b.EnableInClassList("xk-w-choice--on", !_castFree && _castLevel == level);
+                    b.EnableInClassList("xk-w-choice--on", (o.FromItem != null || !_castFree) && _castLevel == level);
                     levels.Add(b);
                 }
 
-                if (o.FreeWith != null)
+                if (o.FreeWith != null && o.FromItem == null)
                 {
                     var b = new Button(() => { _castFree = true; _castLevel = spell.Level; Show(Snapshot); }) { text = "Free (Favoured Enemy)", name = "xk-combat-cast-free" };
                     b.AddToClassList("xk-button");

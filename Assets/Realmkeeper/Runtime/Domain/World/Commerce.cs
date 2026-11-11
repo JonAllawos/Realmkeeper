@@ -33,6 +33,12 @@ namespace Realmkeeper.Domain.World
 
         public List<ShopStockData> Stock { get; set; } = new List<ShopStockData>();
 
+        /// <summary>Phase 11: particular objects the shop holds (a worn sword it bought, a fine piece): sold as themselves, not from the stock count.</summary>
+        public List<ItemStackData> Goods { get; set; } = new List<ItemStackData>();
+
+        /// <summary>Most particular items a shop keeps (the oldest are sold on elsewhere).</summary>
+        public const int MaxGoods = 24;
+
         /// <summary>Opening hours, as minutes of the day.</summary>
         public int OpensAt { get; set; } = 8 * 60;
         public int ClosesAt { get; set; } = 18 * 60;
@@ -55,6 +61,7 @@ namespace Realmkeeper.Domain.World
             c.Categories = new List<ShopCategory>(Categories);
             c.Stock = new List<ShopStockData>(Stock.Count);
             foreach (var s in Stock) c.Stock.Add(s.Clone());
+            c.Goods = Goods.ConvertAll(x => x.Clone());
             return c;
         }
     }

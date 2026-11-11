@@ -318,6 +318,7 @@ namespace Realmkeeper.Domain.Combat
                 case EscapeAction _: DoEscape(actor); break;
                 case StabilizeAction s: DoStabilize(actor, e.Find(s.Target)); break;
                 case BonusAbilityAction b: DoFeature(actor, new UseFeatureAction(b.AbilityId)); break;
+                case UseItemAction u: DoUseItem(actor, u); break; // Phase 11
                 case UseFeatureAction f: DoFeature(actor, f); break;
                 case CastSpellAction cs: DoCastSpell(actor, cs); break;
                 case EndTurnAction _:
@@ -364,7 +365,14 @@ namespace Realmkeeper.Domain.Combat
                     var o = Stats(actor).Find(a.OptionId);
                     if (o == null) return "That attack is not available.";
                     if (incapacitated) return $"{actor.Name} is incapacitated.";
-                    if (t.ActionUsed && t.AttacksLeft <= 0) return "The action this turn is used.";
+                    if (o.OffHand)
+                    {
+                        // Phase 11 (SRD 5.2.1 Light): after attacking with a Light weapon this turn, one bonus-action attack with the other.
+                        if (t.BonusActionUsed) return "The bonus action this turn is used.";
+                        if (t.LightAttackWeapon == null) return "Attack with a Light weapon first (the Attack action); the off-hand attack follows it.";
+                    }
+                    else if (t.ActionUsed && t.AttacksLeft <= 0) return "The action this turn is used.";
+                    if (o.Ammunition != null && AmmunitionLeft(actor, o) == null) return $"No ammunition for {o.Name} in your pack.";
                     var target = Encounter.Find(a.Target);
                     if (target == null || target == actor) return "Choose a target.";
                     if (target.State == VitalState.Dead || target.State == VitalState.Fled) return $"{target.Name} is out of the fight.";
@@ -406,6 +414,7 @@ namespace Realmkeeper.Domain.Combat
                     return MovementLeft(actor) < Speed(actor) / 2 ? $"Standing costs {Speed(actor) / 2} ft; {MovementLeft(actor)} ft left." : null;
 
                 case BonusAbilityAction b: return FeatureProblem(actor, new UseFeatureAction(b.AbilityId));
+                case UseItemAction u: return incapacitated ? $"{actor.Name} is incapacitated." : UseItemProblem(actor, u); // Phase 11
                 case UseFeatureAction f: return FeatureProblem(actor, f);
                 case CastSpellAction cs: return SpellProblem(actor, cs);
             }
@@ -917,6 +926,7 @@ namespace Realmkeeper.Domain.Combat
         {
             var e = Encounter;
             if (!e.IsActive) return;
+            ReturnAmmunition(); // Phase 11: half the ammunition shot is found again
             e.Status = EncounterStatus.Ended;
             e.Outcome = outcome;
             e.WinningSide = winner;

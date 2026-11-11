@@ -8,12 +8,26 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// <summary>Schema v7 (Phase 5): world time, the player's belongings and looks, shops, trades, regard.</summary>
     public static partial class WorldSaveMapper
     {
-        private static ItemStackDto StackDto(ItemStackData s) => new ItemStackDto { StackId = s.StackId.ToString(), ItemId = s.ItemId, Quantity = s.Quantity };
+        private static ItemStackDto StackDto(ItemStackData s) => new ItemStackDto
+        {
+            StackId = s.StackId.ToString(), ItemId = s.ItemId, Quantity = s.Quantity,
+            Condition = s.Condition == ItemCondition.Good ? null : s.Condition.ToString(),
+            Quality = s.Quality == ItemQuality.Common ? null : s.Quality.ToString(),
+            Charges = s.Charges < 0 ? (int?)null : s.Charges,
+            Attuned = s.Attuned, Bound = s.Bound, Provenance = s.Provenance,
+            AcquiredAt = s.AcquiredAt < 0 ? (long?)null : s.AcquiredAt,
+        };
 
         private static ItemStackData Stack(ItemStackDto d, string field)
         {
             if (d == null) throw new SaveDataException($"Null {field} entry.");
-            return new ItemStackData { StackId = new ItemStackId(RequiredGuid(d.StackId, field + " stackId")), ItemId = d.ItemId, Quantity = d.Quantity };
+            return new ItemStackData
+            {
+                StackId = new ItemStackId(RequiredGuid(d.StackId, field + " stackId")), ItemId = d.ItemId, Quantity = d.Quantity,
+                Condition = string.IsNullOrEmpty(d.Condition) ? ItemCondition.Good : ParseEnum<ItemCondition>(d.Condition, field + " condition"),
+                Quality = string.IsNullOrEmpty(d.Quality) ? ItemQuality.Common : ParseEnum<ItemQuality>(d.Quality, field + " quality"),
+                Charges = d.Charges ?? -1, Attuned = d.Attuned, Bound = d.Bound, Provenance = d.Provenance, AcquiredAt = d.AcquiredAt ?? -1,
+            };
         }
 
         private static void WriteCommerceWorld(WorldData w, WorldDto dto)
@@ -63,6 +77,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     LastRestockedOn = s.LastRestockedOn.IsValidDate ? s.LastRestockedOn.ToIsoString() : null,
                     TotalSales = s.TotalSales,
                     TotalPurchases = s.TotalPurchases,
+                    Goods = s.Goods.ConvertAll(StackDto),
                 });
             }
 
@@ -142,6 +157,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 var items = new List<string>(sd.Stock?.Keys ?? (IEnumerable<string>)new string[0]);
                 items.Sort(string.CompareOrdinal);
                 foreach (var item in items) shop.Stock.Add(new ShopStockData { ItemId = item, Quantity = sd.Stock[item] });
+                foreach (var g in sd.Goods ?? new List<ItemStackDto>()) shop.Goods.Add(Stack(g, "shop goods"));
                 world.Shops.Add(shop);
             }
 

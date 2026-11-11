@@ -93,6 +93,8 @@ namespace Realmkeeper.Exploration.Presentation
                 Trade = new TradeWindow(Hud.Root);
                 Trade.BuyRequested += (item, price) => Buy(item, price);
                 Trade.SellRequested += (stack, price) => Sell(stack, price);
+                Trade.BuyGoodsRequested += (stack, price) => { if (TradingAt != null) { var shop = TradingAt.ShopId; ItemAction(s => s.Dispatch(new BuyGoodsCommand(shop, stack, price))); } }; // Phase 11
+                Trade.RepairRequested += (stack, price) => { if (TradingAt != null) { var shop = TradingAt.ShopId; ItemAction(s => s.Dispatch(new RepairAtShopCommand(shop, stack, price))); } };
                 Trade.CloseRequested += CloseWindows;
                 HubWindow = new PlayerHubWindow(Hud.Root);
                 HubWindow.CloseRequested += CloseWindows;
@@ -119,12 +121,21 @@ namespace Realmkeeper.Exploration.Presentation
                 HubWindow.HealOutsideRequested += (spell, level) => HubCommand(new CastHealingOutsideCombatCommand(spell, level));
                 HubWindow.ShortRestRequested += dice => Rest(Realmkeeper.Domain.Rpg.RestKind.Short, dice);
                 HubWindow.LongRestRequested += () => Rest(Realmkeeper.Domain.Rpg.RestKind.Long, 0);
+                // Phase 11: the item screens read query snapshots and ask for changes through the session.
+                HubWindow.InventorySource = (g, q, sort, desc) => _session?.GetInventory(g, q, sort, desc);
+                HubWindow.InspectSource = id => _session?.InspectItem(id);
+                HubWindow.CompareSource = (id, slot) => _session?.CompareItem(id, slot);
+                HubWindow.WorkshopSource = () => _session?.GetWorkshop();
+                HubWindow.StorageSource = () => _session?.GetReachableContainers();
+                HubWindow.ItemActionRequested += act => ItemAction(act);
+                HubWindow.FinishWorkRequested += key => FinishWork(key);
                 Advancement = new CharacterAdvancementWindow(Hud.Root);
                 Advancement.CloseRequested += CloseWindows;
                 Advancement.ConfirmRequested += c => ConfirmAdvancement(c);
                 AddClock();
                 SetupCombat(); // Phase 8
                 SetupStructureSigns(layout); // Phase 8
+                SetupContainers(layout); // Phase 11
             }
 
             if (CameraRig != null) CameraRig.Camera.cullingMask &= ~(1 << CharacterPreview.Layer);
@@ -165,6 +176,7 @@ namespace Realmkeeper.Exploration.Presentation
             _clock = null;
             TeardownCombat(); // Phase 8
             _signs.Clear();
+            _containers.Clear(); // Phase 11
         }
 
         private void AddClock()

@@ -24,6 +24,18 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 6: a spellcasting focus or book (used when magic arrives).</summary>
         Focus = 9,
+
+        // ----- Phase 11 (ADR-0050): the rest of the taxonomy. Display names, groups and order are in ItemCategories. -----
+        Ammunition = 10,
+        Potion = 11,
+        Jewelry = 12,
+        Material = 13,
+        Quest = 14,
+        Book = 15,
+        Key = 16,
+        Container = 17,
+        Misc = 18,
+        Wondrous = 19,
     }
 
     public enum EquipmentSlot
@@ -37,6 +49,11 @@ namespace Realmkeeper.Domain.World
         Legs = 6,
         Feet = 7,
         Back = 8,
+
+        // Phase 11: jewellery, for the attuned rings and amulets of the SRD 5.2.1 magic items (two rings, one neck).
+        Neck = 9,
+        RingLeft = 10,
+        RingRight = 11,
     }
 
     public enum WeaponClass
@@ -56,6 +73,9 @@ namespace Realmkeeper.Domain.World
     {
         Common = 0,
         Fine = 1,
+
+        /// <summary>Phase 11: crude or cheaply made (value ×0.5); never magical by itself.</summary>
+        Poor = 2,
     }
 
     /// <summary>What a shop sells (a shop may stock several).</summary>
@@ -122,8 +142,49 @@ namespace Realmkeeper.Domain.World
         /// <summary>Shops that stock it.</summary>
         public IReadOnlyList<ShopCategory> SoldBy { get; set; } = Array.Empty<ShopCategory>();
 
+        // ----- Phase 11 (ADR-0050) -----
+
+        /// <summary>Finer grouping inside the category ("longsword", "potion of healing", "iron ore" …).</summary>
+        public string Subcategory { get; set; }
+
+        public ItemRarity Rarity { get; set; }
+
+        /// <summary>Free tags the rules and tables can test ("metal", "leather", "herb", "game" …).</summary>
+        public IReadOnlyList<string> Tags { get; set; } = Array.Empty<string>();
+
+        /// <summary>Realmkeeper's own lore line (never an SRD or other published text).</summary>
+        public string Lore { get; set; }
+
+        /// <summary>Where the item's rules come from (SRD 5.2.1, SRD 5.1, Realmkeeper original).</summary>
+        public Realmkeeper.Domain.Rpg.ContentSource Source { get; set; } = Realmkeeper.Domain.Rpg.ContentSource.RealmkeeperOriginal;
+
+        /// <summary>The definition's version (raised when its rules change; saves record the catalog version).</summary>
+        public int Version { get; set; } = 1;
+
+        /// <summary>Food, drink and potions: what using it does.</summary>
+        public ConsumableProfile Consumable { get; set; }
+
+        /// <summary>A magic item's rules (bonuses, effects, attunement, charges, spell, curse), or null.</summary>
+        public MagicProfile Magic { get; set; }
+
+        /// <summary>True when the object can wear and break (weapons, armour, shields, tools): it has a condition.</summary>
+        public bool Wears { get; set; }
+
+        /// <summary>A tool's crafting discipline, or null.</summary>
+        public string ToolDiscipline { get; set; }
+
+        /// <summary>A material's disciplines (what it is worked by), or empty.</summary>
+        public IReadOnlyList<string> MaterialFor { get; set; } = Array.Empty<string>();
+
+        /// <summary>A carried container's capacity in grams (0: not a container).</summary>
+        public int ContainerCapacityGrams { get; set; }
+
+        /// <summary>The weapon kinds this ammunition serves ("shortbow", "light crossbow" …).</summary>
+        public IReadOnlyList<string> AmmunitionFor { get; set; } = Array.Empty<string>();
+
         public bool IsEquippable => Slot != EquipmentSlot.None;
-        public bool IsConsumable => Nourishment > 0;
+        public bool IsConsumable => Nourishment > 0 || Consumable != null;
+        public bool IsMagic => Magic != null;
     }
 
     /// <summary>
@@ -135,6 +196,32 @@ namespace Realmkeeper.Domain.World
         public ItemStackId StackId { get; set; }
         public string ItemId { get; set; }
         public int Quantity { get; set; }
+
+        // ----- Phase 11 (ADR-0050): what makes this object this object -----
+
+        /// <summary>Physical state (only for definitions that wear; others stay Good).</summary>
+        public ItemCondition Condition { get; set; } = ItemCondition.Good;
+
+        /// <summary>How well it was made (crafting can make Fine).</summary>
+        public ItemQuality Quality { get; set; }
+
+        /// <summary>Charges left (magic items with charges), or -1.</summary>
+        public int Charges { get; set; } = -1;
+
+        /// <summary>Attuned to the player (only items that require attunement).</summary>
+        public bool Attuned { get; set; }
+
+        /// <summary>Cannot be unequipped or unattuned (a curse has taken hold).</summary>
+        public bool Bound { get; set; }
+
+        /// <summary>Where it came from, in words ("Looted from a bandit near Bramhaven", "Bought from Elric Brooke").</summary>
+        public string Provenance { get; set; }
+
+        /// <summary>When it came to its holder (absolute world minute), or -1.</summary>
+        public long AcquiredAt { get; set; } = -1;
+
+        /// <summary>True when two stacks are the same kind of object in the same state (they may merge).</summary>
+        public bool SameAs(ItemStackData o) => o != null && o.ItemId == ItemId && o.Condition == Condition && o.Quality == Quality && o.Charges == Charges && !Attuned && !o.Attuned && !Bound && !o.Bound;
 
         public ItemStackData Clone() => (ItemStackData)MemberwiseClone();
     }

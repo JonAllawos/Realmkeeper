@@ -29,8 +29,19 @@ namespace Realmkeeper.Application
 
     public sealed class EquipItemCommand : ICommand
     {
-        public EquipItemCommand(ItemStackId stackId) { StackId = stackId; }
+        public EquipItemCommand(ItemStackId stackId, EquipmentSlot slot = EquipmentSlot.None)
+        {
+            StackId = stackId;
+            Slot = slot;
+        }
+
         public ItemStackId StackId { get; }
+
+        /// <summary>
+        /// Phase 11: the slot chosen, or None for the item's own. A ring may go on either hand; a Light weapon may go in
+        /// the off hand (two-weapon fighting).
+        /// </summary>
+        public EquipmentSlot Slot { get; }
     }
 
     public sealed class UnequipItemCommand : ICommand
@@ -147,8 +158,11 @@ namespace Realmkeeper.Application
 
     public static class PlayerCommandHandlers
     {
-        /// <summary>Most separate stacks the player can carry.</summary>
-        public const int MaxInventoryStacks = 40;
+        /// <summary>
+        /// A safeguard on separate stacks (Phase 11): what really limits the pack is weight — twice the carrying
+        /// capacity (<see cref="ItemCommandHandlers.PackLimitGrams"/>). This only bounds weightless clutter.
+        /// </summary>
+        public const int MaxInventoryStacks = 200;
 
         public const int MaxBackgroundLength = 40;
         public const int MaxDescriptionLength = 400;
@@ -210,18 +224,14 @@ namespace Realmkeeper.Application
             {
                 case EquipmentSlot.MainHand: return "main hand";
                 case EquipmentSlot.OffHand: return "off hand";
+                case EquipmentSlot.RingLeft: return "left ring";
+                case EquipmentSlot.RingRight: return "right ring";
                 default: return s.ToString().ToLowerInvariant();
             }
         }
 
         /// <summary>Total weight carried and worn, in grams.</summary>
-        public static int CarriedGrams(PlayerCharacterData p)
-        {
-            var grams = 0;
-            foreach (var s in p.Inventory) grams += (ItemCatalog.Find(s.ItemId)?.WeightGrams ?? 0) * s.Quantity;
-            foreach (var s in p.Equipment.Values) grams += ItemCatalog.Find(s.ItemId)?.WeightGrams ?? 0;
-            return grams;
-        }
+        public static int CarriedGrams(PlayerCharacterData p) => ItemWeights.CarriedGrams(p);
 
         /// <summary>
         /// Adds items to the player's pack, topping up existing stacks first. Returns false (and adds
@@ -231,14 +241,15 @@ namespace Realmkeeper.Application
         {
             var max = def.Stackable ? def.MaxStack : 1;
             var room = 0;
-            foreach (var s in p.Inventory) if (s.ItemId == def.Id) room += max - s.Quantity;
+            foreach (var s in p.Inventory) if (s.ItemId == def.Id && ItemStacks.IsPlain(s, def)) room += max - s.Quantity;
             var newStacks = Math.Max(0, (quantity - room + max - 1) / max);
             if (p.Inventory.Count + newStacks > MaxInventoryStacks) return false;
+            if (ItemCommandHandlers.WeightProblem(p, def.WeightGrams * quantity) != null) return false;
             var left = quantity;
             foreach (var s in p.Inventory)
             {
                 if (left == 0) break;
-                if (s.ItemId != def.Id || s.Quantity >= max) continue;
+                if (s.ItemId != def.Id || !ItemStacks.IsPlain(s, def) || s.Quantity >= max) continue;
                 var add = Math.Min(left, max - s.Quantity);
                 s.Quantity += add;
                 left -= add;
@@ -247,7 +258,7 @@ namespace Realmkeeper.Application
             while (left > 0)
             {
                 var add = Math.Min(left, max);
-                p.Inventory.Add(new ItemStackData { StackId = new ItemStackId(context.NextGuid("item-stack")), ItemId = def.Id, Quantity = add });
+                p.Inventory.Add(ItemStacks.Create(ItemCommandHandlers.NewStackId(context), def, add, null, SpellCommandHandlers.Now(context.Edit())));
                 left -= add;
             }
 
@@ -313,59 +324,111 @@ namespace Realmkeeper.Application
                 var def = ItemCatalog.Find(stack.ItemId);
                 if (def == null) return CommandResult.Invalid($"Unknown item '{stack.ItemId}'.");
                 if (!def.IsEquippable) return CommandResult.Invalid($"{def.Name} cannot be worn or wielded.");
+                var slot = TargetSlot(p, def, c.Slot, out var why);
+                if (slot == EquipmentSlot.None) return CommandResult.Invalid(why);
+                var blocked = BoundIn(p, Displaced(p, def, slot));
+                if (blocked != null) return CommandResult.InvalidState($"A curse binds the {blocked} to you; it cannot be taken off.");
 
                 var edit = context.Edit().Player;
-                var freed = EquipFromPack(context, edit, c.StackId, def);
+                var freed = EquipFromPack(context, edit, c.StackId, def, slot);
                 if (freed == null) return CommandResult.InvalidState("Your pack is too full to take off what you are wearing there.");
-                return CommandResult.Ok($"Equipped {def.Name} ({Slot(def.Slot)})." + (freed.Count > 0 ? " Put away: " + string.Join(", ", freed) + "." : string.Empty));
+                return CommandResult.Ok($"Equipped {def.Name} ({Slot(slot)})." + (freed.Count > 0 ? " Put away: " + string.Join(", ", freed) + "." : string.Empty));
             }
         }
+
+        /// <summary>
+        /// The slot an item goes to (Phase 11): its own, or the one chosen when the choice is allowed — either ring
+        /// finger (the free one by default), or the off hand for a Light weapon. Returns None with the reason when the
+        /// choice is not allowed.
+        /// </summary>
+        public static EquipmentSlot TargetSlot(PlayerCharacterData p, ItemDefinition def, EquipmentSlot chosen, out string why)
+        {
+            why = null;
+            var own = def.Slot;
+            if (own == EquipmentSlot.RingLeft || own == EquipmentSlot.RingRight)
+            {
+                if (chosen == EquipmentSlot.RingLeft || chosen == EquipmentSlot.RingRight) return chosen;
+                if (chosen != EquipmentSlot.None) { why = "A ring goes on a finger."; return EquipmentSlot.None; }
+                return p.Equipped(EquipmentSlot.RingLeft) == null ? EquipmentSlot.RingLeft : p.Equipped(EquipmentSlot.RingRight) == null ? EquipmentSlot.RingRight : EquipmentSlot.RingLeft;
+            }
+
+            if (chosen == EquipmentSlot.None || chosen == own) return own;
+            if (chosen == EquipmentSlot.OffHand && own == EquipmentSlot.MainHand && def.Weapon != null && !def.TwoHanded)
+            {
+                if (!def.Weapon.Has(WeaponProperty.Light)) { why = $"Only a Light weapon can be held in the off hand ({def.Name} is not Light)."; return EquipmentSlot.None; }
+                return EquipmentSlot.OffHand;
+            }
+
+            why = $"{def.Name} cannot go in the {Slot(chosen)} slot.";
+            return EquipmentSlot.None;
+        }
+
+        /// <summary>The slots equipping <paramref name="def"/> in <paramref name="slot"/> would empty.</summary>
+        internal static List<EquipmentSlot> Displaced(PlayerCharacterData p, ItemDefinition def, EquipmentSlot slot)
+        {
+            var list = new List<EquipmentSlot> { slot };
+            if (slot == EquipmentSlot.MainHand && def.TwoHanded) list.Add(EquipmentSlot.OffHand);
+            if (slot == EquipmentSlot.OffHand)
+            {
+                var main = p.Equipped(EquipmentSlot.MainHand);
+                if (main != null && (ItemCatalog.Find(main.ItemId)?.TwoHanded ?? false)) list.Add(EquipmentSlot.MainHand);
+            }
+
+            return list;
+        }
+
+        /// <summary>The name of a cursed, bound item in one of these slots, or null.</summary>
+        internal static string BoundIn(PlayerCharacterData p, List<EquipmentSlot> slots)
+        {
+            foreach (var s in slots)
+            {
+                var worn = p.Equipped(s);
+                if (worn != null && worn.Bound) return (ItemCatalog.Find(worn.ItemId)?.Name ?? worn.ItemId).ToLowerInvariant();
+            }
+
+            return null;
+        }
+
+        internal static List<string> EquipFromPack(CommandContext context, PlayerCharacterData edit, ItemStackId stackId, ItemDefinition def) =>
+            EquipFromPack(context, edit, stackId, def, def.Slot == EquipmentSlot.RingRight ? EquipmentSlot.RingLeft : def.Slot);
 
         /// <summary>
         /// Equips one unit of a pack stack on an editable player (shared by equipping and character creation):
         /// the slot's item, and anything the two-handed rules displace, go back to the pack. Returns the names
         /// put away, or null when the pack would overflow (the caller then fails; the working copy is discarded).
         /// </summary>
-        internal static List<string> EquipFromPack(CommandContext context, PlayerCharacterData edit, ItemStackId stackId, ItemDefinition def)
+        internal static List<string> EquipFromPack(CommandContext context, PlayerCharacterData edit, ItemStackId stackId, ItemDefinition def, EquipmentSlot slot)
         {
+            var item = edit.Inventory[IndexOf(edit, stackId)];
+            var freed = new List<string>();
+
+            // The equipped item comes off a stack of one (keeping its condition and make); the rest stays in the pack.
+            ItemStackData wearing;
+            if (item.Quantity > 1)
             {
-                var item = edit.Inventory[IndexOf(edit, stackId)];
-                var freed = new List<string>();
-
-                // The equipped item comes off a stack of one; the rest stays in the pack.
-                ItemStackData wearing;
-                if (item.Quantity > 1)
-                {
-                    item.Quantity--;
-                    wearing = new ItemStackData { StackId = new ItemStackId(context.NextGuid("item-stack")), ItemId = item.ItemId, Quantity = 1 };
-                }
-                else
-                {
-                    edit.Inventory.Remove(item);
-                    wearing = item;
-                }
-
-                void TakeOff(EquipmentSlot slot)
-                {
-                    var off = edit.Equipped(slot);
-                    if (off == null) return;
-                    edit.Equipment.Remove(slot);
-                    edit.Inventory.Add(off);
-                    freed.Add(ItemCatalog.Find(off.ItemId)?.Name ?? off.ItemId);
-                }
-
-                TakeOff(def.Slot);
-                if (def.Slot == EquipmentSlot.MainHand && def.TwoHanded) TakeOff(EquipmentSlot.OffHand);
-                if (def.Slot == EquipmentSlot.OffHand)
-                {
-                    var main = edit.Equipped(EquipmentSlot.MainHand);
-                    if (main != null && (ItemCatalog.Find(main.ItemId)?.TwoHanded ?? false)) TakeOff(EquipmentSlot.MainHand);
-                }
-
-                if (edit.Inventory.Count > MaxInventoryStacks) return null;
-                edit.Equipment[def.Slot] = wearing;
-                return freed;
+                item.Quantity--;
+                wearing = item.Clone();
+                wearing.Quantity = 1;
+                wearing.StackId = ItemCommandHandlers.NewStackId(context);
             }
+            else
+            {
+                edit.Inventory.Remove(item);
+                wearing = item;
+            }
+
+            foreach (var s in Displaced(edit, def, slot))
+            {
+                var off = edit.Equipped(s);
+                if (off == null) continue;
+                edit.Equipment.Remove(s);
+                edit.Inventory.Add(off);
+                freed.Add(ItemCatalog.Find(off.ItemId)?.Name ?? off.ItemId);
+            }
+
+            if (edit.Inventory.Count > MaxInventoryStacks) return null;
+            edit.Equipment[slot] = wearing;
+            return freed;
         }
 
         private sealed class UnequipHandler : ICommandHandler<UnequipItemCommand>
@@ -377,6 +440,7 @@ namespace Realmkeeper.Application
                 if (c.Slot == EquipmentSlot.None || !Enum.IsDefined(typeof(EquipmentSlot), c.Slot)) return CommandResult.Invalid("Unknown equipment slot.");
                 var worn = p.Equipped(c.Slot);
                 if (worn == null) return CommandResult.InvalidState($"Nothing is equipped in the {Slot(c.Slot)} slot.");
+                if (worn.Bound) return CommandResult.InvalidState($"A curse binds the {(ItemCatalog.Find(worn.ItemId)?.Name ?? worn.ItemId).ToLowerInvariant()} to you; a shrine's priest can lift it.");
                 if (p.Inventory.Count >= MaxInventoryStacks) return CommandResult.InvalidState("Your pack is full.");
                 var edit = context.Edit().Player;
                 var off = edit.Equipped(c.Slot);
@@ -401,7 +465,10 @@ namespace Realmkeeper.Application
                 var edit = context.Edit().Player;
                 var s = edit.Inventory[IndexOf(edit, c.StackId)];
                 s.Quantity -= c.Quantity;
-                edit.Inventory.Add(new ItemStackData { StackId = new ItemStackId(context.NextGuid("item-stack")), ItemId = s.ItemId, Quantity = c.Quantity });
+                var part = s.Clone();
+                part.StackId = ItemCommandHandlers.NewStackId(context);
+                part.Quantity = c.Quantity;
+                edit.Inventory.Add(part);
                 return CommandResult.Ok($"Split {I(c.Quantity)} off.");
             }
         }
@@ -460,14 +527,46 @@ namespace Realmkeeper.Application
                 if (stack == null) return failure;
                 var def = ItemCatalog.Find(stack.ItemId);
                 if (def == null || !def.IsConsumable) return CommandResult.Invalid($"{def?.Name ?? stack.ItemId} cannot be used like that.");
+                var heal = def.Consumable?.Healing ?? default;
+
+                // Phase 11: a healing potion (rolled with the world's deterministic dice).
+                if (!heal.IsEmpty)
+                {
+                    var sheet = p.Rpg;
+                    if (sheet == null || sheet.State != Domain.Rpg.CreationState.Complete) return CommandResult.InvalidState("Create your character first.");
+                    if (sheet.IsDead) return CommandResult.InvalidState("The dead cannot drink.");
+                    var max = new Domain.Rpg.CharacterRules(sheet, Domain.Rpg.CharacterRules.LoadoutOf(p)).MaxHp;
+                    if (sheet.CurrentHp >= max) return CommandResult.InvalidState("You are unhurt.");
+                    var world = context.Edit();
+                    var edit = world.Player;
+                    var s0 = edit.Inventory[IndexOf(edit, c.StackId)];
+                    var die = SpellCommandHandlers.Dice(world, "use:" + c.StackId + ":" + SpellCommandHandlers.Now(world) + ":" + s0.Quantity);
+                    var rolls = new List<int>();
+                    var total = heal.Bonus;
+                    for (var i = 0; i < heal.Count; i++)
+                    {
+                        var d = die(heal.Sides);
+                        rolls.Add(d);
+                        total += d;
+                    }
+
+                    s0.Quantity--;
+                    if (s0.Quantity == 0) edit.Inventory.Remove(s0);
+                    var before = edit.Rpg.CurrentHp;
+                    Domain.Rpg.CharacterVitals.ChangeHitPoints(edit.Rpg, total);
+                    return CommandResult.Ok($"{def.Consumable.Verb} the {def.Name.ToLowerInvariant()}: {heal} [{string.Join(", ", rolls)}] = {I(total)}. Hit points {I(before)} → {I(edit.Rpg.CurrentHp)}.");
+                }
+
+                var nourishment = def.Nourishment > 0 ? def.Nourishment : def.Consumable?.Nourishment ?? 0;
+                if (nourishment <= 0) return CommandResult.Invalid($"{def.Name} cannot be used like that here.");
                 if (p.Fed >= 100) return CommandResult.InvalidState("You are not hungry.");
-                var edit = context.Edit().Player;
-                var s = edit.Inventory[IndexOf(edit, c.StackId)];
+                var e = context.Edit().Player;
+                var s = e.Inventory[IndexOf(e, c.StackId)];
                 s.Quantity--;
-                if (s.Quantity == 0) edit.Inventory.Remove(s);
-                var before = edit.Fed;
-                edit.Fed = Math.Min(100, edit.Fed + def.Nourishment);
-                return CommandResult.Ok($"Ate {def.Name}. Fed {I(before)} → {I(edit.Fed)}.");
+                if (s.Quantity == 0) e.Inventory.Remove(s);
+                var fed = e.Fed;
+                e.Fed = Math.Min(100, e.Fed + nourishment);
+                return CommandResult.Ok($"{(def.Consumable?.Verb == "Drink" ? "Drank" : "Ate")} {def.Name}. Fed {I(fed)} → {I(e.Fed)}.");
             }
         }
 
@@ -550,6 +649,8 @@ namespace Realmkeeper.Application
                 ["total"] = I(total),
             };
 
+        internal static void RecordTrade(CommandContext context, WorldData world, TransactionKind kind, ShopData shop, string item, int quantity, int unit) => Record(context, world, kind, shop, item, quantity, unit);
+
         private static void Record(CommandContext context, WorldData world, TransactionKind kind, ShopData shop, string item, int quantity, int unit)
         {
             world.Transactions.Add(new TransactionData
@@ -603,7 +704,7 @@ namespace Realmkeeper.Application
 
                 // 5. Pay. 6. Take the goods (or nothing happens: the working copy is discarded).
                 player.Purse -= total;
-                if (!AddToPack(context, player, def, c.Quantity)) return CommandResult.InvalidState("Your pack is full.");
+                if (!AddToPack(context, player, def, c.Quantity)) return CommandResult.InvalidState(ItemCommandHandlers.WeightProblem(p, def.WeightGrams * c.Quantity) ?? "Your pack is full.");
 
                 // 7. The shop's stock falls. 8. The keeper is paid.
                 if (!CommerceMath.RemoveStock(eshop, def.Id, c.Quantity)) return CommandResult.Fail("The stock could not be taken; nothing was changed.");
@@ -620,6 +721,25 @@ namespace Realmkeeper.Application
             }
         }
 
+        /// <summary>
+        /// What a shop pays for one unit of this instance (Phase 11): the shop's offer for the item, scaled by the
+        /// instance's condition and quality. The offer and refusal come from <see cref="CommerceMath.BuyingPrice"/>.
+        /// </summary>
+        public static Quote OfferFor(WorldData world, ShopData shop, ItemStackData stack)
+        {
+            var def = ItemCatalog.Find(stack.ItemId);
+            var quote = CommerceMath.BuyingPrice(world, shop, def);
+            if (!quote.Accepted) return quote;
+            var percent = ItemStacks.ValuePercent(stack);
+            if (percent != 100)
+            {
+                quote.Factors.Add(new PriceFactor($"{ItemConditions.Name(stack.Condition)}{(stack.Quality != ItemQuality.Common ? ", " + stack.Quality.ToString().ToLowerInvariant() : string.Empty)}", percent - 100));
+                quote.UnitPrice = Math.Max(1, quote.UnitPrice * percent / 100);
+            }
+
+            return quote;
+        }
+
         private sealed class SellHandler : ICommandHandler<SellItemCommand>
         {
             public CommandResult Handle(SellItemCommand c, CommandContext context)
@@ -632,9 +752,11 @@ namespace Realmkeeper.Application
                 var stack = InInventory(p, c.StackId, out failure);
                 if (stack == null) return failure;
                 if (c.Quantity < 1 || c.Quantity > stack.Quantity) return CommandResult.Invalid($"Sell between 1 and {I(stack.Quantity)}.");
+                if (stack.Bound) return CommandResult.InvalidState("A curse binds it to you.");
+                if (stack.Attuned) return CommandResult.InvalidState("End your attunement to it first.");
                 var def = ItemCatalog.Find(stack.ItemId);
                 if (def == null) return CommandResult.Invalid($"Unknown item '{stack.ItemId}'.");
-                var quote = CommerceMath.BuyingPrice(world, shop, def);
+                var quote = OfferFor(world, shop, stack);
                 if (!quote.Accepted) return CommandResult.InvalidState(quote.Refusal);
                 if (quote.UnitPrice != c.ExpectedUnitPrice)
                     return CommandResult.InvalidState($"The offer has changed: they now pay {I(quote.UnitPrice)} coin for {def.Name}.");
@@ -647,11 +769,20 @@ namespace Realmkeeper.Application
                 var eshop = edit.FindShop(shop.ShopId);
                 var keeper = edit.FindNpc(eshop.ShopkeeperNpcId);
                 var s = player.Inventory[IndexOf(player, c.StackId)];
-                s.Quantity -= c.Quantity;
-                if (s.Quantity == 0) player.Inventory.Remove(s);
+                var plain = ItemStacks.IsPlain(s, def);
+                var part = ItemCommandHandlers.TakeFrom(player.Inventory, s, c.Quantity, context);
                 keeper.Condition.Wealth -= total;
                 player.Purse += total;
-                CommerceMath.AddStock(eshop, def.Id, c.Quantity);
+
+                // A plain item joins the shop's counted stock; a distinct one (worn, fine, part-charged) keeps its identity.
+                if (plain) CommerceMath.AddStock(eshop, def.Id, c.Quantity);
+                else
+                {
+                    part.Provenance = "Sold by " + player.Name;
+                    eshop.Goods.Add(part);
+                    while (eshop.Goods.Count > ShopData.MaxGoods) eshop.Goods.RemoveAt(0);
+                }
+
                 eshop.TotalPurchases += total;
                 RememberTrade(context, keeper, player, def, c.Quantity, total, false, eshop.SettlementId);
                 Acquaint(keeper, edit.CurrentSimulationDate, true);

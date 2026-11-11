@@ -56,6 +56,12 @@ namespace Realmkeeper.Domain.Combat
 
         public bool Light { get; set; }
 
+        /// <summary>Phase 11: the extra attack of a different Light weapon in the off hand (a bonus action after attacking with a Light weapon).</summary>
+        public bool OffHand { get; set; }
+
+        /// <summary>Phase 11: the ammunition item IDs this attack can use (the player's ranged weapons), or null when none is needed.</summary>
+        public IReadOnlyList<string> Ammunition { get; set; }
+
         /// <summary>Phase 10: the stat-block attack behind a creature's option (its saves, recharge and escape DC), or null.</summary>
         public CreatureAttack Source { get; set; }
     }
@@ -286,6 +292,16 @@ namespace Realmkeeper.Domain.Combat
             var off = ItemCatalog.Find(offId);
             var str = Modifier(Ability.Strength);
             var pb = ProficiencyBonus;
+
+            // Phase 11 (ADR-0052): the actual objects in hand (the player's): magic and condition.
+            var mainStack = Player?.Equipped(EquipmentSlot.MainHand);
+            var offStack = Player?.Equipped(EquipmentSlot.OffHand);
+            if (main?.Weapon != null && mainStack != null && ItemConditions.Unusable(mainStack.Condition))
+            {
+                WeaponName = main.Name + " (broken)";
+                main = null; // a broken weapon cannot attack until repaired
+            }
+
             if (main?.Weapon != null)
             {
                 var w = main.Weapon;
@@ -300,17 +316,21 @@ namespace Realmkeeper.Domain.Combat
                     var bonus = new Breakdown().Add(ability.ToString(), Modifier(ability));
                     if (proficient) bonus.Add("proficiency", pb);
                     else bonus.Note($"not proficient with {w.Kind}s: no proficiency bonus");
+                    var magic = MagicBonus(main, mainStack);
+                    if (magic != 0) bonus.Add(main.Name, magic);
+                    if (mainStack != null && ItemConditions.Penalty(mainStack.Condition) > 0) bonus.Add(main.Name + " (damaged)", -ItemConditions.Penalty(mainStack.Condition));
                     var archery = CombatRuleValue("ranged-attack-bonus");
                     if (!melee && archery > 0) bonus.Add("Archery", archery);
                     var damage = new Breakdown().Add(ability.ToString(), Modifier(ability));
                     var dueling = CombatRuleValue("dueling-damage");
+                    if (magic != 0) damage.Add(main.Name, magic);
                     if (melee && dueling > 0 && !twoHanded && (off == null || off.Weapon == null)) damage.Add("Duelling", dueling);
                     return new AttackOption
                     {
                         Id = id, Name = name, Kind = AttackKind.Weapon, Melee = melee, Reach = melee ? w.Reach : 0, Range = range, LongRange = longRange,
                         AttackBonus = bonus, Damage = melee ? dice : w.Damage, DamageBonus = damage, DamageType = w.DamageType,
                         DieFloor = melee && twoHanded ? CombatRuleValue("great-weapon-floor") : 0, Ability = ability, Proficient = proficient, ItemId = main.Id,
-                        Light = w.Has(WeaponProperty.Light),
+                        Light = w.Has(WeaponProperty.Light), Ammunition = Player != null && !melee && w.Has(WeaponProperty.Ammunition) ? AmmunitionFor(w.Kind) : null,
                     };
                 }
 
@@ -322,6 +342,28 @@ namespace Realmkeeper.Domain.Combat
                 }
             }
             else WeaponName = "Unarmed";
+
+            // Phase 11: a different Light weapon in the off hand (SRD 5.2.1 Light property): the bonus-action attack.
+            if (main?.Weapon != null && main.Weapon.Has(WeaponProperty.Light) && off?.Weapon != null && off.Weapon.Has(WeaponProperty.Light) && !(offStack != null && ItemConditions.Unusable(offStack.Condition)))
+            {
+                var ow = off.Weapon;
+                var oa = ow.Has(WeaponProperty.Finesse) && Modifier(Ability.Dexterity) > str ? Ability.Dexterity : Ability.Strength;
+                var ob = new Breakdown().Add(oa.ToString(), Modifier(oa));
+                var oProficient = Proficient(Rules, ow);
+                if (oProficient) ob.Add("proficiency", pb);
+                var om = MagicBonus(off, offStack);
+                if (om != 0) ob.Add(off.Name, om);
+                if (offStack != null && ItemConditions.Penalty(offStack.Condition) > 0) ob.Add(off.Name + " (damaged)", -ItemConditions.Penalty(offStack.Condition));
+                var od = new Breakdown();
+                if (Modifier(oa) < 0 || CombatRuleValue("two-weapon-damage") > 0) od.Add(oa.ToString(), Modifier(oa)); // the ability adds to off-hand damage only if negative (or with the fighting style)
+                else od.Note("no ability modifier to off-hand damage");
+                if (om != 0) od.Add(off.Name, om);
+                _attacks.Add(new AttackOption
+                {
+                    Id = "offhand", Name = "Off-hand: " + off.Name, Kind = AttackKind.Weapon, Melee = true, Reach = ow.Reach, AttackBonus = ob, Damage = ow.Damage, DamageBonus = od,
+                    DamageType = ow.DamageType, Ability = oa, Proficient = oProficient, ItemId = off.Id, Light = true, OffHand = true,
+                });
+            }
 
             // Martial Arts (Phase 9): the monk's unarmed strike uses the martial arts die and Dexterity when it is higher.
             var martial = Rules.HasFeature("martial_arts") ? Math.Max(4, Rules.Scaling("martial_arts")) : 0;
@@ -339,6 +381,23 @@ namespace Realmkeeper.Domain.Combat
             if (freeHand)
                 _attacks.Add(new AttackOption { Id = "grapple", Name = "Grapple", Kind = AttackKind.Grapple, Melee = true, Reach = 5, SaveDc = dc, Ability = Ability.Strength, AttackBonus = new Breakdown().Add("DC 8", 8).Add("Strength", str).Add("proficiency", pb) });
             _attacks.Add(new AttackOption { Id = "shove", Name = "Shove (prone)", Kind = AttackKind.Shove, Melee = true, Reach = 5, SaveDc = dc, Ability = Ability.Strength, AttackBonus = new Breakdown().Add("DC 8", 8).Add("Strength", str).Add("proficiency", pb) });
+        }
+
+        /// <summary>Phase 11: a magic weapon's bonus (when its attunement, if required, is in place).</summary>
+        private static int MagicBonus(ItemDefinition def, ItemStackData stack)
+        {
+            var m = def?.Magic;
+            if (m == null || m.WeaponBonus == 0) return 0;
+            if (m.RequiresAttunement && (stack == null || !stack.Attuned)) return 0;
+            return m.WeaponBonus;
+        }
+
+        /// <summary>Phase 11: the ammunition item IDs for a weapon kind.</summary>
+        private static IReadOnlyList<string> AmmunitionFor(string kind)
+        {
+            var list = new List<string>();
+            foreach (var d in ItemCatalog.Items) foreach (var k in d.AmmunitionFor) if (k == kind) list.Add(d.Id);
+            return list;
         }
 
         private void BuildCreatureAttacks(CreatureAttack a)

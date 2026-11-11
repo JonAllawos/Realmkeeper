@@ -22,6 +22,12 @@ The SRD supplies the rules mechanics:
 - class features in combat, rests and recovery;
 - the bandit, guard, commoner and wolf statistics (SRD 5.2.1), and the acolyte and cult fanatic
   statistics with their spellcasting (SRD 5.1);
+- the equipment and magic items added in Phase 11, from SRD 5.2.1: the simple and martial weapons'
+  damage, properties and mastery; the armour table; ammunition; artisan's tools; the potion of healing
+  and greater healing; +1 weapons, armour and shield; the ring and cloak of protection; gauntlets of ogre
+  power; goggles of night; boots of elvenkind; the wand of magic missiles; the Berserker Axe and its curse
+  (as rules: bonuses, attunement, charges and recharge); carrying capacity and the attunement limit.
+  Item descriptions and lore are Realmkeeper's own;
 - the bestiary added in Phase 10, from SRD 5.1: deer, boar, black bear, brown bear, dire wolf, giant rat,
   giant spider, goat, riding horse, draft horse, mastiff, goblin, thug (named "highwayman" in the game),
   bandit captain, cultist, veteran, skeleton, zombie, ogre and troll, with their traits (Charge,

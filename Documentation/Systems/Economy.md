@@ -26,6 +26,7 @@ that does not fit is recorded as **wasted**; unmet demand is recorded as **short
 | 430 | `realmkeeper.shops` | Phase 5. Daily restocking: each shop's keeper turns settlement materials into merchandise and pays the treasury for them (see [Commerce](Commerce.md)). |
 | 450 | `realmkeeper.politics` | Phase 3. Every day keeps faction membership within the population; on weekly ticks it runs the political evaluation (see [Politics](Politics.md)). Faction dues move coin out of settlements above a 30-day reserve. |
 | 460 | `realmkeeper.fauna` | Phase 10. Once a week: wildlife breeds toward capacity, wolves take deer, settlement hunters take game, herds move toward what the farms keep (a hungry settlement slaughters a tenth). See `Documentation/Phase10/CreatureAndNpcSystems.md`. |
+| 470 | `realmkeeper.gathering` | Phase 11. On the first day of each week every gathering site (hedgerows, deadfall, an ore seam, fishing water, from what the settlement produces) recovers its weekly amount up to its capacity. See `Documentation/Phase11/Items.md`. |
 | 500 | `realmkeeper.chronicle` | Milestone events (ratings, population, treasury, production). |
 
 Each day is one transaction (ADR-0008): the scheduler copies the world, runs these systems in

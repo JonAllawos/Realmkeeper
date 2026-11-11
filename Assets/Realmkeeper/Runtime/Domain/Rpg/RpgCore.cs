@@ -288,6 +288,14 @@ namespace Realmkeeper.Domain.Rpg
 
         /// <summary>A fighting style (Key = style ID: archery, defense, dueling, great_weapon, protection, two_weapon); styles do not repeat.</summary>
         FightingStyle = 29,
+
+        // ----- Phase 11 (magic items) -----
+
+        /// <summary>An ability score of at least Value while it applies (Key: the ability; Gauntlets of Ogre Power: Strength 19).</summary>
+        AbilityMinimum = 30,
+
+        /// <summary>A bonus of Value to every saving throw (Ring and Cloak of Protection).</summary>
+        SaveBonus = 31,
     }
 
     /// <summary>One typed rule effect. Key, Value and Text are interpreted by <see cref="EffectKind"/> only.</summary>

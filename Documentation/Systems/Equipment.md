@@ -73,3 +73,43 @@ purchase that is then worn. A PlayMode test checks each case:
 - the knife appears in `hand_r`;
 - taking off the tunic shows underclothes;
 - the female frame rebuilds.
+
+## Phase 11: slots, condition and magic (ADR-0052)
+
+**Slots.** There are now eleven: main hand, off hand, head, chest, hands, legs, feet, back, neck, and a ring on each hand.
+
+- A ring goes on the free hand by default, or on the hand chosen ("Right hand").
+- A Light weapon may be held in the off hand ("Off hand") while the main hand holds no two-handed weapon. That gives the SRD off-hand attack as a bonus action.
+- The spear and quarterstaff are Versatile in SRD 5.2.1, so a shield now goes with them; only true two-handed weapons clear the off hand.
+
+**The numbers are the rules'.** The Equipment section and the inventory header show the armour class breakdown and the main attack from `CombatStats`, the same calculation combat uses. Phase 5's "protection" and "damage" figures are no longer shown.
+
+**Condition.** Each worn weapon, armour, shield and tool has its own condition:
+
+| Condition | In play | Value |
+|---|---|---|
+| Pristine | — | 110 % |
+| Good | — | 100 % |
+| Worn | — | 75 % |
+| Damaged | −1 to attack rolls (weapon) or −1 AC (armour, shield) | 50 % |
+| Broken | The weapon cannot attack; armour or a shield gives no AC | 25 % |
+
+A natural 1 on an attack wears the weapon one step. A critical hit taken wears the body armour, or the shield when none is worn. An armourer mends to Good for 15 % of base value per step. The player can mend with the craft's tools, as work (ADR-0054).
+
+**Magic items** (11, SRD 5.2.1):
+
+- +1 longsword, +1 dagger and +1 chain shirt;
+- the +1 shield;
+- the ring and the cloak of protection;
+- the gauntlets of ogre power;
+- goggles of night and boots of elvenkind;
+- the wand of magic missiles;
+- the cursed Berserker Axe.
+
+Their bonuses and effects enter the rules as typed effects while worn, and while attuned when attunement is required.
+
+- Attunement takes an hour of work (a short rest), up to three items.
+- A curse binds the item when attuned. It cannot be unequipped, unattuned, sold or stored until a shrine's priest lifts the curse.
+- The wand casts Magic Missile from its charges (one per spell level) in a fight, and regains 1d6 + 1 after a long rest.
+
+**Ammunition.** Bows, crossbows and slings spend arrows, bolts or bullets from the pack. Without ammunition the attack is unavailable. Half of what was shot is gathered back when the fight ends.

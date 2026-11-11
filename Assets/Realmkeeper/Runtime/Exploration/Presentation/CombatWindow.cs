@@ -129,6 +129,9 @@ namespace Realmkeeper.Exploration.Presentation
         public event Action ContinueRequested;
         public event Action CloseRequested;
 
+        /// <summary>Phase 11: open the loot a finished fight left.</summary>
+        public event Action<string> LootRequested;
+
         /// <summary>Why the player cannot move to a square (null: they can); the controller asks the session.</summary>
         public Func<GridPos, string> MoveProblem { get; set; }
 
@@ -264,6 +267,15 @@ namespace Realmkeeper.Exploration.Presentation
             if (s.Status != EncounterStatus.Active)
             {
                 _actions.Add(TradeWindow.Text(WorldSession.Summary(s), "xk-w-note"));
+                if (s.LootKey != null)
+                {
+                    var key = s.LootKey;
+                    var loot = new Button(() => LootRequested?.Invoke(key)) { text = "Look over what they left (" + s.LootSummary + ")", name = "xk-combat-loot" };
+                    loot.AddToClassList("xk-button");
+                    loot.AddToClassList("xk-button--primary");
+                    _actions.Add(loot);
+                }
+
                 return;
             }
 

@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 12;
+        public const int CurrentSchemaVersion = 13;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -103,6 +103,24 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 10: each settlement's persisted spatial plan (made once, never rearranged).</summary>
         public List<Realmkeeper.Domain.Settlements.SettlementLayoutData> SettlementLayouts { get; set; } = new List<Realmkeeper.Domain.Settlements.SettlementLayoutData>();
+
+        /// <summary>Phase 11: containers (the player's chests, caches, loot), with persistent contents.</summary>
+        public List<ContainerData> Containers { get; set; } = new List<ContainerData>();
+
+        /// <summary>Phase 11: the player's work in progress (crafting, gathering, repairing).</summary>
+        public List<WorkJobData> WorkJobs { get; set; } = new List<WorkJobData>();
+
+        /// <summary>Phase 11: the places materials are gathered from, in each settlement's land.</summary>
+        public List<GatheringSiteData> GatheringSites { get; set; } = new List<GatheringSiteData>();
+
+        /// <summary>Phase 11: the item catalog version this world was saved with (ADR-0050).</summary>
+        public int ItemCatalogVersion { get; set; } = ItemCatalog.Version;
+
+        public ContainerData FindContainer(string key)
+        {
+            if (key != null && Containers != null) foreach (var c in Containers) if (c != null && c.Key == key) return c;
+            return null;
+        }
 
         public Realmkeeper.Domain.Settlements.SettlementLayoutData FindLayout(SettlementId id)
         {
@@ -204,6 +222,10 @@ namespace Realmkeeper.Domain.World
             if (Livestock != null) foreach (var h in Livestock) copy.Livestock.Add(h?.Clone());
             // Plans are made once and never changed by the simulation (ADR-0048): copies share them.
             if (SettlementLayouts != null) copy.SettlementLayouts.AddRange(SettlementLayouts);
+            if (Containers != null) foreach (var c in Containers) copy.Containers.Add(c?.Clone());
+            if (WorkJobs != null) foreach (var j in WorkJobs) copy.WorkJobs.Add(j?.Clone());
+            if (GatheringSites != null) foreach (var g in GatheringSites) copy.GatheringSites.Add(g?.Clone());
+            copy.ItemCatalogVersion = ItemCatalogVersion;
             return copy;
         }
 

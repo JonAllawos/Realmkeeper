@@ -9,7 +9,11 @@ simulation. See the [Product foundation](Documentation/Product/ProductFoundation
 This repository is an independent project. It shares no code, assets, packages or
 assemblies with any other Unity project, including Living Realms and The Tavern Table.
 
-> **Status: Phase 2 (settlement economies) complete.**
+> **Current status: Phase 11 (inventory, loot, equipment, crafting and item progression) complete and
+> awaiting review.** Each phase's state is listed in [Documentation/Roadmap.md](Documentation/Roadmap.md),
+> and its report is in `Documentation/Reports/`. The note below describes Phase 2 as it was first delivered.
+>
+> **Phase 2 (settlement economies) complete.**
 > Settlements have terrain-derived production, labour, storage, consumption and shortages.
 > They trade real goods along the roads, and prosperity, stability and population follow
 > documented formulas. A structured chronicle records what happens. Tested in Unity
