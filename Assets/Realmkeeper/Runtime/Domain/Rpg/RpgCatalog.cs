@@ -97,10 +97,122 @@ namespace Realmkeeper.Domain.Rpg
                     foreach (var o in g.Options) foreach (var k in o.Items) CheckKit(errors, $"class {c.Id} kit {g.Id}/{o.Id}", k);
                 }
 
-                if ((c.Spellcasting != null) != resources.Contains("spell_slots_1")) errors.Add($"Class {c.Id}: spellcasting and spell slots disagree.");
+                if ((c.Spellcasting != null) != (resources.Contains("spell_slots_1") || resources.Contains("pact_slots"))) errors.Add($"Class {c.Id}: spellcasting and spell slots disagree.");
+                ValidateProgression(errors, c, resources);
             }
 
+            ValidateFeats(errors);
             return errors;
+        }
+
+        // ----- Phase 7: progression, subclasses, feats -----------------------------------------------------
+
+        private static void ValidateProgression(List<string> errors, ClassDefinition c, HashSet<string> resources)
+        {
+            var where = "class " + c.Id;
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var f in c.Features) ids.Add(f.Id);
+            for (var level = 2; level <= AbilityRules.MaxLevel; level++)
+            {
+                if (!c.LaterFeatures.TryGetValue(level, out var features)) continue;
+                foreach (var f in features)
+                {
+                    if (string.IsNullOrEmpty(f.Id) || string.IsNullOrEmpty(f.Name) || string.IsNullOrEmpty(f.Description)) errors.Add($"{where} level {level}: a feature lacks an ID or text.");
+                    if (f.Replaces != null && !ids.Contains(f.Replaces)) errors.Add($"{where}: {f.Id} replaces {f.Replaces}, which no earlier level grants.");
+                    if (f.ScalingId != null && c.FindScaling(f.ScalingId) == null) errors.Add($"{where}: {f.Id} reads unknown scaling {f.ScalingId}.");
+                    CheckEffects(errors, where + " " + f.Id, f.Effects, resources);
+                    ids.Add(f.Id);
+                }
+            }
+
+            foreach (var k in c.LaterFeatures.Keys) if (k < 2 || k > AbilityRules.MaxLevel) errors.Add($"{where}: features at impossible level {k}.");
+            foreach (var r in c.Resources)
+            {
+                if (r.Formula == ResourceFormula.Table && (r.Table == null || r.Table.Count != AbilityRules.MaxLevel)) errors.Add($"{where}: resource {r.Id} needs a 20-level table.");
+                if (r.Table != null) foreach (var v in r.Table) if (v < 0) errors.Add($"{where}: resource {r.Id} has a negative maximum.");
+                if (r.FirstLevel > AbilityRules.MaxLevel) errors.Add($"{where}: resource {r.Id} never becomes available.");
+            }
+
+            foreach (var s in c.Scalings) if (s.Values == null || s.Values.Count != AbilityRules.MaxLevel) errors.Add($"{where}: scaling {s.Id} needs 20 values.");
+            foreach (var ch in c.LevelChoices)
+            {
+                if (ch.Level < 2 || ch.Level > AbilityRules.MaxLevel || !ch.Id.StartsWith("lv" + ch.Level + ":", StringComparison.Ordinal)) errors.Add($"{where}: level choice {ch.Id} is misnamed or at level {ch.Level}.");
+                if (ch.Kind == ChoiceKind.Feat && ch.FeatCategories == FeatCategory.None) errors.Add($"{where}: feat choice {ch.Id} offers nothing.");
+                CheckChoice(errors, where, ch, resources);
+                CheckPoolPrerequisites(errors, where, ch);
+            }
+
+            foreach (var ch in c.Choices) CheckPoolPrerequisites(errors, where, ch);
+            if (c.SubclassLevel < 1 || c.SubclassLevel > AbilityRules.MaxLevel || string.IsNullOrEmpty(c.SubclassTitle)) errors.Add($"{where}: bad subclass level or title.");
+            foreach (var l in c.FeatLevels) if (l < 4 || l > AbilityRules.MaxLevel) errors.Add($"{where}: feat at level {l}.");
+
+            var subs = SubclassesOf(c.Id);
+            if (subs.Count == 0) errors.Add($"{where} has no subclass.");
+            foreach (var sub in subs)
+            {
+                var subResources = new HashSet<string>(resources);
+                foreach (var r in sub.Resources) if (!subResources.Add(r.Id)) errors.Add($"Subclass {sub.Id}: resource {r.Id} clashes.");
+                foreach (var pair in sub.Features)
+                {
+                    if (!Contains(c.SubclassFeatureLevels, pair.Key)) errors.Add($"Subclass {sub.Id}: features at level {pair.Key}, which is not a {c.Name} subclass level.");
+                    foreach (var f in pair.Value) CheckEffects(errors, "subclass " + sub.Id + " " + f.Id, f.Effects, subResources);
+                }
+
+                foreach (var l in c.SubclassFeatureLevels) if (!sub.Features.ContainsKey(l)) errors.Add($"Subclass {sub.Id} grants nothing at level {l}.");
+                foreach (var ch in sub.Choices)
+                {
+                    if (ch.Level < c.SubclassLevel || !ch.Id.StartsWith("lv" + ch.Level + ":", StringComparison.Ordinal)) errors.Add($"Subclass {sub.Id}: choice {ch.Id} is misnamed or too early.");
+                    CheckChoice(errors, "subclass " + sub.Id, ch, subResources);
+                }
+            }
+        }
+
+        private static void CheckPoolPrerequisites(List<string> errors, string where, ChoiceDefinition ch)
+        {
+            foreach (var o in ch.Options)
+                foreach (var p in o.Prerequisites)
+                {
+                    if (p.Kind != PrerequisiteKind.PoolPick) continue;
+                    var found = false;
+                    foreach (var other in ch.Options) if (other.Id == p.Key) found = true;
+                    if (!found && FindInvocation(p.Key) == null) errors.Add($"{where}: {o.Id} needs unknown option {p.Key}.");
+                }
+        }
+
+        private static ChoiceOption FindInvocation(string id)
+        {
+            foreach (var o in InvocationOptions) if (o.Id == id) return o;
+            return null;
+        }
+
+        private static void ValidateFeats(List<string> errors)
+        {
+            Unique(errors, "feat", Feats, f => f.Id);
+            Unique(errors, "subclass", Subclasses, s => s.Id);
+            foreach (var s in Subclasses) if (FindClass(s.ClassId) == null) errors.Add($"Subclass {s.Id} names unknown class {s.ClassId}.");
+            foreach (var f in Feats)
+            {
+                if (string.IsNullOrEmpty(f.Name) || string.IsNullOrEmpty(f.Description) || f.Category == FeatCategory.None) errors.Add($"Feat {f.Id} lacks text or a category.");
+                CheckEffects(errors, "feat " + f.Id, f.Effects, new HashSet<string>());
+                foreach (var ch in f.Choices)
+                {
+                    CheckChoice(errors, "feat " + f.Id, ch, new HashSet<string>());
+                    if (ch.Kind == ChoiceKind.AbilityIncrease && (ch.Limit < AbilityRules.MaxScore || ch.Limit > 30)) errors.Add($"Feat {f.Id}: ability limit {ch.Limit}.");
+                }
+
+                if (f.RepeatDistinct != null)
+                {
+                    var found = false;
+                    foreach (var ch in f.Choices) if (ch.Id == f.RepeatDistinct) found = true;
+                    if (!found) errors.Add($"Feat {f.Id}: repeat rule names unknown choice {f.RepeatDistinct}.");
+                }
+            }
+        }
+
+        private static bool Contains(IReadOnlyList<int> list, int v)
+        {
+            foreach (var x in list) if (x == v) return true;
+            return false;
         }
 
         private static void Unique<T>(List<string> errors, string what, IReadOnlyList<T> list, Func<T, string> key)
@@ -162,7 +274,27 @@ namespace Realmkeeper.Domain.Rpg
                     case EffectKind.InnateMagic:
                     case EffectKind.CombatRule:
                     case EffectKind.SocialFeature:
+                    case EffectKind.Advantage:
+                    case EffectKind.Disadvantage:
+                    case EffectKind.MovementMode:
+                    case EffectKind.FightingStyle:
+                    case EffectKind.MinimumRoll:
                         if (string.IsNullOrEmpty(e.Key)) errors.Add($"{where}: {e.Kind} needs a key.");
+                        break;
+                    case EffectKind.Sense:
+                        if (string.IsNullOrEmpty(e.Key) || e.Value <= 0) errors.Add($"{where}: a sense needs a name and a range.");
+                        break;
+                    case EffectKind.AbilityIncrease:
+                        if (!Enum.TryParse<Ability>(e.Key, out _) || e.Value < 1 || e.Limit < AbilityRules.MaxScore || e.Limit > 30) errors.Add($"{where}: bad ability increase {e}.");
+                        break;
+                    case EffectKind.SkillAbilityBonus:
+                        if (!SkillRules.TryParse(e.Key, out _) || !Enum.TryParse<Ability>(e.Text, out _)) errors.Add($"{where}: bad skill bonus {e}.");
+                        break;
+                    case EffectKind.SaveAbilityBonus:
+                        if ((e.Key != "all" && !Enum.TryParse<Ability>(e.Key, out _)) || !Enum.TryParse<Ability>(e.Text, out _)) errors.Add($"{where}: bad save bonus {e}.");
+                        break;
+                    case EffectKind.SpeedBonus:
+                        if (e.Key != null && !e.Key.StartsWith("scale:", StringComparison.Ordinal)) errors.Add($"{where}: a speed bonus key must name a scaling.");
                         break;
                 }
             }

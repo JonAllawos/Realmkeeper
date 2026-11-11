@@ -33,104 +33,224 @@ namespace Realmkeeper.Domain.Rpg
         public static string Signed(int v) => (v >= 0 ? "+" : string.Empty) + v.ToString(CultureInfo.InvariantCulture);
     }
 
-    /// <summary>One effect and where it came from (for the sheet's explanations).</summary>
+    /// <summary>One effect, where it came from, and the level it arrived at (for explanations and ordering).</summary>
     public readonly struct SourcedEffect
     {
-        public SourcedEffect(RuleEffect effect, string source)
+        public SourcedEffect(RuleEffect effect, string source, int level = 1)
         {
             Effect = effect;
             Source = source;
+            Level = level;
         }
 
         public RuleEffect Effect { get; }
         public string Source { get; }
+        public int Level { get; }
+    }
+
+    /// <summary>Advantage and disadvantage on a roll, each with its sources (Phase 7). Both together cancel out.</summary>
+    public sealed class RollMode
+    {
+        public List<string> Advantage { get; } = new List<string>();
+        public List<string> Disadvantage { get; } = new List<string>();
+
+        /// <summary>Situational sources ("against being poisoned") that apply only sometimes.</summary>
+        public List<string> Situational { get; } = new List<string>();
+
+        public bool HasAdvantage => Advantage.Count > 0 && Disadvantage.Count == 0;
+        public bool HasDisadvantage => Disadvantage.Count > 0 && Advantage.Count == 0;
+
+        public string Text
+        {
+            get
+            {
+                var parts = new List<string>();
+                if (Advantage.Count > 0) parts.Add("advantage (" + string.Join(", ", Advantage) + ")");
+                if (Disadvantage.Count > 0) parts.Add("disadvantage (" + string.Join(", ", Disadvantage) + ")");
+                if (Advantage.Count > 0 && Disadvantage.Count > 0) parts.Add("they cancel out");
+                foreach (var s in Situational) parts.Add(s);
+                return string.Join("; ", parts);
+            }
+        }
+    }
+
+    /// <summary>A feature the character has: what, from where, and from which level.</summary>
+    public readonly struct FeatureEntry
+    {
+        public FeatureEntry(FeatureDefinition feature, string source, int level)
+        {
+            Feature = feature;
+            Source = source;
+            Level = level;
+        }
+
+        public FeatureDefinition Feature { get; }
+        public string Source { get; }
+        public int Level { get; }
     }
 
     /// <summary>
-    /// Everything derived from a character's choices (Phase 6). One evaluator for all typed effects: it
-    /// collects the effects of the species (and its chosen options), the background, the class (proficiencies,
-    /// features and chosen options) and the creation choices, then answers questions: final scores,
-    /// modifiers, proficiency, skills and saves with their breakdowns, maximum hit points, armour class,
-    /// speed, senses, resistances, languages, resources. Nothing here is stored; nothing here mutates.
+    /// Everything derived from a character's choices (Phase 6, level-aware since Phase 7). One evaluator for all
+    /// typed effects: it collects the effects of the species, background, class features up to the character's
+    /// level (minus any a later feature replaces), the subclass, every choice made up to that level (options,
+    /// skills, languages, feats and their ability increases), then answers questions — scores, modifiers,
+    /// skills and saves with breakdowns and roll modes, initiative, passive scores, hit points, armour class,
+    /// speed, senses, resources, spellcasting — for any <see cref="CharacterSheetData"/>, player or not.
+    ///
+    /// Stacking (SRD 5.2.1 "combining effects", encoded here): bonuses from different features add up; the
+    /// same feature never counts twice; only one unarmoured-defence formula applies (the best); carrying
+    /// capacity and senses take the best value; advantage and disadvantage on the same roll cancel. Nothing
+    /// here is stored; nothing here mutates.
     /// </summary>
     public sealed class CharacterRules
     {
         private readonly CharacterSheetData _sheet;
+        private readonly Loadout _loadout;
         private readonly List<SourcedEffect> _effects = new List<SourcedEffect>();
+        private readonly List<FeatureEntry> _features = new List<FeatureEntry>();
+        private readonly List<FeatureEntry> _choiceFeatures = new List<FeatureEntry>();
+        private IReadOnlyList<ChoiceSlot> _choices;
+        private int[] _scores;
 
-        public CharacterRules(CharacterSheetData sheet)
+        public CharacterRules(CharacterSheetData sheet) : this(sheet, Loadout.Unarmored)
+        {
+        }
+
+        public CharacterRules(CharacterSheetData sheet, Loadout loadout)
         {
             _sheet = sheet ?? throw new ArgumentNullException(nameof(sheet));
+            _loadout = loadout;
             Species = RpgCatalog.FindSpecies(sheet.SpeciesId);
             Background = RpgCatalog.FindBackground(sheet.BackgroundId);
             Class = RpgCatalog.FindClass(sheet.ClassId);
+            var sub = RpgCatalog.FindSubclass(sheet.SubclassId);
+            Subclass = sub != null && Class != null && sub.ClassId == Class.Id ? sub : null;
             Collect();
         }
 
         public CharacterSheetData Sheet => _sheet;
+        public Loadout Loadout => _loadout;
         public SpeciesDefinition Species { get; }
         public BackgroundDefinition Background { get; }
         public ClassDefinition Class { get; }
+        public SubclassDefinition Subclass { get; }
         public bool IsComplete => _sheet.State == CreationState.Complete && Species != null && Background != null && Class != null;
         public IReadOnlyList<SourcedEffect> Effects => _effects;
-        public int Level => Math.Max(1, _sheet.Level);
+        public int Level => Math.Max(1, Math.Min(AbilityRules.MaxLevel, _sheet.Level));
         public int ProficiencyBonus => AbilityRules.ProficiencyBonus(Level);
+
+        /// <summary>The choices that exist up to the character's level.</summary>
+        public IReadOnlyList<ChoiceSlot> ChoiceSlots => _choices;
+
+        // ----- Collection --------------------------------------------------------------------------------
 
         private void Collect()
         {
             if (Species != null)
             {
-                foreach (var t in Species.Traits) foreach (var e in t.Effects) _effects.Add(new SourcedEffect(e, Species.Name + ": " + t.Name));
-                foreach (var l in Species.Languages) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.Language, l), Species.Name));
-                AddChoices(Species.Choices, Species.Name);
+                foreach (var t in Species.Traits) _features.Add(new FeatureEntry(t, Species.Name, 1));
+                foreach (var l in Species.Languages) Add(new RuleEffect(EffectKind.Language, l), Species.Name, 1);
             }
 
             if (Background != null)
             {
-                foreach (var s in Background.Skills) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.SkillProficiency, s.ToString()), Background.Name));
-                foreach (var t in Background.Tools) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.ToolProficiency, t), Background.Name));
-                foreach (var l in Background.Languages) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.Language, l), Background.Name));
-                if (Background.Feature != null)
-                    foreach (var e in Background.Feature.Effects) _effects.Add(new SourcedEffect(e, Background.Name + ": " + Background.Feature.Name));
+                foreach (var s in Background.Skills) Add(new RuleEffect(EffectKind.SkillProficiency, s.ToString()), Background.Name, 1);
+                foreach (var t in Background.Tools) Add(new RuleEffect(EffectKind.ToolProficiency, t), Background.Name, 1);
+                foreach (var l in Background.Languages) Add(new RuleEffect(EffectKind.Language, l), Background.Name, 1);
+                if (Background.Feature != null) _features.Add(new FeatureEntry(Background.Feature, Background.Name, 1));
             }
 
             if (Class != null)
             {
-                foreach (var a in Class.SavingThrows) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.SaveProficiency, a.ToString()), Class.Name));
-                foreach (var a in Class.ArmorProficiencies) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.ArmorProficiency, a), Class.Name));
-                foreach (var w in Class.WeaponProficiencies) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.WeaponProficiency, w), Class.Name));
-                foreach (var t in Class.Tools) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.ToolProficiency, t), Class.Name));
-                foreach (var f in Class.Features) foreach (var e in f.Effects) _effects.Add(new SourcedEffect(e, Class.Name + ": " + f.Name));
-                foreach (var s in _sheet.Chosen(ClassDefinition.SkillChoiceId))
-                    _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.SkillProficiency, s), Class.Name + " (chosen)"));
-                AddChoices(Class.Choices, Class.Name);
-            }
-        }
-
-        private void AddChoices(IReadOnlyList<ChoiceDefinition> choices, string source)
-        {
-            foreach (var c in choices)
-            {
-                var picked = _sheet.Chosen(c.Id);
-                switch (c.Kind)
+                foreach (var a in Class.SavingThrows) Add(new RuleEffect(EffectKind.SaveProficiency, a.ToString()), Class.Name, 1);
+                foreach (var a in Class.ArmorProficiencies) Add(new RuleEffect(EffectKind.ArmorProficiency, a), Class.Name, 1);
+                foreach (var w in Class.WeaponProficiencies) Add(new RuleEffect(EffectKind.WeaponProficiency, w), Class.Name, 1);
+                foreach (var t in Class.Tools) Add(new RuleEffect(EffectKind.ToolProficiency, t), Class.Name, 1);
+                foreach (var s in _sheet.Chosen(ClassDefinition.SkillChoiceId)) Add(new RuleEffect(EffectKind.SkillProficiency, s), Class.Name + " (chosen)", 1);
+                foreach (var f in Class.Features) _features.Add(new FeatureEntry(f, Class.Name + " 1", 1));
+                for (var level = 2; level <= Level; level++)
                 {
-                    case ChoiceKind.Option:
-                        foreach (var id in picked)
-                            foreach (var o in c.Options)
-                                if (o.Id == id)
-                                    foreach (var e in o.Effects) _effects.Add(new SourcedEffect(e, source + ": " + c.Name + " (" + o.Name + ")"));
-                        break;
-                    case ChoiceKind.Skill:
-                        foreach (var s in picked) _effects.Add(new SourcedEffect(new RuleEffect(EffectKind.SkillProficiency, s), source + ": " + c.Name));
-                        break;
-                    // Expertise is a rank on existing proficiencies, read by SkillRank.
+                    if (Class.LaterFeatures.TryGetValue(level, out var later))
+                        foreach (var f in later) _features.Add(new FeatureEntry(f, Class.Name + " " + level, level));
+                    if (Subclass != null && Subclass.Features.TryGetValue(level, out var sf))
+                        foreach (var f in sf) _features.Add(new FeatureEntry(f, Subclass.Name + " " + level, level));
                 }
             }
+
+            // A feature replaced by a later one stops applying (Extra Attack → Two Extra Attacks).
+            var replaced = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var f in _features) if (f.Feature.Replaces != null) replaced.Add(f.Feature.Replaces);
+            if (replaced.Count > 0) _features.RemoveAll(f => replaced.Contains(f.Feature.Id));
+            foreach (var f in _features)
+                foreach (var e in f.Feature.Effects) Add(e, f.Source + ": " + f.Feature.Name, f.Level);
+
+            _choices = Class != null || Species != null ? CharacterProgression.Choices(_sheet, Level) : Array.Empty<ChoiceSlot>();
+            foreach (var slot in _choices) CollectChoice(slot);
+
+            // Order by level so ability increases apply in the order they were gained (caps depend on it).
+            var ordered = new List<(int index, SourcedEffect effect)>();
+            for (var i = 0; i < _effects.Count; i++) ordered.Add((i, _effects[i]));
+            ordered.Sort((a, b) => a.effect.Level != b.effect.Level ? a.effect.Level.CompareTo(b.effect.Level) : a.index.CompareTo(b.index));
+            _effects.Clear();
+            foreach (var (_, e) in ordered) _effects.Add(e);
         }
 
-        private IEnumerable<RuleEffect> Of(EffectKind kind)
+        private void Add(RuleEffect e, string source, int level) => _effects.Add(new SourcedEffect(e, source, level));
+
+        private void CollectChoice(ChoiceSlot slot)
         {
-            foreach (var se in _effects) if (se.Effect.Kind == kind) yield return se.Effect;
+            var c = slot.Choice;
+            var picked = _sheet.Chosen(c.Id);
+            switch (c.Kind)
+            {
+                case ChoiceKind.Option:
+                    foreach (var id in picked)
+                        foreach (var o in c.Options)
+                            if (o.Id == id)
+                            {
+                                foreach (var e in o.Effects) Add(e, slot.Source + ": " + c.Name + " (" + o.Name + ")", c.Level);
+                                _choiceFeatures.Add(new FeatureEntry(new FeatureDefinition(c.Id + ":" + o.Id, c.Name + ": " + o.Name, o.Description) { Kind = FeatureKind.Choice, Needs = o.Needs | NeedsOf(o.Effects) }, slot.Source, c.Level));
+                            }
+
+                    break;
+                case ChoiceKind.Skill:
+                    foreach (var s in picked) Add(new RuleEffect(EffectKind.SkillProficiency, s), slot.Source + ": " + c.Name, c.Level);
+                    break;
+                case ChoiceKind.Language:
+                    foreach (var l in picked) Add(new RuleEffect(EffectKind.Language, l), slot.Source + ": " + c.Name, c.Level);
+                    break;
+                case ChoiceKind.Feat:
+                    var feat = picked.Count == 1 ? RpgCatalog.FindFeat(picked[0]) : null;
+                    if (feat == null) break;
+                    foreach (var e in feat.Effects) Add(e, "Feat: " + feat.Name, c.Level);
+                    _choiceFeatures.Add(new FeatureEntry(new FeatureDefinition("feat:" + feat.Id + ":" + c.Level, feat.Name, feat.Description) { Kind = FeatureKind.Choice, Needs = feat.Needs | NeedsOf(feat.Effects) }, slot.Source, c.Level));
+                    break;
+                case ChoiceKind.AbilityIncrease:
+                    foreach (var a in picked) Add(new RuleEffect(EffectKind.AbilityIncrease, a, 1, null, EffectCondition.Always, c.Limit), slot.Source, c.Level);
+                    break;
+                // Expertise is a rank on existing proficiencies (SkillRank); the subclass lives in SubclassId.
+            }
+        }
+
+        /// <summary>Systems a feature waits for, including those implied by its effects (combat rules, innate magic).</summary>
+        public static IntegrationNeed NeedsOf(IReadOnlyList<RuleEffect> effects)
+        {
+            var n = IntegrationNeed.None;
+            foreach (var e in effects)
+            {
+                if (e.Kind == EffectKind.CombatRule) n |= IntegrationNeed.Combat;
+                if (e.Kind == EffectKind.InnateMagic) n |= IntegrationNeed.Magic;
+            }
+
+            return n;
+        }
+
+        private bool Applies(RuleEffect e) => _loadout.Allows(e.Condition);
+
+        private IEnumerable<SourcedEffect> Of(EffectKind kind)
+        {
+            foreach (var se in _effects)
+                if (se.Effect.Kind == kind && Applies(se.Effect)) yield return se;
         }
 
         // ----- Abilities -------------------------------------------------------------------------------
@@ -139,7 +259,37 @@ namespace Realmkeeper.Domain.Rpg
 
         public int BaseScore(Ability a) => _sheet.BaseScores != null && _sheet.BaseScores.Length == 6 ? _sheet.BaseScores[(int)a] : 10;
 
-        public int Score(Ability a) => Math.Min(AbilityRules.MaxScore, BaseScore(a) + SpeciesBonus(a));
+        /// <summary>
+        /// The final score: base plus species increase (at most 20), then every later increase in the order it was
+        /// gained, each up to its own limit (20 for Ability Score Improvement, 25 for a capstone, 30 for an Epic Boon).
+        /// </summary>
+        public int Score(Ability a)
+        {
+            if (_scores == null)
+            {
+                var scores = new int[6];
+                foreach (var ab in AbilityRules.All) scores[(int)ab] = ScoreBreakdown(ab).Total;
+                _scores = scores;
+            }
+
+            return _scores[(int)a];
+        }
+
+        public Breakdown ScoreBreakdown(Ability a)
+        {
+            var b = new Breakdown().Add("base", BaseScore(a));
+            if (SpeciesBonus(a) != 0) b.Add(Species.Name, SpeciesBonus(a));
+            if (b.Total > AbilityRules.MaxScore) b.Add("maximum", AbilityRules.MaxScore - b.Total);
+            foreach (var se in Of(EffectKind.AbilityIncrease))
+            {
+                if (se.Effect.Key != a.ToString()) continue;
+                var limit = se.Effect.Limit > 0 ? se.Effect.Limit : AbilityRules.MaxScore;
+                var gain = Math.Max(0, Math.Min(limit, b.Total + se.Effect.Value) - b.Total);
+                b.Add(se.Source + (gain < se.Effect.Value ? $" (capped at {limit})" : string.Empty), gain);
+            }
+
+            return b;
+        }
 
         public int Modifier(Ability a) => AbilityRules.Modifier(Score(a));
 
@@ -148,13 +298,12 @@ namespace Realmkeeper.Domain.Rpg
         public ProficiencyRank SkillRank(Skill skill)
         {
             var proficient = false;
-            foreach (var e in Of(EffectKind.SkillProficiency)) if (e.Key == skill.ToString()) proficient = true;
+            foreach (var se in Of(EffectKind.SkillProficiency)) if (se.Effect.Key == skill.ToString()) proficient = true;
             if (!proficient) return ProficiencyRank.None;
-            if (Class != null)
-                foreach (var c in Class.Choices)
-                    if (c.Kind == ChoiceKind.Expertise)
-                        foreach (var s in _sheet.Chosen(c.Id))
-                            if (s == skill.ToString()) return ProficiencyRank.Expertise;
+            foreach (var slot in _choices)
+                if (slot.Choice.Kind == ChoiceKind.Expertise)
+                    foreach (var s in _sheet.Chosen(slot.Choice.Id))
+                        if (s == skill.ToString()) return ProficiencyRank.Expertise;
             return ProficiencyRank.Proficient;
         }
 
@@ -162,7 +311,7 @@ namespace Realmkeeper.Domain.Rpg
         public IReadOnlyList<string> SkillSources(Skill skill)
         {
             var list = new List<string>();
-            foreach (var se in _effects) if (se.Effect.Kind == EffectKind.SkillProficiency && se.Effect.Key == skill.ToString()) list.Add(se.Source);
+            foreach (var se in Of(EffectKind.SkillProficiency)) if (se.Effect.Key == skill.ToString()) list.Add(se.Source);
             return list;
         }
 
@@ -173,8 +322,20 @@ namespace Realmkeeper.Domain.Rpg
             var rank = SkillRank(skill);
             if (rank == ProficiencyRank.Proficient) b.Add("proficiency", ProficiencyBonus);
             if (rank == ProficiencyRank.Expertise) b.Add("expertise", ProficiencyBonus * 2);
+            if (rank == ProficiencyRank.None)
+                foreach (var se in Once(EffectKind.HalfProficiencyUntrained))
+                    b.Add(se.Source, ProficiencyBonus / 2);
+            foreach (var se in Once(EffectKind.SkillAbilityBonus))
+            {
+                if (se.Effect.Key != skill.ToString() || !Enum.TryParse<Ability>(se.Effect.Text, out var extra)) continue;
+                b.Add(se.Source + " (" + extra + ")", Math.Max(se.Effect.Limit, Modifier(extra)));
+            }
+
             return b;
         }
+
+        /// <summary>Advantage and disadvantage on a skill check (Remarkable Athlete …).</summary>
+        public RollMode SkillRoll(Skill skill) => Roll("skill:" + skill, "check:" + SkillRules.AbilityOf(skill));
 
         /// <summary>Skills granted outright (species traits and background), which creation choices may not repeat.</summary>
         public IReadOnlyList<string> GrantedSkills()
@@ -192,7 +353,7 @@ namespace Realmkeeper.Domain.Rpg
 
         public bool SaveProficient(Ability a)
         {
-            foreach (var e in Of(EffectKind.SaveProficiency)) if (e.Key == a.ToString()) return true;
+            foreach (var se in Of(EffectKind.SaveProficiency)) if (se.Effect.Key == a.ToString()) return true;
             return false;
         }
 
@@ -200,16 +361,90 @@ namespace Realmkeeper.Domain.Rpg
         {
             var b = new Breakdown().Add(a.ToString(), Modifier(a));
             if (SaveProficient(a)) b.Add("proficiency", ProficiencyBonus);
+            foreach (var se in Once(EffectKind.SaveAbilityBonus))
+            {
+                if ((se.Effect.Key != "all" && se.Effect.Key != a.ToString()) || !Enum.TryParse<Ability>(se.Effect.Text, out var extra)) continue;
+                b.Add(se.Source + " (" + extra + ")", Math.Max(se.Effect.Limit, Modifier(extra)));
+            }
+
             return b;
         }
 
-        public int PassivePerception => 10 + SkillBonus(Skill.Perception).Total;
+        /// <summary>Advantage and disadvantage on a saving throw; conditional save advantages are listed as situational.</summary>
+        public RollMode SaveRoll(Ability a)
+        {
+            var r = Roll("save:" + a);
+            return r;
+        }
+
+        /// <summary>Initiative: Dexterity plus bonuses (Alert adds the proficiency bonus).</summary>
+        public Breakdown Initiative()
+        {
+            var b = new Breakdown().Add("Dexterity", Modifier(Ability.Dexterity));
+            foreach (var se in Once(EffectKind.InitiativeBonus))
+                b.Add(se.Source, se.Effect.Key == "proficiency" ? ProficiencyBonus : se.Effect.Value);
+            return b;
+        }
+
+        public RollMode InitiativeRoll => Roll("initiative");
+
+        /// <summary>A passive score: 10 + the skill bonus, +5 with unconditional advantage, −5 with disadvantage.</summary>
+        public Breakdown Passive(Skill skill)
+        {
+            var b = new Breakdown().Add("base", 10).Add(SkillRules.Name(skill), SkillBonus(skill).Total);
+            var roll = SkillRoll(skill);
+            if (roll.HasAdvantage) b.Add("advantage", 5);
+            if (roll.HasDisadvantage) b.Add("disadvantage", -5);
+            return b;
+        }
+
+        public int PassivePerception => Passive(Skill.Perception).Total;
+
+        /// <summary>The lowest a d20 counts as on proficient ability checks (Reliable Talent), or 0.</summary>
+        public int ProficientCheckFloor
+        {
+            get
+            {
+                var v = 0;
+                foreach (var se in Of(EffectKind.MinimumRoll)) if (se.Effect.Key == "proficient_checks") v = Math.Max(v, se.Effect.Value);
+                return v;
+            }
+        }
+
+        private RollMode Roll(params string[] targets)
+        {
+            var r = new RollMode();
+            foreach (var se in _effects)
+            {
+                if (!Applies(se.Effect) || (se.Effect.Kind != EffectKind.Advantage && se.Effect.Kind != EffectKind.Disadvantage)) continue;
+                if (Array.IndexOf(targets, se.Effect.Key) < 0) continue;
+                if (!string.IsNullOrEmpty(se.Effect.Text))
+                {
+                    r.Situational.Add((se.Effect.Kind == EffectKind.Advantage ? "advantage " : "disadvantage ") + se.Effect.Text + " (" + se.Source + ")");
+                    continue;
+                }
+
+                var list = se.Effect.Kind == EffectKind.Advantage ? r.Advantage : r.Disadvantage;
+                if (!list.Contains(se.Source)) list.Add(se.Source);
+            }
+
+            return r;
+        }
+
+        /// <summary>Effects of a kind with each source counted once (the same feature never stacks with itself).</summary>
+        private IEnumerable<SourcedEffect> Once(EffectKind kind)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var se in Of(kind))
+                if (seen.Add(se.Source + "|" + se.Effect.Key)) yield return se;
+        }
 
         // ----- Health, defence, movement --------------------------------------------------------------
 
         /// <summary>
-        /// Maximum hit points: at level 1 the class hit die's maximum; each later level the die's average
-        /// rounded up (die / 2 + 1); plus the Constitution modifier per level and per-level bonuses; at least 1 per level.
+        /// Maximum hit points: at level 1 the class hit die's maximum; each later level the die's average rounded up
+        /// (die / 2 + 1, the fixed-value rule: no rolling); plus the Constitution modifier per level and per-level
+        /// bonuses (dwarven toughness, draconic resilience); at least 1 per level.
         /// </summary>
         public Breakdown MaxHitPoints()
         {
@@ -217,24 +452,46 @@ namespace Realmkeeper.Domain.Rpg
             if (Class == null) return b.Add("no class", 1);
             var con = Modifier(Ability.Constitution);
             b.Add("d" + Class.HitDie + " maximum", Class.HitDie);
-            if (Level > 1) b.Add("levels 2–" + Level + " (average)", (Class.HitDie / 2 + 1) * (Level - 1));
+            if (Level > 1) b.Add("levels 2–" + Level + " (average " + (Class.HitDie / 2 + 1) + ")", (Class.HitDie / 2 + 1) * (Level - 1));
             b.Add("Constitution × " + Level, con * Level);
-            var perLevel = 0;
-            foreach (var e in Of(EffectKind.MaxHpPerLevel)) perLevel += e.Value;
-            if (perLevel != 0) b.Add("species × " + Level, perLevel * Level);
+            foreach (var se in Once(EffectKind.MaxHpPerLevel)) b.Add(se.Source + " × " + Level, se.Effect.Value * Level);
             if (b.Total < Level) b.Add("minimum", Level - b.Total);
             return b;
         }
 
         public int MaxHp => MaxHitPoints().Total;
 
-        public int Speed
+        public int HitDie => Class?.HitDie ?? 0;
+
+        /// <summary>Walking speed: the species' speed plus every applicable bonus (conditions checked against the loadout).</summary>
+        public Breakdown SpeedBreakdown()
+        {
+            var b = new Breakdown().Add(Species?.Name ?? "base", Species?.Speed ?? 30);
+            foreach (var se in Once(EffectKind.SpeedBonus))
+            {
+                var v = se.Effect.Value;
+                if (se.Effect.Key != null && se.Effect.Key.StartsWith("scale:", StringComparison.Ordinal)) v = Scaling(se.Effect.Key.Substring(6));
+                if (v != 0) b.Add(se.Source, v);
+            }
+
+            return b;
+        }
+
+        public int Speed => SpeedBreakdown().Total;
+
+        /// <summary>Other movement ("climb 30 ft", "swim 30 ft").</summary>
+        public IReadOnlyList<string> MovementModes
         {
             get
             {
-                var s = Species?.Speed ?? 30;
-                foreach (var e in Of(EffectKind.SpeedBonus)) s += e.Value;
-                return s;
+                var list = new List<string>();
+                foreach (var se in Of(EffectKind.MovementMode))
+                {
+                    var text = se.Effect.Key + " " + (se.Effect.Value > 0 ? se.Effect.Value : Speed) + " ft";
+                    if (!list.Contains(text)) list.Add(text);
+                }
+
+                return list;
             }
         }
 
@@ -243,7 +500,7 @@ namespace Realmkeeper.Domain.Rpg
             get
             {
                 var p = 100;
-                foreach (var e in Of(EffectKind.CarryCapacityPercent)) p = Math.Max(p, e.Value);
+                foreach (var se in Of(EffectKind.CarryCapacityPercent)) p = Math.Max(p, se.Effect.Value);
                 return p;
             }
         }
@@ -253,8 +510,23 @@ namespace Realmkeeper.Domain.Rpg
             get
             {
                 var d = 0;
-                foreach (var e in Of(EffectKind.Darkvision)) d = Math.Max(d, e.Value);
+                foreach (var se in Of(EffectKind.Darkvision)) d = Math.Max(d, se.Effect.Value);
                 return d;
+            }
+        }
+
+        /// <summary>Special senses with the best range of each ("blindsight 30 ft", "truesight 60 ft").</summary>
+        public IReadOnlyList<(string sense, int range)> Senses
+        {
+            get
+            {
+                var best = new Dictionary<string, int>(StringComparer.Ordinal);
+                foreach (var se in Of(EffectKind.Sense))
+                    if (!best.TryGetValue(se.Effect.Key, out var v) || se.Effect.Value > v) best[se.Effect.Key] = se.Effect.Value;
+                var list = new List<(string, int)>();
+                foreach (var pair in best) list.Add((pair.Key, pair.Value));
+                list.Sort((a, b) => string.CompareOrdinal(a.Item1, b.Item1));
+                return list;
             }
         }
 
@@ -263,34 +535,46 @@ namespace Realmkeeper.Domain.Rpg
             get
             {
                 var p = 0;
-                foreach (var e in Of(EffectKind.ShopPricePercent)) p += e.Value;
+                foreach (var se in Once(EffectKind.ShopPricePercent)) p += se.Effect.Value;
                 return p;
             }
         }
 
+        /// <summary>The loadout a player's equipment gives (body armour in the chest slot, a shield anywhere).</summary>
+        public static Loadout LoadoutOf(PlayerCharacterData player)
+        {
+            if (player == null) return Loadout.Unarmored;
+            var armoured = false;
+            var shield = false;
+            foreach (var pair in player.Equipment)
+            {
+                var d = ItemCatalog.Find(pair.Value.ItemId);
+                if (d == null) continue;
+                if (d.Category == ItemCategory.Armour && pair.Key == EquipmentSlot.Chest) armoured = true;
+                if (d.Category == ItemCategory.Shield) shield = true;
+            }
+
+            return new Loadout(armoured, shield, false);
+        }
+
         /// <summary>
         /// Armour class (provisional until combat defines armour types): 10 + Dexterity, or the best unarmoured
-        /// defence when no armour is worn, plus the protection of everything worn.
+        /// defence when no armour is worn (only one base formula applies), plus the protection of everything worn,
+        /// plus armour-class bonuses whose conditions hold (Defense).
         /// </summary>
         public Breakdown ArmorClass(PlayerCharacterData player)
         {
+            var loadout = player != null ? LoadoutOf(player) : _loadout;
             var b = new Breakdown().Add("base", 10).Add("Dexterity", Modifier(Ability.Dexterity));
-            var armoured = false;
-            var shield = false;
             var protection = 0;
             if (player != null)
-            {
                 foreach (var pair in player.Equipment)
                 {
                     var d = ItemCatalog.Find(pair.Value.ItemId);
-                    if (d == null) continue;
-                    if (d.Category == ItemCategory.Armour && pair.Key == EquipmentSlot.Chest) armoured = true;
-                    if (d.Category == ItemCategory.Shield) shield = true;
-                    protection += d.Protection;
+                    if (d != null) protection += d.Protection;
                 }
-            }
 
-            if (!armoured)
+            if (!loadout.Armor)
             {
                 var best = 0;
                 string from = null;
@@ -298,15 +582,19 @@ namespace Realmkeeper.Domain.Rpg
                 {
                     if (se.Effect.Kind != EffectKind.UnarmoredDefense) continue;
                     if (!Enum.TryParse<Ability>(se.Effect.Key, out var a)) continue;
-                    if (a == Ability.Wisdom && shield) continue; // a monk's defence needs both hands free of shields
+                    if (a == Ability.Wisdom && loadout.Shield) continue; // a monk's defence needs both hands free of shields
                     var m = Modifier(a);
-                    if (m > best) { best = m; from = a.ToString(); }
+                    if (from == null || m > best) { best = m; from = a + " (" + se.Source + ")"; }
                 }
 
-                if (from != null) b.Add(from + " (unarmoured defence)", best);
+                if (from != null) b.Add(from, best);
             }
 
             if (protection != 0) b.Add("worn protection", protection);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var se in _effects)
+                if (se.Effect.Kind == EffectKind.ArmorClassBonus && loadout.Allows(se.Effect.Condition) && seen.Add(se.Source))
+                    b.Add(se.Source, se.Effect.Value);
             return b;
         }
 
@@ -315,7 +603,7 @@ namespace Realmkeeper.Domain.Rpg
         public IReadOnlyList<string> Keys(EffectKind kind)
         {
             var list = new List<string>();
-            foreach (var e in Of(kind)) if (e.Key != null && !list.Contains(e.Key)) list.Add(e.Key);
+            foreach (var se in Of(kind)) if (se.Effect.Key != null && !list.Contains(se.Effect.Key)) list.Add(se.Effect.Key);
             return list;
         }
 
@@ -325,50 +613,68 @@ namespace Realmkeeper.Domain.Rpg
         public IReadOnlyList<string> ArmorProficiencies => Keys(EffectKind.ArmorProficiency);
         public IReadOnlyList<string> Resistances => Keys(EffectKind.Resistance);
         public IReadOnlyList<string> SaveAdvantages => Keys(EffectKind.SaveAdvantage);
+        public IReadOnlyList<string> FightingStyles => Keys(EffectKind.FightingStyle);
 
-        /// <summary>Every feature the character has, with where it comes from.</summary>
+        /// <summary>Active class, subclass, species and background features (replaced ones removed), in level order.</summary>
+        public IReadOnlyList<FeatureEntry> ActiveFeatures => _features;
+
+        /// <summary>Every feature the character has, with where it comes from: active features, chosen options and feats.</summary>
         public IReadOnlyList<(string source, FeatureDefinition feature)> Features
         {
             get
             {
                 var list = new List<(string, FeatureDefinition)>();
-                if (Species != null)
-                {
-                    foreach (var t in Species.Traits) list.Add((Species.Name, t));
-                    AddChosenOptions(list, Species.Choices, Species.Name);
-                }
-
-                if (Background?.Feature != null) list.Add((Background.Name, Background.Feature));
-                if (Class != null)
-                {
-                    foreach (var f in Class.Features) list.Add((Class.Name + " 1", f));
-                    AddChosenOptions(list, Class.Choices, Class.Name + " 1");
-                }
-
+                foreach (var f in _features) if (!IsChoiceSlot(f.Feature)) list.Add((f.Source, f.Feature));
+                foreach (var f in _choiceFeatures) list.Add((f.Source, f.Feature));
                 return list;
             }
         }
 
-        /// <summary>A chosen option (Divine Order, Fighting Style, Draconic Ancestry) is shown as a feature of its own.</summary>
-        private void AddChosenOptions(List<(string, FeatureDefinition)> list, IReadOnlyList<ChoiceDefinition> choices, string source)
+        /// <summary>
+        /// A placeholder feature that only announces a choice (a feat level, the Epic Boon, the subclass level). The
+        /// sheet lists what was chosen instead, so these stay out of <see cref="Features"/>.
+        /// </summary>
+        public static bool IsChoiceSlot(FeatureDefinition f) =>
+            f.Effects.Count == 0 && (f.Id.StartsWith("feat_", StringComparison.Ordinal) || f.Id == "epic_boon" || f.Id == "subclass");
+
+        public bool HasFeature(string id)
         {
-            foreach (var c in choices)
+            foreach (var f in _features) if (f.Feature.Id == id) return true;
+            return false;
+        }
+
+        /// <summary>The systems a feature waits for (its own declaration plus what its effects imply).</summary>
+        public static IntegrationNeed Needs(FeatureDefinition f) => f.Needs | NeedsOf(f.Effects);
+
+        /// <summary>A class table column at the character's level (e.g. sneak attack dice), or 0.</summary>
+        public int Scaling(string id) => Class?.FindScaling(id)?.At(Level) ?? 0;
+
+        public IReadOnlyList<(ScalingDefinition scaling, string text)> Scalings
+        {
+            get
             {
-                if (c.Kind != ChoiceKind.Option) continue;
-                foreach (var id in _sheet.Chosen(c.Id))
-                    foreach (var o in c.Options)
-                        if (o.Id == id)
-                            list.Add((source, new FeatureDefinition(c.Id + ":" + o.Id, c.Name + ": " + o.Name, o.Description, new List<RuleEffect>(o.Effects).ToArray())));
+                var list = new List<(ScalingDefinition, string)>();
+                if (Class != null) foreach (var s in Class.Scalings) list.Add((s, s.Text(Level)));
+                return list;
             }
         }
 
+        // ----- Resources ----------------------------------------------------------------------------
+
+        /// <summary>Resources available at the character's level: species, class, subclass, and hit dice.</summary>
         public IReadOnlyList<ResourceDefinition> ResourceDefinitions
         {
             get
             {
                 var list = new List<ResourceDefinition>();
-                if (Species != null) list.AddRange(Species.Resources);
-                if (Class != null) list.AddRange(Class.Resources);
+                if (Species != null) foreach (var r in Species.Resources) if (r.FirstLevel <= Level) list.Add(r);
+                if (Class != null)
+                {
+                    foreach (var r in Class.Resources) if (r.FirstLevel <= Level) list.Add(r);
+                    if (Subclass != null) foreach (var r in Subclass.Resources) if (r.FirstLevel <= Level) list.Add(r);
+                    if (IsComplete) list.Add(RpgCatalog.HitDice);
+                }
+
                 return list;
             }
         }
@@ -388,9 +694,23 @@ namespace Realmkeeper.Domain.Rpg
                 case ResourceFormula.OnePlusAbilityModifier: return Math.Max(1, 1 + Modifier(r.Ability));
                 case ResourceFormula.PerLevel: return r.Value * Level;
                 case ResourceFormula.ProficiencyBonus: return ProficiencyBonus;
+                case ResourceFormula.Table: return r.Table != null && r.Table.Count >= Level ? r.Table[Level - 1] : 0;
                 default: return 0;
             }
         }
+
+        /// <summary>How the resource returns at the character's level (Font of Inspiration adds short rests).</summary>
+        public ResourceRecovery RecoveryOf(ResourceDefinition r) => r.RecoveryAt(Level);
+
+        /// <summary>The character's maximums by resource ID.</summary>
+        public IReadOnlyDictionary<string, int> ResourceMaximums()
+        {
+            var map = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var r in ResourceDefinitions) map[r.Id] = ResourceMax(r);
+            return map;
+        }
+
+        // ----- Spellcasting -------------------------------------------------------------------------
 
         public Breakdown SpellSaveDc()
         {
@@ -404,6 +724,68 @@ namespace Realmkeeper.Domain.Rpg
             if (Class?.Spellcasting == null) return null;
             var a = Class.Spellcasting.Ability;
             return new Breakdown().Add("proficiency", ProficiencyBonus).Add(a.ToString(), Modifier(a));
+        }
+
+        public int CantripsKnown
+        {
+            get
+            {
+                var n = Class?.Spellcasting?.CantripsAt(Level) ?? 0;
+                foreach (var se in Of(EffectKind.InnateMagic)) if (se.Effect.Key == "extra-cantrip") n += Math.Max(1, se.Effect.Value);
+                return n;
+            }
+        }
+
+        public int PreparedSpells => Class?.Spellcasting?.PreparedAt(Level) ?? 0;
+
+        /// <summary>Spell slots at the character's level ("4 × 1st, 3 × 2nd" or "2 pact slots of level 3").</summary>
+        public string SpellSlotText
+        {
+            get
+            {
+                var sc = Class?.Spellcasting;
+                if (sc == null) return string.Empty;
+                if (sc.Progression == CasterProgression.Pact)
+                    return $"{ResourceMax(FindResource("pact_slots") ?? RpgCatalog.HitDice)} pact slots of level {Scaling("pact_slot_level")}";
+                var parts = new List<string>();
+                for (var slot = 1; slot <= 9; slot++)
+                {
+                    var n = RpgCatalog.SlotsAt(sc.Progression, Level, slot);
+                    if (n > 0) parts.Add(n + " × " + (slot == 1 ? "1st" : slot == 2 ? "2nd" : slot == 3 ? "3rd" : slot + "th"));
+                }
+
+                return string.Join(", ", parts);
+            }
+        }
+
+        // ----- Prerequisites ------------------------------------------------------------------------
+
+        /// <summary>Whether a prerequisite holds for a choice made at <paramref name="level"/>, given the picks so far in its pool.</summary>
+        public bool Meets(Prerequisite p, int level, ICollection<string> poolPicks)
+        {
+            switch (p.Kind)
+            {
+                case PrerequisiteKind.MinLevel: return level >= p.Value;
+                case PrerequisiteKind.AbilityAtLeast:
+                    foreach (var a in p.Abilities) if (Score(a) >= p.Value) return true;
+                    return false;
+                case PrerequisiteKind.HasFeature: return HasFeature(p.Key);
+                case PrerequisiteKind.PoolPick: return poolPicks != null && poolPicks.Contains(p.Key);
+                case PrerequisiteKind.Spellcasting: return Class?.Spellcasting != null;
+                case PrerequisiteKind.FightingStyleFeature: return Class != null && Class.FightingStyleLevel > 0 && level >= Class.FightingStyleLevel;
+                case PrerequisiteKind.NotFightingStyle:
+                    foreach (var s in FightingStyles) if (s == p.Key) return false;
+                    return true;
+                default: return false;
+            }
+        }
+
+        /// <summary>The unmet prerequisites, described ("level 5+", "Strength or Dexterity 13+"); empty when all hold.</summary>
+        public IReadOnlyList<string> Unmet(IReadOnlyList<Prerequisite> prerequisites, int level, ICollection<string> poolPicks)
+        {
+            var list = new List<string>();
+            foreach (var p in prerequisites) if (!Meets(p, level, poolPicks)) list.Add(CharacterProgression.Describe(p));
+            return list;
         }
 
         public string ToolName(string id) => RpgCatalog.FindTool(id)?.Name ?? id;

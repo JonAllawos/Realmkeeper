@@ -85,3 +85,47 @@ A Phase 5 player loads as Legacy:
 When they complete setup, they keep everything and receive the class and background kit once, like
 a new character. This is reversible in the sense that nothing they had is lost; nothing is assigned
 until they choose.
+
+## Level-up (Phase 7)
+
+- **When it is offered.** When a created character's experience allows another level:
+  - the HUD shows **Level up (L)**;
+  - the Hub's sheet shows a banner under the experience bar.
+
+  Nothing happens until the player opens it, and Esc or "Later" closes it with nothing applied.
+- **The window (`CharacterAdvancementWindow`).** It has the same layout as the creator.
+  1. **Overview:**
+     - the level, hit points (before → after, and the gain);
+     - proficiency and hit dice;
+     - new features, each with what it waits for;
+     - resources and class-table columns that change;
+     - any open choices from earlier rules versions;
+     - the choices ahead.
+  2. **One page per choice:**
+     - the subclass, with its features by level;
+     - a feat (category, prerequisites, repeatable), followed by the feat's own pages (ability
+       points with caps, skills, the spell list);
+     - expertise, skills, languages, invocations, Metamagic and class options.
+
+     Options that cannot be taken are disabled and say why: "needs level 5+", "needs the pact of
+     the blade invocation", "would pass 20", "already taken".
+  3. **Review:** everything that will change, and what is still missing.
+- **Navigation.** Back and Next keep every pick. Changing a feat drops its old feat's pages.
+  **Confirm level N** is enabled only when the whole level-up is valid.
+- **After confirming.** The command is dispatched once.
+  - If the experience allows another level, the window reopens for it, and each level's choices
+    are separate.
+  - Otherwise the Hub opens on **Character › Progression**.
+- **The logic.** It lives in `AdvancementDraft` (Application, engine-free, tested in .NET). The
+  window only renders it.
+
+The Hub's Character section keeps its structure, with one new panel, **Progression**:
+- the experience bar;
+- each level gained, with its summary;
+- the experience ledger (newest first);
+- the next four levels' features;
+- any open choices.
+
+The other panels now show initiative, speed, passive scores, roll modes, senses, movement,
+fighting styles, class-table columns, resource recovery, spell slots and prepared spells, and each
+score's breakdown.

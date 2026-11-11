@@ -152,12 +152,14 @@ namespace Realmkeeper.Application
             var light = UnencumberedFor(p);
             var heavy = light * OverloadedGrams / UnencumberedGrams;
 
-            // Phase 6: a created character walks at their species' pace (30 ft is the norm).
-            var rules = p.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete ? new Domain.Rpg.CharacterRules(p.Rpg) : null;
+            // Phase 6: a created character walks at their speed (30 ft is the norm): the species' pace and, since
+            // Phase 7, class features whose conditions the worn equipment meets (Unarmoured Movement, Fast Movement).
+            var rules = p.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete ? new Domain.Rpg.CharacterRules(p.Rpg, Domain.Rpg.CharacterRules.LoadoutOf(p)) : null;
             if (rules != null && rules.Speed != 30)
             {
                 factor *= rules.Speed / 30f;
-                reasons.Add(rules.Species.Name.ToLowerInvariant() + " pace (" + rules.Speed + " ft)");
+                var speed = rules.SpeedBreakdown();
+                reasons.Add((speed.Parts.Count > 1 ? "speed" : rules.Species.Name.ToLowerInvariant() + " pace") + " (" + rules.Speed + " ft)");
             }
 
             if (grams > light)

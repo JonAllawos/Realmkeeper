@@ -489,3 +489,75 @@ Phase 6 code.
 - the speed, carry and price effects.
 
 Only one creator path was driven in PlayMode.
+
+## Phase 7: Character Progression & Core Rules Engine (2026-11-11)
+
+Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8.0. All results are at the final
+Phase 7 code.
+
+| Suite | Result |
+|---|---|
+| .NET harness (Release) | **424/424**: 372 + `ProgressionTests` (51, counting test cases) + `ProgressionPerformanceTests` (1) |
+| Unity EditMode (batch) | **424/424** (full suite), and the Character fixtures re-run after the last test edit: **78/78** |
+| Unity PlayMode (batch, `RK_CAPTURE_DIR` set) | **67/67**, 0 failed, 0 skipped: 60 earlier + `Phase7PlayModeTests` (6) + `Phase7CaptureTests` (1) |
+
+**New PlayMode tests in the shipped scene** (`Phase7PlayModeTests`). One per class: Fighter → 5,
+Rogue → 6, Cleric → 3, Wizard → 4, Barbarian → 5, Warlock → 5. Each test:
+1. Creates a character, saves it, **rewrites the save to the Phase 6 (v8) layout**, and loads it.
+   The result is rules version 6, level 1, with one hit die from the migration.
+2. Awards experience through `AwardExperienceCommand`. It checks there is no level-up before the
+   award, and that experience alone does not level up.
+3. Checks that the HUD's **Level up (L)** and the Hub's banner appear.
+4. Clicks the Hub's level-up button and **goes through the real window for every level**:
+   - Next through each page;
+   - the picks made with the window's own buttons (subclass, feat and ability points, expertise,
+     skills, invocations, including the warlock's open level-1 invocation);
+   - Review, then Confirm.
+5. Checks that the window closes onto the Hub's Progression panel, then checks the sheet: features,
+   resources, scaling, subclass, roll modes, speed, and full hit points.
+6. Saves and reloads: level, every choice, resources and advancement records equal. Levelling
+   granted no items and no coin, no further level is offered, the same award is refused, and no
+   feature is granted twice.
+
+`Phase7CaptureTests` takes 13 captures (a Phase 6 tiefling warlock through levels 2–4); they are in
+`Documentation/Screenshots/Phase7/`.
+
+**Earlier tests updated to intended Phase 7 behaviour** (none weakened):
+- the Phase 6 migration test now expects the current schema version, not 8;
+- the validator's unknown-choice message gained "or premature level choice" (the existing assertion
+  is unchanged).
+
+**Mutation checks** (introduced, run, reverted; the source was verified clean):
+
+| Mutant | Result |
+|---|---|
+| Wrong XP threshold (level 3 at 1,000) | Caught by `ExperienceThresholds_AreTheSrdTable` |
+| Wrong proficiency bonus (`level / 4`) | Caught by 4 tests |
+| Wrong hit-point increase (die / 2) | Caught by 7 tests |
+| A level applied twice | **Survived at first**: the whole-sheet validator still refused it (wrong advancement-record count), but no test checked the rule itself. A test was added asserting "the next level is …"; the mutant is now caught by `ChoicesAreNeverRepeatedOrOverwritten`. |
+| Replaced features still applying | Caught by `ClassMilestones_ScaleAndReplaceFeatures` |
+| Ability cap not enforced | Caught by `AbilityScoreImprovement_RaisesScores_UpToTwenty` |
+| Resource maximum off by one level | Caught by 4 tests |
+| Feat choices lost on save | Caught by `AdvancedCharacter_SurvivesSaveAndLoadExactly` and `Progression_IsCheap` |
+| The same XP award accepted twice | Caught by `Experience_IsAwardedThroughTheLedger…` |
+
+**Performance** (`ProgressionPerformanceTests`, on a level-20 warlock):
+
+| Operation | .NET | Unity EditMode |
+|---|---|---|
+| Rules evaluation | 57 µs | 52 µs |
+| Full sheet (skills, roll modes, saves, HP, AC, speed, initiative, passives, features, resources) | 158 µs | 396 µs |
+| Sheet validation, all 20 levels' choices | 0.70 ms | 1.16 ms |
+| Suggestion and preview of a choice-heavy level (warlock 4 → 5) | 0.25 ms | 0.43 ms |
+| XP award command (with whole-world validation) | 0.19 ms | 0.41 ms |
+| Level-up command (with whole-world validation) | 0.86 ms | 1.10 ms |
+| World save / load with a level-20 character | 3.0 / 60 ms | 3.8 / 138 ms |
+
+**Not measured.** A development-build frame-time probe of the level-up window was not re-run. The
+window is UI Toolkit only (no 3D preview), and Phase 6 measured the comparable creator window at a
+held 60 fps.
+
+**Tested only in .NET and EditMode** (not driven through the UI):
+- the other six classes' level-ups, all 12 classes to level 20, and the rules milestones;
+- feats' edge cases, every validator rejection, resources and rests, damage and healing;
+- non-player sheets.

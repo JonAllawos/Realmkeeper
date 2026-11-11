@@ -151,6 +151,9 @@ namespace Realmkeeper.Application
                 p.Species = rules.Species.Name;
                 p.Background = rules.Background.Name;
                 sheet.CreatedOn = edit.CurrentSimulationDate;
+                // Experience earned before creation (legacy or pending players) is kept, with its ledger.
+                sheet.Experience = current.Rpg?.Experience ?? 0;
+                if (current.Rpg != null) foreach (var a in current.Rpg.ExperienceLog) sheet.ExperienceLog.Add(a.Clone());
                 p.Rpg = sheet;
 
                 // The kit, once: into the pack through the inventory rules, then the marked pieces equipped.

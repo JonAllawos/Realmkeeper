@@ -121,3 +121,22 @@ The same notice, naming SRD 5.1, covers the SRD 5.1 values. The product does not
 - **The sheet:** HP, AC, saves, skills, features, resources and proficiencies all appear in the Hub.
 
 Combat, magic, levelling and quests will consume the rest.
+
+## Progression (Phase 7)
+
+The same record now carries:
+- level and experience, with a ledger of awards;
+- level choices under `lv{level}:` keys;
+- the subclass;
+- an advancement history;
+- the rules version its choices were made under.
+
+Everything level-dependent is derived. See:
+- `CharacterProgression.md` for experience, advancement, classes, subclasses, feats, hit points and
+  resources;
+- `RulesEngine.md` for conditions, stacking, roll modes, prerequisites and breakdowns.
+
+The SRD 5.2.1 attribution above covers the progression content (class tables, the subclasses, feats,
+invocations, Metamagic, the experience table). Provenance per definition is in the catalog
+(`ContentSource`): every Phase 7 feature, subclass, feat and option is SRD 5.2.1 unless noted.
+Deferred content is listed in `CharacterProgression.md`.

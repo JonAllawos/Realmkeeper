@@ -21,7 +21,14 @@ namespace Realmkeeper.Domain.Rpg
 
         // Level-one mechanics follow SRD 5.2.1 (classes are in the SRD); text is Realmkeeper's own. Spells are not
         // listed: spellcasting records the ability, cantrips, slots and focus for the magic phase.
-        private static IReadOnlyList<ClassDefinition> BuildClasses() => new[]
+        private static IReadOnlyList<ClassDefinition> BuildClasses()
+        {
+            var list = BuildLevelOneClasses();
+            foreach (var c in list) ApplyProgression(c);
+            return list;
+        }
+
+        private static IReadOnlyList<ClassDefinition> BuildLevelOneClasses() => new[]
         {
             new ClassDefinition
             {
@@ -87,7 +94,9 @@ namespace Realmkeeper.Domain.Rpg
                         {
                             new ChoiceOption("protector", "Protector", "Trained for battle: heavy armour and martial weapons.", E(EffectKind.ArmorProficiency, "heavy"), E(EffectKind.WeaponProficiency, "martial")),
                             new ChoiceOption("thaumaturge", "Thaumaturge", "Steeped in lore: one extra cantrip and your Wisdom added to Arcana and Religion checks.",
-                                E(EffectKind.CombatRule, "extra-cantrip", 1, "One extra cantrip"), E(EffectKind.CombatRule, "wisdom-to-lore", 1, "Add Wisdom to Arcana and Religion")),
+                                E(EffectKind.InnateMagic, "extra-cantrip", 1, "One extra cantrip"),
+                                new RuleEffect(EffectKind.SkillAbilityBonus, nameof(Skill.Arcana), 0, nameof(Ability.Wisdom), EffectCondition.Always, 1),
+                                new RuleEffect(EffectKind.SkillAbilityBonus, nameof(Skill.Religion), 0, nameof(Ability.Wisdom), EffectCondition.Always, 1)),
                         },
                     },
                 },
@@ -113,6 +122,22 @@ namespace Realmkeeper.Domain.Rpg
                 {
                     F("druidic", "Druidic", "You know Druidic, the secret language of druids.", E(EffectKind.Language, "druidic")),
                     Spellcasting("Spellcasting", "You prepare and cast druid spells using Wisdom, with a druidic focus."),
+                },
+                Choices = new[]
+                {
+                    // Phase 7 (rules v7): SRD 5.2.1 level-1 Primal Order. Druids created before it choose at their next advancement.
+                    new ChoiceDefinition
+                    {
+                        Id = "class:primal_order", Name = "Primal Order", Prompt = "Choose your sacred role.", Kind = ChoiceKind.Option, IntroducedInRules = 7,
+                        Options = new[]
+                        {
+                            new ChoiceOption("magician", "Magician", "One extra cantrip, and your Wisdom added to Arcana and Nature checks.",
+                                E(EffectKind.InnateMagic, "extra-cantrip", 1, "One extra cantrip"),
+                                new RuleEffect(EffectKind.SkillAbilityBonus, nameof(Skill.Arcana), 0, nameof(Ability.Wisdom), EffectCondition.Always, 1),
+                                new RuleEffect(EffectKind.SkillAbilityBonus, nameof(Skill.Nature), 0, nameof(Ability.Wisdom), EffectCondition.Always, 1)),
+                            new ChoiceOption("warden", "Warden", "Trained for battle: martial weapons and medium armour.", E(EffectKind.WeaponProficiency, "martial"), E(EffectKind.ArmorProficiency, "medium")),
+                        },
+                    },
                 },
                 Spellcasting = new SpellcastingDefinition { Ability = Ability.Wisdom, Style = "Prepared spells", CantripsKnown = 2, FirstLevelSlots = 2, Focus = "Druidic focus" },
                 Equipment = new[]
@@ -144,11 +169,12 @@ namespace Realmkeeper.Domain.Rpg
                         Id = "class:fighting_style", Name = "Fighting Style", Prompt = "Choose the way you fight.", Kind = ChoiceKind.Option,
                         Options = new[]
                         {
-                            new ChoiceOption("archery", "Archery", "+2 to attack rolls with ranged weapons.", E(EffectKind.CombatRule, "ranged-attack-bonus", 2)),
-                            new ChoiceOption("defense", "Defence", "+1 armour class while wearing armour.", E(EffectKind.CombatRule, "armoured-ac-bonus", 1)),
-                            new ChoiceOption("dueling", "Duelling", "+2 damage with a one-handed weapon and no other weapon.", E(EffectKind.CombatRule, "dueling-damage", 2)),
-                            new ChoiceOption("great_weapon", "Great Weapon Fighting", "Treat 1s and 2s as 3s on two-handed weapon damage dice.", E(EffectKind.CombatRule, "great-weapon-floor", 3)),
-                            new ChoiceOption("protection", "Protection", "Impose disadvantage on an attack against an ally next to you, using your shield.", E(EffectKind.CombatRule, "protect-ally", 1)),
+                            new ChoiceOption("archery", "Archery", "+2 to attack rolls with ranged weapons.", E(EffectKind.CombatRule, "ranged-attack-bonus", 2), E(EffectKind.FightingStyle, "archery")),
+                            new ChoiceOption("defense", "Defence", "+1 armour class while wearing armour.",
+                                new RuleEffect(EffectKind.ArmorClassBonus, null, 1, null, EffectCondition.WearingArmor), E(EffectKind.FightingStyle, "defense")),
+                            new ChoiceOption("dueling", "Duelling", "+2 damage with a one-handed weapon and no other weapon.", E(EffectKind.CombatRule, "dueling-damage", 2), E(EffectKind.FightingStyle, "dueling")),
+                            new ChoiceOption("great_weapon", "Great Weapon Fighting", "Treat 1s and 2s as 3s on two-handed weapon damage dice.", E(EffectKind.CombatRule, "great-weapon-floor", 3), E(EffectKind.FightingStyle, "great_weapon")),
+                            new ChoiceOption("protection", "Protection", "Impose disadvantage on an attack against an ally next to you, using your shield.", E(EffectKind.CombatRule, "protect-ally", 1), E(EffectKind.FightingStyle, "protection")),
                         },
                     },
                 },
@@ -245,6 +271,7 @@ namespace Realmkeeper.Domain.Rpg
                     F("expertise", "Expertise", "Two of your skill proficiencies count double."),
                     F("sneak_attack", "Sneak Attack", "Once per turn, deal an extra 1d6 damage to a creature you have advantage against.", E(EffectKind.CombatRule, "sneak-attack-dice", 1, "1d6 sneak attack")),
                     F("thieves_cant", "Thieves' Cant", "You know the signs and slang of the underworld.", E(EffectKind.Language, "thieves_cant")),
+                    F("weapon_mastery", "Weapon Mastery", "You know the special properties of two weapons (used when combat arrives).", E(EffectKind.CombatRule, "weapon-mastery", 2, "Two weapon masteries")),
                 },
                 Choices = new[] { new ChoiceDefinition { Id = "class:expertise", Name = "Expertise", Prompt = "Choose two skills you are proficient in.", Kind = ChoiceKind.Expertise, Count = 2 } },
                 Equipment = new[]
@@ -286,12 +313,13 @@ namespace Realmkeeper.Domain.Rpg
                 PrimaryAbilities = new[] { Ability.Charisma }, HitDie = 8, SavingThrows = new[] { Ability.Wisdom, Ability.Charisma },
                 ArmorProficiencies = new[] { "light" }, WeaponProficiencies = new[] { "simple" },
                 SkillChoices = 2, SkillOptions = new[] { Skill.Arcana, Skill.Deception, Skill.History, Skill.Intimidation, Skill.Investigation, Skill.Nature, Skill.Religion },
-                Resources = new[] { Slots(1, ResourceRecovery.ShortRest) },
                 Features = new[]
                 {
-                    Spellcasting("Pact Magic", "You cast warlock spells using Charisma; your pact slot returns after a short rest."),
-                    F("eldritch_invocation", "Eldritch Invocation", "You know one invocation, a fragment of forbidden lore (chosen when magic arrives).", E(EffectKind.InnateMagic, "invocation")),
+                    F("spellcasting", "Pact Magic", "You cast warlock spells using Charisma; your pact slots return after a short rest.", E(EffectKind.Resource, "pact_slots")),
+                    F("eldritch_invocation", "Eldritch Invocations", "You know eldritch invocations, fragments of forbidden lore: one at level 1, ten by level 18."),
                 },
+                // Phase 7 (rules v7): the level-1 invocation is chosen. Warlocks created before it choose at their next advancement.
+                Choices = new[] { Invocations(1, 1) },
                 Spellcasting = new SpellcastingDefinition { Ability = Ability.Charisma, Style = "Pact magic", CantripsKnown = 2, FirstLevelSlots = 1, Focus = "Arcane focus", SlotRecovery = ResourceRecovery.ShortRest },
                 Equipment = new[]
                 {
@@ -312,7 +340,8 @@ namespace Realmkeeper.Domain.Rpg
                 Features = new[]
                 {
                     Spellcasting("Spellcasting", "You prepare and cast wizard spells from your spellbook using Intelligence."),
-                    F("arcane_recovery", "Arcane Recovery", "Once a day, after a short rest, you recover a spent spell slot.", E(EffectKind.Resource, "arcane_recovery")),
+                    Sc(F("arcane_recovery", "Arcane Recovery", "Once a day, after a short rest, you recover spent spell slots.", E(EffectKind.Resource, "arcane_recovery")), "arcane_recovery"),
+                    new FeatureDefinition("ritual_adept", "Ritual Adept", "You can cast ritual spells from your book without preparing them.") { Needs = IntegrationNeed.Magic },
                 },
                 Spellcasting = new SpellcastingDefinition { Ability = Ability.Intelligence, Style = "Prepared from a spellbook", CantripsKnown = 3, FirstLevelSlots = 2, Focus = "Arcane focus" },
                 Equipment = new[]

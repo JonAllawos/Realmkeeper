@@ -76,6 +76,8 @@ namespace Realmkeeper.Application
                     return $"{e.Get("player") ?? "A traveller"} sold {Qty(e)} to {e.Get("keeper") ?? "a merchant"} at {e.Get("shop") ?? "a shop"} in {s} for {N(e, "total")} coin.";
                 case HistoricalEventType.PlayerCharacterCreated:
                     return $"{e.Get("player") ?? "A traveller"}, {An($"{(e.Get("species") ?? "traveller").ToLowerInvariant()} {(e.Get("background") ?? "wanderer").ToLowerInvariant()}")}, set out as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}.";
+                case HistoricalEventType.PlayerLevelAdvanced:
+                    return $"{e.Get("player") ?? "A traveller"} rose to level {e.Get("to") ?? "?"} as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}" + (string.IsNullOrEmpty(e.Get("subclass")) ? "." : $" of the {e.Get("subclass")}.");
                 case HistoricalEventType.LabourNoticePosted:
                     return $"{e.Get("player") ?? "A traveller"} posted a notice in {s} calling for more {(e.Get("focus") ?? "work").ToLowerInvariant()}.";
                 case HistoricalEventType.TradeRouteSuspended:

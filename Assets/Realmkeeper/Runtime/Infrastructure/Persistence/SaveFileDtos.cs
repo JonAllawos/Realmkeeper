@@ -537,5 +537,28 @@ namespace Realmkeeper.Infrastructure.Persistence
         public System.Collections.Generic.Dictionary<string, int> Resources { get; set; }
         public bool StartingEquipmentGranted { get; set; }
         public string CreatedOn { get; set; }
+
+        // Schema v9 (Phase 7).
+        public int RulesVersion { get; set; }
+        public System.Collections.Generic.List<ExperienceAwardDto> ExperienceLog { get; set; }
+        public System.Collections.Generic.List<AdvancementRecordDto> Advancements { get; set; }
+    }
+
+    public sealed class ExperienceAwardDto
+    {
+        public string Key { get; set; }
+        public string Source { get; set; }
+        public string SourceId { get; set; }
+        public int Amount { get; set; }
+        public string Date { get; set; }
+        public string Reason { get; set; }
+    }
+
+    public sealed class AdvancementRecordDto
+    {
+        public int Level { get; set; }
+        public string Date { get; set; }
+        public int HitPointsGained { get; set; }
+        public string Summary { get; set; }
     }
 }

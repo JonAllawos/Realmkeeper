@@ -80,6 +80,7 @@ namespace Realmkeeper.Application
             NpcCommandHandlers.Register(_commands);
             PlayerCommandHandlers.Register(_commands);
             CharacterCommandHandlers.Register(_commands);
+            ProgressionCommandHandlers.Register(_commands);
         }
 
         public EconomyRules Rules => _rules;

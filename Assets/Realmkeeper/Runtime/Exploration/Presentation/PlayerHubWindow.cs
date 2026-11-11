@@ -179,9 +179,12 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The Character section's sub-panel: Sheet, Skills, Features, Proficiencies, Identity.</summary>
         public string CharacterPanel { get; private set; } = "Sheet";
 
-        public static readonly IReadOnlyList<string> CharacterPanels = new[] { "Sheet", "Skills", "Features", "Proficiencies", "Identity" };
+        public static readonly IReadOnlyList<string> CharacterPanels = new[] { "Sheet", "Skills", "Features", "Proficiencies", "Progression", "Identity" };
 
         public event Action CreateCharacterRequested;
+
+        /// <summary>Phase 7: the player asked to level up.</summary>
+        public event Action LevelUpRequested;
 
         public void SelectCharacterPanel(string panel)
         {
@@ -235,30 +238,50 @@ namespace Realmkeeper.Exploration.Presentation
                         row.Add(Text((rank == ProficiencyRank.None ? "○ " : rank == ProficiencyRank.Expertise ? "◆ " : "● ") + SkillRules.Name(s), "xk-w-name"));
                         row.Add(Text(Breakdown.Signed(bonus.Total), "xk-cc-col"));
                         var sources = r.SkillSources(s);
-                        row.Add(Text(bonus.Text + (sources.Count > 0 ? " · from " + string.Join(", ", sources) : string.Empty), "xk-w-desc"));
+                        var roll = r.SkillRoll(s);
+                        row.Add(Text(bonus.Text + (sources.Count > 0 ? " · from " + string.Join(", ", sources) : string.Empty) + (roll.Text.Length > 0 ? " · " + roll.Text : string.Empty), "xk-w-desc"));
                         _content.Add(row);
                     }
 
-                    _content.Add(Text($"Passive Perception {r.PassivePerception}. ● proficient  ◆ expertise  ○ untrained.", "xk-w-desc"));
+                    _content.Add(Text($"Passive Perception {r.PassivePerception}, Insight {r.Passive(Skill.Insight).Total}, Investigation {r.Passive(Skill.Investigation).Total}. ● proficient  ◆ expertise  ○ untrained." +
+                                      (r.ProficientCheckFloor > 0 ? $" Reliable Talent: a d20 below {r.ProficientCheckFloor} counts as {r.ProficientCheckFloor} on proficient checks." : string.Empty), "xk-w-desc"));
                     break;
                 case "Features":
-                    foreach (var (source, feature) in r.Features) _content.Add(Pair(feature.Name, feature.Description + "  (" + source + ")"));
+                    foreach (var (source, feature) in r.Features)
+                    {
+                        var needs = CharacterRules.Needs(feature);
+                        var scaling = feature.ScalingId != null ? r.Class.FindScaling(feature.ScalingId) : null;
+                        _content.Add(Pair(feature.Name + (scaling != null ? " (" + scaling.Text(r.Level) + ")" : string.Empty),
+                            feature.Description + "  (" + source + ")" + (needs != IntegrationNeed.None ? "  · full effect with " + CharacterAdvancementWindow.NeedsText(needs) : string.Empty)));
+                    }
+
+                    if (r.Scalings.Count > 0)
+                    {
+                        _content.Add(Text("Class table", "xk-w-heading"));
+                        foreach (var (scaling, text) in r.Scalings) _content.Add(Pair(scaling.Name, text));
+                    }
+
                     _content.Add(Text("Resources", "xk-w-heading"));
                     var any = false;
                     foreach (var res in r.ResourceDefinitions)
                     {
                         any = true;
                         var left = ch.Player.Rpg.Resources.TryGetValue(res.Id, out var v) ? v : 0;
-                        _content.Add(Pair(res.Name, $"{left} / {r.ResourceMax(res)} · recovers on a {(res.Recovery == ResourceRecovery.ShortRest ? "short" : "long")} rest"));
+                        var row = Pair(res.Name, $"{left} / {r.ResourceMax(res)} · recovers on a {(r.RecoveryOf(res) == ResourceRecovery.ShortRest ? "short" : "long")} rest" + (res.Amount == RecoveryAmount.Half ? " (half)" : string.Empty));
+                        row.name = "xk-hub-resource-" + res.Id;
+                        _content.Add(row);
                     }
 
-                    if (!any) _content.Add(Text("No limited resources at level 1.", "xk-w-empty"));
+                    if (!any) _content.Add(Text("No limited resources.", "xk-w-empty"));
                     if (r.Class.Spellcasting != null)
                     {
                         var sc = r.Class.Spellcasting;
-                        _content.Add(Pair("Spellcasting", $"{sc.Ability}; save DC {r.SpellSaveDc().Total}, attack {Breakdown.Signed(r.SpellAttack().Total)}; {sc.CantripsKnown} cantrips; focus: {sc.Focus}. Spells arrive with the magic phase."));
+                        _content.Add(Pair("Spellcasting", $"{sc.Ability}; save DC {r.SpellSaveDc().Total}, attack {Breakdown.Signed(r.SpellAttack().Total)}; {r.CantripsKnown} cantrips, {r.PreparedSpells} prepared; slots: {r.SpellSlotText}; focus: {sc.Focus}. Spells arrive with the magic phase."));
                     }
 
+                    break;
+                case "Progression":
+                    Progression(ch);
                     break;
                 case "Proficiencies":
                     _content.Add(Pair("Armour", r.ArmorProficiencies.Count == 0 ? "None" : string.Join(", ", r.ArmorProficiencies)));
@@ -269,7 +292,12 @@ namespace Realmkeeper.Exploration.Presentation
                     var langs = new List<string>();
                     foreach (var l in r.Languages) langs.Add(r.LanguageName(l));
                     _content.Add(Pair("Languages", string.Join(", ", langs)));
-                    _content.Add(Pair("Senses", r.Darkvision > 0 ? $"Darkvision {r.Darkvision} ft" : "Normal sight"));
+                    var senses = new List<string>();
+                    if (r.Darkvision > 0) senses.Add($"Darkvision {r.Darkvision} ft");
+                    foreach (var (sense, range) in r.Senses) senses.Add($"{char.ToUpperInvariant(sense[0])}{sense.Substring(1).Replace('_', ' ')} {range} ft");
+                    _content.Add(Pair("Senses", senses.Count > 0 ? string.Join(", ", senses) : "Normal sight"));
+                    _content.Add(Pair("Movement", "Walk " + r.SpeedBreakdown().Text.Replace(" +", " ") + (r.MovementModes.Count > 0 ? " · " + string.Join(", ", r.MovementModes) : string.Empty)));
+                    if (r.FightingStyles.Count > 0) _content.Add(Pair("Fighting styles", string.Join(", ", r.FightingStyles).Replace('_', ' ')));
                     _content.Add(Pair("Resistances", r.Resistances.Count == 0 ? "None" : string.Join(", ", r.Resistances)));
                     _content.Add(Pair("Advantage on saves", r.SaveAdvantages.Count == 0 ? "None" : "against " + string.Join(", ", r.SaveAdvantages)));
                     break;
@@ -278,8 +306,10 @@ namespace Realmkeeper.Exploration.Presentation
                     break;
                 default:
                     _content.Add(Text(ch.FullName, "xk-cc-name"));
-                    _content.Add(Text($"{r.Species.Name} · {r.Background.Name} · {r.Class.Name} {r.Level} · {ch.Player.Rpg.Experience} XP", "xk-w-value"));
+                    _content.Add(Text($"{r.Species.Name} · {r.Background.Name} · {r.Class.Name} {r.Level}" + (r.Subclass != null ? " (" + r.Subclass.Name + ")" : string.Empty), "xk-w-value"));
                     if (r.Species.Appearance.PlaceholderNote != null) _content.Add(Text(r.Species.Appearance.PlaceholderNote, "xk-cc-warn"));
+                    _content.Add(ExperienceBar(ch));
+                    if (ch.CanAdvance) _content.Add(LevelUpBanner(ch));
                     var vit = Row("xk-cc-wrap");
                     vit.name = "xk-hub-vitals";
                     foreach (var (k, v) in new[]
@@ -288,8 +318,8 @@ namespace Realmkeeper.Exploration.Presentation
                                  ("Armour class", ch.ArmorClass.Total.ToString(CultureInfo.InvariantCulture)),
                                  ("Speed", r.Speed + " ft"),
                                  ("Proficiency", "+" + r.ProficiencyBonus),
-                                 ("Initiative", Breakdown.Signed(r.Modifier(Ability.Dexterity))),
-                                 ("Hit die", "d" + r.Class.HitDie),
+                                 ("Initiative", Breakdown.Signed(r.Initiative().Total) + (r.InitiativeRoll.HasAdvantage ? " (adv.)" : string.Empty)),
+                                 ("Hit dice", (ch.Player.Rpg.Resources.TryGetValue("hit_dice", out var hd) ? hd : 0) + " / " + r.Level + " × d" + r.HitDie),
                              })
                     {
                         var card = Column("xk-cc-card");
@@ -312,13 +342,93 @@ namespace Realmkeeper.Exploration.Presentation
                         row.Add(Text(r.Score(a).ToString(CultureInfo.InvariantCulture), "xk-cc-col"));
                         row.Add(Text(Breakdown.Signed(r.Modifier(a)), "xk-cc-col"));
                         row.Add(Text((r.SaveProficient(a) ? "● " : "○ ") + Breakdown.Signed(r.SaveBonus(a).Total), "xk-cc-col"));
-                        row.Add(Text(r.SpeciesBonus(a) != 0 ? $"base {r.BaseScore(a)} + {r.SpeciesBonus(a)} {r.Species.Name}" : $"base {r.BaseScore(a)}", "xk-w-desc"));
+                        row.Add(Text(r.ScoreBreakdown(a).Text, "xk-w-desc"));
                         _content.Add(row);
                     }
+
+                    _content.Add(Pair("Initiative", r.Initiative().Text + (r.InitiativeRoll.Text.Length > 0 ? " · " + r.InitiativeRoll.Text : string.Empty)));
+                    _content.Add(Pair("Speed", r.SpeedBreakdown().Text + " ft"));
 
                     _content.Add(Pair("Condition", $"{h.FedText} (fed {h.Fed}/100) · {h.SpeedReason} ({Mathf.RoundToInt(h.SpeedFactor * 100)}% speed)"));
                     _content.Add(Pair("Arms", $"{h.Weapon} (damage {h.Damage})"));
                     break;
+            }
+        }
+
+        // ----- Phase 7: experience and progression ----------------------------------------------------------
+
+        private static VisualElement ExperienceBar(CharacterSnapshot ch)
+        {
+            var box = Column("xk-cc-choice");
+            box.name = "xk-hub-xp";
+            var next = ch.NextLevelExperience;
+            box.Add(Text(next != null
+                ? $"Experience {ch.Experience.ToString("N0", CultureInfo.InvariantCulture)} / {next.Value.ToString("N0", CultureInfo.InvariantCulture)} for level {ch.Level + 1}"
+                : $"Experience {ch.Experience.ToString("N0", CultureInfo.InvariantCulture)} · level 20, the highest", "xk-w-value"));
+            var track = new VisualElement { name = "xk-hub-xp-track" };
+            track.AddToClassList("xk-xp-track");
+            var fill = new VisualElement { name = "xk-hub-xp-fill" };
+            fill.AddToClassList("xk-xp-fill");
+            fill.style.width = new Length(Mathf.Clamp01(ch.Progress) * 100f, LengthUnit.Percent);
+            track.Add(fill);
+            box.Add(track);
+            return box;
+        }
+
+        private VisualElement LevelUpBanner(CharacterSnapshot ch)
+        {
+            var banner = Column("xk-cc-banner");
+            banner.name = "xk-hub-levelup-banner";
+            banner.Add(Text(ch.LevelsAvailable == 1
+                ? $"You have enough experience for level {ch.Level + 1}."
+                : $"You have enough experience for {ch.LevelsAvailable} more levels (up to {ch.Level + ch.LevelsAvailable}); each is taken in turn with its own choices.", "xk-w-value"));
+            if (ch.Outstanding.Count > 0) banner.Add(Text("Some level-1 choices added since your character was made will be asked for too.", "xk-w-desc"));
+            var b = new Button(() => LevelUpRequested?.Invoke()) { text = $"Level up to {ch.Level + 1} (L)", name = "xk-hub-levelup" };
+            b.AddToClassList("xk-button");
+            b.AddToClassList("xk-button--primary");
+            banner.Add(b);
+            return banner;
+        }
+
+        private void Progression(CharacterSnapshot ch)
+        {
+            var r = ch.Rules;
+            var s = ch.Player.Rpg;
+            _content.Add(ExperienceBar(ch));
+            if (ch.CanAdvance) _content.Add(LevelUpBanner(ch));
+
+            _content.Add(Text("Levels gained", "xk-w-heading"));
+            if (s.Advancements.Count == 0) _content.Add(Text("None yet: experience from quests, encounters and discoveries opens the next level.", "xk-w-empty"));
+            foreach (var a in s.Advancements)
+            {
+                var row = Pair($"Level {a.Level}", a.Summary + (a.Date.IsValidDate ? "  (" + a.Date.ToIsoString() + ")" : string.Empty));
+                row.name = "xk-hub-advancement-" + a.Level;
+                _content.Add(row);
+            }
+
+            _content.Add(Text("Experience", "xk-w-heading"));
+            if (s.ExperienceLog.Count == 0) _content.Add(Text("No experience earned yet.", "xk-w-empty"));
+            for (var i = s.ExperienceLog.Count - 1; i >= Math.Max(0, s.ExperienceLog.Count - 12); i--)
+            {
+                var e = s.ExperienceLog[i];
+                _content.Add(Pair("+" + e.Amount.ToString("N0", CultureInfo.InvariantCulture), (e.Reason.Length > 0 ? e.Reason : e.Source.ToString()) + " · " + e.Source + (e.Date.IsValidDate ? " · " + e.Date.ToIsoString() : string.Empty)));
+            }
+
+            if (s.ExperienceLog.Count > 12) _content.Add(Text($"… and {s.ExperienceLog.Count - 12} earlier awards.", "xk-w-desc"));
+
+            _content.Add(Text($"Ahead: {r.Class.Name}", "xk-w-heading"));
+            for (var level = r.Level + 1; level <= Math.Min(AbilityRules.MaxLevel, r.Level + 4); level++)
+            {
+                var names = new List<string>();
+                if (r.Class.LaterFeatures.TryGetValue(level, out var fs)) foreach (var f in fs) names.Add(f.Name);
+                if (r.Subclass != null && r.Subclass.Features.TryGetValue(level, out var sfs)) foreach (var f in sfs) names.Add(f.Name);
+                _content.Add(Pair($"Level {level} ({ProgressionRules.ExperienceFor(level).ToString("N0", CultureInfo.InvariantCulture)} XP)", names.Count == 0 ? "Hit points and class-table increases" : string.Join(", ", names)));
+            }
+
+            if (ch.Outstanding.Count > 0)
+            {
+                _content.Add(Text("Open choices", "xk-w-heading"));
+                foreach (var o in ch.Outstanding) _content.Add(Pair(o.Choice.Name, o.Choice.Prompt + " (made with your next level-up)"));
             }
         }
 

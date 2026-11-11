@@ -5,6 +5,53 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v8 → v9 (Phase 7: progression). Adds the progression record to the character and changes nothing else:
+    /// <list type="bullet">
+    /// <item>the rules version: 6 for a created character (its choices were made under Phase 6 rules, so the
+    /// level-1 choices Phase 7 introduced stay open until its next advancement), 7 for one not yet created;</item>
+    /// <item>an empty experience ledger and advancement history (a v8 character is level 1; experience it already
+    /// had, which Phase 6 never awarded, is kept as one ledger entry so nothing is lost);</item>
+    /// <item>hit dice, full (one per level), for a created character;</item>
+    /// <item>the warlock's level-1 slot moves from <c>spell_slots_1</c> to <c>pact_slots</c>, keeping its uses.</item>
+    /// </list>
+    /// Identity, species, background, class, scores, choices, hit points, inventory, equipment, purse, place and
+    /// chronicle are untouched.
+    /// </summary>
+    public sealed class MigrationV8ToV9 : ISaveMigration
+    {
+        public int SourceVersion => 8;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world) || !(world["player"] is JObject player) || !(player["rpg"] is JObject rpg)) return;
+            var complete = (string)rpg["state"] == "Complete";
+            if (rpg["rulesVersion"] == null) rpg["rulesVersion"] = complete ? 6 : 7;
+            if (rpg["advancements"] == null) rpg["advancements"] = new JArray();
+            if (rpg["experienceLog"] == null)
+            {
+                var log = new JArray();
+                var xp = (int?)rpg["experience"] ?? 0;
+                if (xp > 0)
+                    log.Add(new JObject
+                    {
+                        ["key"] = "migrated:v8", ["source"] = "Other", ["amount"] = xp,
+                        ["reason"] = "Experience recorded before the experience ledger existed",
+                    });
+                rpg["experienceLog"] = log;
+            }
+
+            if (!complete) return;
+            if (!(rpg["resources"] is JObject resources)) rpg["resources"] = resources = new JObject();
+            if (resources["hit_dice"] == null) resources["hit_dice"] = (int?)rpg["level"] ?? 1;
+            if ((string)rpg["classId"] == "warlock" && resources["spell_slots_1"] != null && resources["pact_slots"] == null)
+            {
+                resources["pact_slots"] = resources["spell_slots_1"];
+                resources.Remove("spell_slots_1");
+            }
+        }
+    }
+
+    /// <summary>
     /// v7 → v8 (Phase 6: character creation). Gives the player an explicit legacy character record: no
     /// species, background, class, scores or kit are assigned or invented, and nothing else changes (identity,
     /// appearance, belongings, purse, location). The game then offers character setup, which grants the class

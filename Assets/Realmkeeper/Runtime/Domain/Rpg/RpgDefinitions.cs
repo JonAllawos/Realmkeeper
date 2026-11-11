@@ -19,6 +19,19 @@ namespace Realmkeeper.Domain.Rpg
         public string Name { get; }
         public string Description { get; }
         public IReadOnlyList<RuleEffect> Effects { get; }
+
+        // ----- Phase 7 -----
+
+        public FeatureKind Kind { get; set; } = FeatureKind.Passive;
+
+        /// <summary>Systems this feature waits for (shown on the sheet; nothing is faked meanwhile).</summary>
+        public IntegrationNeed Needs { get; set; }
+
+        /// <summary>The feature this one supersedes (e.g. Two Extra Attacks replaces Extra Attack); the replaced one stops applying.</summary>
+        public string Replaces { get; set; }
+
+        /// <summary>A named scaling column this feature reads (e.g. "sneak_attack"), shown with its current value.</summary>
+        public string ScalingId { get; set; }
     }
 
     public enum ChoiceKind
@@ -31,6 +44,61 @@ namespace Realmkeeper.Domain.Rpg
 
         /// <summary>Pick skills you are already proficient in to gain expertise.</summary>
         Expertise = 2,
+
+        // ----- Phase 7 -----
+
+        /// <summary>Pick a feat from <see cref="ChoiceDefinition.FeatCategories"/>; the feat's own choices follow under "{id}:{local}".</summary>
+        Feat = 3,
+
+        /// <summary>Pick languages you do not know yet.</summary>
+        Language = 4,
+
+        /// <summary>Pick abilities to raise by 1 each (<see cref="ChoiceDefinition.AllowRepeat"/> lets one ability take several).</summary>
+        AbilityIncrease = 5,
+
+        /// <summary>Pick the class's subclass (recorded in <c>CharacterSheetData.SubclassId</c>, not in the choices map).</summary>
+        Subclass = 6,
+    }
+
+    /// <summary>What must be true before a feat, invocation or option can be taken (Phase 7).</summary>
+    public enum PrerequisiteKind
+    {
+        /// <summary>Character level at least Value.</summary>
+        MinLevel = 0,
+
+        /// <summary>Any of <see cref="Prerequisite.Abilities"/> at Value or more.</summary>
+        AbilityAtLeast = 1,
+
+        /// <summary>A feature with ID Key is active.</summary>
+        HasFeature = 2,
+
+        /// <summary>Option Key is already taken in the same pool (e.g. Pact of the Blade before Thirsting Blade).</summary>
+        PoolPick = 3,
+
+        /// <summary>The character can cast spells.</summary>
+        Spellcasting = 4,
+
+        /// <summary>The character has a Fighting Style feature.</summary>
+        FightingStyleFeature = 5,
+
+        /// <summary>The character does not already have fighting style Key.</summary>
+        NotFightingStyle = 6,
+    }
+
+    public sealed class Prerequisite
+    {
+        public PrerequisiteKind Kind { get; set; }
+        public string Key { get; set; }
+        public int Value { get; set; }
+        public IReadOnlyList<Ability> Abilities { get; set; } = Array.Empty<Ability>();
+
+        public static Prerequisite Level(int level) => new Prerequisite { Kind = PrerequisiteKind.MinLevel, Value = level };
+        public static Prerequisite Ability(int score, params Ability[] any) => new Prerequisite { Kind = PrerequisiteKind.AbilityAtLeast, Value = score, Abilities = any };
+        public static Prerequisite Feature(string id) => new Prerequisite { Kind = PrerequisiteKind.HasFeature, Key = id };
+        public static Prerequisite Pick(string optionId) => new Prerequisite { Kind = PrerequisiteKind.PoolPick, Key = optionId };
+        public static Prerequisite Caster() => new Prerequisite { Kind = PrerequisiteKind.Spellcasting };
+        public static Prerequisite StyleFeature() => new Prerequisite { Kind = PrerequisiteKind.FightingStyleFeature };
+        public static Prerequisite NewStyle(string style) => new Prerequisite { Kind = PrerequisiteKind.NotFightingStyle, Key = style };
     }
 
     public sealed class ChoiceOption
@@ -47,18 +115,49 @@ namespace Realmkeeper.Domain.Rpg
         public string Name { get; }
         public string Description { get; }
         public IReadOnlyList<RuleEffect> Effects { get; }
+
+        /// <summary>Phase 7: what must be true to take this option.</summary>
+        public IReadOnlyList<Prerequisite> Prerequisites { get; set; } = Array.Empty<Prerequisite>();
+
+        /// <summary>Phase 7: systems the option waits for.</summary>
+        public IntegrationNeed Needs { get; set; }
     }
 
-    /// <summary>A required choice a species or class asks for at creation (e.g. skills, a fighting style, an ancestry).</summary>
+    /// <summary>A required choice: at creation (skills, a fighting style, an ancestry) or, from Phase 7, at a later level.</summary>
     public sealed class ChoiceDefinition
     {
+        /// <summary>The key the choice is stored under (level choices are "lv{level}:{name}").</summary>
         public string Id { get; set; }
+
         public string Name { get; set; }
         public string Prompt { get; set; }
         public ChoiceKind Kind { get; set; }
         public int Count { get; set; } = 1;
         public IReadOnlyList<ChoiceOption> Options { get; set; } = Array.Empty<ChoiceOption>();
         public IReadOnlyList<Skill> Skills { get; set; } = Array.Empty<Skill>();
+
+        // ----- Phase 7 -----
+
+        /// <summary>The character level the choice is made at.</summary>
+        public int Level { get; set; } = 1;
+
+        /// <summary>Choices sharing a pool never repeat a value across levels (invocations, metamagic).</summary>
+        public string Pool { get; set; }
+
+        /// <summary>The rules version that introduced the choice. Older sheets may lack it until their next advancement.</summary>
+        public int IntroducedInRules { get; set; } = 6;
+
+        /// <summary>For <see cref="ChoiceKind.Feat"/>: the feat categories offered.</summary>
+        public FeatCategory FeatCategories { get; set; }
+
+        /// <summary>For <see cref="ChoiceKind.AbilityIncrease"/>: the abilities allowed (empty = any).</summary>
+        public IReadOnlyList<Ability> Abilities { get; set; } = Array.Empty<Ability>();
+
+        /// <summary>For <see cref="ChoiceKind.AbilityIncrease"/>: one ability may take several points.</summary>
+        public bool AllowRepeat { get; set; }
+
+        /// <summary>For <see cref="ChoiceKind.AbilityIncrease"/>: the score an increase may not pass.</summary>
+        public int Limit { get; set; } = AbilityRules.MaxScore;
     }
 
     /// <summary>A pool a class or species spends (rage, spell slots, a healing pool).</summary>
@@ -71,17 +170,137 @@ namespace Realmkeeper.Domain.Rpg
         public int Value { get; set; }
         public Ability Ability { get; set; }
         public ResourceRecovery Recovery { get; set; }
+
+        // ----- Phase 7 -----
+
+        /// <summary>For <see cref="ResourceFormula.Table"/>: the maximum at each class level 1–20.</summary>
+        public IReadOnlyList<int> Table { get; set; }
+
+        /// <summary>The first level the resource exists at (a table starts where its first value is non-zero).</summary>
+        public int FromLevel { get; set; } = 1;
+
+        /// <summary>From this level the resource also returns on a short rest (0 = never; Font of Inspiration).</summary>
+        public int ShortRestFromLevel { get; set; }
+
+        /// <summary>How much a recovery restores.</summary>
+        public RecoveryAmount Amount { get; set; }
+
+        /// <summary>Where the resource comes from (for the sheet), set by the catalog.</summary>
+        public string Origin { get; set; }
+
+        public int FirstLevel
+        {
+            get
+            {
+                if (Formula != ResourceFormula.Table || Table == null) return FromLevel;
+                for (var i = 0; i < Table.Count; i++) if (Table[i] > 0) return Math.Max(FromLevel, i + 1);
+                return int.MaxValue;
+            }
+        }
+
+        public ResourceRecovery RecoveryAt(int level) => ShortRestFromLevel > 0 && level >= ShortRestFromLevel ? ResourceRecovery.ShortRest : Recovery;
     }
 
-    /// <summary>What a class can do with magic at level 1 (spells themselves belong to the magic phase).</summary>
+    /// <summary>How a caster's slots grow (SRD 5.2.1 class tables).</summary>
+    public enum CasterProgression
+    {
+        None = 0,
+
+        /// <summary>Bard, cleric, druid, sorcerer, wizard: slots of levels 1–9.</summary>
+        Full = 1,
+
+        /// <summary>Paladin, ranger: the full table at half level, rounded up (slots of levels 1–5).</summary>
+        Half = 2,
+
+        /// <summary>Warlock: a few slots, all of one level, back on a short rest.</summary>
+        Pact = 3,
+    }
+
+    /// <summary>What a class can do with magic (spells themselves belong to the magic phase).</summary>
     public sealed class SpellcastingDefinition
     {
         public Ability Ability { get; set; }
         public string Style { get; set; }
+
+        /// <summary>Cantrips at level 1 (kept from Phase 6; <see cref="CantripsAt"/> for any level).</summary>
         public int CantripsKnown { get; set; }
+
+        /// <summary>Spell slots at level 1 (kept from Phase 6).</summary>
         public int FirstLevelSlots { get; set; }
+
         public string Focus { get; set; }
         public ResourceRecovery SlotRecovery { get; set; }
+
+        // ----- Phase 7 -----
+
+        public CasterProgression Progression { get; set; }
+
+        /// <summary>Cantrips known at levels 1–20 (null = none).</summary>
+        public IReadOnlyList<int> Cantrips { get; set; }
+
+        /// <summary>Prepared spells at levels 1–20.</summary>
+        public IReadOnlyList<int> Prepared { get; set; }
+
+        public int CantripsAt(int level) => Cantrips == null ? 0 : Cantrips[Math.Max(1, Math.Min(20, level)) - 1];
+        public int PreparedAt(int level) => Prepared == null ? 0 : Prepared[Math.Max(1, Math.Min(20, level)) - 1];
+    }
+
+    /// <summary>A named column of a class table (rage damage, sneak attack dice, martial arts die …), per level 1–20.</summary>
+    public sealed class ScalingDefinition
+    {
+        public ScalingDefinition(string id, string name, string format, params int[] values)
+        {
+            Id = id;
+            Name = name;
+            Format = format;
+            Values = values;
+        }
+
+        public string Id { get; }
+        public string Name { get; }
+
+        /// <summary>A composite format with {0} for the value ("+{0}", "{0}d6", "d{0}", "+{0} ft").</summary>
+        public string Format { get; }
+
+        public IReadOnlyList<int> Values { get; }
+
+        public int At(int level) => Values[Math.Max(1, Math.Min(20, level)) - 1];
+        public string Text(int level) => string.Format(System.Globalization.CultureInfo.InvariantCulture, Format, At(level));
+    }
+
+    /// <summary>A subclass (Phase 7): its features and choices by level, and its resources.</summary>
+    public sealed class SubclassDefinition
+    {
+        public string Id { get; set; }
+        public string ClassId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public ContentSource Source { get; set; }
+        public IReadOnlyDictionary<int, IReadOnlyList<FeatureDefinition>> Features { get; set; } = new Dictionary<int, IReadOnlyList<FeatureDefinition>>();
+        public IReadOnlyList<ChoiceDefinition> Choices { get; set; } = Array.Empty<ChoiceDefinition>();
+        public IReadOnlyList<ResourceDefinition> Resources { get; set; } = Array.Empty<ResourceDefinition>();
+    }
+
+    /// <summary>A feat (Phase 7, SRD 5.2.1): category, prerequisites, effects, and its own choices.</summary>
+    public sealed class FeatDefinition
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public FeatCategory Category { get; set; }
+        public IReadOnlyList<Prerequisite> Prerequisites { get; set; } = Array.Empty<Prerequisite>();
+        public bool Repeatable { get; set; }
+
+        /// <summary>When repeated, this sub-choice must differ each time (Magic Initiate's spell list).</summary>
+        public string RepeatDistinct { get; set; }
+
+        public IReadOnlyList<RuleEffect> Effects { get; set; } = Array.Empty<RuleEffect>();
+
+        /// <summary>The feat's own choices; their IDs are local ("abilities", "skills") and stored under "{feat choice}:{local}".</summary>
+        public IReadOnlyList<ChoiceDefinition> Choices { get; set; } = Array.Empty<ChoiceDefinition>();
+
+        public IntegrationNeed Needs { get; set; }
+        public ContentSource Source { get; set; } = ContentSource.Srd521;
     }
 
     /// <summary>Items granted together (item ID, quantity, equip on grant).</summary>
@@ -221,8 +440,34 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>What the class's subclasses are called (e.g. "Primal Path").</summary>
         public string SubclassTitle { get; set; }
 
-        /// <summary>Features at later levels (empty in Phase 6; the progression phase fills it: level → features).</summary>
+        /// <summary>Features at levels 2–20 (Phase 7): level → features.</summary>
         public IReadOnlyDictionary<int, IReadOnlyList<FeatureDefinition>> LaterFeatures { get; set; } = new Dictionary<int, IReadOnlyList<FeatureDefinition>>();
+
+        // ----- Phase 7 -----
+
+        /// <summary>Choices made on reaching levels 2–20 (IDs "lv{level}:{name}").</summary>
+        public IReadOnlyList<ChoiceDefinition> LevelChoices { get; set; } = Array.Empty<ChoiceDefinition>();
+
+        /// <summary>Levels that grant a feat (Ability Score Improvement or another general or origin feat).</summary>
+        public IReadOnlyList<int> FeatLevels { get; set; } = new[] { 4, 8, 12, 16 };
+
+        /// <summary>The level of the Epic Boon feat.</summary>
+        public int EpicBoonLevel { get; set; } = 19;
+
+        /// <summary>Levels at which the subclass grants features (from the class table).</summary>
+        public IReadOnlyList<int> SubclassFeatureLevels { get; set; } = Array.Empty<int>();
+
+        /// <summary>Named columns of the class table.</summary>
+        public IReadOnlyList<ScalingDefinition> Scalings { get; set; } = Array.Empty<ScalingDefinition>();
+
+        /// <summary>The fighting style feature, if the class has one (the level it arrives at; 0 = none).</summary>
+        public int FightingStyleLevel { get; set; }
+
+        public ScalingDefinition FindScaling(string id)
+        {
+            foreach (var s in Scalings) if (s.Id == id) return s;
+            return null;
+        }
 
         public ContentSource Source { get; set; }
 

@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 6, 2026-11-10)
+## Implementation status (updated at the end of Phase 7, 2026-11-11)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -26,49 +26,59 @@ present but visibly temporary; **Not started**.
 | 3 | Factions | Implemented |
 | 4 | NPC Intelligence | Implemented |
 | 5 | Living World & Player Hub | Implemented (`1f37bb6`) |
-| 6 | Character Creation | **Implemented, awaiting review.** See below. |
-| 7–16 | Progression onwards | Not started |
+| 6 | Character Creation | Implemented (`f2682a2`) |
+| 7 | RPG Progression | **Implemented, awaiting review.** See below. |
+| 8–16 | Combat onwards | Not started |
 
-### §7 Character and RPG system: what Phase 6 delivers
+### §7 Character and RPG system
 
 | Area | Status | Notes |
 |---|---|---|
-| Six abilities, modifiers | Implemented | `floor((score − 10) / 2)`, derived, never stored |
+| Six abilities, modifiers | Implemented | Derived; increases from species, feats, Epic Boons and capstones, each with its cap |
 | Standard array, point buy | Implemented | No manual entry or rolling |
-| 18 skills, proficiency, expertise | Implemented | Sources shown on the sheet |
-| Six saving throws | Implemented | Advantage traits stored for combat |
-| 12 species | Implemented as rules; **Placeholder** art | Only Human has a finished model. The other eleven are the human body at the species' height, labelled as placeholders |
-| 12 backgrounds | Implemented | Merchant's price feature works now; social features are Foundation |
-| 12 classes, level 1 | Implemented at level 1 | Levels 2–20 and subclasses: Not started (Phase 7) |
-| Hit points, armour class | Implemented; AC **provisional** | AC waits for armour categories (combat) |
-| Class resources | Foundation | Maximums and current uses saved; nothing spends them yet |
-| Spellcasting | Foundation | Ability, slots, cantrip counts, DC and attack; no spells (Phase 9) |
-| Combat features | Foundation | Typed data (sneak attack, rage, styles, masteries); no combat (Phase 8) |
-| Character creator | Implemented | Nine steps, live 3D preview, review, one transaction |
-| Character sheet in the Player Hub | Implemented | Sheet, skills, features, proficiencies, identity |
-| XP and levelling | Not started | Level 1 and XP 0 are stored |
+| 18 skills, proficiency, expertise | Implemented | Expertise from levels too; Jack of All Trades; Reliable Talent shown |
+| Six saving throws | Implemented | Save proficiencies and aura bonuses from levels; roll modes |
+| 12 species | Implemented as rules; **Placeholder** art | Unchanged from Phase 6 |
+| 12 backgrounds | Implemented | Social features are Foundation |
+| 12 classes | **Implemented, levels 1–20** | SRD 5.2.1 features, scaling, resources, slots; distinct and validated |
+| Subclasses | Implemented (one per class) | The SRD 5.2.1 subclass; further subclasses Not started |
+| Feats | Implemented (SRD set) | General, Origin, Fighting Style, Epic Boon; prerequisites and repeat rules |
+| XP and levelling | **Implemented** | Keyed ledger; explicit level-up window; multi-level transactions |
+| Hit points, hit dice | Implemented | Fixed averages; current HP rises with the maximum; damage, healing, temporary HP |
+| Armour class | Implemented, **provisional** | Conditional bonuses (Defense), unarmoured defences; armour categories wait for combat |
+| Class resources | **Implemented** | Spend, restore and recover commands; rests that pass time are Not started |
+| Spellcasting | Foundation | Slots, cantrips, prepared counts, DC and attack per level; no spells (Phase 9) |
+| Combat features | Foundation | Acquired and shown, with "waits for combat"; no combat (Phase 8) |
+| Character creator | Implemented | Now includes the rules-v7 level-1 choices |
+| Character sheet in the Player Hub | Implemented | Adds Progression, breakdowns, roll modes, senses, movement |
+| NPC and companion progression | Foundation | Services take any sheet (ADR-0029); no NPC holds one yet |
 
-### §19 Design principles: how Phase 6 respects them
+### §19 Design principles: how Phases 6–7 respect them
 
-- **2 (custom protagonist), 3 (not a chosen one):** creation is fully custom; nothing is invented
-  for older saves, which stay Legacy until the player chooses.
-- **7 (D&D-inspired, adapted):** SRD 5.2.1 / 5.1 mechanics under CC BY 4.0, Realmkeeper text
-  (ADR-0022).
-- **8 (real mechanical effects):** species speed, carry capacity, merchant prices, hit points,
-  saves and skills are already live.
-- **14 (data-driven), 15 (extend, not duplicate):** typed effects (ADR-0021); one player entity
-  (ADR-0020).
-- **16 (tests):** .NET, EditMode and PlayMode coverage plus mutation checks.
-- **17 (honest placeholders), 18 (licensing):** placeholder bodies are labelled (ADR-0024); no new
-  art was added; the SRD licence is attributed.
-- **20 (controlled phases):** Phase 6 stops here for review.
+- **2, 3 (custom protagonist, not a chosen one):** creation and every level choice are the player's.
+  Older characters keep their choices, and new choices are asked for, never guessed.
+- **7 (D&D-inspired, adapted):** SRD 5.2.1 / 5.1 under CC BY 4.0. The hybrid configuration is
+  explicit (ADR-0022, ADR-0026).
+- **8 (real mechanical effects):** level features change speed, initiative, saves, skills, senses,
+  hit points, AC and resources now. The rest declare what they wait for.
+- **14, 15 (data-driven; extend, not duplicate):** one record (ADR-0025); typed effects and one rules
+  engine (ADR-0027).
+- **16 (tests):** .NET, EditMode, PlayMode (six classes through the real level-up window), and
+  mutation checks.
+- **17, 18 (honest placeholders, licensing):** no new art; SRD content attributed; deferred content
+  listed rather than invented.
+- **20 (controlled phases):** Phase 7 stops here for review.
 
-### §20 Open questions touched by Phase 6
+### §20 Open questions
 
-None were locked by this phase. The exact XP curve, the spell list and the final art remain open.
-Two choices were made as configuration, not canon:
-- species-based ability increases (SRD 5.1 style);
-- Aasimar as a Realmkeeper original. Its name is flagged for IP review.
+None were locked. Used as replaceable configuration, not canon:
+- the SRD 5.2.1 experience table;
+- the SRD's one subclass per class.
+
+Still open: the final XP curve, the subclass catalogue, the spell list, the combat design details,
+and the world's names and history.
+
+The `ProductFoundation.md` and Bible scope question remains an owner decision.
 
 ---
 

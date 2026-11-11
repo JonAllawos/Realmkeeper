@@ -260,6 +260,9 @@ namespace Realmkeeper.Domain.World
 
         // Phase 6: the player created their character (Minor; facts: player, species, background, class, level).
         PlayerCharacterCreated = 52,
+
+        /// <summary>Phase 7: the player gained one or more levels (facts: player, class, from, to, subclass).</summary>
+        PlayerLevelAdvanced = 53,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

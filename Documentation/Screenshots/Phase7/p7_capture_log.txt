@@ -1,0 +1,15 @@
+Loaded a Phase 6 (schema v8) save: Corvin Ashe, Tiefling Warlock 1, rules version 6; open choices: Eldritch Invocations.
+p7_01_hud_level_up: 2,800 experience awarded (a quest and a discovery): the HUD offers 'Level up (L)'. Experience alone did not level the character.
+p7_02_hub_eligible: The Hub's sheet: experience bar and the level-up banner (three levels available, taken one at a time).
+p7_03_level2_overview: Level 2 overview: hit points, new features, resources, and the open level-1 choice from Phase 6.
+p7_04_level2_open_invocation: The level-1 invocation Phase 6 left open, made now (only invocations without prerequisites).
+p7_05_level2_invocations: Level 2 invocations: unavailable ones say why (level, or a pact they need).
+p7_06_level2_review: Level 2 review before confirming.
+p7_07_level3_subclass: Level 3: the Otherworldly Patron (the SRD's Fiend Patron; others deferred) with its features by level.
+p7_08_level4_feat: Level 4: Ability Score Improvement or a feat, with prerequisites and categories.
+p7_09_level4_ability_points: The feat's own page: two points, each capped at 20.
+p7_10_level4_review: Level 4 review: Charisma 17 → 19, the new features, resources.
+Advanced: Corvin Ashe, Warlock 4 (Fiend Patron); HP 31; invocations armor_of_shadows, eldritch_mind, pact_of_the_blade.
+p7_11_hub_progression: Hub, Character › Progression: levels gained with their summaries, the experience ledger, and the levels ahead.
+p7_12_hub_features: Features (with what each waits for), the class table and resources (pact slots, Magical Cunning, hit dice).
+p7_13_hub_sheet: The sheet at level 4: hit points, hit dice, initiative and speed breakdowns, scores with their improvements.

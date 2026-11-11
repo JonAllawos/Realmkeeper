@@ -36,6 +36,11 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>Phase 6: the character creator.</summary>
         public CharacterCreatorWindow Creator { get; private set; }
 
+        /// <summary>Phase 7: the level-up window.</summary>
+        public CharacterAdvancementWindow Advancement { get; private set; }
+
+        private Button _levelUpButton;
+
         public TradeWindow Trade { get; private set; }
         public PlayerHubWindow HubWindow { get; private set; }
         public CharacterPreview Preview { get; private set; }
@@ -44,7 +49,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The shop whose window is open, or null.</summary>
         public ShopInteriorView TradingAt { get; private set; }
 
-        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen);
+        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen) || (Advancement != null && Advancement.IsOpen);
 
         /// <summary>The atmosphere (lighting) of the current visit.</summary>
         public ExplorationAtmosphere Atmosphere => _atmosphere;
@@ -109,6 +114,10 @@ namespace Realmkeeper.Exploration.Presentation
                 Creator.DraftChanged += ShowDraftLook;
                 Creator.PreviewTurned += d => { Preview?.Rotate(d); Preview?.RenderNow(); };
                 Creator.PreviewZoomed += d => { Preview?.Zoom(d); Preview?.RenderNow(); };
+                HubWindow.LevelUpRequested += () => OpenAdvancement();
+                Advancement = new CharacterAdvancementWindow(Hud.Root);
+                Advancement.CloseRequested += CloseWindows;
+                Advancement.ConfirmRequested += c => ConfirmAdvancement(c);
                 AddClock();
             }
 
@@ -141,6 +150,8 @@ namespace Realmkeeper.Exploration.Presentation
             Trade = null;
             Creator = null;
             _createButton = null;
+            Advancement = null;
+            _levelUpButton = null;
             HubWindow = null;
             Preview = null;
             TradingAt = null;
@@ -163,6 +174,8 @@ namespace Realmkeeper.Exploration.Presentation
             TimeButton(row, "Hub (H)", "xk-open-hub", () => ToggleHub());
             _createButton = TimeButton(row, "Create character (C)", "xk-open-creator", () => OpenCreator());
             _createButton.AddToClassList("xk-button--primary");
+            _levelUpButton = TimeButton(row, "Level up (L)", "xk-open-levelup", () => OpenAdvancement());
+            _levelUpButton.AddToClassList("xk-button--primary");
             panel.Add(row);
         }
 
@@ -313,7 +326,9 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void RefreshClock(WorldTimeSummary time)
         {
-            _createButton?.EnableInClassList("xk-hidden", _session?.GetCharacter()?.NeedsCreation != true);
+            var character = _session?.GetCharacter();
+            _createButton?.EnableInClassList("xk-hidden", character?.NeedsCreation != true);
+            _levelUpButton?.EnableInClassList("xk-hidden", character?.CanAdvance != true);
             if (_clock == null) return;
             _clock.text = time.Clock + " · " + time.DayPart;
             var playback = _runtime?.Playback;
@@ -443,6 +458,7 @@ namespace Realmkeeper.Exploration.Presentation
         public void CloseWindows()
         {
             Creator?.Hide();
+            Advancement?.Hide();
             Trade?.Hide();
             HubWindow?.Hide();
             Preview?.SetActive(false);
@@ -493,6 +509,51 @@ namespace Realmkeeper.Exploration.Presentation
             CloseWindows();
             Hud?.ShowMessage(result);
             RefreshLiving(snap: false);
+            return result;
+        }
+
+        // ----- Advancement (Phase 7) -------------------------------------------------------------------------
+
+        /// <summary>Opens the level-up window, if the character's experience allows another level.</summary>
+        public bool OpenAdvancement(string message = null)
+        {
+            var character = _session?.GetCharacter();
+            if (Advancement == null || character == null || !character.CanAdvance) return false;
+            Trade?.Hide();
+            HubWindow?.Hide();
+            Creator?.Hide();
+            Hud?.HideResponse();
+            TradingAt = null;
+            Preview?.SetActive(false);
+            Advancement.Open(character, message);
+            SetWindowMode(true);
+            return true;
+        }
+
+        /// <summary>
+        /// Dispatches the level-up. On success the sheet, body and HUD update; if the experience allows another level
+        /// the window reopens for it (each level keeps its own choices), otherwise the Hub opens on the new sheet.
+        /// </summary>
+        public CommandResult ConfirmAdvancement(AdvanceCharacterCommand command)
+        {
+            if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            var result = _session.Dispatch(command);
+            if (!result.IsSuccess)
+            {
+                Advancement?.ShowMessage(ResidentView.Describe(result), true);
+                return result;
+            }
+
+            RefreshLiving(snap: false);
+            if (_session.GetCharacter()?.CanAdvance == true)
+            {
+                OpenAdvancement(ResidentView.Describe(result));
+                return result;
+            }
+
+            Advancement?.Hide();
+            ShowHub(ResidentView.Describe(result), false);
+            HubWindow?.SelectCharacterPanel("Progression");
             return result;
         }
 
@@ -565,6 +626,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (keys.hKey.wasPressedThisFrame) ToggleHub();
             if (keys.cKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.NeedsCreation == true) OpenCreator();
+            if (keys.lKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.CanAdvance == true) OpenAdvancement();
             if (WindowOpen && keys.escapeKey.wasPressedThisFrame) CloseWindows();
             if (WindowOpen) return;
             if (keys.tKey.wasPressedThisFrame) WaitHour();

@@ -26,5 +26,10 @@
 | [0022](ADR-0022-rules-configuration-and-licensing.md) | Fifth-edition-compatible rules from the SRD under CC BY 4.0 | Accepted (Phase 6) |
 | [0023](ADR-0023-legacy-migration-and-kit-once.md) | Older players become Legacy; the starting kit is granted exactly once | Accepted (Phase 6) |
 | [0024](ADR-0024-placeholder-species-appearance.md) | Species appearance is a contract; non-human species use labelled placeholders | Accepted (Phase 6) |
+| [0025](ADR-0025-progression-in-the-character-record.md) | Progression lives in the one character record; level values derived | Accepted (Phase 7) |
+| [0026](ADR-0026-rules-configuration-v7.md) | Rules configuration v7: SRD 5.2.1 progression on the Phase 6 base | Accepted (Phase 7) |
+| [0027](ADR-0027-shared-rules-engine.md) | One shared rules engine with conditions, stacking, roll modes and prerequisites | Accepted (Phase 7) |
+| [0028](ADR-0028-experience-ledger-and-explicit-advancement.md) | Experience ledger with idempotent awards, explicit advancement, outstanding choices | Accepted (Phase 7) |
+| [0029](ADR-0029-character-agnostic-progression.md) | Progression services work on any character sheet | Accepted (Phase 7) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -336,7 +336,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             var loaded = serializer.Deserialize(doc.ToString());
             Assert.That(loaded.IsSuccess, Is.True, string.Join("; ", loaded.Errors));
             var p = loaded.World.Player;
-            Assert.That(loaded.World.SchemaVersion, Is.EqualTo(8));
+            Assert.That(loaded.World.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
             Assert.That(p.Rpg.State, Is.EqualTo(CreationState.Legacy), "Nothing assigned or invented.");
             Assert.That(p.Rpg.SpeciesId, Is.Null);
             Assert.That(p.Rpg.ClassId, Is.Null);

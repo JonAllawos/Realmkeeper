@@ -1,15 +1,16 @@
+using System.Collections.Generic;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
 
 namespace Realmkeeper.Application
 {
-    /// <summary>The player's character for the sheet and the creator (Phase 6): a copy, with the rules derived from it.</summary>
+    /// <summary>The player's character for the sheet, the creator and the level-up window: a copy, with the rules derived from it.</summary>
     public sealed class CharacterSnapshot
     {
         internal CharacterSnapshot(PlayerCharacterData copy)
         {
             Player = copy;
-            Rules = new CharacterRules(copy.Rpg);
+            Rules = new CharacterRules(copy.Rpg, CharacterRules.LoadoutOf(copy));
             ArmorClass = Rules.ArmorClass(copy);
         }
 
@@ -24,6 +25,37 @@ namespace Realmkeeper.Application
         public string Title => Player.Rpg.Title;
         public string History => Player.Rpg.History;
         public string FullName => string.IsNullOrEmpty(Title) ? Name : Name + " " + Title;
+
+        // ----- Phase 7: progression -----
+
+        public int Level => Player.Rpg.Level;
+        public int Experience => Player.Rpg.Experience;
+
+        /// <summary>Experience the next level needs, or null at level 20.</summary>
+        public int? NextLevelExperience => ProgressionRules.NextThreshold(Level);
+
+        /// <summary>Experience the current level needed.</summary>
+        public int LevelExperience => ProgressionRules.ExperienceFor(Level);
+
+        /// <summary>Levels the character can take now.</summary>
+        public int LevelsAvailable => CharacterAdvancement.LevelsAvailable(Player.Rpg);
+
+        public bool CanAdvance => LevelsAvailable > 0;
+
+        /// <summary>Choices from earlier rules versions still to make (made with the next level-up).</summary>
+        public IReadOnlyList<ChoiceSlot> Outstanding => CharacterProgression.Outstanding(Player.Rpg);
+
+        /// <summary>Progress towards the next level, 0–1 (1 at level 20).</summary>
+        public float Progress
+        {
+            get
+            {
+                var next = NextLevelExperience;
+                if (next == null) return 1f;
+                var span = next.Value - LevelExperience;
+                return span <= 0 ? 1f : System.Math.Max(0f, System.Math.Min(1f, (Experience - LevelExperience) / (float)span));
+            }
+        }
     }
 
     public sealed partial class WorldSession

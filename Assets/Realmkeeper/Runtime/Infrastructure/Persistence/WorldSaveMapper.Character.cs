@@ -3,7 +3,7 @@ using Realmkeeper.Domain.Rpg;
 
 namespace Realmkeeper.Infrastructure.Persistence
 {
-    /// <summary>Schema v8 (Phase 6): the player's character sheet. Only choices and state are written.</summary>
+    /// <summary>Schema v8 (Phase 6) and v9 (Phase 7): the character sheet. Only choices, state and history are written.</summary>
     public static partial class WorldSaveMapper
     {
         private static CharacterSheetDto SheetDto(CharacterSheetData s)
@@ -28,7 +28,14 @@ namespace Realmkeeper.Infrastructure.Persistence
                 Resources = new Dictionary<string, int>(s.Resources),
                 StartingEquipmentGranted = s.StartingEquipmentGranted,
                 CreatedOn = s.CreatedOn.IsValidDate ? s.CreatedOn.ToIsoString() : null,
+                RulesVersion = s.RulesVersion,
+                ExperienceLog = new List<ExperienceAwardDto>(),
+                Advancements = new List<AdvancementRecordDto>(),
             };
+            foreach (var a in s.ExperienceLog)
+                d.ExperienceLog.Add(new ExperienceAwardDto { Key = a.Key, Source = a.Source.ToString(), SourceId = a.SourceId, Amount = a.Amount, Date = a.Date.IsValidDate ? a.Date.ToIsoString() : null, Reason = a.Reason });
+            foreach (var r in s.Advancements)
+                d.Advancements.Add(new AdvancementRecordDto { Level = r.Level, Date = r.Date.IsValidDate ? r.Date.ToIsoString() : null, HitPointsGained = r.HitPointsGained, Summary = r.Summary });
             var keys = new List<string>(s.Choices.Keys);
             keys.Sort(System.StringComparer.Ordinal);
             foreach (var k in keys) d.Choices[k] = new List<string>(s.Choices[k]);
@@ -54,6 +61,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 TemporaryHp = d.TemporaryHp,
                 StartingEquipmentGranted = d.StartingEquipmentGranted,
                 CreatedOn = OptionalDate(d.CreatedOn, "character createdOn"),
+                RulesVersion = d.RulesVersion,
             };
             if (d.BaseScores != null)
             {
@@ -63,6 +71,22 @@ namespace Realmkeeper.Infrastructure.Persistence
 
             foreach (var pair in d.Choices ?? new Dictionary<string, List<string>>()) s.Choices[pair.Key] = new List<string>(pair.Value ?? new List<string>());
             foreach (var pair in d.Resources ?? new Dictionary<string, int>()) s.Resources[pair.Key] = pair.Value;
+            foreach (var a in d.ExperienceLog ?? new List<ExperienceAwardDto>())
+            {
+                if (a == null) throw new SaveDataException("An experience award is empty.");
+                s.ExperienceLog.Add(new ExperienceAward
+                {
+                    Key = a.Key, Source = ParseEnum<ExperienceSource>(a.Source, "experience source"), SourceId = a.SourceId, Amount = a.Amount,
+                    Date = OptionalDate(a.Date, "experience date"), Reason = a.Reason ?? string.Empty,
+                });
+            }
+
+            foreach (var r in d.Advancements ?? new List<AdvancementRecordDto>())
+            {
+                if (r == null) throw new SaveDataException("An advancement record is empty.");
+                s.Advancements.Add(new AdvancementRecord { Level = r.Level, Date = OptionalDate(r.Date, "advancement date"), HitPointsGained = r.HitPointsGained, Summary = r.Summary ?? string.Empty });
+            }
+
             return s;
         }
     }

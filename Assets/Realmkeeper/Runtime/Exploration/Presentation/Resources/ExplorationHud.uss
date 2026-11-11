@@ -685,3 +685,30 @@
     font-size: 11px;
     color: rgb(190, 181, 163);
 }
+
+/* Phase 7: experience bar */
+.xk-xp-track {
+    height: 10px;
+    margin-top: 4px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.45);
+}
+
+.xk-xp-fill {
+    height: 100%;
+    background-color: rgb(201, 164, 101);
+    border-radius: 4px;
+}
+
+/* Phase 7: key/value rows wrap instead of overflowing */
+.xk-w-pair > .xk-w-key {
+    white-space: normal;
+    flex-shrink: 0;
+}
+
+.xk-w-pair > .xk-w-value {
+    flex-basis: 0;
+    flex-shrink: 1;
+}

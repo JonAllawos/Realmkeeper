@@ -11,8 +11,9 @@
 | Graphics pass | Done (`b0545b5`): CC0 modular kit, humanoid residents, street-level lighting | `Reports/GraphicsPass-Report.md` |
 | Phase 4: NPC Intelligence Engine | Done (this milestone); see the test results for what was run | `Systems/NPCs.md`, `Systems/Relationships.md`, `Reports/Phase4-NPC-Intelligence.md` |
 | Phase 5: Living World, Player Hub & Commerce | Done (`1f37bb6`) | `Systems/WorldTime.md`, `Systems/Player.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Systems/Commerce.md`, `Reports/Phase5-Living-World.md` |
-| Phase 6: Character Creation & Core RPG Foundation | Done (this milestone); awaiting review. See the test results for what was run | `Systems/Characters.md`, `Systems/Species.md`, `Systems/Backgrounds.md`, `Systems/Classes.md`, `Systems/SkillsAndAbilities.md`, `Systems/CharacterCreation.md`, `Reports/Phase6-Character-Creation.md` |
-| Phase 7 | **Not started.** Waits for review of Phase 6 and its own brief. | — |
+| Phase 6: Character Creation & Core RPG Foundation | Done (`f2682a2`) | `Systems/Characters.md`, `Systems/Species.md`, `Systems/Backgrounds.md`, `Systems/Classes.md`, `Systems/SkillsAndAbilities.md`, `Systems/CharacterCreation.md`, `Reports/Phase6-Character-Creation.md` |
+| Phase 7: Character Progression & Core Rules Engine | Done (this milestone); awaiting review. See the test results for what was run | `Systems/CharacterProgression.md`, `Systems/RulesEngine.md`, `Systems/Classes.md`, `Phase7/Phase7-Report.md` |
+| Phase 8 (Combat, per the Bible's roadmap) | **Not started.** Waits for review of Phase 7 and its own brief. | — |
 
 ## Phase 2 completion: what it added
 
@@ -113,3 +114,34 @@ Main limitations (full list in `Reports/Phase6-Character-Creation.md`):
 | Combat | Features stored as typed data, not used |
 | Armour class | Provisional (no armour categories yet) |
 | Social features | Shown on the sheet, not yet read by dialogue, quests or reputation |
+
+## Phase 7: what it added
+
+- **Experience** through a keyed ledger (the same quest or discovery never pays twice), using the SRD 5.2.1
+  thresholds as configuration. Experience makes a character eligible; it never levels them up.
+- **Advancement from level 1 to 20** in one validated transaction per command (one or several levels), with a
+  chronicle entry and an advancement record per level.
+- **All twelve classes progress to 20** with SRD 5.2.1 features, scaling columns, resources, spell slots and
+  subclass levels. One SRD subclass per class; SRD feats (Ability Score Improvement, Grappler, origin feats,
+  Fighting Style feats, Epic Boons); invocations; Metamagic.
+- **A shared rules engine:** conditions, stacking, advantage and disadvantage, initiative, passive scores,
+  senses and movement, prerequisites, feature replacement, a breakdown for every value, and integration notes
+  for what waits for combat, magic or rests.
+- **Resource and hit-point commands:** spend, restore, recover (the rest hook), damage, healing, temporary hit
+  points, hit dice.
+- **A level-up window** in the exploration scene, the HUD's "Level up (L)", and the Hub's experience bar,
+  level-up banner and Progression panel.
+- **Save schema v9:** Phase 5 and Phase 6 saves load. Druids and warlocks from Phase 6 make their new level-1
+  choice at their next level-up.
+
+Main limitations (full list in `Phase7/Phase7-Report.md`):
+
+| Area | Limitation |
+|---|---|
+| Experience sources | No gameplay system awards experience yet (quests and combat come later); the command is ready |
+| Subclasses | One per class (the SRD's); others deferred |
+| Combat, spells, rests | Features are acquired and shown, with what they wait for; nothing resolves attacks, spells or rest time |
+| Invocations | Three that need damage cantrips, and Lessons of the First Ones, deferred |
+| Multiclassing | Not supported |
+| NPCs and companions | The services take any sheet, but no NPC holds one yet |
+| Species art | Unchanged placeholders (Phase 6) |
