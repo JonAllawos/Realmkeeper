@@ -1,0 +1,17 @@
+p6_01_hud_create_prompt: A new world's player: the HUD offers 'Create character (C)'.
+p6_02_creator_identity: Step 1, Identity.
+p6_03_creator_appearance: Step 2, Appearance (female frame, dark hair) with the live preview.
+p6_04_creator_species_dwarf: Step 3, Species: Dwarf, traits, and the honest placeholder notice (human body at dwarf height).
+p6_05_creator_background: Step 4, Background: Acolyte (SRD 5.2.1).
+p6_06_creator_class: Step 5, Class: Cleric (d8, saves, armour, spellcasting, Divine Order: Protector); the preview wears the cleric's kit.
+p6_07_creator_abilities_pointbuy: Step 6, Abilities by point buy: 0 points left; species bonuses and modifiers shown.
+p6_08_creator_skills: Step 7, Skills: Insight and Religion granted by Acolyte; Medicine and History chosen.
+p6_09_creator_equipment: Step 8, Starting equipment: options per group, and the background's kit and coin.
+p6_10_creator_review: Step 9, Review: everything, ready to create.
+Created: Ilsa Marrow of the Hollow Shrine, Dwarf Acolyte Cleric 1; HP 12; AC 17.
+p6_11_created_character_in_world: The created character in the street: placeholder body at dwarf height, leather jerkin, mace and shield.
+p6_12_hub_sheet: Player Hub, Character: the sheet (HP, AC, speed, proficiency, abilities and saves).
+p6_13_hub_skills: Character sheet, Skills: each bonus explained with its sources.
+p6_14_hub_features: Character sheet, Features and resources.
+p6_15_hub_proficiencies: Character sheet, Proficiencies, languages, senses, resistances.
+p6_16_hub_equipment: Player Hub, Equipment: the starting kit worn.

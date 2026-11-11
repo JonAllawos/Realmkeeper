@@ -1,0 +1,22 @@
+Realmkeeper performance probe (development build)
+date 2026-11-10 17:29, device NVIDIA GeForce RTX 4070 Laptop GPU (Direct3D11), CPU Intel(R) Core(TM) i9-14900HX
+resolution 1920x1080, quality PC, art kit
+
+map (strategic)  frame mean  16.67 ms (   60 fps)  p95  16.99 ms  draw calls   153  batches   153  set-pass   47  triangles    204044  system mem   498 MB  gfx mem   222 MB
+enter Bramhaven: Success
+gate             frame mean  16.67 ms (   60 fps)  p95  17.17 ms  draw calls   870  batches   870  set-pass  102  triangles   2189267  system mem   590 MB  gfx mem   247 MB
+street           frame mean  16.67 ms (   60 fps)  p95  17.20 ms  draw calls   688  batches   688  set-pass   67  triangles   1948003  system mem   585 MB  gfx mem   247 MB
+building         frame mean  16.67 ms (   60 fps)  p95  17.32 ms  draw calls   722  batches   721  set-pass   80  triangles   1598942  system mem   589 MB  gfx mem   252 MB
+plaza            frame mean  16.67 ms (   60 fps)  p95  17.47 ms  draw calls   482  batches   482  set-pass   58  triangles   1206340  system mem   585 MB  gfx mem   252 MB
+interior         frame mean  16.67 ms (   60 fps)  p95  17.36 ms  draw calls   234  batches   234  set-pass   58  triangles    713366  system mem   590 MB  gfx mem   252 MB
+overview         frame mean  16.67 ms (   60 fps)  p95  17.21 ms  draw calls  1102  batches  1102  set-pass  106  triangles   2249305  system mem   596 MB  gfx mem   253 MB
+shop interior    frame mean  16.67 ms (   60 fps)  p95  17.17 ms  draw calls   652  batches   652  set-pass   71  triangles   1392445  system mem   597 MB  gfx mem   253 MB
+creator open (live preview) frame mean  16.66 ms (   60 fps)  p95  17.33 ms  draw calls   792  batches   781  set-pass  110  triangles   2157431  system mem   600 MB  gfx mem   305 MB
+hub, character sheet frame mean  16.66 ms (   60 fps)  p95  17.28 ms  draw calls   779  batches   779  set-pass  111  triangles   2160829  system mem   606 MB  gfx mem   313 MB
+street, clock x30 frame mean  16.69 ms (   60 fps)  p95  17.41 ms  draw calls   763  batches   758  set-pass   95  triangles   2183368  system mem   621 MB  gfx mem   284 MB
+  clock 09:30 -> 14:30, walking now 4
+street, night    frame mean  16.67 ms (   60 fps)  p95  17.22 ms  draw calls   647  batches   646  set-pass   59  triangles   2026533  system mem   618 MB  gfx mem   284 MB
+plaza, night     frame mean  16.67 ms (   60 fps)  p95  16.88 ms  draw calls   442  batches   441  set-pass   48  triangles   1131732  system mem   619 MB  gfx mem   284 MB
+  22:30 · Night · 1 Seedtide, Year 412: lamps lit 16, residents out 0
+
+residents 6, shops 2, renderers 347

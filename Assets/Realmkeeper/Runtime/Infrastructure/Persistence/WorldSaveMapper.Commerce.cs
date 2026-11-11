@@ -30,6 +30,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 d.Purse = p.Purse;
                 d.Fed = p.Fed;
                 d.IsOutfitted = p.IsOutfitted;
+                d.Rpg = SheetDto(p.Rpg);
                 var a = p.Appearance;
                 d.Appearance = new PlayerAppearanceDto
                 {
@@ -102,6 +103,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 p.Purse = d.Purse;
                 p.Fed = d.IsOutfitted ? d.Fed : p.Fed;
                 p.IsOutfitted = d.IsOutfitted;
+                p.Rpg = Sheet(d.Rpg);
                 if (d.Appearance != null)
                 {
                     p.Appearance = new PlayerAppearanceData

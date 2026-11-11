@@ -5,6 +5,7 @@ using Realmkeeper.Application;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Exploration.Domain;
+using Realmkeeper.Domain.Rpg;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static Realmkeeper.Exploration.Presentation.TradeWindow;
@@ -172,27 +173,171 @@ namespace Realmkeeper.Exploration.Presentation
 
         // ----- Sections ---------------------------------------------------------------------------------
 
+        /// <summary>Phase 6: the character for the sheet (set by the controller before showing).</summary>
+        public CharacterSnapshot Sheet { get; set; }
+
+        /// <summary>The Character section's sub-panel: Sheet, Skills, Features, Proficiencies, Identity.</summary>
+        public string CharacterPanel { get; private set; } = "Sheet";
+
+        public static readonly IReadOnlyList<string> CharacterPanels = new[] { "Sheet", "Skills", "Features", "Proficiencies", "Identity" };
+
+        public event Action CreateCharacterRequested;
+
+        public void SelectCharacterPanel(string panel)
+        {
+            CharacterPanel = panel;
+            Section = Sections[0];
+            Render();
+        }
+
         private void Character(PlayerHub h)
         {
-            _content.Add(Pair("Name", h.Name));
-            _content.Add(Pair("Species", h.Species));
-            _content.Add(Pair("Age", h.Age.ToString(CultureInfo.InvariantCulture)));
-            _content.Add(Pair("Background", h.Background));
+            var ch = Sheet;
+            if (ch == null || ch.NeedsCreation)
+            {
+                var banner = Column("xk-cc-banner");
+                banner.name = "xk-hub-create-banner";
+                banner.Add(Text(ch != null && ch.State == CreationState.Legacy
+                    ? "Your character has no species, background or class yet: they travelled before these existed. Set them up once; everything you own and have done is kept."
+                    : "You have not created your character yet: species, background, class, abilities and skills.", "xk-w-value"));
+                var create = new Button(() => CreateCharacterRequested?.Invoke()) { text = "Create character (C)", name = "xk-hub-create" };
+                create.AddToClassList("xk-button");
+                create.AddToClassList("xk-button--primary");
+                banner.Add(create);
+                _content.Add(banner);
+                Profile(h, true);
+                return;
+            }
+
+            var tabs = Row("xk-cc-wrap");
+            foreach (var p in CharacterPanels)
+            {
+                var panel = p;
+                var b = new Button(() => SelectCharacterPanel(panel)) { text = panel, name = "xk-hub-charpanel-" + panel };
+                b.AddToClassList("xk-button");
+                b.AddToClassList("xk-w-choice");
+                b.EnableInClassList("xk-w-choice--on", panel == CharacterPanel);
+                tabs.Add(b);
+            }
+
+            _content.Add(tabs);
+            var r = ch.Rules;
+            switch (CharacterPanel)
+            {
+                case "Skills":
+                    _content.Add(Text("Each skill adds its ability modifier, and your proficiency bonus if you are proficient (twice with expertise). The sources are listed.", "xk-w-note"));
+                    foreach (var s in SkillRules.All)
+                    {
+                        var bonus = r.SkillBonus(s);
+                        var rank = r.SkillRank(s);
+                        var row = Row("xk-w-row");
+                        row.name = "xk-hub-skill-" + s;
+                        row.Add(Text((rank == ProficiencyRank.None ? "○ " : rank == ProficiencyRank.Expertise ? "◆ " : "● ") + SkillRules.Name(s), "xk-w-name"));
+                        row.Add(Text(Breakdown.Signed(bonus.Total), "xk-cc-col"));
+                        var sources = r.SkillSources(s);
+                        row.Add(Text(bonus.Text + (sources.Count > 0 ? " · from " + string.Join(", ", sources) : string.Empty), "xk-w-desc"));
+                        _content.Add(row);
+                    }
+
+                    _content.Add(Text($"Passive Perception {r.PassivePerception}. ● proficient  ◆ expertise  ○ untrained.", "xk-w-desc"));
+                    break;
+                case "Features":
+                    foreach (var (source, feature) in r.Features) _content.Add(Pair(feature.Name, feature.Description + "  (" + source + ")"));
+                    _content.Add(Text("Resources", "xk-w-heading"));
+                    var any = false;
+                    foreach (var res in r.ResourceDefinitions)
+                    {
+                        any = true;
+                        var left = ch.Player.Rpg.Resources.TryGetValue(res.Id, out var v) ? v : 0;
+                        _content.Add(Pair(res.Name, $"{left} / {r.ResourceMax(res)} · recovers on a {(res.Recovery == ResourceRecovery.ShortRest ? "short" : "long")} rest"));
+                    }
+
+                    if (!any) _content.Add(Text("No limited resources at level 1.", "xk-w-empty"));
+                    if (r.Class.Spellcasting != null)
+                    {
+                        var sc = r.Class.Spellcasting;
+                        _content.Add(Pair("Spellcasting", $"{sc.Ability}; save DC {r.SpellSaveDc().Total}, attack {Breakdown.Signed(r.SpellAttack().Total)}; {sc.CantripsKnown} cantrips; focus: {sc.Focus}. Spells arrive with the magic phase."));
+                    }
+
+                    break;
+                case "Proficiencies":
+                    _content.Add(Pair("Armour", r.ArmorProficiencies.Count == 0 ? "None" : string.Join(", ", r.ArmorProficiencies)));
+                    _content.Add(Pair("Weapons", string.Join(", ", r.WeaponProficiencies)));
+                    var tools = new List<string>();
+                    foreach (var t in r.ToolProficiencies) tools.Add(r.ToolName(t));
+                    _content.Add(Pair("Tools", tools.Count == 0 ? "None" : string.Join(", ", tools)));
+                    var langs = new List<string>();
+                    foreach (var l in r.Languages) langs.Add(r.LanguageName(l));
+                    _content.Add(Pair("Languages", string.Join(", ", langs)));
+                    _content.Add(Pair("Senses", r.Darkvision > 0 ? $"Darkvision {r.Darkvision} ft" : "Normal sight"));
+                    _content.Add(Pair("Resistances", r.Resistances.Count == 0 ? "None" : string.Join(", ", r.Resistances)));
+                    _content.Add(Pair("Advantage on saves", r.SaveAdvantages.Count == 0 ? "None" : "against " + string.Join(", ", r.SaveAdvantages)));
+                    break;
+                case "Identity":
+                    Profile(h, false);
+                    break;
+                default:
+                    _content.Add(Text(ch.FullName, "xk-cc-name"));
+                    _content.Add(Text($"{r.Species.Name} · {r.Background.Name} · {r.Class.Name} {r.Level} · {ch.Player.Rpg.Experience} XP", "xk-w-value"));
+                    if (r.Species.Appearance.PlaceholderNote != null) _content.Add(Text(r.Species.Appearance.PlaceholderNote, "xk-cc-warn"));
+                    var vit = Row("xk-cc-wrap");
+                    vit.name = "xk-hub-vitals";
+                    foreach (var (k, v) in new[]
+                             {
+                                 ("Hit points", $"{ch.Player.Rpg.CurrentHp} / {r.MaxHp}" + (ch.Player.Rpg.TemporaryHp > 0 ? $" (+{ch.Player.Rpg.TemporaryHp})" : string.Empty)),
+                                 ("Armour class", ch.ArmorClass.Total.ToString(CultureInfo.InvariantCulture)),
+                                 ("Speed", r.Speed + " ft"),
+                                 ("Proficiency", "+" + r.ProficiencyBonus),
+                                 ("Initiative", Breakdown.Signed(r.Modifier(Ability.Dexterity))),
+                                 ("Hit die", "d" + r.Class.HitDie),
+                             })
+                    {
+                        var card = Column("xk-cc-card");
+                        card.Add(Text(v, "xk-cc-card-value"));
+                        card.Add(Text(k, "xk-cc-card-label"));
+                        vit.Add(card);
+                    }
+
+                    _content.Add(vit);
+                    _content.Add(Text("Armour class: " + ch.ArmorClass.Text + " (provisional until combat defines armour types).", "xk-w-desc"));
+                    _content.Add(Text("Abilities", "xk-w-heading"));
+                    var head = Row("xk-w-row");
+                    foreach (var t in new[] { "Ability", "Score", "Modifier", "Save" }) head.Add(Text(t, "xk-cc-col"));
+                    _content.Add(head);
+                    foreach (var a in AbilityRules.All)
+                    {
+                        var row = Row("xk-w-row");
+                        row.name = "xk-hub-ability-" + a;
+                        row.Add(Text(a.ToString(), "xk-cc-col"));
+                        row.Add(Text(r.Score(a).ToString(CultureInfo.InvariantCulture), "xk-cc-col"));
+                        row.Add(Text(Breakdown.Signed(r.Modifier(a)), "xk-cc-col"));
+                        row.Add(Text((r.SaveProficient(a) ? "● " : "○ ") + Breakdown.Signed(r.SaveBonus(a).Total), "xk-cc-col"));
+                        row.Add(Text(r.SpeciesBonus(a) != 0 ? $"base {r.BaseScore(a)} + {r.SpeciesBonus(a)} {r.Species.Name}" : $"base {r.BaseScore(a)}", "xk-w-desc"));
+                        _content.Add(row);
+                    }
+
+                    _content.Add(Pair("Condition", $"{h.FedText} (fed {h.Fed}/100) · {h.SpeedReason} ({Mathf.RoundToInt(h.SpeedFactor * 100)}% speed)"));
+                    _content.Add(Pair("Arms", $"{h.Weapon} (damage {h.Damage})"));
+                    break;
+            }
+        }
+
+        private void Profile(PlayerHub h, bool legacyBackground)
+        {
+            _content.Add(Text("Identity", "xk-w-heading"));
             _content.Add(Pair("Where", h.Location));
-            _content.Add(Pair("Condition", $"{h.FedText} (fed {h.Fed}/100)"));
-            _content.Add(Pair("Pace", $"{h.SpeedReason} ({Mathf.RoundToInt(h.SpeedFactor * 100)}% speed)"));
-            _content.Add(Pair("Arms", $"{h.Weapon} (damage {h.Damage}) · protection {h.Protection}"));
-            _content.Add(Text("Edit", "xk-w-heading"));
             var name = new TextField("Name") { value = h.Name, name = "xk-hub-name", maxLength = PlayerCharacterData.MaxNameLength };
             var age = new IntegerField("Age") { value = h.Age, name = "xk-hub-age" };
             var background = new TextField("Background") { value = h.Background, name = "xk-hub-background", maxLength = PlayerCommandHandlers.MaxBackgroundLength };
             var description = new TextField("Description") { value = h.Description, multiline = true, name = "xk-hub-description", maxLength = PlayerCommandHandlers.MaxDescriptionLength };
+            background.SetEnabled(legacyBackground);
             foreach (var f in new VisualElement[] { name, age, background, description }) f.AddToClassList("xk-hub-field");
             _content.Add(name);
             _content.Add(age);
             _content.Add(background);
             _content.Add(description);
-            var save = new Button(() => ProfileSaved?.Invoke(name.value, age.value, background.value, description.value)) { text = "Save character", name = "xk-hub-save" };
+            if (Sheet != null && !string.IsNullOrEmpty(Sheet.History)) _content.Add(Pair("History", Sheet.History));
+            var save = new Button(() => ProfileSaved?.Invoke(name.value, age.value, legacyBackground ? background.value : null, description.value)) { text = "Save identity", name = "xk-hub-save" };
             save.AddToClassList("xk-button");
             save.AddToClassList("xk-button--primary");
             _content.Add(save);

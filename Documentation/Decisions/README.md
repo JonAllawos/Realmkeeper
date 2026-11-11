@@ -21,5 +21,10 @@
 | [0017](ADR-0017-equipment-presentation.md) | Equipment shown from world data with the outfit kit's own parts and procedural props | Accepted (Phase 5) |
 | [0018](ADR-0018-shop-economy-integration.md) | Shops kept by residents and stocked from the settlement economy, without double counting | Accepted (Phase 5) |
 | [0019](ADR-0019-time-cadence.md) | Minutes on top of daily simulation; hourly behaviour derived, not stored | Accepted (Phase 5) |
+| [0020](ADR-0020-rpg-record-on-player.md) | The RPG character is a record on the existing player; derived values never stored | Accepted (Phase 6) |
+| [0021](ADR-0021-typed-rule-effects.md) | Species, background and class features are typed effects | Accepted (Phase 6) |
+| [0022](ADR-0022-rules-configuration-and-licensing.md) | Fifth-edition-compatible rules from the SRD under CC BY 4.0 | Accepted (Phase 6) |
+| [0023](ADR-0023-legacy-migration-and-kit-once.md) | Older players become Legacy; the starting kit is granted exactly once | Accepted (Phase 6) |
+| [0024](ADR-0024-placeholder-species-appearance.md) | Species appearance is a contract; non-human species use labelled placeholders | Accepted (Phase 6) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -38,7 +38,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 7;
+        public const int CurrentSchemaVersion = 8;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }

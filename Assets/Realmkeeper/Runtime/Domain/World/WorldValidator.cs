@@ -149,6 +149,7 @@ namespace Realmkeeper.Domain.World
             ValidatePolitics(world, settlementIds, npcIds, result);
             ValidateNpcs(world, settlementIds, npcIds, result);
             ValidateCommerce(world, settlementIds, npcIds, result);
+            if (world.Player != null) foreach (var e in Rpg.CharacterValidation.Check(world.Player)) result.AddError("Character: " + e);
             return result;
         }
 

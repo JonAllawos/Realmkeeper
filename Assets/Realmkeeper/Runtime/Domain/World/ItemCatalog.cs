@@ -150,6 +150,54 @@ namespace Realmkeeper.Domain.World
             Add(new ItemDefinition { Id = "grain_sack", Name = "Sack of grain", Category = ItemCategory.TradeGood, Stackable = true, MaxStack = 10,
                 BaseValue = 3, WeightGrams = 5000, Materials = M((food, 2)), SoldBy = materials,
                 Description = "Threshed grain. Two units of the settlement's food." });
+
+            // ----- Phase 6: arms, armour, tools and focuses for class and background starting kits -----
+            var general = new[] { ShopCategory.General };
+            Add(new ItemDefinition { Id = "greataxe", Name = "Greataxe", Category = ItemCategory.Weapon, Slot = EquipmentSlot.MainHand, WeaponClass = WeaponClass.Axe, TwoHanded = true,
+                BaseValue = 30, WeightGrams = 3200, Damage = 7, Visual = "prop:greataxe", Materials = M((iron, 3), (timber, 1)), SoldBy = arms,
+                Description = "A broad, heavy axe swung with both hands." });
+            Add(new ItemDefinition { Id = "rapier", Name = "Rapier", Category = ItemCategory.Weapon, Slot = EquipmentSlot.MainHand, WeaponClass = WeaponClass.Sword,
+                BaseValue = 32, WeightGrams = 1000, Damage = 5, Visual = "prop:rapier", Materials = M((iron, 2)), SoldBy = arms, Quality = ItemQuality.Fine,
+                Description = "A slender thrusting blade with a swept guard." });
+            Add(new ItemDefinition { Id = "shortsword", Name = "Shortsword", Category = ItemCategory.Weapon, Slot = EquipmentSlot.MainHand, WeaponClass = WeaponClass.Sword,
+                BaseValue = 18, WeightGrams = 900, Damage = 4, Visual = "prop:shortsword", Materials = M((iron, 2)), SoldBy = arms,
+                Description = "A short, light blade for close work." });
+            Add(new ItemDefinition { Id = "scimitar", Name = "Scimitar", Category = ItemCategory.Weapon, Slot = EquipmentSlot.MainHand, WeaponClass = WeaponClass.Sword,
+                BaseValue = 24, WeightGrams = 1300, Damage = 4, Visual = "prop:scimitar", Materials = M((iron, 2)), SoldBy = arms,
+                Description = "A curved slashing blade." });
+            Add(new ItemDefinition { Id = "light_crossbow", Name = "Light crossbow", Category = ItemCategory.Weapon, Slot = EquipmentSlot.MainHand, WeaponClass = WeaponClass.Crossbow, TwoHanded = true,
+                BaseValue = 28, WeightGrams = 2300, Damage = 5, Visual = "prop:crossbow", Materials = M((timber, 2), (iron, 1)), SoldBy = arms,
+                Description = "A stocked bow with a trigger; slow to load, easy to aim." });
+            Add(new ItemDefinition { Id = "javelin", Name = "Javelin", Category = ItemCategory.Weapon, Slot = EquipmentSlot.MainHand, WeaponClass = WeaponClass.Spear, Stackable = true, MaxStack = 8,
+                BaseValue = 3, WeightGrams = 900, Damage = 3, Visual = "prop:javelin", Materials = M((timber, 1)), SoldBy = arms,
+                Description = "A light throwing spear." });
+            Add(new ItemDefinition { Id = "chain_shirt", Name = "Chain shirt", Category = ItemCategory.Armour, Slot = EquipmentSlot.Chest,
+                BaseValue = 50, WeightGrams = 9000, Protection = 4, Visual = "outfit:Ranger:Body:Ranger3", Materials = M((iron, 5)), SoldBy = arms,
+                Description = "Interlocking rings worn under a surcoat. (Shown with the forester's jerkin model until armour art exists.)" });
+            Add(new ItemDefinition { Id = "holy_symbol", Name = "Holy symbol", Category = ItemCategory.Focus, BaseValue = 5, WeightGrams = 100, SoldBy = general,
+                Visual = "prop:holy_symbol", Materials = M((iron, 1)), Description = "A worn emblem of faith; a focus for divine magic." });
+            Add(new ItemDefinition { Id = "arcane_focus", Name = "Arcane focus", Category = ItemCategory.Focus, BaseValue = 10, WeightGrams = 500, SoldBy = general,
+                Visual = "prop:orb", Description = "A polished crystal on a cord; a focus for arcane magic." });
+            Add(new ItemDefinition { Id = "druidic_focus", Name = "Druidic focus", Category = ItemCategory.Focus, BaseValue = 4, WeightGrams = 400, SoldBy = general,
+                Visual = "prop:totem", Materials = M((timber, 1)), Description = "A carved sprig of yew bound with feathers; a focus for nature magic." });
+            Add(new ItemDefinition { Id = "spellbook", Name = "Spellbook", Category = ItemCategory.Focus, BaseValue = 25, WeightGrams = 1500, SoldBy = general,
+                Visual = "prop:book", Description = "A leather-bound book of arcane notation, mostly blank." });
+            Add(new ItemDefinition { Id = "thieves_tools", Name = "Thieves' tools", Category = ItemCategory.Tool, BaseValue = 12, WeightGrams = 500, SoldBy = general,
+                Visual = "prop:kit", Materials = M((iron, 1)), Description = "Picks, a file and a small mirror in a roll of leather." });
+            Add(new ItemDefinition { Id = "smiths_tools", Name = "Smith's tools", Category = ItemCategory.Tool, BaseValue = 10, WeightGrams = 4000, SoldBy = general,
+                Visual = "prop:kit", Materials = M((iron, 2)), Description = "Hammers, tongs and a small anvil." });
+            Add(new ItemDefinition { Id = "carpenters_tools", Name = "Carpenter's tools", Category = ItemCategory.Tool, BaseValue = 8, WeightGrams = 3000, SoldBy = general,
+                Visual = "prop:kit", Materials = M((iron, 1), (timber, 1)), Description = "Saw, chisels, mallet and plane." });
+            Add(new ItemDefinition { Id = "herbalism_kit", Name = "Herbalism kit", Category = ItemCategory.Tool, BaseValue = 5, WeightGrams = 1500, SoldBy = general,
+                Visual = "prop:kit", Description = "Pouches, shears and a mortar for gathering and preparing herbs." });
+            Add(new ItemDefinition { Id = "navigators_tools", Name = "Navigator's tools", Category = ItemCategory.Tool, BaseValue = 15, WeightGrams = 1000, SoldBy = general,
+                Visual = "prop:kit", Materials = M((iron, 1)), Description = "Sounding line, compass and charts." });
+            Add(new ItemDefinition { Id = "calligraphers_supplies", Name = "Calligrapher's supplies", Category = ItemCategory.Tool, BaseValue = 6, WeightGrams = 500, SoldBy = general,
+                Visual = "prop:kit", Description = "Quills, inks and good vellum." });
+            Add(new ItemDefinition { Id = "lute", Name = "Lute", Category = ItemCategory.Tool, BaseValue = 20, WeightGrams = 1500, SoldBy = general,
+                Visual = "prop:lute", Materials = M((timber, 1)), Description = "A round-backed stringed instrument." });
+            Add(new ItemDefinition { Id = "dice_set", Name = "Dice set", Category = ItemCategory.Tool, BaseValue = 1, WeightGrams = 50, SoldBy = general,
+                Visual = "prop:dice", Description = "Bone dice in a little bag." });
         }
     }
 }

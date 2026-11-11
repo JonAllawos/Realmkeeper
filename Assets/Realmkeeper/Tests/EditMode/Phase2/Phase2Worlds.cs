@@ -29,9 +29,27 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         }
 
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
+        /// <summary>Rebuilds the v7 layout: no character record (Phase 6).</summary>
+        public static void StripToV7(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 7;
+            if (doc["world"]["player"] is Newtonsoft.Json.Linq.JObject p) p.Remove("rpg");
+        }
+
+        /// <summary>
+        /// An old save's player loads as Legacy (not yet created), where a fresh world's is Pending; otherwise they
+        /// must be identical. Checks that, then marks the loaded player Pending so whole worlds can be compared.
+        /// </summary>
+        public static void ExpectLegacyThenTreatAsFresh(WorldData loaded)
+        {
+            NUnit.Framework.Assert.That(loaded.Player.Rpg.State, NUnit.Framework.Is.EqualTo(Realmkeeper.Domain.Rpg.CreationState.Legacy), "An old save's player is Legacy.");
+            loaded.Player.Rpg.State = Realmkeeper.Domain.Rpg.CreationState.Pending;
+        }
+
         /// <summary>Rebuilds the v6 layout: no clock minute, shops, trades, belongings or regard (Phase 5).</summary>
         public static void StripToV6(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV7(doc);
             doc["schemaVersion"] = 6;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             w.Remove("minuteOfDay");

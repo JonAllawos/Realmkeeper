@@ -74,6 +74,8 @@ namespace Realmkeeper.Application
                     return $"{e.Get("player") ?? "A traveller"} bought {Qty(e)} from {e.Get("keeper") ?? "a merchant"} at {e.Get("shop") ?? "a shop"} in {s} for {N(e, "total")} coin.";
                 case HistoricalEventType.PlayerSale:
                     return $"{e.Get("player") ?? "A traveller"} sold {Qty(e)} to {e.Get("keeper") ?? "a merchant"} at {e.Get("shop") ?? "a shop"} in {s} for {N(e, "total")} coin.";
+                case HistoricalEventType.PlayerCharacterCreated:
+                    return $"{e.Get("player") ?? "A traveller"}, {An($"{(e.Get("species") ?? "traveller").ToLowerInvariant()} {(e.Get("background") ?? "wanderer").ToLowerInvariant()}")}, set out as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}.";
                 case HistoricalEventType.LabourNoticePosted:
                     return $"{e.Get("player") ?? "A traveller"} posted a notice in {s} calling for more {(e.Get("focus") ?? "work").ToLowerInvariant()}.";
                 case HistoricalEventType.TradeRouteSuspended:
@@ -192,6 +194,8 @@ namespace Realmkeeper.Application
         }
 
         private static string Resource(HistoricalEvent e) => e.Get("resource") ?? "goods";
+
+        private static string An(string phrase) => string.IsNullOrEmpty(phrase) ? phrase : ("aeiou".IndexOf(phrase[0]) >= 0 ? "an " : "a ") + phrase;
 
         private static string Qty(HistoricalEvent e)
         {

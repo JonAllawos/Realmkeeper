@@ -87,7 +87,7 @@ namespace Realmkeeper.Tests.EditMode.Commerce
         public void NewWorld_HasShopsKeptByExistingResidents_StockedAndPlausible()
         {
             var w = W;
-            Assert.That(w.SchemaVersion, Is.EqualTo(7));
+            Assert.That(w.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
             Assert.That(w.Shops.Count, Is.GreaterThanOrEqualTo(2));
             var town = w.Shops.Where(s => s.SettlementId == Town.SettlementId).ToList();
             Assert.That(town.Select(s => s.Categories[0]), Has.Member(ShopCategory.General).And.Member(ShopCategory.WeaponsAndArmour),
@@ -474,12 +474,13 @@ namespace Realmkeeper.Tests.EditMode.Commerce
             var loaded = serializer.Deserialize(doc.ToString());
             Assert.That(loaded.IsSuccess, Is.True, string.Join("; ", loaded.Errors));
             var w = loaded.World;
-            Assert.That(w.SchemaVersion, Is.EqualTo(7));
+            Assert.That(w.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
             Assert.That(w.MinuteOfDay, Is.EqualTo(WorldTime.DefaultStartMinute), "A justified default: 08:00.");
             Assert.That(w.Shops, Is.Not.Empty);
             Assert.That(w.Transactions, Is.Empty, "No invented trades.");
             Assert.That(w.HistoricalEvents.Count, Is.EqualTo(eventsBefore), "No invented history.");
             Assert.That(w.Player.IsOutfitted, Is.True);
+            Phase2Worlds.ExpectLegacyThenTreatAsFresh(w);
             Assert.That(World(serializer.Serialize(w)), Is.EqualTo(World(serializer.Serialize(Phase2Worlds.Generated(4242)))),
                 "Exactly the shops, stock, stores and kit of a fresh world of that seed.");
 

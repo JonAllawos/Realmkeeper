@@ -383,6 +383,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int Purse { get; set; }
         public int Fed { get; set; }
         public bool IsOutfitted { get; set; }
+
+        /// <summary>Schema v8 (Phase 6): the RPG character.</summary>
+        public CharacterSheetDto Rpg { get; set; }
         public List<ItemStackDto> Inventory { get; set; }
 
         /// <summary>Slot name → stack.</summary>
@@ -509,5 +512,30 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int DaysWaiting { get; set; }
         public bool LossApplied { get; set; }
         public bool IsReturning { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    /// <summary>Schema v8 (Phase 6): the player's RPG character. Derived values are not saved.</summary>
+    public sealed class CharacterSheetDto
+    {
+        public string State { get; set; }
+        public string Title { get; set; }
+        public string History { get; set; }
+        public string SpeciesId { get; set; }
+        public string BackgroundId { get; set; }
+        public string ClassId { get; set; }
+        public string SubclassId { get; set; }
+        public int Level { get; set; } = 1;
+        public int Experience { get; set; }
+        public string Method { get; set; }
+        public System.Collections.Generic.List<int> BaseScores { get; set; }
+        public System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>> Choices { get; set; }
+        public int CurrentHp { get; set; }
+        public int TemporaryHp { get; set; }
+        public System.Collections.Generic.Dictionary<string, int> Resources { get; set; }
+        public bool StartingEquipmentGranted { get; set; }
+        public string CreatedOn { get; set; }
     }
 }

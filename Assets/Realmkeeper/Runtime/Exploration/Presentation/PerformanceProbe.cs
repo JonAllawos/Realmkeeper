@@ -108,6 +108,27 @@ namespace Realmkeeper.Exploration.Presentation
                 yield return Measure("shop interior", report);
             }
 
+            // Phase 6: the character creator open on the street (live 3D preview), then the Hub's character sheet.
+            {
+                var streetFrom6 = new Vector3(1.2f, 1.75f, -half + 12f);
+                var streetAt6 = new Vector3(-0.5f, 2.6f, 0f);
+                camera.transform.SetPositionAndRotation(streetFrom6, Quaternion.LookRotation(streetAt6 - streetFrom6, Vector3.up));
+                if (controller.OpenCreator())
+                {
+                    yield return Measure("creator open (live preview)", report);
+                    controller.CloseWindows();
+                }
+                else report.AppendLine("creator open: not offered (character already created)");
+
+                controller.ToggleHub();
+                if (controller.HubWindow != null && controller.HubWindow.IsOpen)
+                {
+                    controller.HubWindow.Select("Character");
+                    yield return Measure("hub, character sheet", report);
+                    controller.CloseWindows();
+                }
+            }
+
             var playback = installer.Runtime.Playback;
             session.Dispatch(new Realmkeeper.Application.SetSimulationSpeedCommand(SimulationSpeed.VeryFast));
             playback.Play();

@@ -228,6 +228,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
             Assert.That(w.Npcs.All(n => n.Memories.Count == 0), Is.True, "No memories are invented.");
             Assert.That(w.NpcRelations.All(r => r.Origin != NpcRelationCause.Conversation && r.Origin != NpcRelationCause.Quarrel), Is.True,
                 "Only ties present facts imply.");
+            Phase2Worlds.ExpectLegacyThenTreatAsFresh(w);
             Assert.That(World(serializer.Serialize(w)), Is.EqualTo(World(serializer.Serialize(fresh))), "Same people as a fresh world of that seed on that day.");
 
             // Once only: a v6 save is never re-initialised.

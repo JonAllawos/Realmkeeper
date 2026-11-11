@@ -138,6 +138,9 @@ namespace Realmkeeper.Simulation.Commerce
                 if (regard != 0) q.Factors.Add(new PriceFactor("Knows you", regard));
             }
 
+            var trade = PlayerTradePercent(world);
+            if (trade != 0) q.Factors.Add(new PriceFactor("Trade connections", trade));
+
             var stock = shop.QuantityOf(item.Id);
             var target = Target(world, shop, item);
             if (stock <= 1) q.Factors.Add(new PriceFactor("Last ones", 15));
@@ -184,6 +187,8 @@ namespace Realmkeeper.Simulation.Commerce
                 if (regard != 0) q.Factors.Add(new PriceFactor("Knows you", regard));
             }
 
+            var trade = PlayerTradePercent(world);
+            if (trade != 0) q.Factors.Add(new PriceFactor("Trade connections", -trade));
             if (shop.QuantityOf(item.Id) == 0) q.Factors.Add(new PriceFactor("Out of stock: wanted", 10));
             if (s != null && item.Category == ItemCategory.Food && s.IsInFoodShortage) q.Factors.Add(new PriceFactor("Food shortage", 20));
             var percent = 100;
@@ -191,6 +196,14 @@ namespace Realmkeeper.Simulation.Commerce
             percent = Math.Max(30, Math.Min(80, percent));
             q.UnitPrice = Math.Max(1, item.BaseValue * percent / 100);
             return q;
+        }
+
+        /// <summary>The player's own price effect (Phase 6: a merchant background bargains 5% better).</summary>
+        public static int PlayerTradePercent(WorldData world)
+        {
+            var sheet = world?.Player?.Rpg;
+            if (sheet == null || sheet.State != Domain.Rpg.CreationState.Complete) return 0;
+            return new Domain.Rpg.CharacterRules(sheet).ShopPricePercent;
         }
 
         /// <summary>The coin cost to the merchant of making or buying in one unit, paid to the settlement treasury.</summary>

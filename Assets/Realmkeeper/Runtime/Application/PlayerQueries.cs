@@ -110,6 +110,9 @@ namespace Realmkeeper.Application
     {
         public string Name { get; internal set; }
         public string Species { get; internal set; }
+
+        /// <summary>Phase 6: the species ID once the character is created (null before).</summary>
+        public string SpeciesId { get; internal set; }
         public int Age { get; internal set; }
         public string Background { get; internal set; }
         public string Description { get; internal set; }
@@ -119,7 +122,7 @@ namespace Realmkeeper.Application
         public int Fed { get; internal set; }
         public string FedText { get; internal set; }
         public int CarriedGrams { get; internal set; }
-        public int EncumbranceGrams => PlayerMovement.UnencumberedGrams;
+        public int EncumbranceGrams { get; internal set; } = PlayerMovement.UnencumberedGrams;
         public float SpeedFactor { get; internal set; }
         public string SpeedReason { get; internal set; }
         public int Protection { get; internal set; }
@@ -146,9 +149,20 @@ namespace Realmkeeper.Application
             var grams = PlayerCommandHandlers.CarriedGrams(p);
             var factor = 1f;
             var reasons = new List<string>();
-            if (grams > UnencumberedGrams)
+            var light = UnencumberedFor(p);
+            var heavy = light * OverloadedGrams / UnencumberedGrams;
+
+            // Phase 6: a created character walks at their species' pace (30 ft is the norm).
+            var rules = p.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete ? new Domain.Rpg.CharacterRules(p.Rpg) : null;
+            if (rules != null && rules.Speed != 30)
             {
-                var over = Math.Min(1f, (grams - UnencumberedGrams) / (float)(OverloadedGrams - UnencumberedGrams));
+                factor *= rules.Speed / 30f;
+                reasons.Add(rules.Species.Name.ToLowerInvariant() + " pace (" + rules.Speed + " ft)");
+            }
+
+            if (grams > light)
+            {
+                var over = Math.Min(1f, (grams - light) / (float)(heavy - light));
                 factor *= 1f - 0.45f * over;
                 reasons.Add("carrying " + (grams / 1000f).ToString("0.#", CultureInfo.InvariantCulture) + " kg");
             }
@@ -159,8 +173,15 @@ namespace Realmkeeper.Application
                 reasons.Add("hungry");
             }
 
-            reason = reasons.Count == 0 ? "Unburdened" : "Slowed: " + string.Join(", ", reasons);
+            reason = reasons.Count == 0 ? "Unburdened" : (factor < 1f ? "Slowed: " : "Pace: ") + string.Join(", ", reasons);
             return factor;
+        }
+
+        /// <summary>How much the player carries before it slows them (Phase 6: a powerful build carries more).</summary>
+        public static int UnencumberedFor(PlayerCharacterData p)
+        {
+            var percent = p?.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete ? new Domain.Rpg.CharacterRules(p.Rpg).CarryPercent : 100;
+            return UnencumberedGrams * percent / 100;
         }
 
         public static string FedText(int fed) => fed >= 75 ? "Well fed" : fed >= 50 ? "Fed" : fed >= HungryBelow ? "Peckish" : fed > 0 ? "Hungry" : "Starving";
@@ -274,6 +295,7 @@ namespace Realmkeeper.Application
             {
                 Name = p.Name,
                 Species = p.Species,
+                SpeciesId = p.Rpg?.State == Domain.Rpg.CreationState.Complete ? p.Rpg.SpeciesId : null,
                 Age = p.Age,
                 Background = p.Background,
                 Description = p.Description,
@@ -287,6 +309,7 @@ namespace Realmkeeper.Application
                 Fed = p.Fed,
                 FedText = PlayerMovement.FedText(p.Fed),
                 CarriedGrams = PlayerCommandHandlers.CarriedGrams(p),
+                EncumbranceGrams = PlayerMovement.UnencumberedFor(p),
                 InventoryStacks = p.Inventory.Count,
             };
             hub.SpeedFactor = PlayerMovement.SpeedFactor(p, out var why);

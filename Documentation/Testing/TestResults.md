@@ -418,3 +418,74 @@ Memory: 545 MB system, 253 MB graphics.
 
 **Not verified:** hardware other than this machine; rendered scenes with 100 or 300 residents
 (only one settlement is rendered at a time; their simulation cost is above).
+
+## Phase 6: Character Creation & Core RPG Foundation (2026-11-10)
+
+Environment: Windows 11, Unity 6000.0.47f1 (batch mode), .NET SDK 8.0. All results are at the final
+Phase 6 code.
+
+| Suite | Result |
+|---|---|
+| .NET harness (Release) | **372/372**: 346 + `CharacterTests` (15 methods + 10 modifier cases) + `CharacterPerformanceTests` (1) |
+| Unity EditMode (batch) | **372/372** |
+| Unity EditMode, Character fixture (rerun after the final assertion was added) | **26/26** |
+| Unity PlayMode (batch, `RK_CAPTURE_DIR` set, so every capture fixture ran) | **60/60**, 0 failed, 0 skipped |
+
+**New PlayMode tests in the shipped scene:**
+- `Phase6PlayModeTests.CharacterCreation_ThroughEveryStep_…`
+  - Drives the real creator's UI elements through all nine steps: a dwarf Acolyte Cleric
+    (Protector), by point buy.
+  - Checks the body (look signature at dwarf height, the kit worn) and the Hub sheet's values.
+  - Saves and reloads: nothing is duplicated, and creation is not offered again.
+- `Phase6PlayModeTests.Phase5Save_LoadsAsALegacyCharacter_WithNothingLost`
+  - A save made in the scene is rewritten to schema v7 without `rpg`, then loaded.
+  - The player is Legacy, with the same ID, name, purse, hair, inventory, equipped dagger and pose,
+    and is still in town.
+- `Phase6CaptureTests.CapturePhase6Set`: 16 captures, in `Documentation/Screenshots/Phase6/`.
+
+**Earlier tests updated to intended Phase 6 behaviour** (none weakened):
+- Old-save helpers strip v8 fields (`StripToV7`).
+- Migrated older saves are expected to be `Legacy`, while a fresh world is `Pending`. Everything
+  else must still match.
+- The schema version is read from `CurrentSchemaVersion`.
+
+**Mutation checks** (introduced, run, reverted; the source was verified clean):
+
+| Mutant | Result |
+|---|---|
+| Starting kit granted twice | Caught |
+| Invalid skill accepted | Caught |
+| Wrong ability modifier | Caught (3 cases) |
+| Wrong hit points | Caught (2 tests) |
+| Missing species validation | Caught |
+| Choices lost on save | Caught (2 tests) |
+| Identity replaced in migration | Caught (4 tests) |
+
+**Defects found by reviewing the captures, and fixed:**
+- The "worn" glyph was missing from the font.
+- The skill bonus column was out of line.
+- Chosen class and species options were missing from the Features panel.
+
+**Performance** (`CharacterPerformanceTests`):
+
+| Operation | .NET | Unity EditMode |
+|---|---|---|
+| Catalog validation, first use | 10.2 ms | 16.7 ms |
+| Creation check | 21 µs | 43 µs |
+| Full sheet | 20 µs | 82 µs |
+| World save / load | 1.8 / 51 ms | 1.9 / 29 ms |
+
+**Development build** (same machine, 1920×1080):
+- **This run was vsync-capped**, so every pose reads 16.67 ms (60 fps). That includes the new
+  "creator open (live preview)" pose (p95 17.33 ms, 792 draw calls) and "hub, character sheet"
+  (p95 17.28 ms).
+- These figures show 60 fps held. They are **not** comparable with Phase 5's uncapped frame times.
+- Report: `Documentation/Screenshots/Phase6/devbuild-perf-phase6.txt`.
+
+**Tested only in .NET and EditMode** (not driven through the UI):
+- every species × class combination;
+- every validator rejection;
+- the draft logic;
+- the speed, carry and price effects.
+
+Only one creator path was driven in PlayMode.

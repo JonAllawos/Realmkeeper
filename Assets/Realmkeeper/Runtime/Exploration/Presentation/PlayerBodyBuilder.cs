@@ -18,6 +18,9 @@ namespace Realmkeeper.Exploration.Presentation
         public int HairColour { get; set; }
         public int ClothTint { get; set; }
 
+        /// <summary>Phase 6: body height relative to a human (a species without its own model is shown at its height).</summary>
+        public float HeightScale { get; set; } = 1f;
+
         /// <summary>The item worn or wielded in each slot (item IDs).</summary>
         public Dictionary<EquipmentSlot, string> Items { get; } = new Dictionary<EquipmentSlot, string>();
 
@@ -32,6 +35,7 @@ namespace Realmkeeper.Exploration.Presentation
             look.SkinTone = a.SkinTone;
             look.HairColour = a.HairColour;
             look.ClothTint = a.ClothTint;
+            look.HeightScale = Realmkeeper.Domain.Rpg.RpgCatalog.FindSpecies(hub.SpeciesId)?.Appearance.HeightScale ?? 1f;
             foreach (var pair in hub.Equipment) look.Items[pair.Key] = pair.Value.ItemId;
             return look;
         }
@@ -42,7 +46,7 @@ namespace Realmkeeper.Exploration.Presentation
             get
             {
                 var sb = new StringBuilder();
-                sb.Append(Frame).Append('/').Append(HairId ?? "-").Append('/').Append(BeardId ?? "-").Append("/s").Append(SkinTone).Append("/h").Append(HairColour).Append("/t").Append(ClothTint);
+                sb.Append(Frame).Append('/').Append(HairId ?? "-").Append('/').Append(BeardId ?? "-").Append("/s").Append(SkinTone).Append("/h").Append(HairColour).Append("/t").Append(ClothTint).Append("/x").Append(HeightScale.ToString("F2", System.Globalization.CultureInfo.InvariantCulture));
                 foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))
                     if (Items.TryGetValue(slot, out var item)) sb.Append('|').Append(slot).Append('=').Append(item);
                 return sb.ToString();
@@ -91,7 +95,7 @@ namespace Realmkeeper.Exploration.Presentation
                 SkinTone = Mathf.Clamp(look.SkinTone, 0, NpcAppearanceResolver.SkinTones.Count - 1),
                 HairColour = Mathf.Clamp(look.HairColour, 0, NpcAppearanceResolver.HairColours.Count - 1),
                 OutfitTint = Mathf.Clamp(look.ClothTint, 0, NpcAppearanceResolver.OutfitTints.Count - 1),
-                HeightScale = 1f,
+                HeightScale = Mathf.Clamp(look.HeightScale, 0.5f, 1.4f),
             };
             var driver = HumanoidCharacterBuilder.Build(parent, appearance, catalog);
             if (driver == null) return null;

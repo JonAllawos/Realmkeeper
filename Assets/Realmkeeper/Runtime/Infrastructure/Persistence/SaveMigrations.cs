@@ -5,6 +5,24 @@ using Realmkeeper.Simulation.Systems;
 namespace Realmkeeper.Infrastructure.Persistence
 {
     /// <summary>
+    /// v7 → v8 (Phase 6: character creation). Gives the player an explicit legacy character record: no
+    /// species, background, class, scores or kit are assigned or invented, and nothing else changes (identity,
+    /// appearance, belongings, purse, location). The game then offers character setup, which grants the class
+    /// and background kit once.
+    /// </summary>
+    public sealed class MigrationV7ToV8 : ISaveMigration
+    {
+        public int SourceVersion => 7;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world) || !(world["player"] is JObject player)) return;
+            if (player["rpg"] != null) return;
+            player["rpg"] = new JObject { ["state"] = "Legacy", ["level"] = 1, ["experience"] = 0 };
+        }
+    }
+
+    /// <summary>
     /// v6 → v7 (Phase 5: living world, player hub, commerce). Structural only: adds the minute of the
     /// day (08:00), empty <c>shops</c> and <c>transactions</c>, and enables the shop system after the NPC
     /// system. Shops and the player's belongings cannot come from JSON, so after mapping the serializer

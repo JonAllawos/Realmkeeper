@@ -18,6 +18,12 @@ namespace Realmkeeper.Domain.World
         Food = 5,
         TradeGood = 6,
         Accessory = 7,
+
+        /// <summary>Phase 6: the tools of a trade (proficiency tools: thieves' tools, smith's tools, instruments …).</summary>
+        Tool = 8,
+
+        /// <summary>Phase 6: a spellcasting focus or book (used when magic arrives).</summary>
+        Focus = 9,
     }
 
     public enum EquipmentSlot
@@ -43,6 +49,7 @@ namespace Realmkeeper.Domain.World
         Spear = 5,
         Staff = 6,
         Bow = 7,
+        Crossbow = 8,
     }
 
     public enum ItemQuality

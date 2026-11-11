@@ -315,7 +315,21 @@ namespace Realmkeeper.Application
                 if (!def.IsEquippable) return CommandResult.Invalid($"{def.Name} cannot be worn or wielded.");
 
                 var edit = context.Edit().Player;
-                var item = edit.Inventory[IndexOf(edit, c.StackId)];
+                var freed = EquipFromPack(context, edit, c.StackId, def);
+                if (freed == null) return CommandResult.InvalidState("Your pack is too full to take off what you are wearing there.");
+                return CommandResult.Ok($"Equipped {def.Name} ({Slot(def.Slot)})." + (freed.Count > 0 ? " Put away: " + string.Join(", ", freed) + "." : string.Empty));
+            }
+        }
+
+        /// <summary>
+        /// Equips one unit of a pack stack on an editable player (shared by equipping and character creation):
+        /// the slot's item, and anything the two-handed rules displace, go back to the pack. Returns the names
+        /// put away, or null when the pack would overflow (the caller then fails; the working copy is discarded).
+        /// </summary>
+        internal static List<string> EquipFromPack(CommandContext context, PlayerCharacterData edit, ItemStackId stackId, ItemDefinition def)
+        {
+            {
+                var item = edit.Inventory[IndexOf(edit, stackId)];
                 var freed = new List<string>();
 
                 // The equipped item comes off a stack of one; the rest stays in the pack.
@@ -348,10 +362,9 @@ namespace Realmkeeper.Application
                     if (main != null && (ItemCatalog.Find(main.ItemId)?.TwoHanded ?? false)) TakeOff(EquipmentSlot.MainHand);
                 }
 
-                if (edit.Inventory.Count > MaxInventoryStacks)
-                    return CommandResult.InvalidState("Your pack is too full to take off what you are wearing there.");
+                if (edit.Inventory.Count > MaxInventoryStacks) return null;
                 edit.Equipment[def.Slot] = wearing;
-                return CommandResult.Ok($"Equipped {def.Name} ({Slot(def.Slot)})." + (freed.Count > 0 ? " Put away: " + string.Join(", ", freed) + "." : string.Empty));
+                return freed;
             }
         }
 
@@ -489,6 +502,8 @@ namespace Realmkeeper.Application
                 if (c.Age.HasValue && (c.Age < MinAge || c.Age > MaxAge)) return CommandResult.Invalid($"Age must be {MinAge}–{MaxAge}.");
                 if (c.Background != null && (string.IsNullOrWhiteSpace(c.Background) || c.Background.Trim().Length > MaxBackgroundLength))
                     return CommandResult.Invalid($"A background must be 1–{MaxBackgroundLength} characters.");
+                if (c.Background != null && p.Rpg != null && p.Rpg.State == Domain.Rpg.CreationState.Complete)
+                    return CommandResult.Invalid("Your background was set when you created your character.");
                 if (c.Description != null && c.Description.Length > MaxDescriptionLength)
                     return CommandResult.Invalid($"A description must be at most {MaxDescriptionLength} characters.");
                 var edit = context.Edit().Player;

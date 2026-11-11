@@ -10,8 +10,9 @@
 | Phase 3: factions and political engine | Done (`5c89f8a`, playtest fixes `d82a01b`) | `Documentation/Systems/Politics.md` |
 | Graphics pass | Done (`b0545b5`): CC0 modular kit, humanoid residents, street-level lighting | `Reports/GraphicsPass-Report.md` |
 | Phase 4: NPC Intelligence Engine | Done (this milestone); see the test results for what was run | `Systems/NPCs.md`, `Systems/Relationships.md`, `Reports/Phase4-NPC-Intelligence.md` |
-| Phase 5: Living World, Player Hub & Commerce | Done (this milestone); see the test results for what was run | `Systems/WorldTime.md`, `Systems/Player.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Systems/Commerce.md`, `Reports/Phase5-Living-World.md` |
-| Phase 6 | **Not started.** It needs its own brief. | — |
+| Phase 5: Living World, Player Hub & Commerce | Done (`1f37bb6`) | `Systems/WorldTime.md`, `Systems/Player.md`, `Systems/Inventory.md`, `Systems/Equipment.md`, `Systems/Commerce.md`, `Reports/Phase5-Living-World.md` |
+| Phase 6: Character Creation & Core RPG Foundation | Done (this milestone); awaiting review. See the test results for what was run | `Systems/Characters.md`, `Systems/Species.md`, `Systems/Backgrounds.md`, `Systems/Classes.md`, `Systems/SkillsAndAbilities.md`, `Systems/CharacterCreation.md`, `Reports/Phase6-Character-Creation.md` |
+| Phase 7 | **Not started.** Waits for review of Phase 6 and its own brief. | — |
 
 ## Phase 2 completion: what it added
 
@@ -85,3 +86,30 @@ Known limitations are listed in `Reports/Phase5-Living-World.md` §15. The main 
 | Shop stock | Counts, not item instances |
 | Loose items | None in the world |
 | Map advances | Leave the time of day and hunger unchanged |
+
+## Phase 6: what it added
+
+- **One RPG character on the existing player** (ADR-0020): species, background, class, six
+  ability scores, eighteen skills, six saves, hit points, resources and level 1. Every derived
+  value is computed, never stored.
+- **Twelve species, twelve backgrounds, twelve classes** as validated data with typed effects
+  (ADR-0021), SRD 5.2.1 / 5.1 mechanics under CC BY 4.0 and Realmkeeper's own text (ADR-0022).
+- **A nine-step character creator** in the exploration scene with a live 3D preview wearing the
+  chosen kit, standard array or point buy, skill, option and equipment choices, and a review.
+- **One creation transaction** that grants the class and background kit exactly once and keeps
+  identity, belongings and location (ADR-0023).
+- **A full character sheet** in the Player Hub (sheet, skills, features, proficiencies, identity).
+- **Effects already in play:** species walking speed, goliath carrying capacity, merchant prices,
+  species height.
+- **Save schema v8:** older players load as Legacy, with nothing lost and nothing invented.
+
+Main limitations (full list in `Reports/Phase6-Character-Creation.md`):
+
+| Area | Limitation |
+|---|---|
+| Species art | Only humans have finished models; the other eleven are labelled placeholders (ADR-0024) |
+| Levels | Level 1 only; no experience awards, levelling or subclasses |
+| Spells | Spellcasting stats only; no spells |
+| Combat | Features stored as typed data, not used |
+| Armour class | Provisional (no armour categories yet) |
+| Social features | Shown on the sheet, not yet read by dialogue, quests or reputation |

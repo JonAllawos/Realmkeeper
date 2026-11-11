@@ -98,6 +98,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>True once the Phase 5 belongings were set up (new worlds, or once on migration).</summary>
         public bool IsOutfitted { get; set; }
 
+        /// <summary>The RPG character (Phase 6): species, background, class, scores, choices, hit points, resources.</summary>
+        public Realmkeeper.Domain.Rpg.CharacterSheetData Rpg { get; set; } = new Realmkeeper.Domain.Rpg.CharacterSheetData();
+
         public ItemStackData Equipped(EquipmentSlot slot) => Equipment.TryGetValue(slot, out var s) ? s : null;
 
         public PlayerCharacterData Clone()
@@ -120,6 +123,7 @@ namespace Realmkeeper.Domain.World
                 Purse = Purse,
                 Fed = Fed,
                 IsOutfitted = IsOutfitted,
+                Rpg = Rpg?.Clone() ?? new Realmkeeper.Domain.Rpg.CharacterSheetData(),
             };
             foreach (var s in Inventory) c.Inventory.Add(s.Clone());
             foreach (var pair in Equipment) c.Equipment[pair.Key] = pair.Value.Clone();

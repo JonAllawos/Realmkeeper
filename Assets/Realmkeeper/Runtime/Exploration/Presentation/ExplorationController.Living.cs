@@ -4,6 +4,7 @@ using Realmkeeper.Application;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Exploration.Domain;
+using Realmkeeper.Domain.World;
 using Realmkeeper.Simulation.Npcs;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -30,6 +31,10 @@ namespace Realmkeeper.Exploration.Presentation
         private Label _clock;
         private Button _pauseButton;
         private Button _speedButton;
+        private Button _createButton;
+
+        /// <summary>Phase 6: the character creator.</summary>
+        public CharacterCreatorWindow Creator { get; private set; }
 
         public TradeWindow Trade { get; private set; }
         public PlayerHubWindow HubWindow { get; private set; }
@@ -39,7 +44,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The shop whose window is open, or null.</summary>
         public ShopInteriorView TradingAt { get; private set; }
 
-        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen);
+        public bool WindowOpen => (Trade != null && Trade.IsOpen) || (HubWindow != null && HubWindow.IsOpen) || (Creator != null && Creator.IsOpen);
 
         /// <summary>The atmosphere (lighting) of the current visit.</summary>
         public ExplorationAtmosphere Atmosphere => _atmosphere;
@@ -97,6 +102,13 @@ namespace Realmkeeper.Exploration.Presentation
                 HubWindow.AppearanceChosen += a => HubCommand(new SetPlayerAppearanceCommand(a));
                 HubWindow.PreviewTurned += d => { Preview?.Rotate(d); Preview?.RenderNow(); };
                 HubWindow.PreviewZoomed += d => { Preview?.Zoom(d); Preview?.RenderNow(); };
+                HubWindow.CreateCharacterRequested += () => OpenCreator();
+                Creator = new CharacterCreatorWindow(Hud.Root);
+                Creator.CloseRequested += CloseWindows;
+                Creator.ConfirmRequested += c => ConfirmCreation(c);
+                Creator.DraftChanged += ShowDraftLook;
+                Creator.PreviewTurned += d => { Preview?.Rotate(d); Preview?.RenderNow(); };
+                Creator.PreviewZoomed += d => { Preview?.Zoom(d); Preview?.RenderNow(); };
                 AddClock();
             }
 
@@ -127,6 +139,8 @@ namespace Realmkeeper.Exploration.Presentation
             _planned.Clear();
             _inside.Clear();
             Trade = null;
+            Creator = null;
+            _createButton = null;
             HubWindow = null;
             Preview = null;
             TradingAt = null;
@@ -147,6 +161,8 @@ namespace Realmkeeper.Exploration.Presentation
             _speedButton = TimeButton(row, "×1", "xk-time-speed", CycleSpeed);
             TimeButton(row, "Wait 1 h (T)", "xk-time-wait", () => WaitHour());
             TimeButton(row, "Hub (H)", "xk-open-hub", () => ToggleHub());
+            _createButton = TimeButton(row, "Create character (C)", "xk-open-creator", () => OpenCreator());
+            _createButton.AddToClassList("xk-button--primary");
             panel.Add(row);
         }
 
@@ -297,6 +313,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void RefreshClock(WorldTimeSummary time)
         {
+            _createButton?.EnableInClassList("xk-hidden", _session?.GetCharacter()?.NeedsCreation != true);
             if (_clock == null) return;
             _clock.text = time.Clock + " · " + time.DayPart;
             var playback = _runtime?.Playback;
@@ -401,11 +418,8 @@ namespace Realmkeeper.Exploration.Presentation
             Trade?.Hide();
             TradingAt = null;
             var hub = _session.GetPlayerHub();
-            if (Preview == null && Catalog != null && EnvironmentRoot != null)
-            {
-                Preview = CharacterPreview.Create(EnvironmentRoot.transform);
-                HubWindow.SetPreview(Preview.Texture);
-            }
+            EnsurePreview();
+            HubWindow.SetPreview(Preview != null ? Preview.Texture : null);
 
             if (Preview != null)
             {
@@ -415,6 +429,7 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             Hud?.HideResponse();
+            HubWindow.Sheet = _session.GetCharacter();
             HubWindow.Show(hub, _session.GetWorldTime(), message, failed);
             SetWindowMode(true);
         }
@@ -427,6 +442,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         public void CloseWindows()
         {
+            Creator?.Hide();
             Trade?.Hide();
             HubWindow?.Hide();
             Preview?.SetActive(false);
@@ -440,12 +456,115 @@ namespace Realmkeeper.Exploration.Presentation
             if (open) SetCursorFree(true);
         }
 
+        // ----- Character creation (Phase 6) --------------------------------------------------------------
+
+        /// <summary>Opens the character creator, if the character has not been created yet.</summary>
+        public bool OpenCreator()
+        {
+            var character = _session?.GetCharacter();
+            if (Creator == null || character == null || !character.NeedsCreation) return false;
+            Trade?.Hide();
+            HubWindow?.Hide();
+            Hud?.HideResponse();
+            TradingAt = null;
+            EnsurePreview();
+            if (Preview != null)
+            {
+                Preview.SetActive(true);
+                Creator.SetPreview(Preview.Texture);
+            }
+
+            Creator.Open(new CharacterDraft(character.Player));
+            SetWindowMode(true);
+            return true;
+        }
+
+        /// <summary>Dispatches the finished creation; on success the creator closes and the body, sheet and HUD update.</summary>
+        public CommandResult ConfirmCreation(CreateCharacterCommand command)
+        {
+            if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            var result = _session.Dispatch(command);
+            if (!result.IsSuccess)
+            {
+                Creator?.ShowError(ResidentView.Describe(result));
+                return result;
+            }
+
+            CloseWindows();
+            Hud?.ShowMessage(result);
+            RefreshLiving(snap: false);
+            return result;
+        }
+
+        private void EnsurePreview()
+        {
+            if (Preview != null || Catalog == null || EnvironmentRoot == null) return;
+            Preview = CharacterPreview.Create(EnvironmentRoot.transform);
+            HubWindow?.SetPreview(Preview.Texture);
+        }
+
+        /// <summary>The look the creator's preview shows: the draft's appearance and species height, wearing the chosen kit over current clothes.</summary>
+        public static PlayerLook LookFromDraft(CharacterDraft draft, PlayerHub hub)
+        {
+            var look = PlayerLook.From(hub);
+            var a = draft.Choices.Appearance;
+            look.Frame = a.Frame == NpcSex.Female ? BodyFrame.Female : BodyFrame.Male;
+            look.HairId = a.HairId;
+            look.BeardId = a.BeardId;
+            look.SkinTone = a.SkinTone;
+            look.HairColour = a.HairColour;
+            look.ClothTint = a.ClothTint;
+            look.HeightScale = draft.Species?.Appearance.HeightScale ?? 1f;
+            var cls = draft.Class;
+            if (cls == null) return look;
+            foreach (var g in cls.Equipment)
+            {
+                var picked = draft.Picked(Realmkeeper.Domain.Rpg.CharacterValidation.EquipmentChoiceId(g));
+                foreach (var o in g.Options)
+                {
+                    if (picked.Count != 1 || o.Id != picked[0]) continue;
+                    foreach (var k in o.Items)
+                    {
+                        var def = ItemCatalog.Find(k.ItemId);
+                        if (!k.Equip || def == null || !def.IsEquippable) continue;
+                        look.Items[def.Slot] = def.Id;
+                        if (def.Slot == EquipmentSlot.MainHand && def.TwoHanded) look.Items.Remove(EquipmentSlot.OffHand);
+                        if (def.Slot == EquipmentSlot.OffHand && look.Items.TryGetValue(EquipmentSlot.MainHand, out var main) && (ItemCatalog.Find(main)?.TwoHanded ?? false))
+                            look.Items.Remove(EquipmentSlot.MainHand);
+                    }
+                }
+            }
+
+            return look;
+        }
+
+        private void ShowDraftLook(CharacterDraft draft)
+        {
+            if (Preview == null || _session == null) return;
+            Preview.Show(LookFromDraft(draft, _session.GetPlayerHub()), Catalog, Assets());
+            Preview.RenderNow();
+        }
+
+        /// <summary>True while the player is typing in a text field (hotkeys must not fire).</summary>
+        private bool Typing()
+        {
+            var focused = Hud?.Root?.panel?.focusController?.focusedElement as VisualElement;
+            return focused != null && (focused is TextField || focused is IntegerField || focused.GetFirstAncestorOfType<TextField>() != null || focused.GetFirstAncestorOfType<IntegerField>() != null);
+        }
+
         /// <summary>Phase 5 keys: H hub, T wait an hour, P pause, Esc closes a window.</summary>
         private void UpdateLivingInput()
         {
             var keys = Keyboard.current;
             if (keys == null) return;
+            if (Typing())
+            {
+                if (keys.escapeKey.wasPressedThisFrame && WindowOpen) CloseWindows();
+                return;
+            }
+
             if (keys.hKey.wasPressedThisFrame) ToggleHub();
+            if (keys.cKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.NeedsCreation == true) OpenCreator();
             if (WindowOpen && keys.escapeKey.wasPressedThisFrame) CloseWindows();
             if (WindowOpen) return;
             if (keys.tKey.wasPressedThisFrame) WaitHour();

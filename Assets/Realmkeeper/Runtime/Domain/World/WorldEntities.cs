@@ -257,6 +257,9 @@ namespace Realmkeeper.Domain.World
         // Phase 5: the player's trade with shops (Minor; structured facts: player, item, quantity, total, shop, keeper).
         PlayerPurchase = 50,
         PlayerSale = 51,
+
+        // Phase 6: the player created their character (Minor; facts: player, species, background, class, level).
+        PlayerCharacterCreated = 52,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>
