@@ -18,7 +18,7 @@ namespace Realmkeeper.Editor
         public override int GetPostprocessOrder() => 10;
 
         /// <summary>Bumped when the settings change, so Unity reimports the art.</summary>
-        public override uint GetVersion() => 3;
+        public override uint GetVersion() => 7; // Phase 18: the new kits and creatures; leaf cut-outs; extracted creature textures
 
         private void OnPreprocessModel()
         {
@@ -64,6 +64,25 @@ namespace Realmkeeper.Editor
                 importer.materialImportMode = ModelImporterMaterialImportMode.None;
                 importer.optimizeGameObjects = false;
             }
+            else if (IsAnimal(assetPath))
+            {
+                // Phase 18: the creatures (Quaternius animals and monsters): generic rigs with their own animations; URP
+                // materials through the pipeline's material description path.
+                importer.animationType = ModelImporterAnimationType.Generic;
+                importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+                importer.importAnimation = true;
+                importer.optimizeGameObjects = false;
+                importer.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
+            }
+            else if (IsStaticKit(assetPath))
+            {
+                // Phase 18: static models (the dungeon kit, the props and nature kits, settlement props, the Poly by Google
+                // animals): no rig; readable so static batching can combine them; URP materials.
+                importer.animationType = ModelImporterAnimationType.None;
+                importer.importAnimation = false;
+                importer.isReadable = true;
+                importer.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
+            }
             else if (assetPath.Contains("/Hair/"))
             {
                 importer.animationType = ModelImporterAnimationType.Generic;
@@ -82,6 +101,62 @@ namespace Realmkeeper.Editor
             }
         }
 
+        public static bool IsAnimal(string path) => path.Contains("/Quaternius/Creatures/") || path.Contains("/Quaternius/FarmAnimals/");
+
+        public static bool IsStaticKit(string path) =>
+            path.Contains("/KayKit/DungeonRemastered/") || path.Contains("/KayKit/PostLantern/") || path.Contains("/Quaternius/FantasyPropsMegaKit/") ||
+            path.Contains("/Quaternius/StylizedNatureMegaKit/") || path.Contains("/Quaternius/SettlementProps/") || path.Contains("/PolyByGoogle/");
+
+        /// <summary>Phase 18: the animals' standing, walking and running clips loop; one-shots (attacks, hits, deaths) do not.</summary>
+        private void OnPreprocessAnimation()
+        {
+            if (!assetPath.StartsWith(Root, System.StringComparison.Ordinal) || !IsAnimal(assetPath)) return;
+            var importer = (ModelImporter)assetImporter;
+            var clips = importer.defaultClipAnimations;
+            foreach (var c in clips)
+            {
+                var n = c.name;
+                c.loopTime = n.EndsWith("Idle", System.StringComparison.Ordinal) || n.EndsWith("Walk", System.StringComparison.Ordinal) ||
+                             n.EndsWith("Run", System.StringComparison.Ordinal) || n.EndsWith("Gallop", System.StringComparison.Ordinal);
+            }
+
+            importer.clipAnimations = clips;
+        }
+
+        /// <summary>
+        /// Phase 18: leaves, grass, flowers and petals in the nature kit are cut out by their texture's alpha and drawn on
+        /// both sides (the kit ships them for its own stylised shader; on URP Lit they would show their texture's black edges).
+        /// </summary>
+        private void OnPreprocessMaterialDescription(UnityEditor.AssetImporters.MaterialDescription description, Material material, AnimationClip[] animations)
+        {
+            BindExtractedTexture(material);
+            if (!assetPath.Contains("/Quaternius/StylizedNatureMegaKit/")) return;
+            var n = material.name + " " + description.materialName;
+            if (!(n.Contains("Leaf") || n.Contains("Leaves") || n.Contains("Grass") || n.Contains("Flower") || n.Contains("Petal") || n.Contains("Pine") || n.Contains("Plant") || n.Contains("Fern"))) return;
+            if (material.HasProperty("_AlphaClip")) material.SetFloat("_AlphaClip", 1f);
+            if (material.HasProperty("_Cutoff")) material.SetFloat("_Cutoff", 0.45f);
+            if (material.HasProperty("_Cull")) material.SetFloat("_Cull", 0f);
+            material.EnableKeyword("_ALPHATEST_ON");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+        }
+
+        /// <summary>
+        /// Phase 18: the converted creatures whose texture was embedded in the FBX (the Quaternius goblin and giant, the Poly by
+        /// Google animals) came in untextured. Their texture is extracted beside the model as <c>&lt;Model&gt;_Texture.png</c>
+        /// (Tools/Blender/extracttexture.py) and bound here as the base map.
+        /// </summary>
+        private void BindExtractedTexture(Material material)
+        {
+            if (!assetPath.StartsWith(Root, System.StringComparison.Ordinal) || !(IsAnimal(assetPath) || IsStaticKit(assetPath))) return;
+            var texturePath = System.IO.Path.ChangeExtension(assetPath, null) + "_Texture.png";
+            context.DependsOnSourceAsset(texturePath);
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+            if (texture == null) return;
+            if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
+            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", Color.white);
+        }
+
         private void OnPreprocessTexture()
         {
             if (!assetPath.StartsWith(Root, System.StringComparison.Ordinal)) return;
@@ -96,6 +171,13 @@ namespace Realmkeeper.Editor
             importer.maxTextureSize = assetPath.Contains("/ModularCharacterOutfitsFantasy/") && !isNormal ? 2048 : 1024;
             importer.textureCompression = TextureImporterCompression.Compressed;
             importer.alphaIsTransparency = name == "T_VineLeaf";
+            if (name.EndsWith("_Texture", System.StringComparison.Ordinal) && (IsAnimal(assetPath) || assetPath.Contains("/PolyByGoogle/")))
+            {
+                // Phase 18: the extracted creature textures; the small ones are colour palettes, which mipmaps would blur together.
+                importer.mipmapEnabled = !assetPath.Contains("/Quaternius/");
+                importer.filterMode = assetPath.Contains("/Quaternius/") || name == "Boar_Texture" ? FilterMode.Point : FilterMode.Bilinear;
+                if (name == "Boar_Texture") importer.mipmapEnabled = false;
+            }
         }
     }
 }

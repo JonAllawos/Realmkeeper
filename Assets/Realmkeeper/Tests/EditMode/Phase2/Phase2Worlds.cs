@@ -42,9 +42,46 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// Rebuilds the v16 layout (Phase 14): no party, no companion records, no party system, no items owned by people
         /// (their gear stays by name) and no AI reasons in fight logs.
         /// </summary>
+        /// <summary>
+        /// Rebuilds the v19 layout (Phase 17): discoveries without kind, certainty, place, subject, major or where told; no
+        /// Phase 18 places, and no quests of Phase 18's kinds (the session adds the places and their quests again on load).
+        /// </summary>
+        public static void StripToV19(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 19;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            foreach (var d in doc.Descendants().OfType<Newtonsoft.Json.Linq.JProperty>().Where(p => p.Name == "discoveries").ToList())
+                foreach (var x in (d.Value as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+                    if (x is Newtonsoft.Json.Linq.JObject o)
+                        foreach (var f in new[] { "category", "certainty", "placeId", "subject", "major", "confirmedBy", "sharedIn" }) o.Remove(f);
+            var phase18Places = new System.Collections.Generic.HashSet<string>(Realmkeeper.Domain.Places.Phase18Places.All);
+            var removedPlaces = new System.Collections.Generic.HashSet<string>();
+            if (w["places"] is Newtonsoft.Json.Linq.JArray places)
+                foreach (var p in places.ToList())
+                    if (phase18Places.Contains((string)p["definitionId"])) { removedPlaces.Add((string)p["placeId"]); p.Remove(); }
+            var phase18Quests = new System.Collections.Generic.HashSet<string>
+            {
+                Realmkeeper.Domain.Quests.QuestCatalog.RecordHouse, Realmkeeper.Domain.Quests.QuestCatalog.ReevesAccounts, Realmkeeper.Domain.Quests.QuestCatalog.CairnQuestion,
+                Realmkeeper.Domain.Quests.QuestCatalog.CairnKeeping, Realmkeeper.Domain.Quests.QuestCatalog.DrownedDrift, Realmkeeper.Domain.Quests.QuestCatalog.DriftFuture,
+                Realmkeeper.Domain.Quests.QuestCatalog.MillersMeasure, Realmkeeper.Domain.Quests.QuestCatalog.MillForTwo, Realmkeeper.Domain.Quests.QuestCatalog.StoryRefugees,
+                Realmkeeper.Domain.Quests.QuestCatalog.StoryUnrest, Realmkeeper.Domain.Quests.QuestCatalog.StoryLongWay, Realmkeeper.Domain.Quests.QuestCatalog.StoryWordHome,
+                Realmkeeper.Domain.Quests.QuestCatalog.StoryConflict, Realmkeeper.Domain.Quests.QuestCatalog.CompanionGoingHome, Realmkeeper.Domain.Quests.QuestCatalog.CompanionGrave,
+            };
+            if (w["quests"] is Newtonsoft.Json.Linq.JArray quests)
+                foreach (var q in quests.ToList())
+                    if (phase18Quests.Contains((string)q["definitionId"])) q.Remove();
+            if (w["containers"] is Newtonsoft.Json.Linq.JArray containers)
+                foreach (var c in containers.ToList())
+                {
+                    var key = (string)c["key"] ?? string.Empty;
+                    foreach (var id in removedPlaces) if (key.Contains(id)) { c.Remove(); break; }
+                }
+        }
+
         /// <summary>Rebuilds the v18 layout (Phase 16): no campaigns, no companions' remarks or second stories, no campaign system.</summary>
         public static void StripToV18(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV19(doc); // Phase 18
             doc["schemaVersion"] = 18;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             w.Remove("campaigns");

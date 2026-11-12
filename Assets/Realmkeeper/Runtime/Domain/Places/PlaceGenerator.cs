@@ -256,6 +256,9 @@ namespace Realmkeeper.Domain.Places
             Populate(a, rng, layout, cells, depth, story);
             if (story?.KeyItem != null) PlaceKey(layout, entrance, story.KeyItem, rng);
             if (story != null && story.Bridges > 0 && !layout.Connections.Exists(c => c.Kind == ConnectionKind.Bridge)) SideBridge(layout, entrance, story);
+            // Phase 18 (ADR-0089): mechanisms wired to what they work. A layout where a puzzle cannot be made solvable (its
+            // workings would lie behind the door they open) is not used: the next attempt is tried.
+            if (story?.Finish != null && !story.Finish(layout)) return null;
             return layout;
         }
 

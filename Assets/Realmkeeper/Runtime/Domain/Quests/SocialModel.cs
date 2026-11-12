@@ -71,6 +71,37 @@ namespace Realmkeeper.Domain.Quests
         public ReputationChangeData Clone() => (ReputationChangeData)MemberwiseClone();
     }
 
+    /// <summary>
+    /// Phase 18 (ADR-0088): what kind of thing a discovery is. Each kind has a use: the journal groups by it, it decides
+    /// who in the world cares to hear it (an elder for history, a guard for danger, a merchant for trade), and companions
+    /// with a matching interest remark on it. <see cref="None"/> is for facts that only a quest reads.
+    /// </summary>
+    public enum DiscoveryCategory
+    {
+        None = 0,
+        Historical = 1,
+        Geographic = 2,
+        Cultural = 3,
+        Faction = 4,
+        Religious = 5,
+        Natural = 6,
+        Economic = 7,
+        Personal = 8,
+        Dangerous = 9,
+        Arcane = 10,
+    }
+
+    /// <summary>
+    /// Phase 18 (ADR-0088): how sure the player is. Rumours are a separate list (heard, not seen). An unverified
+    /// observation is something the player saw but could not be sure of; it becomes confirmed when what confirms it is
+    /// found. Old saves load as confirmed (the default), as everything they recorded was.
+    /// </summary>
+    public enum DiscoveryCertainty
+    {
+        Confirmed = 0,
+        Unverified = 1,
+    }
+
     /// <summary>Something the player has found out (a fact, a clue, a place).</summary>
     public sealed class DiscoveryData
     {
@@ -81,7 +112,33 @@ namespace Realmkeeper.Domain.Quests
         /// <summary>Where it came from ("npc:{id}", "object:{key}", "item:{id}", "visit").</summary>
         public string Source { get; set; }
 
-        public DiscoveryData Clone() => (DiscoveryData)MemberwiseClone();
+        /// <summary>Phase 18: the kind of discovery (None for older or quest-only facts).</summary>
+        public DiscoveryCategory Category { get; set; }
+
+        /// <summary>Phase 18: whether the player has confirmed it.</summary>
+        public DiscoveryCertainty Certainty { get; set; }
+
+        /// <summary>Phase 18: the place it was found in, or null.</summary>
+        public string PlaceId { get; set; }
+
+        /// <summary>Phase 18: who it concerns ("faction:{id}", "npc:{id}"), or null.</summary>
+        public string Subject { get; set; }
+
+        /// <summary>Phase 18: a discovery that matters (an authored story fact): it gives experience once, and is kept when the list is full.</summary>
+        public bool Major { get; set; }
+
+        /// <summary>Phase 18: for an unverified observation, what confirms it (a discovery key, or "group:{name}" for the creatures themselves seen).</summary>
+        public string ConfirmedBy { get; set; }
+
+        /// <summary>Phase 18: the settlements whose people have been told it (each tells once).</summary>
+        public List<string> SharedIn { get; set; } = new List<string>();
+
+        public DiscoveryData Clone()
+        {
+            var c = (DiscoveryData)MemberwiseClone();
+            c.SharedIn = new List<string>(SharedIn);
+            return c;
+        }
     }
 
     /// <summary>Something the player has heard, unverified (ADR-0060).</summary>
@@ -116,7 +173,7 @@ namespace Realmkeeper.Domain.Quests
     public sealed class PlayerSocialData
     {
         public const int MaxLedger = 300;
-        public const int MaxDiscoveries = 200;
+        public const int MaxDiscoveries = 400; // Phase 18: clues now record what they tell (was 200)
         public const int MaxRumors = 60;
         public const int MaxDecisions = 80;
         public const int MaxAppliedKeys = 600;
@@ -158,6 +215,22 @@ namespace Realmkeeper.Domain.Quests
         {
             foreach (var d in Discoveries) if (d.Key == key) return true;
             return false;
+        }
+
+        public DiscoveryData FindDiscovery(string key)
+        {
+            foreach (var d in Discoveries) if (d.Key == key) return d;
+            return null;
+        }
+
+        /// <summary>Phase 18: keeps the list in bounds, dropping the oldest minor discovery first (major ones stay while any minor one is left).</summary>
+        public void TrimDiscoveries()
+        {
+            while (Discoveries.Count > MaxDiscoveries)
+            {
+                var drop = Discoveries.FindIndex(d => !d.Major);
+                Discoveries.RemoveAt(drop >= 0 ? drop : 0);
+            }
         }
 
         public bool Applied(string key) => key != null && AppliedKeys.Contains(key);

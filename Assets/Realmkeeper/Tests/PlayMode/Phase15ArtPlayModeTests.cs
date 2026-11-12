@@ -299,9 +299,12 @@ namespace Realmkeeper.Tests.PlayMode
             void Watch(string text, string trace, LogType type) { if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert) errors.Add(text); }
             UnityEngine.Application.logMessageReceived += Watch;
             LocalCreatureModels.ForceMissing = true; // as on a clone without the local-only models
-            Assert.That(CombatantBodies.Create(goblin, c.Catalog, root.transform), Is.Null, "A goblin falls back to the placeholder.");
+            // Phase 18 (ADR-0097): goblins and wolves now have repository models (Quaternius, CC0), so they no longer need the local Bestiary.
+            Assert.That(CombatantBodies.Create(goblin, c.Catalog, root.transform)?.Source, Is.EqualTo("animated Goblin"), "A goblin uses the repository's own model.");
+            var unknown = new CombatantView { Id = new Realmkeeper.Domain.Identifiers.CombatantId(System.Guid.NewGuid()), Name = "Unknown", Kind = CombatantKind.Creature, CreatureId = "no_such_creature" };
+            Assert.That(CombatantBodies.Create(unknown, c.Catalog, root.transform), Is.Null, "A creature with no model falls back to the placeholder.");
             Assert.That(CombatantBodies.Create(skeleton, c.Catalog, root.transform)?.Source, Does.StartWith("KayKit"), "Repository art still works.");
-            Assert.That(CombatantBodies.Create(wolf, c.Catalog, root.transform), Is.Null, "Beasts keep their placeholder.");
+            Assert.That(CombatantBodies.Create(wolf, c.Catalog, root.transform)?.Source, Is.EqualTo("animated Wolf"), "Beasts have their own models now.");
             Assert.That(CombatantBodies.Create(skeleton, null, root.transform), Is.Null, "No catalog at all: placeholder, no exception.");
             yield return null;
             UnityEngine.Application.logMessageReceived -= Watch;
@@ -310,7 +313,7 @@ namespace Realmkeeper.Tests.PlayMode
             LocalCreatureModels.ForceMissing = false;
             if (LocalCreatureModels.Load() == null) { Object.Destroy(root); Assert.Pass("This machine has no local Bestiary: the fallback is what it uses."); }
             var local = CombatantBodies.Create(goblin, c.Catalog, root.transform);
-            Assert.That(local?.Source, Is.EqualTo("local Puglin"), "With the local install, goblins use the Puglin.");
+            Assert.That(local?.Source, Is.EqualTo("animated Goblin"), "With the local install too, the repository's goblin comes first.");
             Object.Destroy(root);
             yield return null;
         }

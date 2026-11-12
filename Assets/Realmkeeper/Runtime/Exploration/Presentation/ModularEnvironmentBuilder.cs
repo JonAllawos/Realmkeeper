@@ -364,6 +364,9 @@ namespace Realmkeeper.Exploration.Presentation
 
             switch (p.Kind)
             {
+                case PropKind.Well when Scenery(ctx, t, "Well", Vector3.zero, 0f) != null: // Phase 18: the modelled well
+                    ColliderBox(colliders, "Well", new Vector3(0f, 0.6f, 0f), new Vector3(1.9f, 1.2f, 1.9f));
+                    break;
                 case PropKind.Well:
                     Mesh(ctx, t, "Ring", MetreMeshes.Lathe(new[] { new Vector2(0.95f, 0f), new Vector2(0.95f, 0.85f), new Vector2(0.75f, 0.85f) }, 20, ctx.Assets), ctx.Mat("RockTrim"), Vector3.zero);
                     Mesh(ctx, t, "Water", MetreMeshes.Disc(0.75f, 20, ctx.Assets), ctx.Mat("WindowGlass"), new Vector3(0f, 0.55f, 0f));
@@ -452,8 +455,26 @@ namespace Realmkeeper.Exploration.Presentation
             Mesh(ctx, t, "Lantern glass", Shared(ctx, "LanternGlass", () => MetreMeshes.Box(new Vector3(0.18f, 0.3f, 0.18f), ctx.Assets)), ctx.Mat("LampGlow"), at + Vector3.up * 0.03f).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
         }
 
+        /// <summary>Phase 18: a static scenery model from the CC0 kits, or null when this project has none of that name.</summary>
+        private static GameObject Scenery(Context ctx, Transform parent, string id, Vector3 localPosition, float yaw, float scale = 1f)
+        {
+            var prefab = ctx.Catalog?.SceneryModel(id);
+            if (prefab == null) return null;
+            var go = Object.Instantiate(prefab, parent, false);
+            go.name = id;
+            go.transform.localPosition = localPosition;
+            go.transform.localRotation = Quaternion.Euler(0f, yaw, 0f) * go.transform.localRotation;
+            go.transform.localScale = go.transform.localScale * scale;
+            foreach (var c in go.GetComponentsInChildren<Collider>()) Object.Destroy(c); // colliders are the builder's own
+            go.isStatic = true;
+            foreach (Transform child in go.GetComponentsInChildren<Transform>()) child.gameObject.isStatic = true;
+            return go;
+        }
+
         private static void Tree(Context ctx, Transform t, int hash)
         {
+            // Phase 18: a modelled tree from the nature kit when installed (one of five, by the place's hash), sized a little apart.
+            if (Scenery(ctx, t, "CommonTree_" + (1 + hash % 5), Vector3.zero, hash % 360, 0.85f + hash % 7 * 0.05f) != null) return;
             Mesh(ctx, t, "Trunk", MetreMeshes.Lathe(new[] { new Vector2(0.32f, 0f), new Vector2(0.22f, 0.5f), new Vector2(0.16f, 3.2f), new Vector2(0.08f, 4.2f) }, 9, ctx.Assets),
                 ctx.Mat("Bark"), Vector3.zero);
             var leaves = ctx.Mat("Foliage");

@@ -240,6 +240,9 @@ namespace Realmkeeper.Simulation.Atlas
             if (made)
             {
                 WorldEvents.Move(e, WorldEventState.Resolved, now, "the survivors reached " + w.FindSettlement(g.OriginId)?.Name);
+                // Phase 18 (ADR-0093): what was taken, by whom, bound where — so the goods can come back if the band is broken.
+                e.Applied.Add("cargo:" + s.ResourceTypeId + ":" + lost.ToString(CultureInfo.InvariantCulture) + ":" + s.DestinationId);
+                e.Applied.Add("band:" + band.PopulationId);
                 WorldEvents.TellSettlements(w, e, new[] { g.OriginId, s.DestinationId }, day);
                 var bandit = WorldEvents.Open(w, "bandits:" + band.PopulationId);
                 if (bandit != null) WorldEvents.Move(bandit, WorldEventState.Escalating, now, "they took a caravan");

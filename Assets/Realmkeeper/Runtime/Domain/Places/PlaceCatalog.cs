@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Realmkeeper.Domain.Combat;
+using Realmkeeper.Domain.Quests;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
 
@@ -255,6 +256,24 @@ namespace Realmkeeper.Domain.Places
 
         /// <summary>The discovery key the insight records ("mine_collapse_cause"), or null.</summary>
         public string Discovery { get; set; }
+
+        /// <summary>Phase 18 (ADR-0088): what kind of discovery the insight is. Every studied clue now records its insight, under this kind.</summary>
+        public DiscoveryCategory Category { get; set; }
+
+        /// <summary>Phase 18: an authored story fact (experience once; kept in the journal).</summary>
+        public bool Major { get; set; }
+
+        /// <summary>Phase 18: the insight is an observation the player cannot be sure of until <see cref="ConfirmedBy"/> is found.</summary>
+        public bool Unverified { get; set; }
+
+        /// <summary>Phase 18: the discovery key (or feature ID) that confirms this one.</summary>
+        public string ConfirmedBy { get; set; }
+
+        /// <summary>Phase 18: a place definition this insight reveals the way to (the player learns where it is).</summary>
+        public string RevealsPlace { get; set; }
+
+        /// <summary>Phase 18: the insight concerns the faction that holds the place.</summary>
+        public bool AboutHolder { get; set; }
     }
 
     public static class FeatureCatalog
@@ -334,6 +353,61 @@ namespace Realmkeeper.Domain.Places
 
             // Phase 14: the five new places' stories.
             foreach (var f in Phase14Places.Features()) ById[f.Id] = f;
+
+            // Phase 18: the new places, mechanisms and story features.
+            foreach (var f in Phase18Places.Features()) ById[f.Id] = f;
+
+            // Phase 18 (ADR-0088): what each clue's insight is, and which matter. A clue whose insight is a guess (tracks
+            // that suggest, dust that hints) is unverified until what confirms it is found.
+            void K(string id, DiscoveryCategory c, bool major = false, string confirmedBy = null, string reveals = null, bool holder = false)
+            {
+                if (!ById.TryGetValue(id, out var f)) return;
+                f.Category = c;
+                f.Major = major;
+                f.Unverified = confirmedBy != null;
+                f.ConfirmedBy = confirmedBy;
+                f.RevealsPlace = reveals;
+                f.AboutHolder = holder;
+            }
+
+            K("claw_marks", DiscoveryCategory.Natural, confirmedBy: "group:a bear's den");
+            K("old_campfire", DiscoveryCategory.Dangerous);
+            K("bones", DiscoveryCategory.Dangerous);
+            K("abandoned_tools", DiscoveryCategory.Historical);
+            K("shoring_split", DiscoveryCategory.Dangerous, major: true);
+            K("tally_marks", DiscoveryCategory.Economic, confirmedBy: "mine_spiders");
+            K("webbing", DiscoveryCategory.Dangerous);
+            K("carved_symbol", DiscoveryCategory.Arcane);
+            K("broken_statue", DiscoveryCategory.Religious);
+            K("epitaph", DiscoveryCategory.Historical);
+            K("disturbed_dust", DiscoveryCategory.Dangerous, confirmedBy: "group:the restless dead");
+            K("duty_roster", DiscoveryCategory.Faction, holder: true);
+            K("faction_banner", DiscoveryCategory.Faction, holder: true);
+            K("stolen_goods", DiscoveryCategory.Economic);
+            K("foremans_ledger", DiscoveryCategory.Historical, major: true);
+            K("collapse_rubble", DiscoveryCategory.Dangerous);
+            K("vault_lever", DiscoveryCategory.Geographic);
+            K("ward_altar", DiscoveryCategory.Religious);
+            K("hidden_panel", DiscoveryCategory.Geographic);
+            K("garrison_orders", DiscoveryCategory.Faction, major: true, holder: true);
+            K("desk", DiscoveryCategory.Personal);
+            K("granary_ledger_in", DiscoveryCategory.Economic);
+            K("burial_register", DiscoveryCategory.Historical, major: true);
+            K("fever_epitaph", DiscoveryCategory.Historical, major: true);
+            K("ossuary_wall", DiscoveryCategory.Cultural);
+            K("founders_mural", DiscoveryCategory.Religious, major: true);
+            K("cult_tract", DiscoveryCategory.Religious, major: true);
+            K("spilled_braziers", DiscoveryCategory.Dangerous);
+            K("toll_ledger", DiscoveryCategory.Economic, major: true);
+            K("lookout_post", DiscoveryCategory.Dangerous);
+            K("cracked_arch", DiscoveryCategory.Dangerous, major: true);
+            K("sluice_wheel", DiscoveryCategory.Geographic);
+            K("engineers_plan", DiscoveryCategory.Geographic, major: true);
+            K("gas_seep", DiscoveryCategory.Natural);
+            K("boarded_well", DiscoveryCategory.Natural, major: true);
+            K("last_letter", DiscoveryCategory.Personal, major: true);
+            K("smouldering_beams", DiscoveryCategory.Dangerous);
+            foreach (var (id, c, major, confirmedBy, reveals) in Phase18Places.Categories()) K(id, c, major, confirmedBy, reveals);
         }
 
         public static List<string> Validate()
@@ -594,6 +668,12 @@ namespace Realmkeeper.Domain.Places
         /// <summary>The first group (the lookouts) parleys before fighting.</summary>
         public bool Parley { get; set; }
 
+        /// <summary>
+        /// Phase 18 (ADR-0089): a last, deterministic step on a generated layout (before it is validated): wiring a
+        /// mechanism to the door it works, flooding the room a pump drains, pointing a sign at its hidden way.
+        /// </summary>
+        public Func<PlaceLayout, bool> Finish { get; set; }
+
         /// <summary>What a story container holds: a loot table, and one named item (a relic) — by feature.</summary>
         public Dictionary<string, string> StoryLoot { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
@@ -643,6 +723,14 @@ namespace Realmkeeper.Domain.Places
             Add(new PlaceDefinition { Id = Cave, Name = "Bramble Cave", ArchetypeId = "cave", Description = "A cave mouth behind brambles, known to hunters and avoided by them." });
             Add(new PlaceDefinition { Id = Ruin, Name = "The Broken Hall", ArchetypeId = "ruin", Description = "The shell of an old hall, roofless in places, older than any town nearby." });
             foreach (var d in Phase14Places.Definitions()) Add(d);
+            foreach (var d in Phase18Places.Definitions()) Add(d);
+
+            // Phase 18: the two Phase 13 places that had no story of their own gain one (worlds made from now on; a saved
+            // layout is never changed).
+            ById[Cave].Story.Add(("hunters_cache", RoomKind.Chamber, false));
+            ById[Cave].Story.Add(("bear_wallow", RoomKind.Den, false));
+            ById[Ruin].Story.Add(("hall_hearthstone", RoomKind.Hall, false));
+            ById[Ruin].Story.Add(("roof_survey", RoomKind.Chamber, false));
         }
     }
 }

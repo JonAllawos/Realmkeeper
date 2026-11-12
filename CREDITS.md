@@ -68,4 +68,32 @@ content comes from which SRD is listed per definition (`ContentSource`) and in
 | KayKit Character Animations 1.1 (free version): Rig_Medium General, MovementBasic, CombatMelee, CombatRanged and Special sets | Kay Lousberg (kaylousberg.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/KayKit/CharacterAnimations/License.txt` |
 | Bestiary – Dungeon Monsters Kit (free Standard version): Imp and Puglin, with textures. **Local only: not in the repository** (git-ignored, because the licence forbids redistributing the asset files); each machine downloads it from quaternius.itch.io/bestiary-dungeon-monsters-kit | Quaternius (quaternius.com) | Quaternius Asset License (QAL) 1.0: use in products allowed, no credit required, no redistribution of the assets themselves | `Assets/Realmkeeper/Art/ThirdParty/QuaterniusBestiary/License.txt` (local) |
 
+### Added in Phase 18
+
+| Work | Author | Licence | Licence file |
+|---|---|---|---|
+| KayKit Dungeon Remastered 1.0: 203 dungeon pieces and props (from the author's GitHub release) | Kay Lousberg (kaylousberg.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/KayKit/DungeonRemastered/License.txt` |
+| Post Lantern (from KayKit Halloween Bits, via Poly Pizza) | Kay Lousberg | CC0 1.0 | `…/KayKit/PostLantern/License.txt` |
+| Spider, Rat, Deer, Stag, Fox, Goblin, Giant, Orc, Bull, Chicken; Wolf, Husky, Horse, Cow (Ultimate Animated Animal Pack) — creatures with their animations (via Poly Pizza; converted GLB→FBX, rescaled and trimmed to the clips the game uses, with `Tools/Blender/glb2fbx.py`) | Quaternius (quaternius.com) | CC0 1.0 | `…/Quaternius/Creatures/License.txt` |
+| Farm Animals Pack: Sheep (OpenGameArt) | Quaternius | CC0 1.0 | `…/Quaternius/FarmAnimals/License.txt` |
+| Well, Market Stalls, Market Stand, Street Light: settlement props (via Poly Pizza; converted and rescaled) | Quaternius | CC0 1.0 | `…/Quaternius/SettlementProps/License.txt` |
+| Fantasy Props MegaKit (free Standard version): 94 props | Quaternius | CC0 1.0 | `…/Quaternius/FantasyPropsMegaKit/License.txt` |
+| Stylized Nature MegaKit (free Standard version): 68 trees, plants and rocks | Quaternius | CC0 1.0 | `…/Quaternius/StylizedNatureMegaKit/License.txt` |
+
+## Art requiring attribution (Creative Commons Attribution 3.0)
+
+These works are used under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). Changes made: each was
+converted from GLB to FBX with Blender 5.2.1 and uniformly rescaled to a real-world size
+(`Tools/Blender/glb2fbx.py`); nothing else was changed.
+
+- "Black bear" by Poly by Google, CC BY 3.0, via Poly Pizza: https://poly.pizza/m/56ym_pyVnel
+- "Boar" by Poly by Google, CC BY 3.0, via Poly Pizza: https://poly.pizza/m/57fSWum6F1P
+- "Goat" by Poly by Google, CC BY 3.0, via Poly Pizza: https://poly.pizza/m/d7dImmjtF8E
+
+Licence record: `Assets/Realmkeeper/Art/ThirdParty/PolyByGoogle/License.txt`.
+
+**Quests, places and stories (Phase 18).** The four quest chains, the new world and companion stories, the four new
+places with their clues, documents and mechanisms, and every line of their dialogue are Realmkeeper's own, written for
+this project. No campaign canon is established; The Waystone Count remains provisional.
+
 CC0 text: https://creativecommons.org/publicdomain/zero/1.0/

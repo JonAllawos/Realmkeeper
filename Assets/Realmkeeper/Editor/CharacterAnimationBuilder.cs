@@ -55,6 +55,7 @@ namespace Realmkeeper.Editor
             });
             ExtendLocomotion(ual);
             FillCatalog(combatant, skeleton, person);
+            FillAnimals(combatant); // Phase 18
             BuildLocalBestiary();
             AssetDatabase.SaveAssets();
             Debug.Log("Character animation built.");
@@ -235,6 +236,86 @@ namespace Realmkeeper.Editor
             catalog.Creatures = Entries(KayKit + "Skeletons/Characters/");
             catalog.Props = Entries(KayKit + "Skeletons/Accessories/");
             EditorUtility.SetDirty(catalog);
+        }
+
+        private const string ThirdParty = "Assets/Realmkeeper/Art/ThirdParty/";
+
+        /// <summary>
+        /// Phase 18: the creatures. Each animated model gets the shared combat controller with its own clips in every slot —
+        /// standing, walking, running, attacking, hit, dying — chosen by what each slot is for; a slot with no matching clip
+        /// stands still rather than playing a humanoid motion on an animal. Static models (no clips) are listed without one.
+        /// </summary>
+        private static void FillAnimals(AnimatorController combatant)
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<ArtCatalog>("Assets/Realmkeeper/Art/Resources/RealmkeeperArtCatalog.asset");
+            if (catalog == null) return;
+            catalog.Animals = new List<ArtCatalog.PrefabEntry>();
+            catalog.AnimalControllers = new List<ArtCatalog.ControllerEntry>();
+            foreach (var folder in new[] { "Quaternius/Creatures/", "Quaternius/FarmAnimals/", "PolyByGoogle/" })
+            {
+                if (!Directory.Exists(ThirdParty + folder)) continue;
+                foreach (var e in Entries(ThirdParty + folder))
+                {
+                    catalog.Animals.Add(e);
+                    var path = AssetDatabase.GetAssetPath(e.Prefab);
+                    var clips = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview__", System.StringComparison.Ordinal)).ToList();
+                    if (clips.Count == 0) continue;
+                    catalog.AnimalControllers.Add(new ArtCatalog.ControllerEntry { Id = e.Id, Controller = BuildAnimalOverride(combatant, e.Id, clips) });
+                }
+            }
+
+            // Static scenery from the CC0 kits (FBX and OBJ), by file name.
+            catalog.Scenery = new List<ArtCatalog.PrefabEntry>();
+            foreach (var folder in new[] { "Quaternius/SettlementProps/", "KayKit/PostLantern/", "Quaternius/StylizedNatureMegaKit/Models/", "Quaternius/FantasyPropsMegaKit/Models/", "KayKit/DungeonRemastered/Models/" })
+            {
+                if (!Directory.Exists(ThirdParty + folder)) continue;
+                foreach (var p in Directory.GetFiles(ThirdParty + folder).Where(f => f.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase) || f.EndsWith(".obj", System.StringComparison.OrdinalIgnoreCase))
+                             .Select(f => f.Replace('\\', '/')).OrderBy(f => f, System.StringComparer.Ordinal))
+                {
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(p);
+                    if (prefab != null) catalog.Scenery.Add(new ArtCatalog.PrefabEntry { Id = Path.GetFileNameWithoutExtension(p), Prefab = prefab });
+                }
+            }
+
+            EditorUtility.SetDirty(catalog);
+        }
+
+        private static AnimatorOverrideController BuildAnimalOverride(AnimatorController baseController, string id, List<AnimationClip> clips)
+        {
+            AnimationClip Ends(params string[] suffixes)
+            {
+                foreach (var s in suffixes)
+                    foreach (var c in clips)
+                        if (c.name == s || c.name.EndsWith("|" + s, System.StringComparison.Ordinal) || c.name.EndsWith("_" + s, System.StringComparison.Ordinal) && !c.name.EndsWith("_2_" + s, System.StringComparison.Ordinal))
+                            return c;
+                return null;
+            }
+
+            var idle = Ends("Idle") ?? clips[0];
+            var walk = Ends("Walk") ?? idle;
+            var run = Ends("Gallop", "Run") ?? walk;
+            var attack = Ends("Attack", "Attack_Headbutt", "Weapon", "Punch") ?? idle;
+            var hit = Ends("Idle_HitReact_Left", "HitRecieve", "HitReact") ?? idle;
+            var death = Ends("Death") ?? idle;
+            var dir = Characters + "Animals/";
+            if (!AssetDatabase.IsValidFolder(dir.TrimEnd('/'))) AssetDatabase.CreateFolder(Characters.TrimEnd('/'), "Animals");
+            var path = dir + id + "Combatant.overrideController";
+            AssetDatabase.DeleteAsset(path);
+            var oc = new AnimatorOverrideController(baseController) { name = id + "Combatant" };
+            var list = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+            oc.GetOverrides(list);
+            for (var i = 0; i < list.Count; i++)
+            {
+                var n = list[i].Key.name;
+                var pick = n.Contains("Death") ? death : n.Contains("Hit") ? hit : n.Contains("Walk") ? walk :
+                    n.Contains("Run") || n.Contains("Jog") || n.Contains("Sprint") ? run : n.Contains("Idle") && !n.Contains("Aiming") ? idle :
+                    n.Contains("Attack") || n.Contains("Shoot") || n.Contains("Spell") || n.Contains("Throw") || n.Contains("Punch") || n.Contains("Magic") || n.Contains("Ranged") ? attack : idle;
+                list[i] = new KeyValuePair<AnimationClip, AnimationClip>(list[i].Key, pick);
+            }
+
+            oc.ApplyOverrides(list);
+            AssetDatabase.CreateAsset(oc, path);
+            return oc;
         }
 
         private static List<ArtCatalog.PrefabEntry> Entries(string folder) =>

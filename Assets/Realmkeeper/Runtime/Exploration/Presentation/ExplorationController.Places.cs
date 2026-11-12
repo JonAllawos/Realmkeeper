@@ -209,7 +209,7 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var f in scene.Features)
             {
                 if (f.Hidden) continue;
-                var obj = PlaceEnvironmentBuilder.Feature(root, scene, f, _materials);
+                var obj = PlaceEnvironmentBuilder.Feature(root, scene, f, _materials, Catalog); // Phase 18: kit models where they fit
                 var room = scene.Room(f.Room);
                 var at = PlaceEnvironmentBuilder.CellCentre(scene, room?.Floor ?? 0, f.X, f.Z);
                 var label = f.Kind == FeatureKind.Trap ? (f.Armed ? "Trap: " : "Disarmed trap: ") + f.Name
@@ -333,6 +333,9 @@ namespace Realmkeeper.Exploration.Presentation
             if (_placeScene == null || Hud == null) return;
             var room = _placeScene.Room(_placeScene.PlayerRoom);
             Hud.SetLocation(_placeScene.Name, (_placeScene.FloorName ?? "-") + (room != null ? " · " + room.Name : string.Empty), _session.GetOverview().Date.ToString());
+            // Phase 18: in a fight the combat panels own the bottom of the screen; the place card and the last room text stand aside.
+            _placePanel?.EnableInClassList("xk-hidden", InFight);
+            if (InFight) Hud.HideResponse();
             if (_placeName == null) return;
             _placeName.text = _placeScene.Name;
             _placeWhere.text = (_placeScene.FloorName ?? string.Empty) + (room != null ? " — " + room.Name : string.Empty);

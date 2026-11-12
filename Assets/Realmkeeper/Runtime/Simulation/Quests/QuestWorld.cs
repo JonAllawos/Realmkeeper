@@ -381,6 +381,15 @@ namespace Realmkeeper.Simulation.Quests
             return w.FindSettlement(new SettlementId(g)) ?? (w.FindNpc(new NpcId(g)) is NpcData n ? w.FindSettlement(n.HomeSettlementId) : null);
         }
 
+        /// <summary>Phase 18: the faction a role stands for (a person's faction, or a bound faction).</summary>
+        public static FactionData FactionFor(WorldData w, QuestInstanceData q, string role)
+        {
+            if (role == null) return null;
+            var npc = Person(w, q, role);
+            if (npc != null) return w.FindFaction(npc.FactionId);
+            return q.Bound(role) is string fid && Guid.TryParse(fid, out var fg) ? w.FindFaction(new FactionId(fg)) : null;
+        }
+
         public static void Apply(WorldData w, QuestInstanceData q, ConsequenceDefinition c, string key, QuestReporter report)
         {
             var today = w.CurrentSimulationDate;
@@ -406,6 +415,22 @@ namespace Realmkeeper.Simulation.Quests
                 {
                     var s = SettlementOf(w, q, c.Role ?? "settlement");
                     if (s != null) s.Prosperity = Reputation.Clamp(s.Prosperity + amount, 0, 100);
+                    break;
+                }
+                case ConsequenceKind.ResolveWorldEvent: // Phase 18 (ADR-0093): the player's doing ends what the story was about
+                {
+                    if (!q.Variables.TryGetValue(c.Key ?? "event", out var eventKey)) return;
+                    var open = Realmkeeper.Simulation.Atlas.WorldEvents.Open(w, eventKey);
+                    if (open != null) Realmkeeper.Simulation.Atlas.WorldEvents.Move(open, WorldEventState.Resolved, QuestClock.Now(w), QuestText.Fill(w, q, c.Value ?? "settled with {player}'s help"));
+                    break;
+                }
+                case ConsequenceKind.FactionRelation: // Phase 18 (ADR-0090)
+                {
+                    var a = FactionFor(w, q, c.Role);
+                    var b = FactionFor(w, q, c.Value);
+                    if (a == null || b == null || a.FactionId == b.FactionId) return;
+                    var r = w.FindRelation(a.FactionId, b.FactionId);
+                    if (r != null) r.Opinion = Reputation.Clamp(r.Opinion + amount, FactionRelationData.MinOpinion, FactionRelationData.MaxOpinion);
                     break;
                 }
                 case ConsequenceKind.FactionInfluence:

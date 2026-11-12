@@ -44,6 +44,23 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// player begins one), companions with nothing yet to say and no second story asked, and the campaign pass enabled
     /// after the quest pass. Nothing in the world's history is rewritten.
     /// </summary>
+    /// <summary>
+    /// v19 → v20 (Phase 18, ADR-0096). Structural only: a discovery gains its kind, certainty, place, subject, whether it
+    /// matters and where it has been told — absent in a v19 save and read as none, confirmed, not major, told nowhere, so
+    /// everything an older save recorded stays exactly as true as it was. Nothing else is written here: the Phase 18
+    /// places of each region and their quests are added by the session on load (as each generation of places has been),
+    /// mechanisms keep their state in the places' own variables, and world events and quests keep their existing fields.
+    /// </summary>
+    public sealed class MigrationV19ToV20 : ISaveMigration
+    {
+        public int SourceVersion => 19;
+
+        public void Migrate(JObject document)
+        {
+            // The new discovery fields are optional and default correctly when absent: nothing to rewrite.
+        }
+    }
+
     public sealed class MigrationV18ToV19 : ISaveMigration
     {
         public int SourceVersion => 18;

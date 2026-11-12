@@ -476,7 +476,28 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         /// <summary>The shape of a feature (the object the player interacts with).</summary>
-        public static GameObject Feature(Transform parent, PlaceSceneView v, FeatureView f, ExplorationMaterials materials)
+        /// <summary>
+        /// Phase 18: the CC0 kit model that draws a feature, where one fits what it is (a wooden chest, a crate, a lectern, an
+        /// anvil, a bed), or null to keep the built shape.
+        /// </summary>
+        public static string KitFor(FeatureView f)
+        {
+            switch (f.DefinitionId)
+            {
+                case "chest": case "reliquary": return "Chest_Wood";
+                case "crate": case "ore_crate": return "Crate_Wooden";
+                case "strongbox": case "drowned_strongbox": case "reeves_strongbox": return "Crate_Metal";
+                case "hunters_cache": return "Bag";
+                case "grain_bin": return "Barrel_Apples";
+                case "burial_register": case "foremans_ledger": case "toll_ledger": case "watch_log": case "granary_ledger_in": return "BookStand";
+                case "forge": return "Anvil";
+                case "workbench": return "Workbench";
+                case "bed": return "Bed_Twin1";
+                default: return null;
+            }
+        }
+
+        public static GameObject Feature(Transform parent, PlaceSceneView v, FeatureView f, ExplorationMaterials materials, ArtCatalog catalog = null)
         {
             var room = v.Room(f.Room);
             var at = CellCentre(v, room?.Floor ?? 0, f.X, f.Z);
@@ -499,6 +520,40 @@ namespace Realmkeeper.Exploration.Presentation
                 p.transform.localRotation = Quaternion.Euler(euler);
                 p.transform.localScale = size;
                 p.GetComponent<Renderer>().sharedMaterial = m;
+            }
+
+            // Phase 18: kit models where they fit (the built shapes remain the fallback when the kits are not installed).
+            GameObject Kit(string id, Vector3 offset = default, float scale = 1f)
+            {
+                var prefab = catalog?.SceneryModel(id);
+                if (prefab == null) return null;
+                var k = Object.Instantiate(prefab, t, false);
+                k.name = id;
+                k.transform.localPosition = offset;
+                k.transform.localScale = k.transform.localScale * scale;
+                foreach (var c in k.GetComponentsInChildren<Collider>()) Object.Destroy(c);
+                return k;
+            }
+
+            var kit = KitFor(f);
+            if (kit != null && Kit(kit) != null) return go;
+            if (f.Kind == FeatureKind.Altar && catalog?.SceneryModel("CandleStick_Triple") != null)
+            {
+                Part(PrimitiveType.Cube, new Vector3(0f, 0.5f, 0f), new Vector3(1.4f, 1.0f, 0.8f), stone);
+                Kit("CandleStick_Triple", new Vector3(-0.45f, 1.0f, 0f));
+                Kit("CandleStick_Triple", new Vector3(0.45f, 1.0f, 0f));
+                return go;
+            }
+
+            if (f.DefinitionId != null && f.DefinitionId.StartsWith("bell_", System.StringComparison.Ordinal))
+            {
+                // The ringers' bells: a bronze bell on an iron bracket, each a little different (ferry, mill, forge).
+                var bronze = M(f.DefinitionId == "bell_ferry" ? new Color(0.55f, 0.42f, 0.22f) : f.DefinitionId == "bell_mill" ? new Color(0.62f, 0.48f, 0.26f) : new Color(0.48f, 0.36f, 0.2f), 0.6f);
+                Part(PrimitiveType.Cube, new Vector3(0f, 1.0f, 0f), new Vector3(0.08f, 2.0f, 0.08f), iron);
+                Part(PrimitiveType.Cube, new Vector3(0f, 1.95f, -0.2f), new Vector3(0.06f, 0.06f, 0.45f), iron);
+                Part(PrimitiveType.Cylinder, new Vector3(0f, 1.62f, -0.4f), new Vector3(0.38f, 0.22f, 0.38f), bronze);
+                Part(PrimitiveType.Sphere, new Vector3(0f, 1.85f, -0.4f), new Vector3(0.28f, 0.2f, 0.28f), bronze);
+                return go;
             }
 
             switch (f.Kind)

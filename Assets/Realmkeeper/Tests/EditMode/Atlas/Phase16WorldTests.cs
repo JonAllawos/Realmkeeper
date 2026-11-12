@@ -38,7 +38,14 @@ namespace Realmkeeper.Tests.EditMode.Atlas
             for (var i = 0; i < w.Factions.Count; i++)
                 for (var j = i + 1; j < w.Factions.Count; j++)
                     Assert.That(w.FindRelation(w.Factions[i].FactionId, w.Factions[j].FactionId), Is.Not.Null, "Every pair of factions has one relationship.");
-            Assert.That(w.Places.All(p => w.FindSettlement(p.SettlementId)?.RegionId == Home.RegionId || p.SettlementId.IsEmpty), Is.True, "Authored places stay in the home vale.");
+            Assert.That(w.Places.Where(p => !Phase18Places.All.Contains(p.DefinitionId)).All(p => w.FindSettlement(p.SettlementId)?.RegionId == Home.RegionId || p.SettlementId.IsEmpty), Is.True,
+                "The Phase 13 and 14 places stay in the home vale.");
+            foreach (var r in w.Regions)
+            {
+                var own = w.Places.Where(p => Phase18Places.All.Contains(p.DefinitionId) && p.RegionId == r.RegionId).ToList();
+                Assert.That(own.Count, Is.InRange(3, 4), r.Name + " has its own Phase 18 places (ADR-0089).");
+                Assert.That(own.All(p => w.FindSettlement(p.SettlementId)?.RegionId == r.RegionId), Is.True, r.Name + "'s places lie by its own settlements.");
+            }
             Assert.That(Home.Discovery, Is.EqualTo(RegionDiscovery.Visited));
             foreach (var r in w.Regions.Skip(1))
                 Assert.That(r.Discovery, Is.EqualTo(Home.Neighbours.Contains(r.RegionId) ? RegionDiscovery.Discovered : RegionDiscovery.Unknown), "The home's neighbours are known by name; the far lands uncharted.");

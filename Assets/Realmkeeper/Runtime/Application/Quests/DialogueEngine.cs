@@ -156,6 +156,17 @@ namespace Realmkeeper.Application
                     var r = new DialogueResponse { Id = "trade:" + shop.ShopId, Text = "Let's trade.", Kind = ResponseKind.Trade, Next = "end" };
                     list.Add((r, new ResponseView { Id = r.Id, Text = r.Text, Kind = r.Kind, ShopId = shop.ShopId }));
                 }
+
+                // Phase 18 (ADR-0088): findings this person would want to hear.
+                foreach (var d in DiscoveryRules.Offerable(w, npc))
+                {
+                    var r = new DialogueResponse
+                    {
+                        Id = "share:" + d.Key, Text = DiscoveryRules.Offer(d), Kind = ResponseKind.Continue, Next = "topics",
+                        Consequences = new[] { DialogueConsequence.Of(DialogueConsequenceKind.ShareDiscovery, d.Key, 0, null, null, null) },
+                    };
+                    list.Add((r, new ResponseView { Id = r.Id, Text = r.Text, Kind = r.Kind }));
+                }
             }
 
             foreach (var r in node.Responses)
@@ -418,6 +429,10 @@ namespace Realmkeeper.Application
                 }
                 case DialogueConsequenceKind.SetOutcome:
                     if (q != null) q.Outcome = x.Key;
+                    break;
+                case DialogueConsequenceKind.ShareDiscovery: // Phase 18 (ADR-0088)
+                    c.Variables["answer"] = DiscoveryRules.Share(w, npc, x.Key, key, report);
+                    c.Variables["answered"] = "yes";
                     break;
                 case DialogueConsequenceKind.CompleteObjective:
                     if (q != null) events.Add(new QuestEvent { Kind = QuestEventKind.ObjectiveCompleted, Target = q.InstanceId, Detail = x.Key, Subject = npc.NpcId.ToString() });

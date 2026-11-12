@@ -525,3 +525,822 @@ MonoBehaviour:
   Combatant: {fileID: 9100000, guid: b84d3447ac2069240a180149cb217684, type: 2}
   SkeletonCombatant: {fileID: 22100000, guid: fd6f1f4389a7dde4dba85b04b59bac0a, type: 2}
   PersonCombatant: {fileID: 22100000, guid: 9e708ea8a2bb43641be47318288d72f9, type: 2}
+  Animals:
+  - Id: Bull
+    Prefab: {fileID: 919132149155446097, guid: 0027b8e630f44bd42a408bd0cdee57f8, type: 3}
+  - Id: Chicken
+    Prefab: {fileID: 919132149155446097, guid: 3e47d18705678184189a85a0836cf595, type: 3}
+  - Id: Cow
+    Prefab: {fileID: 919132149155446097, guid: c5c69ad1d625ede418fc269af1d8653a, type: 3}
+  - Id: Deer
+    Prefab: {fileID: 919132149155446097, guid: 03a52f05954e34d4db1dc7db6bb33237, type: 3}
+  - Id: Fox
+    Prefab: {fileID: 919132149155446097, guid: 7fee681c3afb952458837d251539219b, type: 3}
+  - Id: Giant
+    Prefab: {fileID: 919132149155446097, guid: 0a996164552e30749a6574c3b7d894ec, type: 3}
+  - Id: Goblin
+    Prefab: {fileID: 919132149155446097, guid: fcd14fe36144a664a92e5ef98904f7ff, type: 3}
+  - Id: Horse
+    Prefab: {fileID: 919132149155446097, guid: 525d6563060754846838d13362e90e9d, type: 3}
+  - Id: Husky
+    Prefab: {fileID: 919132149155446097, guid: c8f01e7b478b15c4ca3dda99a92e4e96, type: 3}
+  - Id: Orc
+    Prefab: {fileID: 919132149155446097, guid: bd13b847141ea1b479c2b6936b57835a, type: 3}
+  - Id: Rat
+    Prefab: {fileID: 919132149155446097, guid: 175384a64b0ff6a478489302e6e3b6b9, type: 3}
+  - Id: Spider
+    Prefab: {fileID: 919132149155446097, guid: 3b9d2ef0308ed0940a75f41ad563a81f, type: 3}
+  - Id: Stag
+    Prefab: {fileID: 919132149155446097, guid: 4423909e3c8a2ec498bfc5277d5e2137, type: 3}
+  - Id: Wolf
+    Prefab: {fileID: 919132149155446097, guid: 679b2d4ac7cbf664ab768f48af250178, type: 3}
+  - Id: Sheep
+    Prefab: {fileID: 919132149155446097, guid: a27e4643a4d17904d80d6de7f88007d0, type: 3}
+  - Id: BlackBear
+    Prefab: {fileID: 919132149155446097, guid: dd16e5f01ade70f458313c8e9d7558f2, type: 3}
+  - Id: Boar
+    Prefab: {fileID: 919132149155446097, guid: bc372b522a6a53c4399581b2a09c42b1, type: 3}
+  - Id: Goat
+    Prefab: {fileID: 919132149155446097, guid: 7cc203d4b78fdaf46b0d8c1b5be42260, type: 3}
+  AnimalControllers:
+  - Id: Bull
+    Controller: {fileID: 22100000, guid: 01d9dd09719fd0644b5dea4da53cbc78, type: 2}
+  - Id: Chicken
+    Controller: {fileID: 22100000, guid: 7ac43f1968d4f274ca9c8a6eebcab53c, type: 2}
+  - Id: Cow
+    Controller: {fileID: 22100000, guid: 4809d4fcde30c8b4a8e7c2c8d4b3674c, type: 2}
+  - Id: Deer
+    Controller: {fileID: 22100000, guid: 4b071a42375b04840986f0808679800e, type: 2}
+  - Id: Fox
+    Controller: {fileID: 22100000, guid: 2d1616642c1a2d4439765a43f8b01bbb, type: 2}
+  - Id: Giant
+    Controller: {fileID: 22100000, guid: fa5ac24a17c398f4aaa1746ced0404cc, type: 2}
+  - Id: Goblin
+    Controller: {fileID: 22100000, guid: a718bae0d13636640a27517ab9cd4f8e, type: 2}
+  - Id: Horse
+    Controller: {fileID: 22100000, guid: 78471b3d4c28a5c49b4415d3de759595, type: 2}
+  - Id: Husky
+    Controller: {fileID: 22100000, guid: 63483162a13c14e43bd7de4bd32f0384, type: 2}
+  - Id: Orc
+    Controller: {fileID: 22100000, guid: ed5d4597973d14244a9c744fc6a9a1f7, type: 2}
+  - Id: Rat
+    Controller: {fileID: 22100000, guid: d4340b6adc0b4cf49a7c09a7bd8f8957, type: 2}
+  - Id: Spider
+    Controller: {fileID: 22100000, guid: 75d97ac00cf6e6348b76267171c7d0f1, type: 2}
+  - Id: Stag
+    Controller: {fileID: 22100000, guid: 249d77a440c75744395ce216854628ce, type: 2}
+  - Id: Wolf
+    Controller: {fileID: 22100000, guid: 898c546f50634b94790c1e54ffbc9319, type: 2}
+  - Id: Sheep
+    Controller: {fileID: 22100000, guid: e8d4e0342368e2b4f8010ebd1868d24f, type: 2}
+  Scenery:
+  - Id: MarketStalls
+    Prefab: {fileID: 919132149155446097, guid: e70c0618594a37e4f8267c654258ef49, type: 3}
+  - Id: MarketStand
+    Prefab: {fileID: 919132149155446097, guid: bd96c28728ae54049934379f5ec15e66, type: 3}
+  - Id: StreetLight
+    Prefab: {fileID: 919132149155446097, guid: eeb2f4b94df22d64982b5dd483c9a697, type: 3}
+  - Id: Well
+    Prefab: {fileID: 919132149155446097, guid: 260c4baf7d5a4d44fb5e9c6e7a92068b, type: 3}
+  - Id: PostLantern
+    Prefab: {fileID: 919132149155446097, guid: e5744fd5313a09645961610261e71a54, type: 3}
+  - Id: Bush_Common
+    Prefab: {fileID: 919132149155446097, guid: fbcea6e971049a94eb2c4c193ef4f062, type: 3}
+  - Id: Bush_Common_Flowers
+    Prefab: {fileID: 919132149155446097, guid: f3dc25fa132dec14abf88047ec122c0c, type: 3}
+  - Id: Clover_1
+    Prefab: {fileID: 919132149155446097, guid: a9bb4888659854142a2ba2324d913d0b, type: 3}
+  - Id: Clover_2
+    Prefab: {fileID: 919132149155446097, guid: cc3e4313273b6994e95ad4c4500075c4, type: 3}
+  - Id: CommonTree_1
+    Prefab: {fileID: 919132149155446097, guid: c9dc6cdb3ae27a54ca550e3f83706b34, type: 3}
+  - Id: CommonTree_2
+    Prefab: {fileID: 919132149155446097, guid: e47a7d019cfa7c249a086e1d44430ad6, type: 3}
+  - Id: CommonTree_3
+    Prefab: {fileID: 919132149155446097, guid: d512f5e4e41617e4582ee83f27d4e0c5, type: 3}
+  - Id: CommonTree_4
+    Prefab: {fileID: 919132149155446097, guid: 8d0abce954966bc48968b641dd407358, type: 3}
+  - Id: CommonTree_5
+    Prefab: {fileID: 919132149155446097, guid: 694bf3d3c0c6b224dab7c4e4e40eaa2d, type: 3}
+  - Id: DeadTree_1
+    Prefab: {fileID: 919132149155446097, guid: 7b80f25a281a7614888be4353544ac3a, type: 3}
+  - Id: DeadTree_2
+    Prefab: {fileID: 919132149155446097, guid: 03e459b4f13fffe4baa500ce24ddf9a2, type: 3}
+  - Id: DeadTree_3
+    Prefab: {fileID: 919132149155446097, guid: b4dcf19f811e32a4ba49d7472718d28e, type: 3}
+  - Id: DeadTree_4
+    Prefab: {fileID: 919132149155446097, guid: e6619e150531c374cb0f94c231cd81fe, type: 3}
+  - Id: DeadTree_5
+    Prefab: {fileID: 919132149155446097, guid: faa4ed2779bff5a4b9cb83215c09b44a, type: 3}
+  - Id: Fern_1
+    Prefab: {fileID: 919132149155446097, guid: 86c0f9ffd04f9d04ca3242faeece7a7a, type: 3}
+  - Id: Flower_3_Group
+    Prefab: {fileID: 919132149155446097, guid: 6b62394785a441746aca2173673628b3, type: 3}
+  - Id: Flower_3_Single
+    Prefab: {fileID: 919132149155446097, guid: 52c994ed8c377bc468996995643c6f9d, type: 3}
+  - Id: Flower_4_Group
+    Prefab: {fileID: 919132149155446097, guid: 9a2f5f686d8a66f47923b49d443282ee, type: 3}
+  - Id: Flower_4_Single
+    Prefab: {fileID: 919132149155446097, guid: 22c2c18eea3fc7644a5b46f1bc626e60, type: 3}
+  - Id: Grass_Common_Short
+    Prefab: {fileID: 919132149155446097, guid: 1ddf33dc15bd14b4f94dd1bd248fb901, type: 3}
+  - Id: Grass_Common_Tall
+    Prefab: {fileID: 919132149155446097, guid: 097c02c68c699544a872fea4ff278412, type: 3}
+  - Id: Grass_Wispy_Short
+    Prefab: {fileID: 919132149155446097, guid: 9c6a288f381a05e479331096e43d5e50, type: 3}
+  - Id: Grass_Wispy_Tall
+    Prefab: {fileID: 919132149155446097, guid: 66451f01644f03349a8917750a970cc4, type: 3}
+  - Id: Mushroom_Common
+    Prefab: {fileID: 919132149155446097, guid: 706950b4312419b4f8064159d8a5eecc, type: 3}
+  - Id: Mushroom_Laetiporus
+    Prefab: {fileID: 919132149155446097, guid: 872a56aeb81cdce43a23c5368a13cc02, type: 3}
+  - Id: Pebble_Round_1
+    Prefab: {fileID: 919132149155446097, guid: b93af7fff59b3bb4c82d5bf450497b15, type: 3}
+  - Id: Pebble_Round_2
+    Prefab: {fileID: 919132149155446097, guid: 02551e31316c7e94099ccc3537210ffd, type: 3}
+  - Id: Pebble_Round_3
+    Prefab: {fileID: 919132149155446097, guid: 6ad29b3c5cf5df041adc0fc529371f1f, type: 3}
+  - Id: Pebble_Round_4
+    Prefab: {fileID: 919132149155446097, guid: 2faa024c93588b743a2845a72d06bfc8, type: 3}
+  - Id: Pebble_Round_5
+    Prefab: {fileID: 919132149155446097, guid: 18860df84b6b90f41a31485e382a607b, type: 3}
+  - Id: Pebble_Square_1
+    Prefab: {fileID: 919132149155446097, guid: 2e23e06e5da45c04a885e1d7ec62e025, type: 3}
+  - Id: Pebble_Square_2
+    Prefab: {fileID: 919132149155446097, guid: f7467db8185744745b7e899165196d3a, type: 3}
+  - Id: Pebble_Square_3
+    Prefab: {fileID: 919132149155446097, guid: a284e6a57e745df4dac9431358fe4155, type: 3}
+  - Id: Pebble_Square_4
+    Prefab: {fileID: 919132149155446097, guid: 9d65827b158bb744db0e2114d96e21ee, type: 3}
+  - Id: Pebble_Square_5
+    Prefab: {fileID: 919132149155446097, guid: 6e3307664f591d140b9517a0e042533b, type: 3}
+  - Id: Pebble_Square_6
+    Prefab: {fileID: 919132149155446097, guid: d267b02d1e9f2c1439134a91870c51e7, type: 3}
+  - Id: Petal_1
+    Prefab: {fileID: 919132149155446097, guid: 910e7f9f52ece8a4db9c9cb73a30ff05, type: 3}
+  - Id: Petal_2
+    Prefab: {fileID: 919132149155446097, guid: dd86d9c867ed63a47bacb76da0d8c798, type: 3}
+  - Id: Petal_3
+    Prefab: {fileID: 919132149155446097, guid: d7fc06f5a9dbbc742b7f5a1c21d8723d, type: 3}
+  - Id: Petal_4
+    Prefab: {fileID: 919132149155446097, guid: dfd274dbc02086c4abf02cd487a3f9ad, type: 3}
+  - Id: Petal_5
+    Prefab: {fileID: 919132149155446097, guid: d9a6a580163300b45aaa2f07df0b3092, type: 3}
+  - Id: Pine_1
+    Prefab: {fileID: 919132149155446097, guid: b7ed8312d4f0d51438b02607f180cfec, type: 3}
+  - Id: Pine_2
+    Prefab: {fileID: 919132149155446097, guid: 221bcefcbebffa24ba0518471c07b9ef, type: 3}
+  - Id: Pine_3
+    Prefab: {fileID: 919132149155446097, guid: 9263b1ba430ab874fb75f5bd1758c045, type: 3}
+  - Id: Pine_4
+    Prefab: {fileID: 919132149155446097, guid: 12d0508216cbbdd4ba1904fe4b35bc95, type: 3}
+  - Id: Pine_5
+    Prefab: {fileID: 919132149155446097, guid: 465b6c0d3e1b98e408fb747462ca8b8f, type: 3}
+  - Id: Plant_1
+    Prefab: {fileID: 919132149155446097, guid: e5e43d5eb5c3f00448fcb114ad75eb5f, type: 3}
+  - Id: Plant_1_Big
+    Prefab: {fileID: 919132149155446097, guid: 9b8bb5dd030db3340b7b6fb8f76f5d8a, type: 3}
+  - Id: Plant_7
+    Prefab: {fileID: 919132149155446097, guid: ab98a8eb03b074247a5fe76bc31c2306, type: 3}
+  - Id: Plant_7_Big
+    Prefab: {fileID: 919132149155446097, guid: 541dd3962477d22418c2fb33d9201645, type: 3}
+  - Id: RockPath_Round_Small_1
+    Prefab: {fileID: 919132149155446097, guid: 95da0950a6cb79a48b5013623b04e064, type: 3}
+  - Id: RockPath_Round_Small_2
+    Prefab: {fileID: 919132149155446097, guid: d827e8d64a81f9043bf283a19ffa6fa0, type: 3}
+  - Id: RockPath_Round_Small_3
+    Prefab: {fileID: 919132149155446097, guid: c76aeff179be0b248b738f64b9f0f615, type: 3}
+  - Id: RockPath_Round_Thin
+    Prefab: {fileID: 919132149155446097, guid: a007e9b876e809c4aab0955769dba593, type: 3}
+  - Id: RockPath_Round_Wide
+    Prefab: {fileID: 919132149155446097, guid: 7d66c953bd04c654ead8519e6c3656ba, type: 3}
+  - Id: RockPath_Square_Small_1
+    Prefab: {fileID: 919132149155446097, guid: 14e8bc20d83befc478c70e49f8833967, type: 3}
+  - Id: RockPath_Square_Small_2
+    Prefab: {fileID: 919132149155446097, guid: 8484c3900b5b8d84895b4da2a2b0c6b8, type: 3}
+  - Id: RockPath_Square_Small_3
+    Prefab: {fileID: 919132149155446097, guid: ea8535bd3c52aa147b26e383d4641cf9, type: 3}
+  - Id: RockPath_Square_Thin
+    Prefab: {fileID: 919132149155446097, guid: ab07b19759961384882eafa98750ce1c, type: 3}
+  - Id: RockPath_Square_Wide
+    Prefab: {fileID: 919132149155446097, guid: 7448e9993765e9f4b952e4a1294ce2b1, type: 3}
+  - Id: Rock_Medium_1
+    Prefab: {fileID: 919132149155446097, guid: fc8a559a6cbbeea40b75e358dba22871, type: 3}
+  - Id: Rock_Medium_2
+    Prefab: {fileID: 919132149155446097, guid: f3366c4c8129aff489b946350125ad43, type: 3}
+  - Id: Rock_Medium_3
+    Prefab: {fileID: 919132149155446097, guid: 7c3b9fff8bd19d34c84be4eea038d167, type: 3}
+  - Id: TwistedTree_1
+    Prefab: {fileID: 919132149155446097, guid: 414f84fe4d37c7b40b766d24ae735259, type: 3}
+  - Id: TwistedTree_2
+    Prefab: {fileID: 919132149155446097, guid: ae47c0bf3a821e3428ad4c23b578d7fd, type: 3}
+  - Id: TwistedTree_3
+    Prefab: {fileID: 919132149155446097, guid: 5bb44c73947cc8b458aaa252ba05ba88, type: 3}
+  - Id: TwistedTree_4
+    Prefab: {fileID: 919132149155446097, guid: 719b30783bb9c094b8f064cea5d082e4, type: 3}
+  - Id: TwistedTree_5
+    Prefab: {fileID: 919132149155446097, guid: 6f1e6bfca1a3a2745a1c0a08ba950b0d, type: 3}
+  - Id: Anvil
+    Prefab: {fileID: 919132149155446097, guid: f571a268307520a43bef9b8f5692d18d, type: 3}
+  - Id: Anvil_Log
+    Prefab: {fileID: 919132149155446097, guid: 9ce2ab1f3e46cb144a92044ddb6ef736, type: 3}
+  - Id: Axe_Bronze
+    Prefab: {fileID: 919132149155446097, guid: 81be23e5ff0b50441bc32b4c70006af6, type: 3}
+  - Id: Bag
+    Prefab: {fileID: 919132149155446097, guid: 7d6d3d826fb80e1479228f3747b9871e, type: 3}
+  - Id: Banner_1
+    Prefab: {fileID: 919132149155446097, guid: 6cbebd2e6fe07a84e87258d1170203b3, type: 3}
+  - Id: Banner_1_Cloth
+    Prefab: {fileID: 919132149155446097, guid: fe3622f8fc9288e4788f945697c9479b, type: 3}
+  - Id: Banner_2
+    Prefab: {fileID: 919132149155446097, guid: af827ab2c3ba84144afd111ee5e8ab81, type: 3}
+  - Id: Banner_2_Cloth
+    Prefab: {fileID: 919132149155446097, guid: 153347b72df96c84fa3c558e6831810b, type: 3}
+  - Id: Barrel
+    Prefab: {fileID: 919132149155446097, guid: 68f18f236f385ce47abba469592cdbb9, type: 3}
+  - Id: Barrel_Apples
+    Prefab: {fileID: 919132149155446097, guid: 824c60a1885bc644e95af684e8d03a8b, type: 3}
+  - Id: Barrel_Holder
+    Prefab: {fileID: 919132149155446097, guid: db5b8739ee0ca21418f40e71e446a05e, type: 3}
+  - Id: Bed_Twin1
+    Prefab: {fileID: 919132149155446097, guid: 4a5e3439cee722c43867aaf8516bc9e1, type: 3}
+  - Id: Bed_Twin2
+    Prefab: {fileID: 919132149155446097, guid: d0a5059c033bddf42a784dd858564e2e, type: 3}
+  - Id: Bench
+    Prefab: {fileID: 919132149155446097, guid: e05b24ffa5c79fa4faf253733eaa7ff6, type: 3}
+  - Id: BookGroup_Medium_1
+    Prefab: {fileID: 919132149155446097, guid: d86291ead176b46409b44906af9f0bcc, type: 3}
+  - Id: BookGroup_Medium_2
+    Prefab: {fileID: 919132149155446097, guid: 4fe23b0672da26e4f88264ff79566c05, type: 3}
+  - Id: BookGroup_Medium_3
+    Prefab: {fileID: 919132149155446097, guid: 9051ec6638264d54a8402966322ac299, type: 3}
+  - Id: BookGroup_Small_1
+    Prefab: {fileID: 919132149155446097, guid: d14d933e37cf73e41b7584067d3b04cf, type: 3}
+  - Id: BookGroup_Small_2
+    Prefab: {fileID: 919132149155446097, guid: f2372374be71d0b4e84ebcb550203066, type: 3}
+  - Id: BookGroup_Small_3
+    Prefab: {fileID: 919132149155446097, guid: 31e3c394dda158b43a5bcebf9ddab547, type: 3}
+  - Id: BookStand
+    Prefab: {fileID: 919132149155446097, guid: a4492e4529ea9ed4ba232b67f0fc4da2, type: 3}
+  - Id: Book_5
+    Prefab: {fileID: 919132149155446097, guid: cded34598342df346837d2e51cacf42d, type: 3}
+  - Id: Book_7
+    Prefab: {fileID: 919132149155446097, guid: 37bfe868ba7e5c14ea84e57eb9c3d5b1, type: 3}
+  - Id: Book_Simplified_Single
+    Prefab: {fileID: 919132149155446097, guid: 699e31f7a88c62b46b47e7d87878076d, type: 3}
+  - Id: Book_Stack_1
+    Prefab: {fileID: 919132149155446097, guid: 8f6236399a1b14d4292001f8a67e910c, type: 3}
+  - Id: Book_Stack_2
+    Prefab: {fileID: 919132149155446097, guid: 5d9108cd7f775194494667b13e8f0f1b, type: 3}
+  - Id: Bookcase_2
+    Prefab: {fileID: 919132149155446097, guid: 13179f86ba7c2314287db7e12abdc45a, type: 3}
+  - Id: Bottle_1
+    Prefab: {fileID: 919132149155446097, guid: 4082170bb3af42d4782da54f99329bdc, type: 3}
+  - Id: Bucket_Metal
+    Prefab: {fileID: 919132149155446097, guid: 2d4bcb6c36fd259418c98991e4b3665e, type: 3}
+  - Id: Bucket_Wooden_1
+    Prefab: {fileID: 919132149155446097, guid: 9ab802b6a6368ec4b9e380e2c942a004, type: 3}
+  - Id: Cabinet
+    Prefab: {fileID: 919132149155446097, guid: 18780f55bedb382478a3b6038203a016, type: 3}
+  - Id: Cage_Small
+    Prefab: {fileID: 919132149155446097, guid: 4e566695dcfd4504f8fed5b9f4aeb015, type: 3}
+  - Id: CandleStick
+    Prefab: {fileID: 919132149155446097, guid: f8cdc5ede8ea51642b7ad9befa9fcab4, type: 3}
+  - Id: CandleStick_Stand
+    Prefab: {fileID: 919132149155446097, guid: b8c1336e8d6b7314bbfb9b79f0598a83, type: 3}
+  - Id: CandleStick_Triple
+    Prefab: {fileID: 919132149155446097, guid: 2185eca06c026594781be3dca7c00b6b, type: 3}
+  - Id: Candle_1
+    Prefab: {fileID: 919132149155446097, guid: fad52d246988e3c4d8e5c126212b5fa1, type: 3}
+  - Id: Candle_2
+    Prefab: {fileID: 919132149155446097, guid: 32076acaee1d2b7408c7a82494f26942, type: 3}
+  - Id: Carrot
+    Prefab: {fileID: 919132149155446097, guid: 72517dd5428360148a4d3e40999f0b6d, type: 3}
+  - Id: Cauldron
+    Prefab: {fileID: 919132149155446097, guid: e050efc24b90b1546972bbec2643479e, type: 3}
+  - Id: Chain_Coil
+    Prefab: {fileID: 919132149155446097, guid: 0582043098ed7c64693fadb444781726, type: 3}
+  - Id: Chair_1
+    Prefab: {fileID: 919132149155446097, guid: 90c49fe4b58103c43ac19153808dbd4f, type: 3}
+  - Id: Chalice
+    Prefab: {fileID: 919132149155446097, guid: 3b4d8ecc7b868764281f396ede880871, type: 3}
+  - Id: Chandelier
+    Prefab: {fileID: 919132149155446097, guid: b2cf38898fa009c488e686ef8251fbdc, type: 3}
+  - Id: Chest_Wood
+    Prefab: {fileID: 919132149155446097, guid: 432c386609c9d8342b8f7ce9e5bd9f03, type: 3}
+  - Id: Coin
+    Prefab: {fileID: 919132149155446097, guid: c582c68fa4a16844c8f35afda47d9d60, type: 3}
+  - Id: Coin_Pile
+    Prefab: {fileID: 919132149155446097, guid: 724944b832fdf5a4b9c81d2cbdc8e932, type: 3}
+  - Id: Coin_Pile_2
+    Prefab: {fileID: 919132149155446097, guid: 78974481f789180478dc62cdd00aa9ba, type: 3}
+  - Id: Crate_Metal
+    Prefab: {fileID: 919132149155446097, guid: 837293e4838792e449132d11a6a08ea5, type: 3}
+  - Id: Crate_Wooden
+    Prefab: {fileID: 919132149155446097, guid: 78c5dd2f42cf9954b90a20989b2496c8, type: 3}
+  - Id: Dummy
+    Prefab: {fileID: 919132149155446097, guid: c7f87bd8d5d317c45828944a14a8fe58, type: 3}
+  - Id: FarmCrate_Apple
+    Prefab: {fileID: 919132149155446097, guid: 529351ee1e1b2144f875a4ae9a4aaa20, type: 3}
+  - Id: FarmCrate_Carrot
+    Prefab: {fileID: 919132149155446097, guid: ddf3abaebc7a7e241a53a9dded173737, type: 3}
+  - Id: FarmCrate_Empty
+    Prefab: {fileID: 919132149155446097, guid: bcc5ed689070ea94ebab9d376554b397, type: 3}
+  - Id: Key_Gold
+    Prefab: {fileID: 919132149155446097, guid: 5e742e8032cbd234fba5109c28fa9795, type: 3}
+  - Id: Key_Metal
+    Prefab: {fileID: 919132149155446097, guid: bd6bb85c212868c479f4c037c12271ba, type: 3}
+  - Id: Lantern_Wall
+    Prefab: {fileID: 919132149155446097, guid: 6a13e941e615fab4e8ae032ec48774b5, type: 3}
+  - Id: Mug
+    Prefab: {fileID: 919132149155446097, guid: cb2a5a3477433e046b5cc0d6bd85115a, type: 3}
+  - Id: Nightstand_Shelf
+    Prefab: {fileID: 919132149155446097, guid: b2aa6b57a87016c4489881160afe478a, type: 3}
+  - Id: Peg_Rack
+    Prefab: {fileID: 919132149155446097, guid: 934c87c88eac9014582f8c862c6dfa0c, type: 3}
+  - Id: Pickaxe_Bronze
+    Prefab: {fileID: 919132149155446097, guid: a0a15eb7d3c1d8440904a509488017a9, type: 3}
+  - Id: Pot_1
+    Prefab: {fileID: 919132149155446097, guid: eb1dccd429f17ea44bcb8bb81a58b02d, type: 3}
+  - Id: Pot_1_Lid
+    Prefab: {fileID: 919132149155446097, guid: bdbada1c64b7c684f866abd64eb5b386, type: 3}
+  - Id: Potion_1
+    Prefab: {fileID: 919132149155446097, guid: 1f9d15cc1bcda8849b35fa9e0396aabe, type: 3}
+  - Id: Potion_2
+    Prefab: {fileID: 919132149155446097, guid: 2466985ee8224634d912816692646530, type: 3}
+  - Id: Potion_4
+    Prefab: {fileID: 919132149155446097, guid: ad9550b739d96964d94a39c0cf744a54, type: 3}
+  - Id: Pouch_Large
+    Prefab: {fileID: 919132149155446097, guid: 12e87df114749c34e9a723f0d0798917, type: 3}
+  - Id: Rope_1
+    Prefab: {fileID: 919132149155446097, guid: 5ad6125124933334486cef251e51297e, type: 3}
+  - Id: Rope_2
+    Prefab: {fileID: 919132149155446097, guid: 94d26d22b40cf8646b6ffed35ec634bf, type: 3}
+  - Id: Rope_3
+    Prefab: {fileID: 919132149155446097, guid: 544c2fc290e95844ea41e710a42ca85a, type: 3}
+  - Id: Scroll_1
+    Prefab: {fileID: 919132149155446097, guid: e13856c82c14e3b40b6889e5c8fc3494, type: 3}
+  - Id: Scroll_2
+    Prefab: {fileID: 919132149155446097, guid: 8e548e78653c126408cad269b680546f, type: 3}
+  - Id: Shelf_Arch
+    Prefab: {fileID: 919132149155446097, guid: f063dcd847460464a8611412997082be, type: 3}
+  - Id: Shelf_Simple
+    Prefab: {fileID: 919132149155446097, guid: ce0dd1d8770e64442b5ed056635c6e8c, type: 3}
+  - Id: Shelf_Small_Bottles
+    Prefab: {fileID: 919132149155446097, guid: b9018517150e88145b40daf6f440691b, type: 3}
+  - Id: Shield_Wooden
+    Prefab: {fileID: 919132149155446097, guid: 697df177d6e624246beb906c6bc2a50a, type: 3}
+  - Id: SmallBottle
+    Prefab: {fileID: 919132149155446097, guid: dfed168c896f63b48962606c2a808ed0, type: 3}
+  - Id: SmallBottles_1
+    Prefab: {fileID: 919132149155446097, guid: d55f8cefbf2725949832add8162280d5, type: 3}
+  - Id: Stall_Cart_Empty
+    Prefab: {fileID: 919132149155446097, guid: b1513bad2c0f03f48ba580592dd9c57b, type: 3}
+  - Id: Stall_Empty
+    Prefab: {fileID: 919132149155446097, guid: b9b6609ef95081b4d9c9f7b11bbeb7f4, type: 3}
+  - Id: Stool
+    Prefab: {fileID: 919132149155446097, guid: bf8e799643c7b0844933e8ea9c2dc8ff, type: 3}
+  - Id: Sword_Bronze
+    Prefab: {fileID: 919132149155446097, guid: 442ebeec3caefbb4485682f10cc73fc2, type: 3}
+  - Id: Table_Fork
+    Prefab: {fileID: 919132149155446097, guid: fa08527c8cb2f354e974ed1572c6d94b, type: 3}
+  - Id: Table_Knife
+    Prefab: {fileID: 919132149155446097, guid: e6006c75f91a92a4ea0dce9d9cbc0d5f, type: 3}
+  - Id: Table_Large
+    Prefab: {fileID: 919132149155446097, guid: 2c36e227dc90f3046a8d2b38f61366f9, type: 3}
+  - Id: Table_Plate
+    Prefab: {fileID: 919132149155446097, guid: c067703916be5f545b0f4423c8285787, type: 3}
+  - Id: Table_Spoon
+    Prefab: {fileID: 919132149155446097, guid: 39063ecab73f579418b7cb6d12c92431, type: 3}
+  - Id: Torch_Metal
+    Prefab: {fileID: 919132149155446097, guid: 2ace861dfc76c334e8019765d50ab395, type: 3}
+  - Id: Vase_2
+    Prefab: {fileID: 919132149155446097, guid: 33c457ad3ef251241aec5b0a21917dcc, type: 3}
+  - Id: Vase_4
+    Prefab: {fileID: 919132149155446097, guid: c57c7cc44de15d145913f0c164d7f9f7, type: 3}
+  - Id: Vase_Rubble_Medium
+    Prefab: {fileID: 919132149155446097, guid: e1f96b1db1b05314a8dbb948b0155c5e, type: 3}
+  - Id: WeaponStand
+    Prefab: {fileID: 919132149155446097, guid: 329633ffb6c930e47a0969c0734c072d, type: 3}
+  - Id: Whetstone
+    Prefab: {fileID: 919132149155446097, guid: e4d63f43115e8bd4da7703c6c8288efe, type: 3}
+  - Id: Workbench
+    Prefab: {fileID: 919132149155446097, guid: 74afd494adac1634abbda76f6c11a0e5, type: 3}
+  - Id: Workbench_Drawers
+    Prefab: {fileID: 919132149155446097, guid: cecbbd50f8f4bfc49bdaa8591a4f6ece, type: 3}
+  - Id: banner_blue
+    Prefab: {fileID: 919132149155446097, guid: 8f8c5dc5895291b449dcef309975c1d0, type: 3}
+  - Id: banner_brown
+    Prefab: {fileID: 919132149155446097, guid: 7f729841c7bfb544192e8700cac727f1, type: 3}
+  - Id: banner_green
+    Prefab: {fileID: 919132149155446097, guid: 344dace53a30ec142a808a8ddd162a98, type: 3}
+  - Id: banner_patternA_blue
+    Prefab: {fileID: 919132149155446097, guid: a41af751e72ce8749ab9ca564f8b6e84, type: 3}
+  - Id: banner_patternA_brown
+    Prefab: {fileID: 919132149155446097, guid: ba5bab4acce7e7b49add8017f5a5540f, type: 3}
+  - Id: banner_patternA_green
+    Prefab: {fileID: 919132149155446097, guid: 4a8fdabda31a503469b259da31013f87, type: 3}
+  - Id: banner_patternA_red
+    Prefab: {fileID: 919132149155446097, guid: 5b982aa96a42fe846814d07812097b65, type: 3}
+  - Id: banner_patternA_white
+    Prefab: {fileID: 919132149155446097, guid: b475a7fe629988b4c958384ac77fefcf, type: 3}
+  - Id: banner_patternA_yellow
+    Prefab: {fileID: 919132149155446097, guid: 434a69fe90d31d547ab94d65fe6d5d2e, type: 3}
+  - Id: banner_patternB_blue
+    Prefab: {fileID: 919132149155446097, guid: ab3517e748d4aa64bbace3570c689fe8, type: 3}
+  - Id: banner_patternB_brown
+    Prefab: {fileID: 919132149155446097, guid: 3a6500e491836904fb402fb7b25612fb, type: 3}
+  - Id: banner_patternB_green
+    Prefab: {fileID: 919132149155446097, guid: e2d6ef58edab5d84f98cc5a6b2546866, type: 3}
+  - Id: banner_patternB_red
+    Prefab: {fileID: 919132149155446097, guid: f349c2aa18a7cad43879c820d31f9784, type: 3}
+  - Id: banner_patternB_white
+    Prefab: {fileID: 919132149155446097, guid: 0e86bd88d2961f948bf90bd1239a43bb, type: 3}
+  - Id: banner_patternB_yellow
+    Prefab: {fileID: 919132149155446097, guid: eb42bb9585b1dc74cbf0684bd71bf936, type: 3}
+  - Id: banner_patternC_blue
+    Prefab: {fileID: 919132149155446097, guid: 0db8f287ec1e31141a912abcbd666989, type: 3}
+  - Id: banner_patternC_brown
+    Prefab: {fileID: 919132149155446097, guid: 788d6b77040ed904cbd67715f808c5fd, type: 3}
+  - Id: banner_patternC_green
+    Prefab: {fileID: 919132149155446097, guid: 5783071b758a1914daf9170604ce3b65, type: 3}
+  - Id: banner_patternC_red
+    Prefab: {fileID: 919132149155446097, guid: 1b0335776da539249aa914549717c3b4, type: 3}
+  - Id: banner_patternC_white
+    Prefab: {fileID: 919132149155446097, guid: 9b7cc719a0474ee4a88de05563d0faad, type: 3}
+  - Id: banner_patternC_yellow
+    Prefab: {fileID: 919132149155446097, guid: cc84c82616066e541a128c1d9c1e93d8, type: 3}
+  - Id: banner_red
+    Prefab: {fileID: 919132149155446097, guid: 2862d3786e214c04c97c3da07e4323bc, type: 3}
+  - Id: banner_shield_blue
+    Prefab: {fileID: 919132149155446097, guid: f7dcbe26f4b00f34f9b775430b42f4bf, type: 3}
+  - Id: banner_shield_brown
+    Prefab: {fileID: 919132149155446097, guid: 2b79e0542d5072443ada3708d353222f, type: 3}
+  - Id: banner_shield_green
+    Prefab: {fileID: 919132149155446097, guid: 695d213443c8f4144aa63d64c3d49592, type: 3}
+  - Id: banner_shield_red
+    Prefab: {fileID: 919132149155446097, guid: fb9d11a73495cce43a737236293b849b, type: 3}
+  - Id: banner_shield_white
+    Prefab: {fileID: 919132149155446097, guid: 515c6182a1b35244eb6f43c07462679f, type: 3}
+  - Id: banner_shield_yellow
+    Prefab: {fileID: 919132149155446097, guid: 4fda1372da219a0438651239b690a76d, type: 3}
+  - Id: banner_thin_blue
+    Prefab: {fileID: 919132149155446097, guid: bc08d255ddfebe34988ace92d0758a69, type: 3}
+  - Id: banner_thin_brown
+    Prefab: {fileID: 919132149155446097, guid: 84f10bde9d3a9b04e8ba0eb260feb7e7, type: 3}
+  - Id: banner_thin_green
+    Prefab: {fileID: 919132149155446097, guid: 568e89b55436bbf45a5056ea5757f9ad, type: 3}
+  - Id: banner_thin_red
+    Prefab: {fileID: 919132149155446097, guid: bf55e7d175d18fe4a840ca8b5e9904b5, type: 3}
+  - Id: banner_thin_white
+    Prefab: {fileID: 919132149155446097, guid: 4da98b453ba583b4d8fb492a86705539, type: 3}
+  - Id: banner_thin_yellow
+    Prefab: {fileID: 919132149155446097, guid: 579edcc42b70a8b448588a95f3a5ca8e, type: 3}
+  - Id: banner_triple_blue
+    Prefab: {fileID: 919132149155446097, guid: a1b04df2da5d8de49b92c9d54f1dfa15, type: 3}
+  - Id: banner_triple_brown
+    Prefab: {fileID: 919132149155446097, guid: 9a4d52c9b2b591d49b4066c7e77296f3, type: 3}
+  - Id: banner_triple_green
+    Prefab: {fileID: 919132149155446097, guid: d1990f8fca5ca1346ac34b1574e52dfb, type: 3}
+  - Id: banner_triple_red
+    Prefab: {fileID: 919132149155446097, guid: 65a7755a8aa890e4096459e9dfca718d, type: 3}
+  - Id: banner_triple_white
+    Prefab: {fileID: 919132149155446097, guid: 55c8c5c0f0c0dfb45a2281917ad45582, type: 3}
+  - Id: banner_triple_yellow
+    Prefab: {fileID: 919132149155446097, guid: cfbcd7f35e9fde04bbb180056ad86f72, type: 3}
+  - Id: banner_white
+    Prefab: {fileID: 919132149155446097, guid: 43f5612a538361947b9263e344eeab9c, type: 3}
+  - Id: banner_yellow
+    Prefab: {fileID: 919132149155446097, guid: 1c2710c5732fb5d44bc7a413a365c2ed, type: 3}
+  - Id: barrel_large
+    Prefab: {fileID: 919132149155446097, guid: 7c452e95f36c1c44d930bd3c4a72908b, type: 3}
+  - Id: barrel_large_decorated
+    Prefab: {fileID: 919132149155446097, guid: 582d8f5493003bc4983a022ca8f7d82e, type: 3}
+  - Id: barrel_small
+    Prefab: {fileID: 919132149155446097, guid: f685d0b70c5dc01489a10967d9d73447, type: 3}
+  - Id: barrel_small_stack
+    Prefab: {fileID: 919132149155446097, guid: 82471af97cb8b1545b2ea6095b98ec69, type: 3}
+  - Id: barrier
+    Prefab: {fileID: 919132149155446097, guid: cc26e36df581e774a9f8c53d68a76697, type: 3}
+  - Id: barrier_colum_half
+    Prefab: {fileID: 919132149155446097, guid: 70b9cdec791d6de45ba52290aecb6680, type: 3}
+  - Id: barrier_column
+    Prefab: {fileID: 919132149155446097, guid: 3ce7954f2febcd04fa20f2f9eba1965c, type: 3}
+  - Id: barrier_corner
+    Prefab: {fileID: 919132149155446097, guid: f5f19485dc271c049a734cbb57aab683, type: 3}
+  - Id: barrier_half
+    Prefab: {fileID: 919132149155446097, guid: 43f785f23b840b845a7aeb67840c8abf, type: 3}
+  - Id: bed_decorated
+    Prefab: {fileID: 919132149155446097, guid: 9c32634c26dbbc54f8f5bb75a3f7f82e, type: 3}
+  - Id: bed_floor
+    Prefab: {fileID: 919132149155446097, guid: fb1038c45b7629242990322621cc8465, type: 3}
+  - Id: bed_frame
+    Prefab: {fileID: 919132149155446097, guid: d9de16346f11e1446a0ca8fdbee4a788, type: 3}
+  - Id: bottle_A_brown
+    Prefab: {fileID: 919132149155446097, guid: 963d0f8b44ea1994a84dc9dd29dbc840, type: 3}
+  - Id: bottle_A_green
+    Prefab: {fileID: 919132149155446097, guid: d1f0def7597a2224d9a4aa7bb1a02872, type: 3}
+  - Id: bottle_A_labeled_brown
+    Prefab: {fileID: 919132149155446097, guid: d6c7ea00855a6f6448a661ef6e341354, type: 3}
+  - Id: bottle_A_labeled_green
+    Prefab: {fileID: 919132149155446097, guid: ea512e82358e9c54d9ab86b4ef79c523, type: 3}
+  - Id: bottle_B_brown
+    Prefab: {fileID: 919132149155446097, guid: aef11edb4c96f7349ba8007324ac65b0, type: 3}
+  - Id: bottle_B_green
+    Prefab: {fileID: 919132149155446097, guid: 7501e6976b9f4c74fb5d797d8b692429, type: 3}
+  - Id: bottle_C_brown
+    Prefab: {fileID: 919132149155446097, guid: 1dcbfe67e940fcf4b9d98b8ff8891249, type: 3}
+  - Id: bottle_C_green
+    Prefab: {fileID: 919132149155446097, guid: b48d34557eef47448a20ce387244417f, type: 3}
+  - Id: box_large
+    Prefab: {fileID: 919132149155446097, guid: c6e36f42b3862de4387b2f839b2e7969, type: 3}
+  - Id: box_small
+    Prefab: {fileID: 919132149155446097, guid: 1e00ddbc989a05a478cd594d77ef7a25, type: 3}
+  - Id: box_small_decorated
+    Prefab: {fileID: 919132149155446097, guid: 351c34186a22cfb41a879e2b05fb71ea, type: 3}
+  - Id: box_stacked
+    Prefab: {fileID: 919132149155446097, guid: d5960d2b65b95f5458a2c80b2e7a0673, type: 3}
+  - Id: candle
+    Prefab: {fileID: 919132149155446097, guid: 312b8a6d4c6a96346a7512d25cb13c1b, type: 3}
+  - Id: candle_lit
+    Prefab: {fileID: 919132149155446097, guid: 16356262581af5c4ba826b1cc552cfa4, type: 3}
+  - Id: candle_melted
+    Prefab: {fileID: 919132149155446097, guid: 9353331884c895546866e80dfe573ea9, type: 3}
+  - Id: candle_thin
+    Prefab: {fileID: 919132149155446097, guid: 116b60bfaac37d646bfae341452ff346, type: 3}
+  - Id: candle_thin_lit
+    Prefab: {fileID: 919132149155446097, guid: f1d7e4e0236f6694585328d86c2c819c, type: 3}
+  - Id: candle_triple
+    Prefab: {fileID: 919132149155446097, guid: 3366d7e5d18c0884eb06dfd2f12f58e0, type: 3}
+  - Id: chair
+    Prefab: {fileID: 919132149155446097, guid: 02b5884680428524ab23aaf587df9af4, type: 3}
+  - Id: chest
+    Prefab: {fileID: 919132149155446097, guid: b0d996c24a4bd5847b840a9b4e0d32d7, type: 3}
+  - Id: chest_gold
+    Prefab: {fileID: 919132149155446097, guid: 62d836d390d707e4c9fd03708fd00191, type: 3}
+  - Id: chest_gold_lid
+    Prefab: {fileID: 919132149155446097, guid: f554a8fa88836b94192645dd93f9c8c9, type: 3}
+  - Id: chest_lid
+    Prefab: {fileID: 919132149155446097, guid: ad56771158c66fa44b32034ff88f2387, type: 3}
+  - Id: coin
+    Prefab: {fileID: 919132149155446097, guid: 46e854e96b5309748853b5198ddd63a9, type: 3}
+  - Id: coin_stack_large
+    Prefab: {fileID: 919132149155446097, guid: 75ad7fadeb6fff848b160c864a8f0dbd, type: 3}
+  - Id: coin_stack_medium
+    Prefab: {fileID: 919132149155446097, guid: ca563dd5e3b31844b9af7e06824b85a0, type: 3}
+  - Id: coin_stack_small
+    Prefab: {fileID: 919132149155446097, guid: 1da991a5083a80f468e308a9db726e4a, type: 3}
+  - Id: column
+    Prefab: {fileID: 919132149155446097, guid: 93c88b4443a334a4cafabc6112bf329a, type: 3}
+  - Id: crates_stacked
+    Prefab: {fileID: 919132149155446097, guid: f41d55f156ef1e146bdcdddda2f1329b, type: 3}
+  - Id: floor_dirt_large
+    Prefab: {fileID: 919132149155446097, guid: e7cc69f47b594c34986bcee7a335e0c5, type: 3}
+  - Id: floor_dirt_large_rocky
+    Prefab: {fileID: 919132149155446097, guid: 2b5bbd7f72f8cd544bc932e3d1e93cc6, type: 3}
+  - Id: floor_dirt_small_A
+    Prefab: {fileID: 919132149155446097, guid: 02ba44364e5d5af458a2beefbdf5fa85, type: 3}
+  - Id: floor_dirt_small_B
+    Prefab: {fileID: 919132149155446097, guid: 4d792a9beac8c224eae351280025f744, type: 3}
+  - Id: floor_dirt_small_C
+    Prefab: {fileID: 919132149155446097, guid: 4d1fb09039f52fd438fa961aaf84b791, type: 3}
+  - Id: floor_dirt_small_D
+    Prefab: {fileID: 919132149155446097, guid: 8d8939dc324fd6540bbb4c1c3a26b6fb, type: 3}
+  - Id: floor_dirt_small_corner
+    Prefab: {fileID: 919132149155446097, guid: 94db57417fc66c74ea1a9d28f61ce981, type: 3}
+  - Id: floor_dirt_small_weeds
+    Prefab: {fileID: 919132149155446097, guid: eda24404a3bf9ae4d8a83178956a4be5, type: 3}
+  - Id: floor_foundation_allsides
+    Prefab: {fileID: 919132149155446097, guid: a8c97759b3a45f04d9953f3c605943c0, type: 3}
+  - Id: floor_foundation_corner
+    Prefab: {fileID: 919132149155446097, guid: 79cc735c862fd6e4ebc3589a94149050, type: 3}
+  - Id: floor_foundation_diagonal_corner
+    Prefab: {fileID: 919132149155446097, guid: e19b76dadb87dc04cb8de0c4c6db77ce, type: 3}
+  - Id: floor_foundation_front
+    Prefab: {fileID: 919132149155446097, guid: 1e05771704bbbe842ad00229061f4d5f, type: 3}
+  - Id: floor_foundation_front_and_back
+    Prefab: {fileID: 919132149155446097, guid: 1a1309f7562b626489ebbc1b41011ed2, type: 3}
+  - Id: floor_foundation_front_and_sides
+    Prefab: {fileID: 919132149155446097, guid: ee2c75d8b8247c34daa3b19caf622803, type: 3}
+  - Id: floor_tile_big_grate
+    Prefab: {fileID: 919132149155446097, guid: 717230f635b0ad848a823a7688654ea1, type: 3}
+  - Id: floor_tile_big_grate_open
+    Prefab: {fileID: 919132149155446097, guid: 42d98302a6f2eec4eb2ba50dd4fd5ea7, type: 3}
+  - Id: floor_tile_big_spikes
+    Prefab: {fileID: 919132149155446097, guid: 06d109ef162d00e48aed2538ab931c3a, type: 3}
+  - Id: floor_tile_extralarge_grates
+    Prefab: {fileID: 919132149155446097, guid: 42040f77a2128544a8207be365ccad79, type: 3}
+  - Id: floor_tile_extralarge_grates_open
+    Prefab: {fileID: 919132149155446097, guid: 29f8ab5cecfe32a41b2cb88cabef6207, type: 3}
+  - Id: floor_tile_grate
+    Prefab: {fileID: 919132149155446097, guid: 060ba76141b229f48973010261f0f11f, type: 3}
+  - Id: floor_tile_grate_open
+    Prefab: {fileID: 919132149155446097, guid: 9787734baf1e3a646bdfa80a80de9121, type: 3}
+  - Id: floor_tile_large
+    Prefab: {fileID: 919132149155446097, guid: 51dd26d7cf38b644fa9faae73aa0121e, type: 3}
+  - Id: floor_tile_large_rocks
+    Prefab: {fileID: 919132149155446097, guid: a33b53e6b76600341b021b47447765ae, type: 3}
+  - Id: floor_tile_small
+    Prefab: {fileID: 919132149155446097, guid: 8a07b507db0c09442ab2ebdbe97eaa8e, type: 3}
+  - Id: floor_tile_small_broken_A
+    Prefab: {fileID: 919132149155446097, guid: 06cb6f26a5fe89544af5c3e36cec3f8c, type: 3}
+  - Id: floor_tile_small_broken_B
+    Prefab: {fileID: 919132149155446097, guid: 9274bd8ee54954244ac89527768cdd70, type: 3}
+  - Id: floor_tile_small_corner
+    Prefab: {fileID: 919132149155446097, guid: 6be880d963b554244a7bf0984016f0d7, type: 3}
+  - Id: floor_tile_small_decorated
+    Prefab: {fileID: 919132149155446097, guid: 9ba63a17a22be4f4cb1b63d993f22646, type: 3}
+  - Id: floor_tile_small_weeds_A
+    Prefab: {fileID: 919132149155446097, guid: 26512ffba600cf84fb06f34a5b345aa5, type: 3}
+  - Id: floor_tile_small_weeds_B
+    Prefab: {fileID: 919132149155446097, guid: debd6a6431df68744b9e9ec7b820b2f9, type: 3}
+  - Id: floor_wood_large
+    Prefab: {fileID: 919132149155446097, guid: 8d29faed237e7f44188f770eb9d753ec, type: 3}
+  - Id: floor_wood_large_dark
+    Prefab: {fileID: 919132149155446097, guid: cb8544c5b1fb943429235713bf4ae36d, type: 3}
+  - Id: floor_wood_small
+    Prefab: {fileID: 919132149155446097, guid: e22b02e8d34a21640a9cdeccfcd23b6b, type: 3}
+  - Id: floor_wood_small_dark
+    Prefab: {fileID: 919132149155446097, guid: 6d3f8373031aa3d4a9b0e56308b7bd99, type: 3}
+  - Id: keg
+    Prefab: {fileID: 919132149155446097, guid: 655ca7b752a1d884b8798d6fd4754ea3, type: 3}
+  - Id: keg_decorated
+    Prefab: {fileID: 919132149155446097, guid: 87473489804c38943bd56e310e38c45a, type: 3}
+  - Id: key
+    Prefab: {fileID: 919132149155446097, guid: 1217ebb23f7c4a944afedb1b45c16e01, type: 3}
+  - Id: keyring
+    Prefab: {fileID: 919132149155446097, guid: 234ac21dd52c68a42a3b791c827ea33c, type: 3}
+  - Id: keyring_hanging
+    Prefab: {fileID: 919132149155446097, guid: d9adb212b19840745a37ce44b75d330f, type: 3}
+  - Id: pillar
+    Prefab: {fileID: 919132149155446097, guid: 104fd4c40e7072c4f902f28a06df61e0, type: 3}
+  - Id: pillar_decorated
+    Prefab: {fileID: 919132149155446097, guid: 1522b3efb8b4d6a4e8043e641de2aa68, type: 3}
+  - Id: plate
+    Prefab: {fileID: 919132149155446097, guid: d54b4ee1e2afc4c4aa0ec206c7ad801f, type: 3}
+  - Id: plate_food_A
+    Prefab: {fileID: 919132149155446097, guid: 7fcb34154f2b1b845bcfb810c92e5d87, type: 3}
+  - Id: plate_food_B
+    Prefab: {fileID: 919132149155446097, guid: 332dfea4645e7f248a5411f7b3e16885, type: 3}
+  - Id: plate_small
+    Prefab: {fileID: 919132149155446097, guid: 641c9f92eaedbd24c9324460a64968b5, type: 3}
+  - Id: plate_stack
+    Prefab: {fileID: 919132149155446097, guid: cbce2388a9c9dab4c9bb403ded333bfb, type: 3}
+  - Id: rubble_half
+    Prefab: {fileID: 919132149155446097, guid: 0537ba9fa2b2b994283d9b7d2e142c03, type: 3}
+  - Id: rubble_large
+    Prefab: {fileID: 919132149155446097, guid: 103270dbcf48ba547b369ed4fad133ef, type: 3}
+  - Id: shelf_large
+    Prefab: {fileID: 919132149155446097, guid: 696d45651d5d8ae499ce5a0015fbcbb6, type: 3}
+  - Id: shelf_small
+    Prefab: {fileID: 919132149155446097, guid: 033c25489fbd53d41b929a30211bbc00, type: 3}
+  - Id: shelf_small_candles
+    Prefab: {fileID: 919132149155446097, guid: 3c640501ef22bbe43837faab56c37c1f, type: 3}
+  - Id: shelves
+    Prefab: {fileID: 919132149155446097, guid: caad059514c39144bb7ffc5870e15a42, type: 3}
+  - Id: spikes
+    Prefab: {fileID: 919132149155446097, guid: fbd43d64a13fe374383a688193ff3b35, type: 3}
+  - Id: stairs
+    Prefab: {fileID: 919132149155446097, guid: 302b3b5c3757b9b478fb0ea67b4d1112, type: 3}
+  - Id: stairs_narrow
+    Prefab: {fileID: 919132149155446097, guid: aa1fdf54e9354b34a9a549594c5d11c3, type: 3}
+  - Id: stairs_wall_left
+    Prefab: {fileID: 919132149155446097, guid: 409016e3b8b455b4a9cfc4be3f1a793d, type: 3}
+  - Id: stairs_wall_right
+    Prefab: {fileID: 919132149155446097, guid: fd0b137ff80e62244bab5dafcfde835d, type: 3}
+  - Id: stairs_walled
+    Prefab: {fileID: 919132149155446097, guid: 2f792ed0e36d6da4f958fbacc97a8deb, type: 3}
+  - Id: stairs_wide
+    Prefab: {fileID: 919132149155446097, guid: 352f7d8e37878ca4ea2cf167acbb0eaa, type: 3}
+  - Id: stairs_wood
+    Prefab: {fileID: 919132149155446097, guid: bf0f653aadba93f49b08ee09842d514b, type: 3}
+  - Id: stairs_wood_decorated
+    Prefab: {fileID: 919132149155446097, guid: 95aeb4c54b8e52d40a2e8061afd0473e, type: 3}
+  - Id: stool
+    Prefab: {fileID: 919132149155446097, guid: 59597280952f6a84dbed28d1f58d8c6c, type: 3}
+  - Id: sword_shield
+    Prefab: {fileID: 919132149155446097, guid: 2822fa29223dfad4c864a7e23a635d14, type: 3}
+  - Id: sword_shield_broken
+    Prefab: {fileID: 919132149155446097, guid: 445f6852cb9ed0648bf01f130336ee3a, type: 3}
+  - Id: sword_shield_gold
+    Prefab: {fileID: 919132149155446097, guid: 2e5c12d1006cd874d83a6e2d21076c82, type: 3}
+  - Id: table_long
+    Prefab: {fileID: 919132149155446097, guid: 4af1956c7b184d64a9bf1bf537de8e2d, type: 3}
+  - Id: table_long_broken
+    Prefab: {fileID: 919132149155446097, guid: de9aab80bcce7fe4f8902305b41b7427, type: 3}
+  - Id: table_long_decorated_A
+    Prefab: {fileID: 919132149155446097, guid: 7862436de13e4ba488718ac1870aa293, type: 3}
+  - Id: table_long_decorated_C
+    Prefab: {fileID: 919132149155446097, guid: 5a24c944697c52f4f806fb594263ec77, type: 3}
+  - Id: table_long_tablecloth
+    Prefab: {fileID: 919132149155446097, guid: a60200c4d663e2444913cba045f35269, type: 3}
+  - Id: table_long_tablecloth_decorated_A
+    Prefab: {fileID: 919132149155446097, guid: ee588489f9abe7f458df1fafc8a1369c, type: 3}
+  - Id: table_medium
+    Prefab: {fileID: 919132149155446097, guid: 8ae1f8bb71c9aa841ae268f9b37c68cf, type: 3}
+  - Id: table_medium_broken
+    Prefab: {fileID: 919132149155446097, guid: 72f81169b9e44d14080070ba0195398f, type: 3}
+  - Id: table_medium_decorated_A
+    Prefab: {fileID: 919132149155446097, guid: f615d8e68d2e44f41b4ca2b85e4d5708, type: 3}
+  - Id: table_medium_tablecloth
+    Prefab: {fileID: 919132149155446097, guid: 3486d39b6fe0b90499b26225be318cec, type: 3}
+  - Id: table_medium_tablecloth_decorated_B
+    Prefab: {fileID: 919132149155446097, guid: 71ee058fdc2569342b1d17a569487ede, type: 3}
+  - Id: table_small
+    Prefab: {fileID: 919132149155446097, guid: 34c89c4f89f5e014cb515c4302c2f943, type: 3}
+  - Id: table_small_decorated_A
+    Prefab: {fileID: 919132149155446097, guid: 01f5bfce68a2370478517d115b6beda8, type: 3}
+  - Id: table_small_decorated_B
+    Prefab: {fileID: 919132149155446097, guid: fa6bcd879b71ed04ba6f1699c8bba40e, type: 3}
+  - Id: torch
+    Prefab: {fileID: 919132149155446097, guid: 754307b44876f5346a6d3d4cf632daad, type: 3}
+  - Id: torch_lit
+    Prefab: {fileID: 919132149155446097, guid: 9fa1284d97daff54d8cdf1005843da94, type: 3}
+  - Id: torch_mounted
+    Prefab: {fileID: 919132149155446097, guid: ecac573a90b3b92409138e7e8d0e6d43, type: 3}
+  - Id: trunk_large_A
+    Prefab: {fileID: 919132149155446097, guid: 0f9101ce5dfed0e4c90ee8f49953237c, type: 3}
+  - Id: trunk_large_B
+    Prefab: {fileID: 919132149155446097, guid: 9e85c5e14ebe1ee49bc153b28ec016af, type: 3}
+  - Id: trunk_large_C
+    Prefab: {fileID: 919132149155446097, guid: 01b5318f1af626f41862951be1333861, type: 3}
+  - Id: trunk_medium_A
+    Prefab: {fileID: 919132149155446097, guid: 2a23679a14fd4f743bdaa1602816b825, type: 3}
+  - Id: trunk_medium_B
+    Prefab: {fileID: 919132149155446097, guid: 6cad4beb495e8264b94c3f760f23d177, type: 3}
+  - Id: trunk_medium_C
+    Prefab: {fileID: 919132149155446097, guid: ded3ad24f70bf1a4a9d4e9a6bafc671f, type: 3}
+  - Id: trunk_small_A
+    Prefab: {fileID: 919132149155446097, guid: 141b20d5ed50a624dbbd709c7eb58a13, type: 3}
+  - Id: trunk_small_B
+    Prefab: {fileID: 919132149155446097, guid: 07e5cf93a44ce4a4c9c14499dbaad588, type: 3}
+  - Id: trunk_small_C
+    Prefab: {fileID: 919132149155446097, guid: de025394e42f4254bab67c46d8ba377e, type: 3}
+  - Id: wall
+    Prefab: {fileID: 919132149155446097, guid: 2e76d7845cf633042a1db76831cd4eeb, type: 3}
+  - Id: wall_Tsplit
+    Prefab: {fileID: 919132149155446097, guid: 8432329626ee3054a8537bd04de2e809, type: 3}
+  - Id: wall_Tsplit_sloped
+    Prefab: {fileID: 919132149155446097, guid: a48e546b0ed690145a1c43ecf8ba3051, type: 3}
+  - Id: wall_arched
+    Prefab: {fileID: 919132149155446097, guid: 6a93de2d85579df42ba7c2764a1384d5, type: 3}
+  - Id: wall_archedwindow_gated
+    Prefab: {fileID: 919132149155446097, guid: 5aa2a2d0ebee6a84f80160994d0a15db, type: 3}
+  - Id: wall_archedwindow_gated_scaffold
+    Prefab: {fileID: 919132149155446097, guid: c2d14b63fff60a048a9ee7216d00134f, type: 3}
+  - Id: wall_archedwindow_open
+    Prefab: {fileID: 919132149155446097, guid: 3d98e940ec2a6ca498b5b81acf642cfa, type: 3}
+  - Id: wall_broken
+    Prefab: {fileID: 919132149155446097, guid: 05f217b678835c14cbfa009f3af4d021, type: 3}
+  - Id: wall_corner
+    Prefab: {fileID: 919132149155446097, guid: 033ff544c76ed68469509b09e0da47e9, type: 3}
+  - Id: wall_corner_gated
+    Prefab: {fileID: 919132149155446097, guid: e327b9cc986a27d43b13073f47fdb91f, type: 3}
+  - Id: wall_corner_scaffold
+    Prefab: {fileID: 919132149155446097, guid: 48f754347ca47e046a59d804bd474194, type: 3}
+  - Id: wall_corner_small
+    Prefab: {fileID: 919132149155446097, guid: eec059a55337dec4ab9c148dc7d63d3b, type: 3}
+  - Id: wall_cracked
+    Prefab: {fileID: 919132149155446097, guid: d909415619f8f2b4fa61acd5ea66c24f, type: 3}
+  - Id: wall_crossing
+    Prefab: {fileID: 919132149155446097, guid: 36df191dfb1d7604a866030a3a1eced2, type: 3}
+  - Id: wall_doorway
+    Prefab: {fileID: 919132149155446097, guid: 4ef23ef900a4d8e42b058462437064b7, type: 3}
+  - Id: wall_doorway_Tsplit
+    Prefab: {fileID: 919132149155446097, guid: 7546992b6463a694eb56022760d24297, type: 3}
+  - Id: wall_doorway_door
+    Prefab: {fileID: 919132149155446097, guid: 4329f85fbd760d9498ebd814cbcb8b5f, type: 3}
+  - Id: wall_doorway_scaffold
+    Prefab: {fileID: 919132149155446097, guid: e4284067948fe384e837c008cb2a5c15, type: 3}
+  - Id: wall_doorway_scaffold_door
+    Prefab: {fileID: 919132149155446097, guid: e88958a21e6bd8341b93ba86b671c595, type: 3}
+  - Id: wall_doorway_sides
+    Prefab: {fileID: 919132149155446097, guid: 521498a6e290f7f4499a3f65c762dbc5, type: 3}
+  - Id: wall_endcap
+    Prefab: {fileID: 919132149155446097, guid: c3da46fa009d7674f8ee291eb710136e, type: 3}
+  - Id: wall_gated
+    Prefab: {fileID: 919132149155446097, guid: ee83bc276cff07a4aa62de5cae646ecd, type: 3}
+  - Id: wall_half
+    Prefab: {fileID: 919132149155446097, guid: c32a5a6ad17d7c44c85cf3ef7c827f39, type: 3}
+  - Id: wall_half_endcap
+    Prefab: {fileID: 919132149155446097, guid: 9ff6d3fbaebfc2345a8e7886438c9952, type: 3}
+  - Id: wall_half_endcap_sloped
+    Prefab: {fileID: 919132149155446097, guid: ce368aca3a15be049a9f63e7b17782bb, type: 3}
+  - Id: wall_open_scaffold
+    Prefab: {fileID: 919132149155446097, guid: 8c95e2dbd416842469d80cce784aed11, type: 3}
+  - Id: wall_pillar
+    Prefab: {fileID: 919132149155446097, guid: c1052f82dd37aec45af4167410a8baf0, type: 3}
+  - Id: wall_scaffold
+    Prefab: {fileID: 919132149155446097, guid: 5732af1ab9c82dd4e9f5ad94f55d2aa8, type: 3}
+  - Id: wall_shelves
+    Prefab: {fileID: 919132149155446097, guid: fd659354d008a214b9a5f3baf522cfeb, type: 3}
+  - Id: wall_sloped
+    Prefab: {fileID: 919132149155446097, guid: 32128e39aab28c64ea29ff16cd0639b8, type: 3}
+  - Id: wall_window_closed
+    Prefab: {fileID: 919132149155446097, guid: aeb15d0a68394e34b8616b04632f40cb, type: 3}
+  - Id: wall_window_closed_scaffold
+    Prefab: {fileID: 919132149155446097, guid: c56e366eb7414cd49a6d9e7c6a89abae, type: 3}
+  - Id: wall_window_open
+    Prefab: {fileID: 919132149155446097, guid: 60a6f953e3538e44f8d11d6590398d70, type: 3}
+  - Id: wall_window_open_scaffold
+    Prefab: {fileID: 919132149155446097, guid: d2d0f512e99ee7d4d9af7ca2157f4b94, type: 3}

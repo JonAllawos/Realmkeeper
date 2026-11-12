@@ -62,13 +62,13 @@ namespace Realmkeeper.Tests.EditMode.Places
 
         internal PlaceData Place(string def) => W.Places.Single(p => p.DefinitionId == def);
 
-        internal void Hero()
+        internal void Hero(int level = 3)
         {
             CombatTests.Create(_s, "fighter", Strong);
             // A fighter of level 3, the level the mine is meant for (ADR-0064: a rescue for a band of one, not a beginner).
-            var need = Realmkeeper.Domain.Rpg.ProgressionRules.ExperienceFor(3) - W.Player.Rpg.Experience;
+            var need = Realmkeeper.Domain.Rpg.ProgressionRules.ExperienceFor(level) - W.Player.Rpg.Experience;
             Ok(_s.Dispatch(new AwardExperienceCommand(need, Realmkeeper.Domain.Rpg.ExperienceSource.Milestone, null, "test")));
-            while (W.Player.Rpg.Level < 3) Ok(_s.Dispatch(new AdvanceCharacterCommand(Realmkeeper.Domain.Rpg.CharacterAdvancement.SuggestChoices(W.Player.Rpg, W.Player.Rpg.Level + 1))));
+            while (W.Player.Rpg.Level < level) Ok(_s.Dispatch(new AdvanceCharacterCommand(Realmkeeper.Domain.Rpg.CharacterAdvancement.SuggestChoices(W.Player.Rpg, W.Player.Rpg.Level + 1))));
             Edit(w => w.MinuteOfDay = 10 * 60);
         }
 
@@ -155,7 +155,10 @@ namespace Realmkeeper.Tests.EditMode.Places
             Assert.That(places.Select(p => p.DefinitionId).Where(phase13.Contains), Is.EquivalentTo(phase13));
             var newer = places.Select(p => p.DefinitionId).Where(Phase14Places.All.Contains).ToList();
             Assert.That(newer.Count, Is.InRange(3, 5), "Phase 14 (ADR-0071): three to five of the new places, chosen by the world.");
-            Assert.That(places.Count, Is.EqualTo(5 + newer.Count), "No place twice, nothing else.");
+            var phase18 = places.Select(p => p.DefinitionId).Where(Phase18Places.All.Contains).ToList();
+            Assert.That(phase18.Count, Is.InRange(3, 4), "Phase 18 (ADR-0089): the region's own drift, vault and tower, and a contested watch where two factions exist.");
+            Assert.That(phase18.Distinct().Count(), Is.EqualTo(phase18.Count));
+            Assert.That(places.Count, Is.EqualTo(5 + newer.Count + phase18.Count), "No place twice, nothing else.");
             foreach (var p in places)
             {
                 Assert.That(PlaceValidator.Validate(p.Layout), Is.Empty, p.Name);

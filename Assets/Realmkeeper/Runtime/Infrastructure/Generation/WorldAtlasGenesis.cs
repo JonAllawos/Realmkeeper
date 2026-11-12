@@ -64,6 +64,18 @@ namespace Realmkeeper.Infrastructure.Generation
             foreach (var n in home.Neighbours)
                 if (world.FindRegion(n) is RegionData nr && nr.Discovery == RegionDiscovery.Unknown) { nr.Discovery = RegionDiscovery.Discovered; changed = true; }
             if (BuildRoutes(world, maps, generator, random)) changed = true;
+
+            // Phase 18 (ADR-0089): each further region's own places and their quests, once (a region's map is regenerated
+            // only when it still lacks them, so a loaded world that has them pays nothing).
+            for (var i = 1; i < world.Regions.Count; i++)
+            {
+                var region = world.Regions[i];
+                if (PlaceGenesis.HasPhase18(world, region.RegionId) || !world.Settlements.Exists(s => s.RegionId == region.RegionId)) continue;
+                if (!maps.TryGetValue(region.RegionId, out var m)) maps[region.RegionId] = m = generator.RegenerateRegion(world, region);
+                m.RegionId = region.RegionId;
+                if (PlaceGenesis.EnsurePhase18(world, m)) changed = true;
+            }
+
             if (changed) Simulation.Quests.QuestGenesis.Ensure(world); // the further regions' own emergent quests, as a reload would find them
             return changed;
         }

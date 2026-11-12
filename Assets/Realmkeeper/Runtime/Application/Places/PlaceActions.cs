@@ -28,7 +28,7 @@ namespace Realmkeeper.Application.Places
     /// command, with the character rules' checks and the world's dice. The Phase 12 ledger and notice board keep their
     /// own inspect command; inside places this is the one framework.
     /// </summary>
-    public static class PlaceActions
+    public static partial class PlaceActions
     {
         /// <summary>What can be done to a target from where the player stands (for prompts; the command re-checks everything).</summary>
         public static List<ActionOption> Options(WorldData w, PlaceData place, PlaceRoom room, string targetId)
@@ -84,10 +84,12 @@ namespace Realmkeeper.Application.Places
                         if (!s.Has(FeatureFlags.Freed)) Add(PlaceAction.Free, "Free them", HostileHere(place, room) ? "Not with enemies in the room." : null, "Athletics");
                         break;
                     case FeatureKind.Mechanism:
+                        if (f.Get(Phase18Places.Mech) != null) { MechanismOptions(w, place, f, s, def, list); break; } // Phase 18 (ADR-0089)
                         Add(PlaceAction.Activate, s.Has(FeatureFlags.Used) ? "Pull it again" : "Pull it");
                         if (def?.Study != null) Add(PlaceAction.Inspect, "Examine", null, def.Study.Skill.ToString());
                         break;
                     default:
+                        if (f.Get(Phase18Places.Mech) == Phase18Places.MechLight) { MechanismOptions(w, place, f, s, def, list); break; } // Phase 18: a sign read by raking light
                         Add(PlaceAction.Inspect, f.Kind == FeatureKind.Workstation || f.Kind == FeatureKind.Furniture ? "Look" : "Examine", null, def?.Study?.Skill.ToString());
                         if (f.DefinitionId == "webbing" && !s.Has(FeatureFlags.Broken)) // Phase 14 (ADR-0071): fire meets what burns
                             Add(PlaceAction.Burn, "Burn it away", PlaceRules.CarriesLight(p) ? null : "You need a flame: a lantern or a torch.");
@@ -253,6 +255,12 @@ namespace Realmkeeper.Application.Places
             var def = FeatureCatalog.Find(f.DefinitionId);
             var s = place.StateOf(f.Id);
             var now = QuestClock.Now(w);
+            if (f.Get(Phase18Places.Mech) != null && action != PlaceAction.Inspect)
+            {
+                var worked = Mechanism(context, w, place, room, f, def, s, action); // Phase 18 (ADR-0089)
+                if (worked != null) return worked;
+            }
+
             switch (action)
             {
                 case PlaceAction.Inspect:
@@ -547,9 +555,26 @@ namespace Realmkeeper.Application.Places
         {
             context.Quest(new QuestEvent { Kind = QuestEventKind.Investigated, Subject = place.PlaceId + "#" + f.Id });
             context.Quest(new QuestEvent { Kind = QuestEventKind.FeatureUsed, Subject = place.PlaceId, Detail = f.Id });
-            if (def?.Discovery == null) return;
-            if (QuestRuntime.Discover(w, def.Discovery, def.Insight, place.Name, report))
-                context.Quest(new QuestEvent { Kind = QuestEventKind.Discovered, Subject = def.Discovery });
+            if (def == null) return;
+
+            // Phase 18 (ADR-0088): every clue that tells something is recorded, with its kind and certainty — the authored
+            // keys as before, the generic clues under their place (so the claw marks of one cave are not those of another).
+            var key = def.Discovery ?? (def.Insight != null && def.Category != Domain.Quests.DiscoveryCategory.None ? place.DefinitionId + ":" + def.Id : null);
+            if (key == null) return;
+            var d = new Domain.Quests.DiscoveryData
+            {
+                Key = key, Text = def.Insight, Source = place.Name, Category = def.Category, Major = def.Major, PlaceId = place.PlaceId,
+                Certainty = def.Unverified ? Domain.Quests.DiscoveryCertainty.Unverified : Domain.Quests.DiscoveryCertainty.Confirmed,
+                ConfirmedBy = def.Unverified && def.ConfirmedBy != null && !def.ConfirmedBy.StartsWith("group:", StringComparison.Ordinal) ? def.ConfirmedBy
+                    : def.ConfirmedBy == null ? null : def.ConfirmedBy + "@" + place.PlaceId,
+                Subject = def.AboutHolder && !place.FactionId.IsEmpty ? "faction:" + place.FactionId : null,
+            };
+            if (QuestRuntime.Discover(w, d, report))
+                context.Quest(new QuestEvent { Kind = QuestEventKind.Discovered, Subject = key });
+            if (def.RevealsPlace != null)
+                foreach (var other in w.Places)
+                    if (other.DefinitionId == def.RevealsPlace && other.Discovery < PlaceDiscovery.Discovered)
+                        PlaceKnowledge.Raise(w, other, PlaceDiscovery.Discovered, report, "clue");
             if (def.Discovery == "fort_side_door")
                 foreach (var other in w.Places)
                     if (other.DefinitionId == PlaceCatalog.Fort) other.Variables["entrance:side_door"] = "known";

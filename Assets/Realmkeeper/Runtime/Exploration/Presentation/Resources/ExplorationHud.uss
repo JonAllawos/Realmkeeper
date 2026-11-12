@@ -1132,7 +1132,7 @@
 .xk-place-map-legend { color: rgb(170, 160, 136); font-size: 11px; margin-top: 6px; white-space: normal; }
 
 /* Phase 14 (ADR-0068 … ADR-0070): lasting conditions, followers, where you can rest. */
-.xk-conditions { position: absolute; left: 18px; top: 150px; max-width: 360px; padding: 6px 10px; background-color: rgba(30, 14, 12, 0.78); border-radius: 4px; border-left-width: 3px; border-left-color: rgb(196, 92, 60); }
+.xk-conditions { position: absolute; left: 18px; top: 176px; max-width: 360px; padding: 6px 10px; background-color: rgba(30, 14, 12, 0.78); border-radius: 4px; border-left-width: 3px; border-left-color: rgb(196, 92, 60); }
 .xk-condition-name { color: rgb(246, 196, 150); font-size: 14px; -unity-font-style: bold; }
 .xk-condition-effect { color: rgb(226, 214, 190); font-size: 12px; white-space: normal; }
 .xk-condition-end { color: rgb(184, 172, 150); font-size: 11px; white-space: normal; -unity-font-style: italic; margin-bottom: 4px; }

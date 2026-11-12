@@ -1,0 +1,24 @@
+Quaternius creature models (quaternius.com)
+
+License: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Obtained 2026-11-12 from Poly Pizza, which lists each model as "By Quaternius", licence "CC0 1.0":
+  Spider   https://poly.pizza/m/yRYJiAJyiM
+  Rat      https://poly.pizza/m/iltq5bVNaV
+  Deer     https://poly.pizza/m/T6Cs7tmMHJ
+  Stag     https://poly.pizza/m/tQdzbZ1Cmw
+  Fox      https://poly.pizza/m/Bc97C66HKi
+  Goblin   https://poly.pizza/m/OdCOFSmEhl
+  Giant    https://poly.pizza/m/BldaiPtyJa
+  Orc      https://poly.pizza/m/5vO2YJsPEf
+  Bull     https://poly.pizza/m/a8PIIYwF7r
+  Chicken  https://poly.pizza/m/ineV9pU5VL
+  Wolf     https://poly.pizza/m/P1gU3Qkr9r   (Ultimate Animated Animal Pack)
+  Husky    https://poly.pizza/m/wcWiuEqwzq   (Ultimate Animated Animal Pack)
+  Horse    https://poly.pizza/m/qvTrSG9pZF   (Ultimate Animated Animal Pack)
+  Cow      https://poly.pizza/m/26zM1outCr   (Ultimate Animated Animal Pack)
+
+Changes made by Realmkeeper: converted from GLB to FBX with Blender 5.2.1 and uniformly scaled to a
+real-world height, using Tools/Blender/glb2fbx.py. The geometry, rigs and animations are otherwise unchanged.
+Credit is not required; Realmkeeper credits Quaternius anyway.

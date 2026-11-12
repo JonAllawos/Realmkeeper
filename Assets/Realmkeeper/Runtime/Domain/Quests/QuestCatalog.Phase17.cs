@@ -358,6 +358,13 @@ namespace Realmkeeper.Domain.Quests
                             new DialogueResponse { Id = "friend", Text = "I've stood with {far}'s people before. Hear me as a friend: a shared count keeps both towns honest.", Kind = ResponseKind.Persuade,
                                 Conditions = new[] { Active, claim, Flag("case_made", negate: true), QuestCondition.Of(ConditionKind.CampaignStanding, "far_faction", min: 20) }, Next = "giver",
                                 Consequences = new[] { Do(DialogueConsequenceKind.CampaignFlag, "case_made", value: "friend") } },
+                            // Phase 18 (ADR-0091): what the player has found elsewhere makes the case — precedent, not a roll.
+                            new DialogueResponse { Id = "precedent_cairn", Text = "The towns by Cairn Watch kept their tower by turns for a generation — it's in the watch's own log. A shared count is old custom here, not a new trick.",
+                                Kind = ResponseKind.Persuade, Conditions = new[] { Active, claim, Flag("case_made", negate: true), QuestCondition.Of(ConditionKind.KnowsDiscovery, "cairn_watch_log") }, Next = "giver",
+                                Consequences = new[] { Do(DialogueConsequenceKind.CampaignFlag, "case_made", value: "precedent"), Do(DialogueConsequenceKind.Regard, "Respect", 3) } },
+                            new DialogueResponse { Id = "precedent_ringers", Text = "At the old crossing they hung three bells for three trades and rang them together, none above the others. Your towns could keep one count the same way.",
+                                Kind = ResponseKind.Persuade, Conditions = new[] { Active, claim, Flag("case_made", negate: true), QuestCondition.Of(ConditionKind.KnowsDiscovery, "ringers_order") }, Next = "giver",
+                                Consequences = new[] { Do(DialogueConsequenceKind.CampaignFlag, "case_made", value: "precedent"), Do(DialogueConsequenceKind.Regard, "Respect", 3) } },
                             new DialogueResponse { Id = "apart", Text = "This is between your two towns. I carried the letter; I won't carry the quarrel.", Kind = ResponseKind.Continue, Conditions = new[] { Active, claim }, Next = "decided",
                                 Consequences = new[] { Do(DialogueConsequenceKind.CampaignDecision, "road_claim", value: "apart") } },
                             new DialogueResponse { Id = "think", Text = "Let me think on it.", Kind = ResponseKind.End, Conditions = new[] { Active, claim }, Next = "end" },
@@ -420,6 +427,15 @@ namespace Realmkeeper.Domain.Quests
                                 Consequences = new[] { Do(DialogueConsequenceKind.CampaignDecision, "tollkeeper_fate", value: "repay") } },
                             new DialogueResponse { Id = "cut", Text = "I'll keep quiet. For a share.", Kind = ResponseKind.Bribe, Conditions = new[] { Active, fate, talks }, Next = "tollkeeper_after",
                                 Consequences = new[] { Do(DialogueConsequenceKind.CampaignDecision, "tollkeeper_fate", value: "cut") } },
+                            // Phase 18 (ADR-0091): a harder, fairer way — owning it in public, with the evidence and a witness.
+                            new DialogueResponse { Id = "witness", Text = "Stand up with me before both towns — you, {giver} and the sticks — and own it. Then pay it back where everyone can see. [Persuasion]",
+                                Kind = ResponseKind.Persuade, Conditions = new[] { Active, fate, talks }, Next = "tollkeeper_after", NextOnFailure = "tollkeeper",
+                                ShowWhenUnavailable = true, Requirements = new[] { Flag("evidence") }, UnavailableText = "Nobody owns up to a theft you can't show.",
+                                Check = Check("Persuasion", 13, "-Courage"), Once = true,
+                                Consequences = new[]
+                                {
+                                    Do(DialogueConsequenceKind.CampaignDecision, "tollkeeper_fate", value: "witness", onSuccess: true), Do(DialogueConsequenceKind.Regard, "Affinity", -5, onSuccess: false),
+                                } },
                             new DialogueResponse { Id = "bye", Text = "Not now.", Kind = ResponseKind.End, Next = "end" },
                         },
                     },
@@ -431,6 +447,8 @@ namespace Realmkeeper.Domain.Quests
                             L("{npc} goes white, then red. \"Get out of my toll-house.\"", Decided("tollkeeper_fate", "expose")),
                             L("\"A little each month.\" {npc} lets out a breath they seem to have held since spring. \"I can do that. I will do that.\"", Decided("tollkeeper_fate", "repay")),
                             L("{npc} counts coins into your palm without a word, and doesn't look up until you've gone.", Decided("tollkeeper_fate", "cut")),
+                            L("{npc} stares at the sticks a long time. \"Both towns, then. In the square, with everyone looking.\" A short, bitter laugh. \"Better that than the knock on the door at night.\"",
+                                Decided("tollkeeper_fate", "witness")),
                         },
                         Responses = new[] { new DialogueResponse { Id = "ok", Text = "Leave.", Kind = ResponseKind.End, Next = "end" } },
                     },

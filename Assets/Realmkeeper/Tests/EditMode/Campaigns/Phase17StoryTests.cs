@@ -202,8 +202,15 @@ namespace Realmkeeper.Tests.EditMode.Campaigns
             Hero();
             Days(2); // caravans set out
             var e = LoseACaravan();
-            Days(1);
-            var q = W.Quests.SingleOrDefault(x => x.SourceKey == StorySynthesis.Prefix + "caravan:" + e.EventId);
+            // Phase 18 (lifecycle audit): real caravan losses in these days now make stories too (a closed loss used to be
+            // skipped), and one new story is made a day — so this one may wait its turn behind them for a day or two.
+            QuestInstanceData q = null;
+            for (var day = 0; day < 5 && q == null; day++)
+            {
+                Days(1);
+                q = W.Quests.SingleOrDefault(x => x.SourceKey == StorySynthesis.Prefix + "caravan:" + e.EventId);
+            }
+
             Assert.That(q, Is.Not.Null, "A story is made of it (62).");
             Assert.That(q.Variables["account"], Is.EqualTo(WorldEvents.Telling(W, W.FindWorldEvent(e.EventId))), "Nothing invented: the account is the event's own (70).");
             var giver = QuestEffects.Person(W, q, "giver");
@@ -352,7 +359,7 @@ namespace Realmkeeper.Tests.EditMode.Campaigns
             Assert.That(result.IsSuccess, Is.True, string.Join("; ", result.Errors ?? new string[0]));
             var loaded = result.World;
             Assert.That(loaded.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
-            Assert.That(WorldData.CurrentSchemaVersion, Is.EqualTo(19));
+            Assert.That(WorldData.CurrentSchemaVersion, Is.EqualTo(20)); // Phase 18 (v20)
             Assert.That(loaded.Campaigns, Is.Empty, "An old world is a sandbox until a campaign is begun.");
             Assert.That(loaded.WorldSettings.EnabledSimulationSystems, Does.Contain(CampaignSystem.Id), "The campaign pass runs in it from now on.");
             Assert.That(WorldValidator.Validate(loaded).IsValid, Is.True);

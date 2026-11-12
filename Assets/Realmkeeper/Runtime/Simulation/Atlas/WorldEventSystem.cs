@@ -201,6 +201,44 @@ namespace Realmkeeper.Simulation.Atlas
 
         public const int BanditActivityAt = 4;
 
+        /// <summary>Of goods a broken band had taken, the share found in its camp (the rest eaten, sold or spoiled).</summary>
+        public const int RecoveredPercent = 50;
+
+        /// <summary>
+        /// Phase 18 (ADR-0093): when a band that took caravans is broken — by a patrol, by the player, or by its own
+        /// losses — what is left of the goods it took is found and carried on to the town they were bound for: real stock,
+        /// once per loss (never above the town's storage). The event that recorded the loss says so in its history, and the
+        /// town hears of it.
+        /// </summary>
+        public static int Recover(WorldData w, TravelingGroupData band, long day, long now)
+        {
+            var recovered = 0;
+            foreach (var e in w.WorldEvents)
+            {
+                if (e.Type != WorldEventType.CaravanLost || !e.Applied.Contains("band:" + band.PopulationId) || e.Applied.Contains("recovered")) continue;
+                foreach (var tag in new List<string>(e.Applied))
+                {
+                    if (!tag.StartsWith("cargo:", StringComparison.Ordinal)) continue;
+                    var parts = tag.Split(':');
+                    if (parts.Length < 4 || !int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out var lost) || !Guid.TryParse(parts[3], out var dg)) continue;
+                    var dest = w.FindSettlement(new SettlementId(dg));
+                    if (dest == null) continue;
+                    var type = new ResourceTypeId(parts[1]);
+                    var amount = lost * RecoveredPercent / 100;
+                    var cap = dest.Economy?.StorageCapacity.Get(type) ?? 0;
+                    if (cap > 0) amount = Math.Min(amount, Math.Max(0, cap - dest.ResourceInventory.Get(type)));
+                    e.Applied.Add("recovered"); // once, even when nothing could be stored
+                    if (amount <= 0) continue;
+                    dest.ResourceInventory.Set(type, dest.ResourceInventory.Get(type) + amount);
+                    e.Note(now, $"{amount.ToString(CultureInfo.InvariantCulture)} {parts[1]} recovered from the outlaws' camp and carried on to {dest.Name}");
+                    WorldEvents.TellSettlements(w, e, new[] { dest.SettlementId }, day);
+                    recovered += amount;
+                }
+            }
+
+            return recovered;
+        }
+
         private static void Bandits(WorldData w, TravelingGroupData band, long day, long now)
         {
             var key = "bandits:" + band.PopulationId;
@@ -208,6 +246,7 @@ namespace Realmkeeper.Simulation.Atlas
             if (!band.IsActive || band.Strength <= 0)
             {
                 if (open != null) WorldEvents.Move(open, WorldEventState.Resolved, now, "the band is broken");
+                Recover(w, band, day, now);
                 return;
             }
 
@@ -322,22 +361,45 @@ namespace Realmkeeper.Simulation.Atlas
                 if (crossing == null) continue; // conflict needs a shared border to touch the roads
                 var key = "conflict:" + rel.FactionA + "|" + rel.FactionB;
                 var open = WorldEvents.Open(w, key);
-                var state = PoliticalMath.StateOf(rel);
-                if (state != RelationState.Rival && state != RelationState.Hostile)
+                var stage = ConflictStage(rel);
+                if (stage == 0)
                 {
                     if (open == null) continue;
-                    Unblock(w, crossing, open.EventId);
-                    if (crossing.Condition == RouteCondition.Blocked && crossing.BlockedBy == null) crossing.Condition = RouteCondition.Good;
-                    foreach (var g in w.Groups)
-                        if (g.Kind == TravelGroupKind.FactionPatrol && g.EventId == open.EventId && g.IsActive) { g.State = TravelGroupState.Arrived; g.DueAt = now; g.Note($"{TravelRules.Clock(now)} stood down."); }
+                    StandDown(w, crossing, open, now);
                     WorldEvents.Move(open, WorldEventState.Resolved, now, $"{a.Name} and {b.Name} are no longer at odds");
                     continue;
                 }
 
-                var e = WorldEvents.Raise(w, WorldEventType.FactionConflict, key, now, state == RelationState.Hostile ? 4 : 2, $"{a.Name} and {b.Name} are {(state == RelationState.Hostile ? "hostile" : "rivals")}",
+                var e = WorldEvents.Raise(w, WorldEventType.FactionConflict, key, now, stage, $"{a.Name} and {b.Name}: {StageName(stage)}",
                     x => { x.FactionA = a.FactionId; x.FactionB = b.FactionId; x.RouteId = crossing.RouteId; x.RegionId = crossing.RegionA; }, out var made);
                 if (made) WorldEvents.TellSettlements(w, e, new[] { crossing.A, crossing.B }, day);
-                if (state != RelationState.Hostile) continue;
+
+                // Phase 18 (ADR-0090): the conflict moves through its stages as the two sides' opinion moves — up or down —
+                // and each stage touches the border towns. Nobody has to act for it to change.
+                if (!made && e.Severity != stage)
+                {
+                    var rising = stage > e.Severity;
+                    e.Note(now, rising ? $"{StageName(e.Severity)} became {StageName(stage)}" : $"{StageName(e.Severity)} eased to {StageName(stage)}");
+                    e.Severity = stage;
+                    if (rising && stage >= 3 && e.State == WorldEventState.Active) WorldEvents.Move(e, WorldEventState.Escalating, now, StageName(stage));
+                    if (!rising && stage < 3 && e.State == WorldEventState.Escalating) WorldEvents.Move(e, WorldEventState.Active, now, "the fighting has stopped, for now");
+                    WorldEvents.TellSettlements(w, e, new[] { crossing.A, crossing.B }, day);
+                }
+
+                if (stage >= 2 && e.OncePer("strain:", day / 7))
+                {
+                    // Hard words at the crossing (a dispute), then raids on the border farms (skirmishes and worse): every week.
+                    foreach (var end in new[] { crossing.A, crossing.B })
+                        if (w.FindSettlement(end) is SettlementData s) s.Stability = Math.Max(0, s.Stability - (stage >= 3 ? 2 : 1));
+                    if (stage >= 3) e.Note(now, "raids on the farms by the crossing");
+                }
+
+                if (stage < 4)
+                {
+                    if (e.Applied.Contains("blockade")) { StandDown(w, crossing, e, now); e.Applied.Remove("blockade"); }
+                    continue;
+                }
+
                 if (e.State == WorldEventState.Active) WorldEvents.Move(e, WorldEventState.Escalating, now, "open hostility: the crossing is barred");
                 if (!e.Once("blockade")) continue;
 
@@ -372,6 +434,31 @@ namespace Realmkeeper.Simulation.Atlas
                 if (r.Condition == RouteCondition.Blocked) r.Condition = RouteCondition.Good;
                 WorldEvents.Move(e, WorldEventState.Resolved, now, "the soldiers stood down");
             }
+        }
+
+        /// <summary>
+        /// Phase 18 (ADR-0090): the stage of two factions' conflict, from their relationship: 0 none, 1 tension (rivals),
+        /// 2 dispute (rivals, opinion −40 or worse), 3 skirmishes (hostile), 4 open conflict (hostile, opinion −75 or worse:
+        /// the crossing is barred).
+        /// </summary>
+        public static int ConflictStage(FactionRelationData rel)
+        {
+            var state = PoliticalMath.StateOf(rel);
+            if (state == RelationState.Hostile) return rel.Opinion <= -75 ? 4 : 3;
+            if (state == RelationState.Rival) return rel.Opinion <= -40 ? 2 : 1;
+            return 0;
+        }
+
+        public static string StageName(int stage) =>
+            stage >= 4 ? "open conflict" : stage == 3 ? "skirmishes" : stage == 2 ? "a dispute" : stage == 1 ? "tension" : "peace";
+
+        /// <summary>The soldiers at a barred crossing stand down and the way opens (the conflict eased, or ended).</summary>
+        private static void StandDown(WorldData w, RouteSegmentData crossing, WorldEventData e, long now)
+        {
+            Unblock(w, crossing, e.EventId);
+            if (crossing.Condition == RouteCondition.Blocked && crossing.BlockedBy == null) crossing.Condition = RouteCondition.Good;
+            foreach (var g in w.Groups)
+                if (g.Kind == TravelGroupKind.FactionPatrol && g.EventId == e.EventId && g.IsActive) { g.State = TravelGroupState.Arrived; g.DueAt = now; g.Note($"{TravelRules.Clock(now)} stood down."); }
         }
 
         private static int Strength(WorldData w, FactionId f)

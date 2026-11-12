@@ -1,0 +1,11 @@
+Post Lantern by Kay Lousberg (www.kaylousberg.com). It is part of KayKit Halloween Bits; its embedded
+texture is halloweenbits_texture.png.
+
+License: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Obtained 2026-11-12 from Poly Pizza, which lists it as "By Kay Lousberg", licence "CC0 1.0":
+  https://poly.pizza/m/ZSQ65S4lEu
+
+Changes made by Realmkeeper: converted from GLB to FBX with Blender 5.2.1 and scaled to 2.6 m tall,
+using Tools/Blender/glb2fbx.py.

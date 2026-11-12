@@ -100,6 +100,9 @@ namespace Realmkeeper.Application
         public List<QuestSummaryView> Abandoned { get; } = new List<QuestSummaryView>();
         public List<(string When, string Text)> Rumors { get; } = new List<(string, string)>();
         public List<(string When, string Text)> Discoveries { get; } = new List<(string, string)>();
+
+        /// <summary>Phase 18 (ADR-0088): the same discoveries with their kind, certainty and place, for grouping.</summary>
+        public List<DiscoveryEntryView> DiscoveryEntries { get; } = new List<DiscoveryEntryView>();
         public List<(string When, string Text)> Decisions { get; } = new List<(string, string)>();
 
         /// <summary>Chronicle entries the player can know: their own deeds and events in places they have been.</summary>
@@ -172,6 +175,16 @@ namespace Realmkeeper.Application
             var s = p.Social;
             for (var i = s.Rumors.Count - 1; i >= 0; i--) j.Rumors.Add((When(s.Rumors[i].At), s.Rumors[i].Text + (s.Rumors[i].Verified ? " (confirmed)" : string.Empty)));
             for (var i = s.Discoveries.Count - 1; i >= 0; i--) j.Discoveries.Add((When(s.Discoveries[i].At), s.Discoveries[i].Text));
+            for (var i = s.Discoveries.Count - 1; i >= 0; i--)
+            {
+                var d = s.Discoveries[i];
+                j.DiscoveryEntries.Add(new DiscoveryEntryView
+                {
+                    Key = d.Key, When = When(d.At), Text = d.Text, Category = d.Category, Certainty = d.Certainty, Major = d.Major, SharedCount = d.SharedIn.Count,
+                    Place = d.PlaceId == null ? null : _world.FindPlace(d.PlaceId)?.Name ?? d.Source,
+                });
+            }
+
             for (var i = s.Decisions.Count - 1; i >= 0; i--) j.Decisions.Add((When(s.Decisions[i].At), s.Decisions[i].Text));
             for (var i = _world.HistoricalEvents.Count - 1; i >= 0 && j.Events.Count < 40; i--)
             {
@@ -313,5 +326,23 @@ namespace Realmkeeper.Application
 
             return v;
         }
+    }
+}
+
+namespace Realmkeeper.Application
+{
+    /// <summary>Phase 18 (ADR-0088): one discovery as the journal shows it.</summary>
+    public sealed class DiscoveryEntryView
+    {
+        public string Key { get; set; }
+        public string When { get; set; }
+        public string Text { get; set; }
+        public Realmkeeper.Domain.Quests.DiscoveryCategory Category { get; set; }
+        public Realmkeeper.Domain.Quests.DiscoveryCertainty Certainty { get; set; }
+        public bool Major { get; set; }
+        public string Place { get; set; }
+
+        /// <summary>In how many settlements the player has told it.</summary>
+        public int SharedCount { get; set; }
     }
 }

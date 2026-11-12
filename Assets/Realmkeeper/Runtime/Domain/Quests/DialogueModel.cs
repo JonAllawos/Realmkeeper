@@ -148,6 +148,9 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>Phase 17: two people's bond (Role: a quest role; Value: the other role; Key: dimension; Amount).</summary>
         Relation = 36,
+
+        /// <summary>Phase 18: the player tells this person a discovery (Key: the discovery key; ADR-0088).</summary>
+        ShareDiscovery = 37,
     }
 
     public sealed class DialogueConsequence

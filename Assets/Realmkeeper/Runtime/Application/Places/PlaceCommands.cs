@@ -36,6 +36,11 @@ namespace Realmkeeper.Application.Places
         Burn = 17,
         Steal = 18,
         StealQuietly = 19,
+
+        // Phase 18 (ADR-0089): the place mechanisms.
+        Clear = 20,
+        Illuminate = 21,
+        Mend = 22,
     }
 
     /// <summary>Go into a place: from the map (a wilderness place the player knows of) or from its settlement. A locked way in needs an approach.</summary>

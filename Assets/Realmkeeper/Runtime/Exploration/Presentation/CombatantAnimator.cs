@@ -86,12 +86,22 @@ namespace Realmkeeper.Exploration.Presentation
             return true;
         }
 
+        private Quaternion _standing = Quaternion.identity;
+
         /// <summary>Down or dead: the death motion, which nothing else replaces; alive again: back to standing.</summary>
         public void SetDead(bool dead)
         {
             if (Dead == dead) return;
             Dead = dead;
-            if (_animator == null || !_parameters.Contains(DeadId)) return;
+            if (_animator == null)
+            {
+                // Phase 18: a body without a rig (a static model) tips onto its side when it falls, and stands when it rises.
+                if (dead) _standing = transform.localRotation; // the model's own import turn, kept for when it rises
+                transform.localRotation = dead ? Quaternion.Euler(0f, 0f, 85f) * _standing : _standing;
+                return;
+            }
+
+            if (!_parameters.Contains(DeadId)) return;
             if (dead) foreach (var t in Triggers.Values) if (_parameters.Contains(t)) _animator.ResetTrigger(t);
             _animator.SetBool(DeadId, dead);
         }

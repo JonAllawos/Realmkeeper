@@ -70,7 +70,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Failed": QuestList(j.Failed, "None."); break;
                 case "Abandoned": QuestList(j.Abandoned, "None."); break;
                 case "Rumours": Lines(j.Rumors, "No rumours heard. Ask people what they have heard."); break;
-                case "Discoveries": Lines(j.Discoveries, "Nothing found out yet."); break;
+                case "Discoveries": DiscoveryPanel(j); break; // Phase 18: grouped, with certainty
                 case "Decisions": Lines(j.Decisions, "No decisions that matter yet."); break;
                 case "Events": Lines(j.Events, "Nothing yet."); break;
                 case "Reputation": ReputationPanel(); break;

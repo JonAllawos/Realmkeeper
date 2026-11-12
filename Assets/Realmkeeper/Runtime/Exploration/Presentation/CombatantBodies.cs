@@ -33,6 +33,37 @@ namespace Realmkeeper.Exploration.Presentation
             creatureId == "skeleton" ? (Variant(id) == 0 ? "Skeleton_Rogue" : "Skeleton_Warrior") :
             creatureId == "zombie" ? "Skeleton_Minion" : null;
 
+        /// <summary>
+        /// Phase 18: which creature model draws which creature (models are already at real-world size; the scale adjusts
+        /// for the larger kin of a beast), and a tint where one model stands for two creatures. Null: no model.
+        /// </summary>
+        public static (string Model, float Scale, Color? Tint) AnimalFor(string creatureId)
+        {
+            switch (creatureId)
+            {
+                case "wolf": return ("Wolf", 1f, null);
+                case "dire_wolf": return ("Wolf", 1.45f, new Color(0.55f, 0.52f, 0.5f));
+                case "mastiff": return ("Husky", 1f, new Color(0.62f, 0.48f, 0.34f));
+                case "giant_spider": return ("Spider", 1f, null);
+                case "giant_rat": return ("Rat", 1f, null);
+                case "deer": return ("Deer", 1f, null);
+                case "fox": return ("Fox", 1f, null);
+                case "goblin": return ("Goblin", 1f, null);
+                case "ogre": return ("Giant", 1f, null);
+                case "troll": return ("Giant", 0.95f, new Color(0.48f, 0.6f, 0.45f));
+                case "cattle": return ("Cow", 1f, null);
+                case "riding_horse": return ("Horse", 1f, null);
+                case "draft_horse": return ("Horse", 1.12f, new Color(0.45f, 0.36f, 0.28f));
+                case "sheep": return ("Sheep", 1f, null);
+                case "chicken": return ("Chicken", 1f, null);
+                case "black_bear": return ("BlackBear", 1f, null);
+                case "brown_bear": return ("BlackBear", 1.25f, new Color(0.5f, 0.36f, 0.24f));
+                case "boar": return ("Boar", 1f, null);
+                case "goat": return ("Goat", 1f, null);
+                default: return (null, 1f, null);
+            }
+        }
+
         private static int Variant(CombatantId id) => (int)((uint)id.Value.GetHashCode() % 3u); // one in three skeletons is a rogue
 
         public static Body Create(CombatantView c, ArtCatalog catalog, Transform parent)
@@ -49,6 +80,32 @@ namespace Realmkeeper.Exploration.Presentation
                 if (creature == "skeleton" && Attach(catalog.Prop("Skeleton_Blade"), body, "handslot.r")) source += " with Skeleton_Blade";
                 if (creature == "zombie") Tint(body, new Color(0.62f, 0.72f, 0.55f));
                 return new Body { Root = body, Animator = animator, Source = source };
+            }
+
+            // Phase 18: beasts and monsters — the repository's creature models (Quaternius CC0; Poly by Google CC BY 3.0), each
+            // with its own clips where it has them; a static model tips over when it falls.
+            var beast = AnimalFor(creature);
+            if (beast.Model != null && catalog.Animal(beast.Model) != null)
+            {
+                var controller = catalog.AnimalController(beast.Model);
+                var body = Object.Instantiate(catalog.Animal(beast.Model), parent, false);
+                body.name = "Body " + beast.Model;
+                body.transform.localPosition = Vector3.zero;
+                body.transform.localRotation = catalog.Animal(beast.Model).transform.localRotation; // the import's own root turn (the Poly by Google models stand on it)
+                body.transform.localScale = Vector3.one * beast.Scale;
+                var anim = body.AddComponent<CombatantAnimator>();
+                if (controller != null)
+                {
+                    var a = body.GetComponent<Animator>() ?? body.AddComponent<Animator>();
+                    a.runtimeAnimatorController = controller;
+                    a.applyRootMotion = false;
+                    a.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                    anim.Bind(a, drivesSpeed: true);
+                }
+                else anim.Bind(null, drivesSpeed: false);
+
+                if (beast.Tint.HasValue) Tint(body, beast.Tint.Value);
+                return new Body { Root = body, Animator = anim, Source = (controller != null ? "animated " : "static ") + beast.Model };
             }
 
             // Goblins: the local-only Quaternius Puglin, when this machine has it (never required).

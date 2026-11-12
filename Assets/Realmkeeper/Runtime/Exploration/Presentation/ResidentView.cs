@@ -290,6 +290,15 @@ namespace Realmkeeper.Exploration.Presentation
             UpdatePose();
         }
 
+        /// <summary>Phase 18: turns to someone it is talking with (only while standing still).</summary>
+        internal void TurnToFace(Vector3 point)
+        {
+            if (IsWalking) return;
+            var to = point - transform.position;
+            to.y = 0f;
+            if (to.sqrMagnitude > 1e-4f) transform.rotation = Quaternion.LookRotation(to.normalized, Vector3.up);
+        }
+
         private void FaceTowards(Vector3 point)
         {
             var to = point - transform.position;

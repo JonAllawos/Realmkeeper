@@ -62,7 +62,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7(), new MigrationV7ToV8(), new MigrationV8ToV9(), new MigrationV9ToV10(), new MigrationV10ToV11(), new MigrationV11ToV12(), new MigrationV12ToV13(), new MigrationV13ToV14(), new MigrationV14ToV15(), new MigrationV15ToV16(), new MigrationV16ToV17(), new MigrationV17ToV18(), new MigrationV18ToV19() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7(), new MigrationV7ToV8(), new MigrationV8ToV9(), new MigrationV9ToV10(), new MigrationV10ToV11(), new MigrationV11ToV12(), new MigrationV12ToV13(), new MigrationV13ToV14(), new MigrationV14ToV15(), new MigrationV15ToV16(), new MigrationV16ToV17(), new MigrationV17ToV18(), new MigrationV18ToV19(), new MigrationV19ToV20() };
 
         /// <summary>First schema with regions, the player character and named residents.</summary>
         public const int FirstSchemaWithRegions = 3;

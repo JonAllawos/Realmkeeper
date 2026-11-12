@@ -1,0 +1,13 @@
+Quaternius settlement props (quaternius.com)
+
+License: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Obtained 2026-11-12 from Poly Pizza, which lists each model as "By Quaternius", licence "CC0 1.0":
+  Well          https://poly.pizza/m/QlqncKYxXb
+  Market Stalls https://poly.pizza/m/PUZZ5F91OE
+  Market Stand  https://poly.pizza/m/DGIM5HGISb
+  Street Light  https://poly.pizza/m/nFwrlcLvM5
+
+Changes made by Realmkeeper: converted from GLB to FBX with Blender 5.2.1 and uniformly scaled to a
+real-world height, using Tools/Blender/glb2fbx.py.

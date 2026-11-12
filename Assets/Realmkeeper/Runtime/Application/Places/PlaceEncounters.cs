@@ -25,6 +25,7 @@ namespace Realmkeeper.Application.Places
         public static CommandResult Start(CommandContext context, WorldData w, PlaceData place, List<PlaceGroup> groups, PlaceRoom room, string prefix)
         {
             if (w.ActiveEncounter != null) return CommandResult.InvalidState("A fight is already going on.");
+            foreach (var g in groups) QuestRuntime.Confirm(w, "group:" + g.Name + "@" + place.PlaceId); // Phase 18: seen with their own eyes (ADR-0088)
             var p = w.Player;
             if (p?.Rpg == null || p.Rpg.State != Domain.Rpg.CreationState.Complete) return CommandResult.InvalidState("Create your character first.");
             var (px, pz) = PlaceRules.CellOf(p.Pose);

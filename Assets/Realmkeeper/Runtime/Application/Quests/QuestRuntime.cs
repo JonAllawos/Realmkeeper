@@ -43,7 +43,10 @@ namespace Realmkeeper.Application
 
                 // Phase 17 (ADR-0087): companions arriving where their own people live say so.
                 if (e.Kind == QuestEventKind.ReachedSettlement && Guid.TryParse(e.Subject, out var reached))
+                {
                     Simulation.Party.CompanionStories.Arrived(w, new SettlementId(reached));
+                    Simulation.Party.CompanionStories.Hardship(w, new SettlementId(reached)); // Phase 18 (ADR-0095)
+                }
 
                 foreach (var q in new List<QuestInstanceData>(w.Quests))
                 {
@@ -141,6 +144,7 @@ namespace Realmkeeper.Application
             }
 
             QuestLifecycle.Move(w, q, QuestState.Completed, q.Outcome == null ? null : "ended: " + q.Outcome, report);
+            Simulation.Party.CompanionStories.QuestOutcome(w, q, report); // Phase 18 (ADR-0095): companions react to how it ended
             return null;
         }
 
@@ -194,8 +198,9 @@ namespace Realmkeeper.Application
                     }
                     case RewardKind.FactionStanding:
                     {
-                        var npc = QuestEffects.Person(w, q, r.Role);
-                        if (npc != null && !npc.FactionId.IsEmpty) Reputation.Change(w, "faction:" + npc.FactionId, "Standing", r.Amount, key, def.Name, report);
+                        // A person's faction, or (Phase 18) a faction bound to the role itself — the holder of a disputed place.
+                        var faction = QuestEffects.FactionFor(w, q, r.Role);
+                        if (faction != null) Reputation.Change(w, "faction:" + faction.FactionId, "Standing", r.Amount, key, def.Name, report);
                         break;
                     }
                     case RewardKind.SettlementReputation:
@@ -236,15 +241,72 @@ namespace Realmkeeper.Application
         // ----- Discovery (ADR-0060) -------------------------------------------------------------------
 
         /// <summary>The player learns a fact, once (by key). Important discoveries reach the Chronicle.</summary>
-        public static bool Discover(WorldData w, string key, string text, string source, QuestReporter report = null)
+        public static bool Discover(WorldData w, string key, string text, string source, QuestReporter report = null) =>
+            Discover(w, new DiscoveryData { Key = key, Text = text, Source = source }, report);
+
+        /// <summary>Experience for a major discovery (once each, by key; ADR-0088). Minor clues give knowledge, not experience.</summary>
+        public const int MajorDiscoveryXp = 25;
+
+        /// <summary>
+        /// Phase 18 (ADR-0088): the player learns a fact with its kind and certainty, once (by key). Learning it confirms
+        /// any unverified observation it was the proof of, and verifies a rumour of the same key. A major discovery gives
+        /// experience once. Learning again something only guessed at makes it confirmed.
+        /// </summary>
+        public static bool Discover(WorldData w, DiscoveryData d, QuestReporter report = null)
         {
             var social = w.Player?.Social;
-            if (social == null || key == null || social.Knows(key)) return false;
-            social.Discoveries.Add(new DiscoveryData { Key = key, Text = text, At = QuestClock.Now(w), Source = source });
-            while (social.Discoveries.Count > PlayerSocialData.MaxDiscoveries) social.Discoveries.RemoveAt(0);
+            if (social == null || d?.Key == null) return false;
+            var had = social.FindDiscovery(d.Key);
+            if (had != null)
+            {
+                if (had.Certainty == DiscoveryCertainty.Unverified && d.Certainty == DiscoveryCertainty.Confirmed) had.Certainty = DiscoveryCertainty.Confirmed;
+                return false;
+            }
+
+            d.At = QuestClock.Now(w);
+            if (d.Certainty == DiscoveryCertainty.Unverified && d.ConfirmedBy != null && (social.Knows(d.ConfirmedBy) || social.Applied("seen:" + d.ConfirmedBy)))
+                d.Certainty = DiscoveryCertainty.Confirmed; // its proof was found first
+            social.Discoveries.Add(d);
+            social.TrimDiscoveries();
+            Simulation.Party.CompanionStories.Discovered(w, d); // Phase 18 (ADR-0095)
+            Confirm(w, d.Key);
+            foreach (var r in social.Rumors) if (r.Key == d.Key) r.Verified = true;
+            var sheet = w.Player.Rpg;
+            if (d.Major && sheet != null && sheet.State == CreationState.Complete && !sheet.IsDead)
+            {
+                var xpKey = "discovery:" + d.Key;
+                if (!sheet.ExperienceLog.Exists(a => a.Key == xpKey))
+                {
+                    sheet.ExperienceLog.Add(new ExperienceAward { Key = xpKey, Source = ExperienceSource.Discovery, SourceId = d.Key, Amount = MajorDiscoveryXp, Date = w.CurrentSimulationDate, Reason = "Discovery" });
+                    sheet.Experience += MajorDiscoveryXp;
+                }
+            }
+
             report?.Invoke(HistoricalEventType.PlayerDiscovery, EventSeverity.Info, EventImportance.Minor, w.Player.IsInSettlement ? new[] { w.Player.SettlementId } : Array.Empty<SettlementId>(),
-                new Dictionary<string, string> { ["source"] = "player", ["key"] = key, ["what"] = text }, Array.Empty<NpcId>());
+                new Dictionary<string, string> { ["source"] = "player", ["key"] = d.Key, ["what"] = d.Text }, Array.Empty<NpcId>());
             return true;
+        }
+
+        /// <summary>Confirms every unverified observation whose proof this is (a discovery key, or "group:{name}" for creatures seen). Returns how many.</summary>
+        public static int Confirm(WorldData w, string by)
+        {
+            var social = w.Player?.Social;
+            if (social == null || by == null) return 0;
+            var n = 0;
+            foreach (var d in social.Discoveries)
+                if (d.Certainty == DiscoveryCertainty.Unverified && d.ConfirmedBy == by)
+                {
+                    d.Certainty = DiscoveryCertainty.Confirmed;
+                    n++;
+                }
+
+            if (by.StartsWith("group:", StringComparison.Ordinal) && !social.AppliedKeys.Contains("seen:" + by))
+            {
+                social.AppliedKeys.Add("seen:" + by);
+                while (social.AppliedKeys.Count > PlayerSocialData.MaxAppliedKeys) social.AppliedKeys.RemoveAt(0);
+            }
+
+            return n;
         }
 
         /// <summary>The player now knows of a place (a settlement, a location, a person's whereabouts) — not that they have been there.</summary>
@@ -334,8 +396,9 @@ namespace Realmkeeper.Application
                     return c.Npc != null && InRange(x, Reputation.Dimension(c.Npc.PlayerRegard, x.Key));
                 case ConditionKind.FactionStanding:
                 {
-                    var who = x.Key == null || x.Key == "npc" ? c.Npc : QuestEffects.Person(w, c.Quest, x.Key);
-                    return who != null && !who.FactionId.IsEmpty && InRange(x, p.Social.StandingWith(who.FactionId));
+                    if (x.Key == null || x.Key == "npc") return c.Npc != null && !c.Npc.FactionId.IsEmpty && InRange(x, p.Social.StandingWith(c.Npc.FactionId));
+                    var f = c.Quest == null ? null : QuestEffects.FactionFor(w, c.Quest, x.Key); // Phase 18: a person's faction, or a faction role
+                    return f != null && InRange(x, p.Social.StandingWith(f.FactionId));
                 }
                 case ConditionKind.HasItem:
                 {
@@ -393,6 +456,11 @@ namespace Realmkeeper.Application
                 {
                     var s = x.Key == "here" || x.Key == null ? w.FindSettlement(p.SettlementId) : QuestEffects.SettlementOf(w, c.Quest, x.Key);
                     return s != null && s.IsInFoodShortage;
+                }
+                case ConditionKind.KnowsDiscovery: // Phase 18 (ADR-0088)
+                {
+                    var d = w.Player?.Social?.FindDiscovery(x.Key);
+                    return d != null && (x.Value != "confirmed" || d.Certainty == DiscoveryCertainty.Confirmed);
                 }
                 case ConditionKind.ObjectiveDone:
                     return c.Quest?.Progress(x.Key)?.Done == true;

@@ -22,9 +22,11 @@ namespace Realmkeeper.Simulation.Atlas
         public void Execute(SimulationDayContext context)
         {
             var w = context.World;
-            if (w.Routes.Count == 0) return;
             var day = context.Date.ToDayNumber();
             var now = day * 1440L;
+            Relief(w, day, now); // Phase 18 (ADR-0090)
+            Garrisons(w, day, now);
+            if (w.Routes.Count == 0) return;
             foreach (var e in new System.Collections.Generic.List<WorldEventData>(w.WorldEvents))
             {
                 if (!e.IsOpen || e.Type != WorldEventType.BanditActivity) continue;
@@ -41,7 +43,7 @@ namespace Realmkeeper.Simulation.Atlas
                     continue;
                 }
 
-                if (!e.Once("patrol:" + day)) continue;
+                if (!e.OncePer("patrol:", day)) continue;
                 faction.Treasury -= PatrolCost;
                 var presence = faction.FindPresence(post.SettlementId);
                 var strength = Math.Max(4, Math.Min(12, 4 + (presence?.Strength ?? 0) / 20));
@@ -62,6 +64,58 @@ namespace Realmkeeper.Simulation.Atlas
                 response.ExpiresAt = now + 12 * 1440L;
                 e.Note(now, $"{faction.Name} sent a patrol of {strength}");
                 WorldEvents.TellSettlements(w, response, new[] { route.A, route.B }, day);
+            }
+        }
+
+        public const int ReliefCost = 50;
+        public const int ReliefFood = 40;
+        public const int GarrisonCost = 30;
+
+        /// <summary>
+        /// Phase 18 (ADR-0090): a faction that governs a hungry settlement buys it grain from its own treasury — once a week
+        /// while the shortage lasts and the treasury can bear it. The settlement's shortage event says who helped.
+        /// </summary>
+        private static void Relief(WorldData w, long day, long now)
+        {
+            var week = day / 7;
+            foreach (var s in w.Settlements)
+            {
+                if (s == null || !s.IsInFoodShortage || s.FactionId.IsEmpty) continue;
+                var f = w.FindFaction(s.FactionId);
+                if (f == null || f.IsDissolved || f.Treasury < ReliefCost) continue;
+                var shortage = WorldEvents.Open(w, "shortage:" + s.SettlementId) ?? w.WorldEvents.Find(e => e.IsOpen && e.Type == WorldEventType.FoodShortage && e.SettlementId == s.SettlementId);
+                if (shortage == null || !shortage.OncePer("relief:" + f.FactionId + ":", week)) continue;
+                f.Treasury -= ReliefCost;
+                var cap = s.Economy?.StorageCapacity.Get(Domain.Economy.ResourceTypes.Food) ?? 0;
+                var have = s.ResourceInventory.Get(Domain.Economy.ResourceTypes.Food);
+                var add = cap > 0 ? Math.Min(ReliefFood, Math.Max(0, cap - have)) : ReliefFood;
+                s.ResourceInventory.Set(Domain.Economy.ResourceTypes.Food, have + add);
+                shortage.Note(now, $"{f.Name} sent {add} food from its treasury");
+            }
+        }
+
+        /// <summary>
+        /// Phase 18 (ADR-0090): in skirmishes or open conflict, each side pays to garrison its town at the crossing — once a
+        /// week, if its treasury can bear it — which steadies that town against the raids.
+        /// </summary>
+        private static void Garrisons(WorldData w, long day, long now)
+        {
+            var week = day / 7;
+            foreach (var e in w.WorldEvents)
+            {
+                if (!e.IsOpen || e.Type != WorldEventType.FactionConflict || e.Severity < 3) continue;
+                var route = w.FindRoute(e.RouteId);
+                if (route == null) continue;
+                foreach (var end in new[] { route.A, route.B })
+                {
+                    var s = w.FindSettlement(end);
+                    var f = s == null ? null : w.FindFaction(s.FactionId);
+                    if (f == null || f.IsDissolved || (f.FactionId != e.FactionA && f.FactionId != e.FactionB) || f.Treasury < GarrisonCost) continue;
+                    if (!e.OncePer("garrison:" + s.SettlementId + ":", week)) continue;
+                    f.Treasury -= GarrisonCost;
+                    s.Stability = Math.Min(100, s.Stability + 2);
+                    e.Note(now, $"{f.Name} garrisoned {s.Name}");
+                }
             }
         }
 

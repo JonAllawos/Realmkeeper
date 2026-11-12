@@ -37,6 +37,19 @@ namespace Realmkeeper.Application
             ("Modular Character Outfits – Fantasy (free version): clothing and armour", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
             ("Universal Animation Library: character animation", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
             ("Grass004, Ground037, Ground054, PavingStones070, Planks021, Wood049: ground and wood materials", "ambientCG (ambientcg.com)", "CC0 1.0 Universal"),
+            ("KayKit Character Pack: Skeletons 1.1 (free version)", "Kay Lousberg (kaylousberg.com)", "CC0 1.0 Universal"),
+            ("KayKit Character Animations 1.1 (free version)", "Kay Lousberg (kaylousberg.com)", "CC0 1.0 Universal"),
+            // Phase 18
+            ("KayKit Dungeon Remastered 1.0: dungeon pieces and props", "Kay Lousberg (kaylousberg.com)", "CC0 1.0 Universal"),
+            ("Post Lantern (KayKit Halloween Bits)", "Kay Lousberg (kaylousberg.com)", "CC0 1.0 Universal"),
+            ("Spider, Rat, Deer, Stag, Fox, Goblin, Giant, Orc, Bull, Chicken; Wolf, Husky, Horse, Cow (Ultimate Animated Animal Pack): creatures", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
+            ("Farm Animals Pack: Sheep", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
+            ("Well, Market Stalls, Market Stand, Street Light: settlement props", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
+            ("Fantasy Props MegaKit (free Standard version): props", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
+            ("Stylized Nature MegaKit (free Standard version): trees, plants and rocks", "Quaternius (quaternius.com)", "CC0 1.0 Universal"),
+            ("\"Black bear\", via Poly Pizza (poly.pizza/m/56ym_pyVnel); converted to FBX and rescaled", "Poly by Google", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
+            ("\"Boar\", via Poly Pizza (poly.pizza/m/57fSWum6F1P); converted to FBX and rescaled", "Poly by Google", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
+            ("\"Goat\", via Poly Pizza (poly.pizza/m/d7dImmjtF8E); converted to FBX and rescaled", "Poly by Google", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
         };
     }
 }

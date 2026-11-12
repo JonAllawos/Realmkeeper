@@ -34,7 +34,7 @@ namespace Realmkeeper.Tests.EditMode.Places
             var before = W;
             var explored = before.FindPlace(mine.PlaceId).ExploredRooms.ToList();
             var dead = before.Creatures.Count(c => c.State == CreatureInstanceState.Dead);
-            var phase13Places = before.Places.Count(p => !Phase14Places.All.Contains(p.DefinitionId));
+            var phase13Places = before.Places.Count(p => !Phase14Places.All.Contains(p.DefinitionId) && !Phase18Places.All.Contains(p.DefinitionId)); // Phase 18 places are stripped too
             var newPlaces = before.Places.Where(p => Phase14Places.All.Contains(p.DefinitionId)).Select(p => p.PlaceId).OrderBy(x => x).ToList();
             Assert.That(newPlaces.Count, Is.InRange(3, 5));
             Assert.That(dead, Is.GreaterThan(0), "Something died on the way down.");

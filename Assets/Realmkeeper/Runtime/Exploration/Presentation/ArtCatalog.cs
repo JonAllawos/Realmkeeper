@@ -73,6 +73,36 @@ namespace Realmkeeper.Exploration.Presentation
 
         public GameObject Prop(string id) => Lookup(ref _props, Props, id);
 
+        [Serializable]
+        public sealed class ControllerEntry
+        {
+            public string Id;
+            public RuntimeAnimatorController Controller;
+        }
+
+        /// <summary>Phase 18: animals and monsters (the Quaternius creatures, the farm sheep, the Poly by Google animals), by model name ("Wolf").</summary>
+        public List<PrefabEntry> Animals = new List<PrefabEntry>();
+
+        /// <summary>Phase 18: each animated animal's own combat controller (the shared one with its clips), by model name.</summary>
+        public List<ControllerEntry> AnimalControllers = new List<ControllerEntry>();
+
+        /// <summary>Phase 18: static scenery by model name — trees, rocks, wells, props, lanterns, dungeon pieces (CC0 kits).</summary>
+        public List<PrefabEntry> Scenery = new List<PrefabEntry>();
+
+        private Dictionary<string, GameObject> _scenery;
+
+        public GameObject SceneryModel(string id) => Lookup(ref _scenery, Scenery, id);
+
+        private Dictionary<string, GameObject> _animals;
+
+        public GameObject Animal(string id) => Lookup(ref _animals, Animals, id);
+
+        public RuntimeAnimatorController AnimalController(string id)
+        {
+            foreach (var e in AnimalControllers) if (e != null && e.Id == id) return e.Controller;
+            return null;
+        }
+
         private Dictionary<string, ModuleEntry> _modules;
         private Dictionary<string, Material> _materials;
         private Dictionary<string, GameObject> _bodies;

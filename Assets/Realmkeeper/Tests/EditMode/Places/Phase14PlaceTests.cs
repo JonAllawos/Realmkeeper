@@ -111,7 +111,7 @@ namespace Realmkeeper.Tests.EditMode.Places
         [Test]
         public void TheSealedVault_WakesItsSleepers_Once_AndTheDeadStayDead()
         {
-            H.Hero();
+            H.Hero(5); // Phase 18: the test is of waking and staying dead, not of a level-3 hero's luck (the world's dice moved with the new places)
             var cat = Enter(Phase14Places.Catacomb);
             var vault = cat.Layout.Features.Single(f => f.Id == "story:sealed_vault");
             var sleepers = cat.Layout.Groups.Single(g => g.WakesOn == vault.Id);

@@ -1220,6 +1220,15 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string Text { get; set; }
         public long At { get; set; }
         public string Source { get; set; }
+
+        // Phase 18 (ADR-0088): absent in older saves (read as none, confirmed, not shared).
+        public int Category { get; set; }
+        public int Certainty { get; set; }
+        public string PlaceId { get; set; }
+        public string Subject { get; set; }
+        public bool Major { get; set; }
+        public string ConfirmedBy { get; set; }
+        public List<string> SharedIn { get; set; }
     }
 
     public sealed class RumorDto

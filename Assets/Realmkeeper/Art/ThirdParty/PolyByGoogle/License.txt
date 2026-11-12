@@ -1,0 +1,13 @@
+Models by Poly by Google, Creative Commons Attribution 3.0 (CC BY 3.0)
+https://creativecommons.org/licenses/by/3.0/
+
+ATTRIBUTION IS REQUIRED. These lines appear in CREDITS.md and in the in-game Credits:
+  "Black bear" by Poly by Google, CC BY 3.0, via Poly Pizza: https://poly.pizza/m/56ym_pyVnel
+  "Boar" by Poly by Google, CC BY 3.0, via Poly Pizza: https://poly.pizza/m/57fSWum6F1P
+  "Goat" by Poly by Google, CC BY 3.0, via Poly Pizza: https://poly.pizza/m/d7dImmjtF8E
+
+Obtained 2026-11-12. The models are static, with no rig or animation.
+
+Changes made by Realmkeeper, as CC BY 3.0 requires them to be indicated: converted from GLB to FBX with
+Blender 5.2.1 and uniformly scaled to a real-world height (bear 1.2 m, boar 0.9 m, goat 0.9 m), using
+Tools/Blender/glb2fbx.py. No other changes were made.

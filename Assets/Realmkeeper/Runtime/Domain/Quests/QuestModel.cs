@@ -234,6 +234,9 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>The companion spoken to is at odds with another companion present.</summary>
         CompanionQuarrel = 37,
+
+        /// <summary>Phase 18: the player knows a discovery (Key: its key; Value "confirmed" to require it confirmed; ADR-0088).</summary>
+        KnowsDiscovery = 38,
     }
 
     public sealed class ObjectiveDefinition
@@ -341,6 +344,12 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>The player's notoriety (Amount).</summary>
         Notoriety = 9,
+
+        /// <summary>Phase 18: two factions' opinion of each other (Role: a person or faction role; Value: the other role; Amount; ADR-0090).</summary>
+        FactionRelation = 10,
+
+        /// <summary>Phase 18: the world event the story is about is settled (Key: the quest variable holding its key; Value: why; ADR-0093).</summary>
+        ResolveWorldEvent = 11,
     }
 
     public enum ConsequenceTiming

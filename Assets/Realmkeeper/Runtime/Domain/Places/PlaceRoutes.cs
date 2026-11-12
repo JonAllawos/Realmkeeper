@@ -42,6 +42,7 @@ namespace Realmkeeper.Domain.Places
             if (c == null || c.Kind == ConnectionKind.Entrance) return false;
             if (who == Mover.Map) return !(c.Kind == ConnectionKind.Secret && !place.Found(c)) && !(c.Kind == ConnectionKind.Bridge && place.BridgeOf(c) == BridgeState.Destroyed);
             if (c.Kind == ConnectionKind.Secret && (who == Mover.Resident || !place.Found(c))) return false;
+            if (who == Mover.Follower && Flooded(place, c.Other(fromRoom) ?? c.A)) return false; // Phase 18: they will not swim it either
             if (c.Kind == ConnectionKind.Bridge)
             {
                 var b = place.BridgeOf(c);
@@ -122,6 +123,13 @@ namespace Realmkeeper.Domain.Places
             return seen;
         }
 
+        /// <summary>Phase 18: a room under deep water that has not been drained (the player may swim it; a follower will not).</summary>
+        public static bool Flooded(PlaceData place, string room)
+        {
+            var r = place.Layout.Room(room);
+            return r != null && r.Hazard == "deep_water" && !place.Variables.ContainsKey("drained");
+        }
+
         /// <summary>Why a follower cannot reach a room, in words (the first impassable passage on the ignoring-doors route).</summary>
         public static string Blocker(PlaceData place, string from, string to)
         {
@@ -134,6 +142,7 @@ namespace Realmkeeper.Domain.Places
                 if (!Passable(place, c, at, Mover.Follower))
                 {
                     if (c.Kind == ConnectionKind.Bridge) return place.BridgeOf(c) == BridgeState.Destroyed ? "the bridge is down" : "they will not cross the broken bridge";
+                    if (Flooded(place, step.RoomId)) return "the water is too deep for them";
                     var state = place.DoorOf(c);
                     return state == DoorState.Locked ? "a locked door is in the way" : state == DoorState.Barred ? "a barred door is in the way" : "the way is shut";
                 }

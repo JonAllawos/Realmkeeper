@@ -49,7 +49,11 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Notoriety = s.Notoriety,
                     Ledger = s.Ledger.ConvertAll(e => new ReputationChangeDto { Key = e.Key, At = e.At, Target = e.Target, Dimension = e.Dimension, Amount = e.Amount, Reason = e.Reason }),
                     KnownPlaces = new List<string>(s.KnownPlaces), VisitedSettlements = s.VisitedSettlements.ConvertAll(v => v.ToString()),
-                    Discoveries = s.Discoveries.ConvertAll(d => new DiscoveryDto { Key = d.Key, Text = d.Text, At = d.At, Source = d.Source }),
+                    Discoveries = s.Discoveries.ConvertAll(d => new DiscoveryDto
+                    {
+                        Key = d.Key, Text = d.Text, At = d.At, Source = d.Source, Category = (int)d.Category, Certainty = (int)d.Certainty, PlaceId = d.PlaceId, Subject = d.Subject, Major = d.Major,
+                        ConfirmedBy = d.ConfirmedBy, SharedIn = d.SharedIn.Count == 0 ? null : new List<string>(d.SharedIn),
+                    }),
                     Rumors = s.Rumors.ConvertAll(r => new RumorDto { Key = r.Key, Text = r.Text, At = r.At, SourceNpcId = r.SourceNpcId.IsEmpty ? null : r.SourceNpcId.ToString(), Confidence = r.Confidence, Verified = r.Verified }),
                     Decisions = s.Decisions.ConvertAll(d => new DecisionDto { Key = d.Key, Text = d.Text, At = d.At, QuestInstanceId = d.QuestInstanceId }),
                     AppliedKeys = new List<string>(s.AppliedKeys),
@@ -107,7 +111,12 @@ namespace Realmkeeper.Infrastructure.Persistence
                 foreach (var e in d.Ledger ?? new List<ReputationChangeDto>()) if (e != null) s.Ledger.Add(new ReputationChangeData { Key = e.Key, At = e.At, Target = e.Target, Dimension = e.Dimension, Amount = e.Amount, Reason = e.Reason });
                 s.KnownPlaces.AddRange(d.KnownPlaces ?? new List<string>());
                 foreach (var v in d.VisitedSettlements ?? new List<string>()) s.VisitedSettlements.Add(new SettlementId(RequiredGuid(v, "visited settlement")));
-                foreach (var x in d.Discoveries ?? new List<DiscoveryDto>()) if (x != null) s.Discoveries.Add(new DiscoveryData { Key = x.Key, Text = x.Text, At = x.At, Source = x.Source });
+                foreach (var x in d.Discoveries ?? new List<DiscoveryDto>()) if (x != null)
+                        s.Discoveries.Add(new DiscoveryData
+                        {
+                            Key = x.Key, Text = x.Text, At = x.At, Source = x.Source, Category = (DiscoveryCategory)x.Category, Certainty = (DiscoveryCertainty)x.Certainty, PlaceId = x.PlaceId,
+                            Subject = x.Subject, Major = x.Major, ConfirmedBy = x.ConfirmedBy, SharedIn = x.SharedIn == null ? new List<string>() : new List<string>(x.SharedIn),
+                        });
                 foreach (var r in d.Rumors ?? new List<RumorDto>())
                     if (r != null) s.Rumors.Add(new RumorData { Key = r.Key, Text = r.Text, At = r.At, SourceNpcId = string.IsNullOrEmpty(r.SourceNpcId) ? default : new NpcId(RequiredGuid(r.SourceNpcId, "rumour source")), Confidence = r.Confidence, Verified = r.Verified });
                 foreach (var x in d.Decisions ?? new List<DecisionDto>()) if (x != null) s.Decisions.Add(new DecisionData { Key = x.Key, Text = x.Text, At = x.At, QuestInstanceId = x.QuestInstanceId });

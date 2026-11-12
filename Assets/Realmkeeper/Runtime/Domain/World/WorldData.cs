@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 19;
+        public const int CurrentSchemaVersion = 20; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }

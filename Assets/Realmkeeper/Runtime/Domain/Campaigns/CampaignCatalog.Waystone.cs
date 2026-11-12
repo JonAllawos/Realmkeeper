@@ -317,6 +317,34 @@ namespace Realmkeeper.Domain.Campaigns
                                     new ChoiceLeaning { Trait = "Discipline", Sign = -1, Approve = null, Disapprove = "\"I didn't take you for someone who'd be bought for thirty coin.\"" },
                                 },
                             },
+                            // Phase 18 (ADR-0091): owning it in public, with the evidence and a witness — the hardest way, and the one both towns respect.
+                            new ChoiceDefinition
+                            {
+                                Id = "witness", Text = "Stand up before both towns with the sticks, own it, and pay it back where everyone can see.",
+                                Summary = "Talked {tollkeeper} into owning the short count before both towns", Outcome = "witnessed",
+                                Conditions = new[] { C(ConditionKind.CampaignFlag, "evidence") }, UnavailableText = "Nobody owns up to a theft you can't show.",
+                                Effects = new[]
+                                {
+                                    E(Flag, key: "fate", value: "witnessed"), E(SettlementResource, "far_town", "coin", 30), E(SettlementStability, "far_town", amount: 3),
+                                    E(Regard, "tollkeeper", "Respect", 15), E(Regard, "tollkeeper", "Trust", 10), E(Regard, "counterpart", "Trust", 15), E(Regard, "reeve", "Respect", 10),
+                                    E(NpcMemory, "tollkeeper", text: "{player} stood with me while I owned the short count before both towns", amount: 80),
+                                    E(Spread, "far_town", text: "{tollkeeper} stood up in the square and owned the short count at the waystone"), E(Experience, amount: 100),
+                                },
+                                Delayed = new[]
+                                {
+                                    new DelayedConsequence
+                                    {
+                                        Id = "owned", AfterDays = 7, Hint = "Both towns saw it done. They may think better of each other for it.",
+                                        Text = "Having watched the toll-keeper own the count in public, the two towns trust the waystone a little more — and each other.",
+                                        Effects = new[] { E(FactionOpinion, "home_faction", "far_faction", 6), E(SettlementStability, "home_town", amount: 2), E(Chronicle, "far_town", text: "the waystone's short count owned in public, and paid back") },
+                                    },
+                                },
+                                Leanings = new[]
+                                {
+                                    new ChoiceLeaning { Trait = "Courage", Sign = 1, Approve = "\"In the square, in front of everyone. That's how it should be done.\"", Disapprove = "\"You made them grovel in public. There were kinder ways.\"" },
+                                    new ChoiceLeaning { Trait = "Compassion", Sign = 1, Approve = "\"Hard on them, but it gave them a way back. I'll grant you that.\"", Disapprove = null },
+                                },
+                            },
                         },
                     },
                 },

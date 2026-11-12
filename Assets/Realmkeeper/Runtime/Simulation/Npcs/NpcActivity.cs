@@ -63,6 +63,17 @@ namespace Realmkeeper.Simulation.Npcs
             var wake = parts.MorningStarts + NpcHash.Roll(seed, 60);                     // 06:00–07:00
             var sleep = parts.NightStarts - 30 + NpcHash.Roll(NpcHash.Next(seed, 1), 90); // 21:30–23:00
             var (workStart, workEnd) = WorkHours(world, npc);
+            // Phase 18 (ADR-0094): character shows in the day. The disciplined are at work early and leave late; the
+            // careless drift in late. (Shopkeepers keep their shop's hours whatever their nature.)
+            var keepsShop = world.Shops.Exists(s => s.ShopkeeperNpcId == npc.NpcId && s.LocationId == npc.WorkplaceId);
+            if (!keepsShop && npc.Role != NpcRole.Guard)
+            {
+                var discipline = npc.Personality[NpcTrait.Discipline];
+                if (discipline >= 65) { workStart -= 30; workEnd += 30; }
+                else if (discipline <= 30) workStart += 30;
+            }
+
+            var town = world.FindSettlement(npc.HomeSettlementId);
             if (npc.Role == NpcRole.Innkeeper)
             {
                 wake += 60;
@@ -107,6 +118,12 @@ namespace Realmkeeper.Simulation.Npcs
                     return new NpcWhereabouts(npc.WorkplaceId, WorkActivity(world, npc), "Working hours.", workEnd);
                 }
             }
+            else if (!workDay && !urgent && planned == scheduled && m < parts.EveningStarts && npc.Personality[NpcTrait.Curiosity] >= 65 &&
+                     NpcGenesis.FirstOf(world, npc.HomeSettlementId, LocationKind.Market) is LocationData market)
+            {
+                // Phase 18: the curious spend a free day where the news is — the market.
+                return new NpcWhereabouts(market.LocationId, ActivityKind.Standing, "A free day: at the market, watching the comings and goings.", parts.EveningStarts);
+            }
             else if (!planned.IsEmpty && planned != home && m < parts.EveningStarts)
             {
                 return new NpcWhereabouts(planned,
@@ -119,9 +136,21 @@ namespace Realmkeeper.Simulation.Npcs
                 return new NpcWhereabouts(home, ActivityKind.Resting, "At home today.", parts.EveningStarts);
             }
 
+            // Phase 18 (ADR-0094): the town's condition shows in the evening. In a hungry town the compassionate help hand out
+            // bread in the square; in a restless one the timid stay indoors; in a prosperous one more people go out, in a
+            // poor one fewer.
+            if (town != null && m < sleep - 60 && npc.Role != NpcRole.Innkeeper)
+            {
+                if (town.IsInFoodShortage && npc.Personality[NpcTrait.Compassion] >= 65 && NpcGenesis.FirstOf(world, npc.HomeSettlementId, LocationKind.Square) is LocationData square)
+                    return new NpcWhereabouts(square.LocationId, ActivityKind.Working, "Helping hand out bread while the town is short.", sleep - 60);
+                if (world.WorldEvents.Exists(e => e.IsOpen && e.Type == WorldEventType.LocalUnrest && e.SettlementId == town.SettlementId) && npc.Personality[NpcTrait.Courage] <= 35)
+                    return new NpcWhereabouts(home, ActivityKind.Sitting, "Keeping indoors while the town is restless.", sleep);
+            }
+
             // Evening: the sociable go to the tavern, others go home.
             var tavern = NpcGenesis.FirstOf(world, npc.HomeSettlementId, LocationKind.Tavern);
-            var social = npc.Personality[NpcTrait.Sociability] >= 55 || npc.Role == NpcRole.Innkeeper;
+            var outgoing = town == null ? 55 : town.Prosperity >= 70 ? 45 : town.Prosperity <= 30 ? 70 : 55; // Phase 18: a prosperous town goes out more
+            var social = npc.Personality[NpcTrait.Sociability] >= outgoing || npc.Role == NpcRole.Innkeeper;
             if (social && tavern != null && m < sleep - 60)
                 return new NpcWhereabouts(tavern.LocationId, npc.Role == NpcRole.Innkeeper ? ActivityKind.Working : ActivityKind.Socialising,
                     npc.Role == NpcRole.Innkeeper ? "Serving the evening trade." : "An evening at the tavern.", sleep - 60);

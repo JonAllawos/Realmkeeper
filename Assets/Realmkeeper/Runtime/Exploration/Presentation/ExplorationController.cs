@@ -469,6 +469,7 @@ namespace Realmkeeper.Exploration.Presentation
             UpdateLivingInput();
             UpdateCombat(); // Phase 8
             UpdateParty(); // Phase 15: companions walk with the player
+            UpdateExchanges(); // Phase 18: people talking to each other
             if (InPlace) UpdatePlace(Keyboard.current); // Phase 13
             if (WindowOpen)
             {

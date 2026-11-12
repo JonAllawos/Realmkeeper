@@ -19,7 +19,7 @@ namespace Realmkeeper.Simulation.Party
     /// with an old quarrel elsewhere may ask the player's help with it. Only companions travelling with the player take
     /// part: reserve members are not there.
     /// </summary>
-    public static class CompanionStories
+    public static partial class CompanionStories
     {
         /// <summary>A reaction smaller than this is indifference (no loyalty change, no remark).</summary>
         public const int Indifferent = 2;
@@ -243,13 +243,13 @@ namespace Realmkeeper.Simulation.Party
             foreach (var r in w.NpcRelations)
             {
                 if (r.NpcA != npc.NpcId && r.NpcB != npc.NpcId) continue;
-                if (r.Kind != NpcRelationKind.Rival && r.Kind != NpcRelationKind.Friend && r.Kind != NpcRelationKind.Household && r.Rivalry < 30) continue;
+                if (r.Kind != NpcRelationKind.Rival && r.Rivalry < 30) continue; // Phase 18: a real quarrel (family and friends elsewhere have stories of their own)
                 var other = w.FindNpc(r.NpcA == npc.NpcId ? r.NpcB : r.NpcA);
                 if (other == null || other.IsDeceased || other.HomeSettlementId == npc.HomeSettlementId || w.Party.Contains(other.NpcId)) continue;
                 if (rival == null || other.NpcId.CompareTo(rival.NpcId) < 0) rival = other;
             }
 
-            if (rival == null) return null;
+            if (rival == null) return OfferOtherStory(w, npc, record, report); // Phase 18 (ADR-0095): another kind of story
             var given = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 ["giver"] = npc.NpcId.ToString(), ["rival"] = rival.NpcId.ToString(), ["rival_home"] = rival.HomeSettlementId.ToString(),

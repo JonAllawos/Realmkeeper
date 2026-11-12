@@ -38,7 +38,59 @@ namespace Realmkeeper.Infrastructure.Generation
             if (map == null || world.Settlements.Count == 0) return false;
             var changed = EnsurePhase13(world, map, random);
             changed |= EnsurePhase14(world, map);
+            changed |= EnsurePhase18(world, map);
             return changed;
+        }
+
+        /// <summary>The region a map is of (the home region when the map does not say).</summary>
+        public static RegionId RegionOf(WorldData world, RegionMap map) =>
+            !map.RegionId.IsEmpty ? map.RegionId : world.Regions.Count > 0 ? world.Regions[0].RegionId : default;
+
+        /// <summary>Phase 18: whether a region already has its Phase 18 places (made once per region).</summary>
+        public static bool HasPhase18(WorldData world, RegionId region)
+        {
+            foreach (var p in world.Places)
+                if (p != null && p.ParentKind == PlaceParentKind.Region && p.RegionId == region && Array.IndexOf(Phase18Places.All, p.DefinitionId) >= 0) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Phase 18 (ADR-0089): every region gets its own Phase 18 places, once — further regions included, which had no
+        /// places of their own before (the preflight audit's finding). A flooded drift in the hills, a ringers' vault near a
+        /// village, a reeve's tower near a town, and (where two factions exist) a watchtower one of them holds. Sited like the
+        /// others, from the region's own map; each bound to its quest. Deterministic from the world seed and the region.
+        /// </summary>
+        public static bool EnsurePhase18(WorldData world, RegionMap map)
+        {
+            if (world == null || map == null || world.Settlements.Count == 0) return false;
+            var region = RegionOf(world, map);
+            if (HasPhase18(world, region)) return false;
+            bool InRegion(SettlementData s) => s.RegionId == region || (region.IsEmpty && s.RegionId.IsEmpty);
+            if (!world.Settlements.Exists(InRegion)) return false;
+            var suffix = region.IsEmpty ? string.Empty : "@" + region;
+            var made = new List<PlaceData>();
+            foreach (var p in world.Places) if (p != null && p.ParentKind == PlaceParentKind.Region && p.RegionId == region) made.Add(p); // keep their distance
+            var start = made.Count;
+            Make(world, map, made, Phase18Places.Drift, s => InRegion(s), t => t == TerrainType.Hills || t == TerrainType.Mountain || t == TerrainType.Forest, near: false, idSuffix: suffix);
+            Make(world, map, made, Phase18Places.Vault, s => InRegion(s) && (s.SettlementType == SettlementType.Village || s.SettlementType == SettlementType.Town),
+                t => t == TerrainType.Plains || t == TerrainType.Forest || t == TerrainType.Hills, near: true, idSuffix: suffix);
+            Make(world, map, made, Phase18Places.Hollin, s => InRegion(s) && s.SettlementType != SettlementType.Hamlet,
+                t => t == TerrainType.Plains || t == TerrainType.Forest || t == TerrainType.Hills, near: true, idSuffix: suffix);
+            var factions = 0;
+            foreach (var f in world.Factions) if (f != null && !f.IsDissolved) factions++;
+            if (factions >= 2)
+                Make(world, map, made, Phase18Places.Cairn, s => InRegion(s) && !s.FactionId.IsEmpty, t => t == TerrainType.Hills || t == TerrainType.Plains || t == TerrainType.Forest,
+                    near: false, byRoad: true, idSuffix: suffix);
+            if (made.Count == start) return false;
+            for (var i = start; i < made.Count; i++)
+            {
+                world.Places.Add(made[i]);
+                PlaceContents.Ensure(world, made[i]);
+                made[i].Threat = PlaceThreat.Of(made[i]);
+            }
+
+            Phase18Quests.Bind(world, made.GetRange(start, made.Count - start), region, QuestGenesis.Direct(world));
+            return true;
         }
 
         private static bool Has(WorldData world, IEnumerable<string> definitions)
@@ -170,12 +222,12 @@ namespace Realmkeeper.Infrastructure.Generation
         }
 
         private static void Make(WorldData world, RegionMap map, List<PlaceData> made, string definitionId, Func<SettlementData, bool> anchorOk,
-            Func<TerrainType, bool> terrainOk, bool near, bool byRoad = false)
+            Func<TerrainType, bool> terrainOk, bool near, bool byRoad = false, string idSuffix = "")
         {
             var def = PlaceCatalog.Find(definitionId);
             var archetype = ArchetypeCatalog.Find(def?.ArchetypeId);
             if (def == null || archetype == null) return;
-            var seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "place:" + definitionId);
+            var seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "place:" + definitionId + idSuffix);
 
             // Settlements in a stable order; the first that suits and has a site in reach is the anchor.
             var anchors = new List<SettlementData>();
@@ -188,13 +240,13 @@ namespace Realmkeeper.Infrastructure.Generation
             {
                 var anchor = anchors[(start + i) % anchors.Count];
                 if (!Site(world, map, made, anchor, terrainOk, near, byRoad, seed, out var cell)) continue;
-                var id = "place:" + definitionId;
+                var id = "place:" + definitionId + idSuffix;
                 var place = new PlaceData
                 {
                     PlaceId = id, DefinitionId = def.Id, Name = def.Name, Description = def.Description, Category = archetype.Category, ArchetypeId = archetype.Id,
                     ParentKind = PlaceParentKind.Region, ParentId = anchor.RegionId.ToString(), RegionId = anchor.RegionId, SettlementId = anchor.SettlementId, Cell = cell,
                     Seed = seed, GeneratorVersion = ArchetypeCatalog.GeneratorVersion, Discovery = PlaceDiscovery.Unknown,
-                    FactionId = definitionId == PlaceCatalog.Fort ? anchor.FactionId : default,
+                    FactionId = definitionId == PlaceCatalog.Fort || definitionId == Phase18Places.Cairn ? anchor.FactionId : default,
                 };
                 place.Layout = def.Authored != null ? def.Authored() : PlaceGenerator.Generate(archetype, seed, def);
                 made.Add(place);

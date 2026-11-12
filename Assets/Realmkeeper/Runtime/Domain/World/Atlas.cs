@@ -304,6 +304,17 @@ namespace Realmkeeper.Domain.World
             return true;
         }
 
+        /// <summary>
+        /// Phase 18: <see cref="Once"/> for something done once per period (a day, a week). Keys of earlier periods with the same
+        /// prefix are dropped, so an event that lasts for years keeps one key per prefix, not one per period.
+        /// </summary>
+        public bool OncePer(string prefix, long period)
+        {
+            var key = prefix + period.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            Applied.RemoveAll(k => k != key && k.StartsWith(prefix, StringComparison.Ordinal) && k.Length > prefix.Length && char.IsDigit(k[prefix.Length]));
+            return Once(key);
+        }
+
         public void Note(long at, string line)
         {
             History.Add(TravelRules.Clock(at) + " " + line);

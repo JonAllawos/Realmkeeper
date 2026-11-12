@@ -363,6 +363,7 @@ namespace Realmkeeper.Domain.Quests
             AddPhase15(); // Phase 15: a companion's own quest
             AddPhase16(); // Phase 16: quests world events call for
             AddPhase17(); // Phase 17: the Waystone quests, world stories, a companion's second story
+            AddPhase18(); // Phase 18: the four chains' conversations
         }
 
         /// <summary>Checks every graph: a start node, unique node and response IDs, every Next pointing at a node, "end" or the hub.</summary>
