@@ -111,6 +111,21 @@ namespace Realmkeeper.Exploration.Presentation
             d.Add(Pair("Loyalty", $"{m.Loyalty}/100 ({m.LoyaltyWord}). Below {PartyRules.LeaveBelow} they leave; only real deeds move it."));
             foreach (var why in m.RecentApprovals) d.Add(Text("· " + why, "xk-w-desc"));
             if (!string.IsNullOrEmpty(m.PersonalQuest)) d.Add(Pair("Their own quest", m.PersonalQuest));
+            // Phase 17 (ADR-0087): their second story, what they want to say, and how they get on with the others.
+            if (!string.IsNullOrEmpty(m.SecondStory)) d.Add(Pair("Unfinished business", m.SecondStory));
+            if (m.UnheardRemarks > 0)
+            {
+                var mind = Text($"{m.Name} has {(m.UnheardRemarks == 1 ? "something" : m.UnheardRemarks + " things")} on their mind. Ask them (\"Something on your mind?\").", "xk-w-note");
+                mind.name = "xk-party-remarks-" + m.NpcId;
+                d.Add(mind);
+            }
+
+            foreach (var said in m.Said) d.Add(Text("They said: " + said, "xk-w-desc"));
+            if (m.WithOthers.Count > 0)
+            {
+                d.Add(Text("With the others", "xk-w-name"));
+                foreach (var o in m.WithOthers) d.Add(Text("· " + o, "xk-w-desc"));
+            }
 
             d.Add(Text($"What {m.Name} carries ({Kg(m.CarriedGrams)})", "xk-w-name"));
             if (m.Items.Count == 0) d.Add(Text("Nothing of their own.", "xk-w-note"));

@@ -272,7 +272,9 @@ namespace Realmkeeper.Presentation
                 var letter = g.Kind == TravelGroupKind.Caravan ? "C" : g.Kind == TravelGroupKind.Bandits ? "B" : g.Kind == TravelGroupKind.Refugees ? "R" : "P";
                 if (g.Kind == TravelGroupKind.Bandits && !On("Threats")) continue;
                 if (g.Kind != TravelGroupKind.Bandits && !On("Travel") && !On("Economy")) continue;
-                Mark("group:" + g.GroupId, letter, ToScreen(g.X, g.Z), "rk-atlas-group");
+                var gm = Mark("group:" + g.GroupId, g.Seen ? letter : letter + "?", ToScreen(g.X, g.Z), "rk-atlas-group"); // Phase 17: "?" — reported, not seen
+                gm.EnableInClassList("rk-atlas-group--reported", !g.Seen);
+                gm.tooltip = g.Seen ? g.Name : $"{g.Name} — reported {g.ReportedAt}{(g.ReportedFrom != null ? " by " + g.ReportedFrom : string.Empty)}; where they are now, you cannot say.";
             }
 
             if (On("Events"))
@@ -405,7 +407,14 @@ namespace Realmkeeper.Presentation
         {
             if (g == null) return;
             Line(g.Name, "rk-atlas-heading");
-            Line($"{g.Kind} · {g.State.ToString().ToLowerInvariant()} · {g.Members} people{(g.Strength > 0 ? ", strength " + g.Strength : string.Empty)}{(g.Faction != null ? " · " + g.Faction : string.Empty)}");
+            if (!g.Seen) // Phase 17: a report, not a sighting
+            {
+                Line($"{g.Kind}{(g.Faction != null ? " · " + g.Faction : string.Empty)} · reported {g.ReportedAt}{(g.ReportedFrom != null ? " by " + g.ReportedFrom : string.Empty)}");
+                Line("Marked where the report placed them. Where they are now, and how many, you cannot say from here.", "rk-atlas-warn");
+                return;
+            }
+
+            Line($"{g.Kind} · {g.State.ToString().ToLowerInvariant()} · {g.Members} people{(g.Strength > 0 ? ", strength " + g.Strength : string.Empty)}{(g.Faction != null ? " · " + g.Faction : string.Empty)} · seen now");
             if (g.Leader != null) Line("Led by " + g.Leader);
             if (g.From != null) Line($"From {g.From} to {g.To}");
             if (g.Cargo != null) Line("Carrying " + g.Cargo);
@@ -449,7 +458,9 @@ namespace Realmkeeper.Presentation
 
             if (fight != null && fight.Status == Domain.Combat.EncounterStatus.Active)
             {
-                Button("rk-atlas-fight-out", "Fight it out", () => _session.FightItOut());
+                // Phase 17 (ADR-0086): the fight is fought on the ground (the view changes to it by itself). Letting the AI play the
+                // player's turns stays only as an explicit, labelled choice; it is never what happens by default.
+                Button("rk-atlas-fight-out", "Let it play out (the AI plays your turns)", () => _session.FightItOut());
                 Button("rk-atlas-withdraw", "Withdraw", () => _session.Dispatch(new EndEncounterCommand(fight.Id, true)));
                 return;
             }

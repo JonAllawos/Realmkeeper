@@ -353,11 +353,33 @@ namespace Realmkeeper.Tests.PlayMode
                     slipped = true;
                 }
                 else if (j.ThreatPending) AtlasDriver.Click(hud, "rk-atlas-threat-fight");
-                else if (AtlasDriver.Has(hud, "rk-atlas-withdraw"))
+                else if (s.GetRoadFight() != null)
                 {
+                    // Phase 17 (ADR-0086): the fight opens in the combat scene by itself, and the outlaws now act. The atlas's
+                    // two fight controls are still there: Withdraw (refused, by the existing rule, while an outlaw stands next
+                    // to the player) and the labelled "Let it play out". Closing the panel puts the party back on the road.
+                    for (var k = 0; k < 120 && !c.InFight; k++) yield return null;
+                    Assert.That(c.InFight, Is.True, "The fight opened in the combat scene.");
+                    c.AutoAi = false;
+                    hud.ToggleAtlas(true);
+                    yield return null;
+                    var withdraw = hud.AtlasRoot.Q<Button>("rk-atlas-withdraw");
+                    Assert.That(withdraw, Is.Not.Null, "The atlas offers Withdraw during a road fight.");
                     AtlasDriver.Click(hud, "rk-atlas-withdraw");
                     yield return null;
-                    Assert.That(s.GetEncounter() == null || s.GetEncounter().Status != Realmkeeper.Domain.Combat.EncounterStatus.Active, Is.True, "Withdrawn from the fight.");
+                    if (s.GetEncounter() != null && s.GetEncounter().Status == Realmkeeper.Domain.Combat.EncounterStatus.Active)
+                    {
+                        AtlasDriver.Click(hud, "rk-atlas-fight-out"); // the explicit, labelled choice
+                        yield return null;
+                    }
+
+                    for (var k = 0; k < 10; k++) yield return null;
+                    Assert.That(s.GetEncounter() == null || s.GetEncounter().Status != Realmkeeper.Domain.Combat.EncounterStatus.Active, Is.True, "The fight is over (withdrawn, or played out).");
+                    if (s.GetCharacter().IsDead) Assert.Inconclusive("The hero fell.");
+                    LevelUpDriver.Click(c.Combat.Root, "xk-combat-close");
+                    for (var k = 0; k < 40 && c.IsExploring; k++) yield return null;
+                    Assert.That(s.GetRoadFight(), Is.Null, "Back on the road.");
+                    hud.ToggleAtlas(true);
                     withdrew = true;
                 }
                 else if (AtlasDriver.Has(hud, "rk-atlas-night")) AtlasDriver.Click(hud, "rk-atlas-night");

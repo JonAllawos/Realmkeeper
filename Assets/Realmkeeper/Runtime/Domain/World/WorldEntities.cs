@@ -332,6 +332,14 @@ namespace Realmkeeper.Domain.World
         CaravanLost = 92,
         WorldEventChanged = 93,
         JourneyMilestone = 94,
+
+        // Phase 17: campaigns and the world's own stories (facts: campaign, instance, what).
+        CampaignBegan = 95,
+        CampaignChapter = 96,
+        CampaignDecision = 97,
+        CampaignConsequence = 98,
+        CampaignEnded = 99,
+        StoryOpportunity = 100,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

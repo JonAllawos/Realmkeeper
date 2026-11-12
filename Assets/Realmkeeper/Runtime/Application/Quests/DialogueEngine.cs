@@ -27,6 +27,15 @@ namespace Realmkeeper.Application
 
         /// <summary>For a Trade response: the shop to open.</summary>
         public ShopId ShopId { get; internal set; }
+
+        /// <summary>Phase 17: false when the response is shown but cannot be chosen now (see <see cref="Why"/>).</summary>
+        public bool Enabled { get; internal set; } = true;
+
+        /// <summary>Phase 17: why a disabled response cannot be chosen, in the story's words.</summary>
+        public string Why { get; internal set; }
+
+        /// <summary>Phase 17: the choice is a campaign decision (its consequences last).</summary>
+        public bool Decision { get; internal set; }
     }
 
     /// <summary>The conversation in progress as the dialogue window shows it (ADR-0058).</summary>
@@ -71,7 +80,10 @@ namespace Realmkeeper.Application
             var q = Quest(w, c);
             var result = text.Replace("{npc}", npc?.Name ?? "they");
             if (c.Variables.TryGetValue("answer", out var answer)) result = result.Replace("{answer}", answer);
-            return QuestText.Fill(w, q, result);
+            if (c.Variables.TryGetValue("remark", out var remark)) result = result.Replace("{remark}", remark); // Phase 17
+            result = QuestText.Fill(w, q, result);
+            var campaign = Simulation.Campaigns.CampaignEngine.OfQuest(w, q);
+            return campaign == null ? result : Simulation.Campaigns.CampaignEngine.Text(w, campaign, result); // Phase 17: campaign roles
         }
 
         /// <summary>The line said at the current node: the first whose conditions hold and that the content rules allow.</summary>
@@ -151,10 +163,15 @@ namespace Realmkeeper.Application
                 if (!QuestConditions.All(ctx, r.Conditions)) continue;
                 if (r.Once && social.Applied(OnceKey(c, r))) continue;
                 if (w.WorldSettings.Content.For(r.Tags) == ContentPresentation.Hide) continue;
+                var met = QuestConditions.All(ctx, r.Requirements); // Phase 17: shown but disabled, with the reason
+                if (!met && !r.ShowWhenUnavailable) continue;
+                var decision = false;
+                foreach (var x in r.Consequences) if (x.Kind == DialogueConsequenceKind.CampaignDecision) decision = true;
                 list.Add((r, new ResponseView
                 {
                     Id = r.Id, Text = Fill(w, c, npc, r.Text), Kind = r.Kind, QuestInstanceId = c.QuestInstanceId,
                     Check = r.Check == null ? null : $"{r.Check.Skill} DC {Dc(npc, r.Check)}",
+                    Enabled = met, Why = met ? null : Fill(w, c, npc, r.UnavailableText ?? "You cannot say that now."), Decision = decision,
                 }));
             }
 
@@ -466,6 +483,54 @@ namespace Realmkeeper.Application
                 case DialogueConsequenceKind.EndConversation:
                 case DialogueConsequenceKind.OpenTrade:
                     break;
+
+                // ----- Phase 17 (ADR-0083, ADR-0087) -----
+                case DialogueConsequenceKind.CampaignDecision:
+                {
+                    var campaign = Simulation.Campaigns.CampaignEngine.OfQuest(w, q) ?? Simulation.Campaigns.CampaignEngine.Sole(w);
+                    if (campaign == null) return CommandResult.InvalidState("There is no story for that decision.");
+                    var why = Simulation.Campaigns.CampaignEngine.Decide(w, campaign, x.Key, x.Value, npc?.Name, report);
+                    if (why != null) return CommandResult.InvalidState(why);
+                    var choice = Simulation.Campaigns.CampaignEngine.Definition(campaign).Decision(x.Key).Choice(x.Value);
+                    Record(w, q, "campaign:" + campaign.CampaignId + ":" + x.Key, Simulation.Campaigns.CampaignEngine.Text(w, campaign, choice.Summary), report, events);
+                    events.Add(new QuestEvent { Kind = QuestEventKind.Decision, Subject = x.Key });
+                    break;
+                }
+                case DialogueConsequenceKind.CampaignFlag:
+                {
+                    var campaign = Simulation.Campaigns.CampaignEngine.OfQuest(w, q) ?? Simulation.Campaigns.CampaignEngine.Sole(w);
+                    if (campaign == null || campaign.State != Domain.Campaigns.CampaignState.Active) break;
+                    Simulation.Campaigns.CampaignEngine.ApplyEffect(w, campaign, Domain.Campaigns.CampaignEffect.Of(Domain.Campaigns.CampaignEffectKind.Flag, key: x.Key, value: x.Value), "dialogue:flag:" + x.Key, report);
+                    break;
+                }
+                case DialogueConsequenceKind.HearRemark:
+                {
+                    var said = Simulation.Party.CompanionStories.Hear(w, npc.NpcId);
+                    c.Variables["remark"] = said ?? "\"Nothing that won't keep.\"";
+                    c.Variables["heard"] = "yes";
+                    break;
+                }
+                case DialogueConsequenceKind.Reconcile:
+                {
+                    var said = Simulation.Party.CompanionStories.Reconcile(w, npc, x.Value != "failed", report);
+                    if (said != null) c.Say("narration", said);
+                    break;
+                }
+                case DialogueConsequenceKind.Relation:
+                {
+                    var a = Who();
+                    var b = q == null ? null : QuestEffects.Person(w, q, x.Value);
+                    if (a == null || b == null || a.NpcId == b.NpcId) break;
+                    var cause = x.Amount < 0 && x.Key != "Rivalry" || x.Amount > 0 && x.Key == "Rivalry" ? NpcRelationCause.Quarrel : NpcRelationCause.Kindness;
+                    var r = NpcMind.Relate(w, a.NpcId, b.NpcId, cause, NpcRelationKind.Acquaintance, w.CurrentSimulationDate);
+                    if (r != null && !w.Player.Social.Applied("relation:" + key))
+                    {
+                        Simulation.Campaigns.Relations.Shift(r, x.Key, x.Amount, cause, w.CurrentSimulationDate);
+                        w.Player.Social.AppliedKeys.Add("relation:" + key);
+                    }
+
+                    break;
+                }
             }
 
             return null;

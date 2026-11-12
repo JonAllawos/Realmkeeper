@@ -41,6 +41,10 @@ namespace Realmkeeper.Application
                     QuestObjectives.Observe(w, q, e);
                 }
 
+                // Phase 17 (ADR-0087): companions arriving where their own people live say so.
+                if (e.Kind == QuestEventKind.ReachedSettlement && Guid.TryParse(e.Subject, out var reached))
+                    Simulation.Party.CompanionStories.Arrived(w, new SettlementId(reached));
+
                 foreach (var q in new List<QuestInstanceData>(w.Quests))
                 {
                     if (!q.IsOpen) continue;
@@ -284,6 +288,10 @@ namespace Realmkeeper.Application
         public NpcData Npc { get; }
         public QuestInstanceData Quest { get; }
         public ConversationData Conversation { get; }
+
+        /// <summary>Phase 17: the campaign the conditions are read against — the quest's own, else the one open campaign.</summary>
+        public Domain.Campaigns.CampaignInstanceData Campaign =>
+            Simulation.Campaigns.CampaignEngine.OfQuest(World, Quest) ?? Simulation.Campaigns.CampaignEngine.Sole(World);
     }
 
     /// <summary>The condition evaluator shared by quests and dialogue (ADR-0058).</summary>
@@ -405,8 +413,16 @@ namespace Realmkeeper.Application
                     return c.Npc != null && Places.CrimeRules.KnownTo(w, c.Npc).Count > 0;
                 case ConditionKind.InParty: // Phase 15
                     return c.Npc != null && w.Party.Contains(c.Npc.NpcId);
+                case ConditionKind.PlayerCoin: // Phase 17
+                    return p != null && p.Purse >= (x.Min == int.MinValue ? 1 : x.Min);
+                case ConditionKind.CompanionQuarrel: // Phase 17 (ADR-0087)
+                    return c.Npc != null && Simulation.Party.CompanionStories.QuarrelWith(w, c.Npc) != null;
                 default:
-                    return false;
+                    // Phase 17 (ADR-0083): campaign, character-status and world kinds are the simulation's.
+                    return Simulation.Campaigns.CampaignConditions.Handles(x.Kind) && Simulation.Campaigns.CampaignConditions.Holds(w, c.Campaign, c.Quest, c.Npc, new QuestCondition
+                    {
+                        Kind = x.Kind, Key = x.Key, Value = x.Value, Min = x.Min, Max = x.Max, Negate = false,
+                    });
             }
         }
     }

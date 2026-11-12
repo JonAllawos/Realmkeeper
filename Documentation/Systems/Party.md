@@ -76,7 +76,31 @@ The player's short or long rest applies the same rest to each member present, on
 ## Not done (see the Phase 15 report)
 
 - Direct player control of companions' turns.
-- Authored companion backstories beyond the one personal quest template.
-- Companion-to-companion banter or relationships beyond the existing person-to-person relations.
+- Further authored companion stories beyond the two personal quests ("Old Ground", and Phase 17's "Unfinished Business").
+- Ambient banter (Phase 17 companions speak only when asked, about things that happened).
 - Party travel on the strategic map shown as separate markers (the party travels with the player's marker).
 - Charged items recharging for companions on a long rest (the player's items do).
+
+## Phase 17: companions in the story (ADR-0087)
+
+- **Reactions.** Companions travelling with the player (active and present; never reserves) react to campaign decisions by their own personality. Each choice names the traits it appeals to or offends; a companion's reaction is the sum of sign × (trait − 50) / 10, at most ±8, and below 2 is indifference. Loyalty moves once per decision, with the reason in words ("objected when you told the warden the count belongs to Ashford"), and they remember it.
+- **What they say.** A companion keeps up to twelve remarks, one per cause:
+  - a decision they felt strongly about;
+  - falling out, or making up, with another companion;
+  - arriving where their own people live;
+  - a world event the player knows of at their home.
+
+  In conversation, "Something on your mind?" has them say the oldest one, once. There is no random banter.
+- **With each other.** Two companions on opposite sides of a decision grow apart (their Phase 4 relation: rivalry +12, affinity −8, cause Quarrel); on the same side, closer. From rivalry 20 the quarrel shows, and "You two need to settle this" (Persuasion, DC 12, harder with unsociable companions) eases it on success (rivalry −20, both +3 loyalty) or hardens it on failure.
+- **A second story.** "Unfinished Business" is asked once by an active companion who:
+  - trusts the player (loyalty 70+);
+  - has their first story behind them;
+  - has someone they parted badly with, living elsewhere (a rival, a friend or household, or rivalry 30+).
+
+  Go with them to that person's town, be there when they meet, then talk it over. There are three endings, chosen there:
+  - **mended:** an apology, rivalry −30 and affinity +20;
+  - **paid:** 25 coin, rivalry −15;
+  - **defied:** an Intimidation check, rivalry +15.
+
+  Closing it moves loyalty through the same rule as the first story.
+- **In the Party section:** each companion's second story and its state, how many things they have to say, what they last said, and how they get on with each of the others (liking, trust, rivalry).

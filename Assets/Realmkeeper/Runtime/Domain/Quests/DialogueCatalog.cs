@@ -74,10 +74,25 @@ namespace Realmkeeper.Domain.Quests
                                 Conditions = new[] { C(ConditionKind.InParty, negate: true) }, Consequences = new[] { Do(DialogueConsequenceKind.Recruit, value: "temporary") } },
                             new DialogueResponse { Id = "dismiss", Text = "It's time we parted ways. [Dismiss from your party]", Kind = ResponseKind.End, Next = "end",
                                 Conditions = new[] { C(ConditionKind.InParty) }, Consequences = new[] { Do(DialogueConsequenceKind.Dismiss) } },
+                            // Phase 17 (ADR-0087): a companion says what is on their mind (something that happened), and the player can try to settle a quarrel between companions.
+                            new DialogueResponse { Id = "remark", Text = "Something on your mind?", Kind = ResponseKind.Ask, Next = "remark",
+                                Conditions = new[] { C(ConditionKind.InParty), C(ConditionKind.HasRemark) }, Consequences = new[] { Do(DialogueConsequenceKind.HearRemark) } },
+                            new DialogueResponse { Id = "reconcile", Text = "You two need to settle this. [Persuasion]", Kind = ResponseKind.Persuade, Next = "start", Once = true,
+                                Conditions = new[] { C(ConditionKind.InParty), C(ConditionKind.CompanionQuarrel) }, Check = Check("Persuasion", 12, "-Sociability"),
+                                Consequences = new[] { Do(DialogueConsequenceKind.Reconcile, onSuccess: true), Do(DialogueConsequenceKind.Reconcile, value: "failed", onSuccess: false) } },
                             new DialogueResponse { Id = "bye", Text = "Farewell.", Kind = ResponseKind.End, Next = "end" },
                         },
                     },
                     new DialogueNode { Id = "topics", Lines = new[] { L("{answer}", C(ConditionKind.Variable, "answered", "yes")), L("\"Ask away.\"") }, Responses = topics },
+                    new DialogueNode
+                    {
+                        Id = "remark", Lines = new[] { L("{remark}", C(ConditionKind.Variable, "heard", "yes")), L("\"Nothing that won't keep.\"") },
+                        Responses = new[]
+                        {
+                            new DialogueResponse { Id = "more", Text = "Anything else?", Kind = ResponseKind.Ask, Next = "remark", Conditions = new[] { C(ConditionKind.HasRemark) }, Consequences = new[] { Do(DialogueConsequenceKind.HearRemark) } },
+                            new DialogueResponse { Id = "back", Text = "Thank you for telling me.", Kind = ResponseKind.Continue, Next = "start" },
+                        },
+                    },
                 },
             });
 
@@ -347,6 +362,7 @@ namespace Realmkeeper.Domain.Quests
             AddPhase14(); // Phase 14: givers of the new places' quests
             AddPhase15(); // Phase 15: a companion's own quest
             AddPhase16(); // Phase 16: quests world events call for
+            AddPhase17(); // Phase 17: the Waystone quests, world stories, a companion's second story
         }
 
         /// <summary>Checks every graph: a start node, unique node and response IDs, every Next pointing at a node, "end" or the hub.</summary>

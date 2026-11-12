@@ -42,9 +42,21 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// Rebuilds the v16 layout (Phase 14): no party, no companion records, no party system, no items owned by people
         /// (their gear stays by name) and no AI reasons in fight logs.
         /// </summary>
+        /// <summary>Rebuilds the v18 layout (Phase 16): no campaigns, no companions' remarks or second stories, no campaign system.</summary>
+        public static void StripToV18(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 18;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            w.Remove("campaigns");
+            foreach (Newtonsoft.Json.Linq.JObject c in (w["companions"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray()) { c.Remove("remarks"); c.Remove("storyQuestId"); }
+            var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;
+            systems?.FirstOrDefault(t => (string)t == Realmkeeper.Simulation.Campaigns.CampaignSystem.Id)?.Remove();
+        }
+
         /// <summary>Rebuilds the v17 layout (Phase 15): no route network, journey, groups, world events, atlas fields or Phase 16 systems.</summary>
         public static void StripToV17(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV18(doc); // Phase 17
             doc["schemaVersion"] = 17;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             foreach (var field in new[] { "routes", "journey", "groups", "worldEvents", "nextWorldEventNumber" }) w.Remove(field);

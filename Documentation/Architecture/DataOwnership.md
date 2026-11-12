@@ -9,6 +9,9 @@
 | `RegionMap` (elevation, terrain, rivers, roads) | `WorldSession` (one per region: `MapFor`; `Map` is the player's region, Phase 16) | Generator; future `IRegionMapEditor` | **No**, rebuilt from each region's own seed + generator version | Region seed |
 | `RegionData` atlas fields (atlas cell, seed, mountain side, kind, discovery, neighbours, landmarks) (Phase 16) | `WorldData` | Atlas genesis (once); travel (discovery) | Yes | Save file |
 | Route graph (`RouteSegmentData`: kind, length, terrain, condition, bridge, blockade) (Phase 16) | `WorldData` | Atlas genesis (once); world events (bridges, blockades) on a working copy | Yes | Save file (geometry still regenerated from the map) |
+| Campaign instances (`CampaignInstanceData`: bindings, chapter/arc progress, decisions, pending consequences, applied keys, flags, quest links, history) (Phase 17) | `WorldData.Campaigns` | Campaign commands and the daily campaign pass, on a working copy | Yes | Save file (schema v19) |
+| Campaign definitions (`CampaignDefinition`) (Phase 17) | `CampaignCatalog` (code, validated) | Authoring only | **No**, only the version an instance began with | Build |
+| Companion remarks and second story (`CompanionRecordData.Remarks`, `StoryQuestId`) (Phase 17) | `WorldData.Companions` | Campaign decisions, arrivals, the daily pass; heard in conversation | Yes | Save file |
 | Journey (`JourneyData`) (Phase 16) | `WorldData` | Travel commands only | Yes | Save file |
 | Travelling groups (`TravelingGroupData`) (Phase 16) | `WorldData` | `realmkeeper.groups`, `realmkeeper.faction-activity`, world events (on a working copy) | Yes | Save file (cargo is the shipment's; strength of bandits is the population's) |
 | World events (`WorldEventData`), including what the player knows of them (Phase 16) | `WorldData` | `realmkeeper.world-events`, `realmkeeper.groups`; travel and arrival (the player's knowledge) | Yes | Save file |
@@ -41,3 +44,13 @@
   the history of the arrangement. A companion's items are item instances held once, like the
   player's. The follower bodies in a settlement hold no state: they read the party from the session
   and change it only through party commands.
+- **Campaigns are not copies (Phase 17, ADR-0082).** A campaign instance holds only role bindings (IDs of the
+  world's own people, settlements, factions, roads and regions), its own progress, and links to quest
+  instances in `WorldData.Quests`. What has become of a story's people is read from the systems that
+  decide it (`CampaignCharacters.StatusOf`), never stored. Campaign effects change the world only
+  through each system's own path (reputation ledger, companion loyalty, world events, NPC mind,
+  quest lifecycle), each applied once by key.
+- **A road fight's ground is presentation (Phase 17, ADR-0086).** While a fight on the road is staged,
+  the world still has the party on the road (`LocationKind` WorldMap, the journey naming the
+  encounter). The ground scene is built from the near settlement's layout without buildings or
+  people, and is not saved.

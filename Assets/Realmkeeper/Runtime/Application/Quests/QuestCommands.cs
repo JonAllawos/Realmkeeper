@@ -162,8 +162,10 @@ namespace Realmkeeper.Application
                 if (npc0 == null) return failure;
                 var options = DialogueEngine.Responses(committed, committed.Conversation, npc0);
                 DialogueResponse chosen = null;
-                foreach (var (r, _) in options) if (r.Id == cmd.ResponseId) chosen = r;
+                ResponseView chosenView = null;
+                foreach (var (r, v) in options) if (r.Id == cmd.ResponseId) { chosen = r; chosenView = v; }
                 if (chosen == null) return CommandResult.Invalid("That is not something you can say now.");
+                if (!chosenView.Enabled) return CommandResult.InvalidState(chosenView.Why ?? "You cannot say that now."); // Phase 17: shown, not open
 
                 var w = context.Edit();
                 var conv = w.Conversation;

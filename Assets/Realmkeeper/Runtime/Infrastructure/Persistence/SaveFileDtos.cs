@@ -96,6 +96,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<TravelingGroupDto> Groups { get; set; }
         public List<WorldEventDto> WorldEvents { get; set; }
         public int NextWorldEventNumber { get; set; } = 1;
+
+        // Schema v19 (Phase 17): campaigns begun in this world (companions' remarks are on their records).
+        public List<CampaignInstanceDto> Campaigns { get; set; }
     }
 
     public sealed class WorldSettingsDto

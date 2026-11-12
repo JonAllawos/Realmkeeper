@@ -37,6 +37,12 @@ namespace Realmkeeper.Application.Atlas
         PayToll = 2,
     }
 
+    /// <summary>
+    /// Phase 17: the party leaves the ground of a fight on the road once it is over (won, lost or withdrawn from) and
+    /// stands on the road again, the journey halted where it was. Travel goes on only when the player resumes it.
+    /// </summary>
+    public sealed class LeaveRoadFightCommand : ICommand { }
+
     /// <summary>Phase 16: what the party does about outlaws barring the road: fight, try to slip past (Stealth), or pay their toll.</summary>
     public sealed class ResolveRoadThreatCommand : ICommand
     {
@@ -62,6 +68,40 @@ namespace Realmkeeper.Application.Atlas
             commands.Register<ResumeJourneyCommand>(new ResumeHandler());
             commands.Register<AbandonJourneyCommand>(new AbandonHandler());
             commands.Register<ResolveRoadThreatCommand>(new ThreatHandler());
+            commands.Register<LeaveRoadFightCommand>(new LeaveFightHandler()); // Phase 17
+        }
+
+        /// <summary>
+        /// Phase 17 (ADR-0086): the fight on the road the party is in, or has just finished and not yet left: the journey
+        /// names it (its encounter ID), and the player is on the road. Null otherwise. The ground is the settlement at the
+        /// nearer end of the road, the same end the encounter was drawn near.
+        /// </summary>
+        public static (SettlementId ground, string routeId, Domain.Combat.EncounterData encounter)? RoadFight(WorldData w)
+        {
+            var j = w?.Journey;
+            if (j == null || j.EncounterId == null || j.EncounterId.StartsWith("threat:", StringComparison.Ordinal) || !OnTheRoad(w)) return null;
+            Domain.Combat.EncounterData fight = null;
+            foreach (var e in w.Encounters) if (e.EncounterId.ToString() == j.EncounterId) fight = e;
+            if (fight == null) return null;
+            var (seg, from, metres) = Position(w);
+            var near = seg == null ? from : metres * 2 < TravelRules.Km(seg) * 1000 ? from : seg.Other(from);
+            return (near, seg?.RouteId, fight);
+        }
+
+        private sealed class LeaveFightHandler : ICommandHandler<LeaveRoadFightCommand>
+        {
+            public CommandResult Handle(LeaveRoadFightCommand c, CommandContext context)
+            {
+                var w = context.Committed;
+                var fight = RoadFight(w);
+                if (fight == null) return CommandResult.InvalidState("There is no fight on the road to leave.");
+                if (fight.Value.encounter.IsActive) return CommandResult.InvalidState("The fight is not over: finish it, or withdraw.");
+                var j = context.Edit().Journey;
+                j.EncounterId = null;
+                j.Status = JourneyStatus.Halted;
+                j.Reason = "after a fight on the road";
+                return CommandResult.Ok("You gather yourselves on the road. Travel on when you are ready.");
+            }
         }
 
         public static bool OnTheRoad(WorldData w) => w.Journey != null && w.Journey.Status != JourneyStatus.Arrived && w.Player != null && !w.Player.IsInSettlement && !w.Player.IsInPlace;

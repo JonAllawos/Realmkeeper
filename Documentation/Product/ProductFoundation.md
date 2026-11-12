@@ -199,3 +199,13 @@ This note does not change any requirement.
   rebuilt from the world; and v17 saves upgraded once (schema v18). An old world keeps its single region until the
   player chooses to discover the lands beyond. The new regions use the generator's existing name and terrain rules,
   so no campaign canon is written. War between kingdoms, weather, mounts and ships remain out of scope.
+- **Phase 17 (2026-11-12).** Phase 17 adds the campaign engine the Bible's §4.1 describes ("an authored main campaign" and "an emergent sandbox campaign"), inside the persistent world rather than beside it:
+  - campaigns as validated data, cast from the world's own people, places and roads;
+  - chapters and arcs built from the existing quests;
+  - decisions whose typed consequences are applied once, some of them later;
+  - stories that adapt when people die, turn hostile or go away;
+  - stories the world offers from what actually happened;
+  - companions who react, speak when asked, and relate to each other;
+  - road fights played in the existing combat scene.
+
+  It keeps the binding principles: one world, no copies of anyone; every change a command; nothing waits for the player; a world with no campaign is a complete sandbox; and v18 saves upgraded once (schema v19). The protagonist stays the player's own and is not a chosen one (Bible §2–3). **No canon is decided.** The one campaign, *The Waystone Count*, is labelled provisional demonstration content. It names only bound world entities and establishes no kingdom, antagonist or history.

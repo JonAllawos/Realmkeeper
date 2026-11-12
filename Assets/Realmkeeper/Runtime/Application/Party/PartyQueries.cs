@@ -64,6 +64,19 @@ namespace Realmkeeper.Application.Party
         public string Term { get; set; }
 
         public string PersonalQuest { get; set; }
+
+        /// <summary>Phase 17: their second story, if they have asked it ("Unfinished Business (active)").</summary>
+        public string SecondStory { get; set; }
+
+        /// <summary>Phase 17: how many things they have to say that the player has not yet heard.</summary>
+        public int UnheardRemarks { get; set; }
+
+        /// <summary>Phase 17: the last things they said (most recent first, at most three).</summary>
+        public List<string> Said { get; } = new List<string>();
+
+        /// <summary>Phase 17: how they get on with the others in the party ("Rook: friendly (trust 52)", "Ash: at odds — rivalry 24").</summary>
+        public List<string> WithOthers { get; } = new List<string>();
+
         public NpcCharacterView Sheet { get; set; }
         public List<CompanionItemView> Items { get; } = new List<CompanionItemView>();
         public int CarriedGrams { get; set; }
@@ -121,6 +134,27 @@ namespace Realmkeeper.Application.Party
 
                 if (record?.PersonalQuestId != null && w.FindQuest(record.PersonalQuestId) is Domain.Quests.QuestInstanceData q)
                     mv.PersonalQuest = (Domain.Quests.QuestCatalog.Find(q.DefinitionId)?.Name ?? q.DefinitionId) + " (" + q.State.ToString().ToLowerInvariant() + ")";
+
+                // Phase 17 (ADR-0087): their second story, what they have to say, and how they get on with the others.
+                if (record?.StoryQuestId != null && w.FindQuest(record.StoryQuestId) is Domain.Quests.QuestInstanceData q2)
+                    mv.SecondStory = (Domain.Quests.QuestCatalog.Find(q2.DefinitionId)?.Name ?? q2.DefinitionId) + " (" + q2.State.ToString().ToLowerInvariant() + ")";
+                if (record != null)
+                {
+                    foreach (var r in record.Remarks) if (!r.Heard) mv.UnheardRemarks++;
+                    for (var i = record.Remarks.Count - 1; i >= 0 && mv.Said.Count < 3; i--)
+                        if (record.Remarks[i].Heard) mv.Said.Add(record.Remarks[i].Text);
+                }
+
+                foreach (var other in members)
+                {
+                    if (other.NpcId == m.NpcId) continue;
+                    var on = w.FindNpc(other.NpcId);
+                    var rel = w.FindNpcRelation(m.NpcId, other.NpcId);
+                    if (on == null) continue;
+                    if (rel == null) { mv.WithOthers.Add(on.Name + ": strangers still"); continue; }
+                    var word = rel.Rivalry >= Simulation.Party.CompanionStories.QuarrelAt ? "at odds" : rel.Affinity >= 30 ? "friendly" : rel.Affinity <= -20 ? "cold" : "getting along";
+                    mv.WithOthers.Add($"{on.Name}: {word} (liking {rel.Affinity}, trust {rel.Trust}, rivalry {rel.Rivalry})");
+                }
 
                 var ch = npc.Character;
                 if (ch != null && ch.OwnsItems)

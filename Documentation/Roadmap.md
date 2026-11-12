@@ -23,8 +23,28 @@
 | Combat overhaul: tactical movement, combat UI, action selection and visual feedback | Done (`08c222e`, pushed on the owner's instruction) | `Reports/Combat-Overhaul-Audit.md`, `Reports/Combat-Overhaul-Completion-Report.md`, `Systems/Combat.md` (the combat interface), ADR-0072 |
 | Art assets: KayKit skeletons and character animations (CC0); Quaternius Bestiary local only | Done (`d975302`, report `4324084`, pushed) | `Reports/Art-Assets-KayKit-Bestiary-Report.md`, `Art/` credits |
 | Phase 15: Companions, Parties, Relationships & Party Progression (with the Phase 15 art and animation addendum) | Done (`9a48d27`, pushed on the owner's instruction) | `Systems/Party.md`, `Reports/Phase15-Preflight-Audit.md`, `Reports/Phase15-Art-Animation-Report.md`, `Reports/Phase15-Completion-Report.md`, ADR-0073…0075 |
-| Phase 16: World Events, Regional Travel, Dynamic Simulation & Persistent World Expansion | Done (committed locally; not pushed) | `Systems/Travel.md`, `Systems/WorldEvents.md`, `Systems/WorldGeneration.md` (the connected world), `Reports/Phase16-Preflight-Audit.md`, `Reports/Phase16-Completion-Report.md`, ADR-0076…0081 |
-| Phase 17 | Not started (needs the owner's authorisation) | — |
+| Phase 16: World Events, Regional Travel, Dynamic Simulation & Persistent World Expansion | Done (`7ab5163`, pushed on the owner's instruction); closeout verified in Phase 17 (full EditMode 750/750) | `Systems/Travel.md`, `Systems/WorldEvents.md`, `Systems/WorldGeneration.md` (the connected world), `Reports/Phase16-Preflight-Audit.md`, `Reports/Phase16-Completion-Report.md`, ADR-0076…0081 |
+| Phase 17: Phase 16 closeout, Campaign Engine, Narrative Systems & Persistent Storytelling | Done (committed locally; not pushed) | `Systems/Campaigns.md`, `Systems/Travel.md` (road fights, groups beyond sight), `Systems/Party.md`, `Systems/Dialogue.md`, `Reports/Phase17-Preflight-Audit.md`, `Reports/Phase16-Final-Verification.md`, `Reports/Phase17-Completion-Report.md`, ADR-0082…0087 |
+| Phase 18 | Not started (needs the owner's authorisation) | — |
+
+## Phase 16 carry-forward (status after Phase 17)
+
+| Phase 16 limitation | Status |
+|---|---|
+| "Fight it out" on the atlas let the AI choose the player's actions | **Done in Phase 17** (ADR-0086). Road fights open in the combat scene on the ground at the road's nearer end, with the existing tactical panel. The party stays on the road and leaves the ground when the player says. The AI option stays only as an explicit, labelled choice. Remaining limit: the ground shown is the near settlement's land, not a generated stretch of road. |
+| Groups on the roads drawn only in the player's region | **Done in Phase 17.** Beyond sight, a group shows where a report the player has puts it, marked as reported, with when and from whom, and no live numbers. |
+| The full EditMode suite was not rerun after the Phase 14 timeout change | **Done in Phase 17:** 750/750 on `7ab5163`. The Phase 14 test still takes 189 s, now within its 10-minute limit. |
+| Travel is on foot only | Open, deferred (mounts, ships and other transport are a later milestone). |
+| No gameplay recordings | Still none: the batch-mode test runner cannot record video. Phase 17's evidence is captured screenshots with captions. |
+
+## Workstreams kept for later milestones (not started; not reordered)
+
+These were reaffirmed in the Phase 17 brief as important future work. None of them is part of Phase 17, and their order is the owner's to set.
+
+- **A. Complete UI/UX and visual design overhaul.** Main menus; world and campaign selection; navigation, tabs and panels; HUD and combat HUD; character sheets; inventory and equipment; spellbook; skill trees and progression; quest journal; dialogue; bestiary; faction interfaces; settlement and kingdom management; world atlas; settings and accessibility; transitions and animation; visual hierarchy, typography, colour system; icons and licensed downloadable assets. Study patterns (not assets or copied designs) from Baldur's Gate 3, Assassin's Creed, Far Cry, Kingdom Come: Deliverance, The Witcher, Dragon Age, Pathfinder, Crusader Kings, Red Dead Redemption and Skyrim.
+- **B. Advanced character creation and character systems.** Expanded species and subspecies; classes and subclasses; backgrounds and origins; appearance (body types, faces, hair and facial hair, skin, distinguishing features, scars and tattoos); detailed previews; starting equipment; progression presentation; detailed character sheets; NPC creation and inspection; character identity and personality. Study *The Tavern Table* as a separate reference project; do not merge projects or copy its code without authorisation.
+- **C. Mature world content and immersion.** Contextual, not gratuitous: profanity and dialogue realism; blood and injuries; violence and its consequences; mature themes; adult relationships and romance where appropriate; contextual non-sexual nudity; believable taverns, bathhouses, homes and medical settings; NPC behaviour that reflects circumstances; content settings controlling presentation, consistent across dialogue, appearance, environments and generated content. (The content-tag rules of Phase 12, ADR-0061, are the existing hook.)
+- **D. Other existing work.** Expanded visual assets and animation; advanced exploration; settlement and civilisation development; audio and atmosphere; combat and encounter improvements; performance and production readiness; final integration, balancing and release preparation. Also: transport (mounts, ships), and further authored campaign content once the setting's canon is approved.
 
 ## Phase 15 carry-forward (status after Phase 16)
 
@@ -33,8 +53,8 @@
 | Party members are not drawn on the strategic map | **Done in Phase 16.** The atlas marks the player "You + n" and lists the party; the party travels and arrives together. |
 | A waiting member in town reappears behind the player's arrival point | **Done in Phase 16.** Their spot is saved (`waitPose`) and they are drawn there. |
 | No direct control of companions' turns | Open |
-| One personal quest template | Open |
-| No companion banter, and no companion-to-companion relationships | Open |
+| One personal quest template | **Done in Phase 17.** A second story, "Unfinished Business", bound to a real person elsewhere, with three endings. |
+| No companion banter, and no companion-to-companion relationships | **Done in Phase 17** (without random banter): companions react to decisions by their nature, say what they think when asked, and grow apart or closer through the existing person-to-person relations; quarrels can be talked round. |
 | Followers in places stand with the player rather than walking room routes | Open |
 | Charged items do not recharge for companions on a long rest | Open |
 | The leader is presentation only | Open |

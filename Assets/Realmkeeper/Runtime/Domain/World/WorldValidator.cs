@@ -154,6 +154,7 @@ namespace Realmkeeper.Domain.World
             ValidateQuests(world, result); // Phase 12
             ValidatePlaces(world, result); // Phase 13
             ValidateAtlas(world, settlementIds, result); // Phase 16
+            ValidateCampaigns(world, result); // Phase 17
             if (world.Player != null) foreach (var e in Rpg.CharacterValidation.Check(world.Player)) result.AddError("Character: " + e);
             return result;
         }

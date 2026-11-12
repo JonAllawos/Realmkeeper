@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 16, 2026-11-12)
+## Implementation status (updated at the end of Phase 17, 2026-11-12)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -88,6 +88,13 @@ present but visibly temporary; **Not started**.
 | Caravans and groups on the roads | **Implemented** (Phase 16) | Every shipment travels with a caravan led by one of the world's people; outlaws, patrols, faction patrols and refugees; attacks and losses through the economy's own accounting (ADR-0079) |
 | World events | **Implemented** (Phase 16), 10 kinds | Shortages, unrest, outlaws, patrols, bridges, blockades, conflicts, disruptions, lost caravans, refugees: from causes, with a lifecycle, consequences applied once, chronicled; known through people as news and rumours; two event quests (ADR-0080) |
 | Simulation tiers and the world atlas | **Implemented** (Phase 16) | Distant regions keep living at a lower cost; the atlas (A) with eight layers, inspectors, travel planning and the travel strip, showing only what the player knows (ADR-0081) |
+| Campaign engine (§4.1, authored campaign) | **Implemented** (Phase 17), 1 provisional demonstration | Campaigns as validated data laid over the one world: roles cast from the world's own people, places, factions and roads; chapters and arcs of linked quests, decisions and world-state objectives (sequential, parallel, optional, alternative, timed, refusable); set aside, take up, give up; endings; the world never waits (ADR-0082) |
+| Lasting decisions | **Implemented** (Phase 17) | Recorded once, typed effects applied once through each system's own path, delayed consequences that come in their time, disabled choices shown with their reason (ADR-0083) |
+| Narrative resilience | **Implemented** (Phase 17) | What became of people read from the world (dead, captured, hostile, away …); other people speak, other ways open, or the story ends another way; nobody is protected or raised (ADR-0084) |
+| Emergent stories (§4.1, emergent campaign) | **Implemented** (Phase 17), 2 kinds | A lost caravan and a hungry town beside a full one become stories from what happened and who knows it; one per cause, three open at most (ADR-0085) |
+| Companions in the story | **Implemented** (Phase 17) | Reactions to decisions by personality, remarks when asked, companion-to-companion bonds and quarrels, a second personal story (ADR-0087) |
+| Road fights in the combat scene | **Implemented** (Phase 17) | A fight met on the road is played with the existing tactical combat on the ground at the road's end; the party stays on the road (ADR-0086) |
+| Main campaign, setting canon | **Not started** | The kingdoms, antagonist and world history are not approved canon; the one campaign is provisional demonstration content |
 
 ### §19 Design principles: how Phases 6–7 respect them
 

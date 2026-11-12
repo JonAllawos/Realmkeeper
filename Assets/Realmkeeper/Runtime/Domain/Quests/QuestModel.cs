@@ -183,6 +183,57 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>Phase 15: the person travels in the player's party.</summary>
         InParty = 21,
+
+        // Phase 17 (ADR-0083): campaign, character-status and world conditions. Kinds 22–35 are answered by the
+        // simulation's campaign evaluator (roles are campaign roles first, then the quest's).
+
+        /// <summary>An arc of the campaign is in a state (Key: arc ID; Value: states, "|"-separated).</summary>
+        CampaignArc = 22,
+
+        /// <summary>A campaign decision was made (Key: decision ID; Value: choices, or null for any).</summary>
+        CampaignDecision = 23,
+
+        /// <summary>A campaign flag is set (Key; Value: expected values, or null for any).</summary>
+        CampaignFlag = 24,
+
+        /// <summary>The campaign is in a state (Value: states).</summary>
+        CampaignState = 25,
+
+        /// <summary>What has become of a role's person (Key: role, or "npc" for the person spoken to; Value: statuses).</summary>
+        CharacterStatus = 26,
+
+        /// <summary>A world event of a type is open (Key: type; Value: a route or settlement role it must touch, or null).</summary>
+        WorldEventOpen = 27,
+
+        /// <summary>A role's companion loyalty (Key: role or "npc"; Min/Max).</summary>
+        CompanionLoyalty = 28,
+
+        /// <summary>A settlement's stability (Key: role or "here"; Min/Max).</summary>
+        SettlementStability = 29,
+
+        /// <summary>A route role can be walked.</summary>
+        RouteOpen = 30,
+
+        /// <summary>Two people's bond (Key: "roleA,roleB"; Value: dimension; Min/Max).</summary>
+        NpcRelation = 31,
+
+        /// <summary>The companion spoken to has something they have not yet said.</summary>
+        HasRemark = 32,
+
+        /// <summary>Days since an arc began (Key: arc; Min/Max).</summary>
+        CampaignArcDays = 33,
+
+        /// <summary>A campaign quest's state (Key: quest key; Value: states, "None" when not offered).</summary>
+        CampaignQuest = 34,
+
+        /// <summary>The player's standing with a faction role, or a role's faction (Key; Min/Max).</summary>
+        CampaignStanding = 35,
+
+        /// <summary>The player's purse holds at least Min coin.</summary>
+        PlayerCoin = 36,
+
+        /// <summary>The companion spoken to is at odds with another companion present.</summary>
+        CompanionQuarrel = 37,
     }
 
     public sealed class ObjectiveDefinition

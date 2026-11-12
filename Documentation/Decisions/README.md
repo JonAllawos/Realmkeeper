@@ -83,5 +83,11 @@
 | [0079](ADR-0079-travelling-groups-carry-the-economys-own-goods.md) | Travelling groups are the world's own people and carry the economy's own goods | Accepted (Phase 16) |
 | [0080](ADR-0080-world-events-typed-once-and-known-through-people.md) | World events are typed records with a lifecycle; consequences apply once; the player knows them through people | Accepted (Phase 16) |
 | [0081](ADR-0081-simulation-tiers-and-the-world-atlas.md) | Distant regions are simulated in tiers; the world atlas is a view of queries, not of the world | Accepted (Phase 16) |
+| [0082](ADR-0082-campaigns-are-data-laid-over-the-one-world.md) | A campaign is data laid over the one world; its instance points at the world's own entities and quests | Accepted (Phase 17) |
+| [0083](ADR-0083-decisions-are-records-with-typed-keyed-consequences.md) | Decisions are records with typed, keyed consequences — some now, some later — applied once | Accepted (Phase 17) |
+| [0084](ADR-0084-narrative-resilience-reads-what-became-of-people.md) | Narrative resilience reads what became of people from the world, and offers other ways — never resurrection | Accepted (Phase 17) |
+| [0085](ADR-0085-the-world-offers-its-own-stories-from-what-happened.md) | The world offers its own stories, built only from what happened and who knows it | Accepted (Phase 17) |
+| [0086](ADR-0086-road-fights-are-fought-on-the-ground-at-the-roads-end.md) | A fight met on the road is fought on the ground at the road's nearer end, with the existing combat; the party stays on the road | Accepted (Phase 17) |
+| [0087](ADR-0087-companions-react-remember-and-relate-through-existing-records.md) | Companions react by their nature, say what they think when asked, and relate to each other through the existing records | Accepted (Phase 17) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -96,6 +96,17 @@ namespace Realmkeeper.Application.Atlas
         public float X { get; set; }
         public float Z { get; set; }
         public List<string> History { get; } = new List<string>();
+
+        /// <summary>
+        /// Phase 17: true when the player can see it now (it is in their region, where it really is); false when it is
+        /// only reported — then its place is where the report put it, as of <see cref="ReportedAt"/>, and its live
+        /// numbers and history are not known.
+        /// </summary>
+        public bool Seen { get; set; } = true;
+
+        public string ReportedAt { get; set; }
+        public string ReportedFrom { get; set; }
+        public RegionId RegionId { get; set; }
     }
 
     public sealed class AtlasEventView
@@ -243,11 +254,28 @@ namespace Realmkeeper.Application.Atlas
             {
                 if (!g.IsActive) continue;
                 var (x, z, region) = GroupAt(w, g, now);
-                if (region != v.PlayerRegion) continue; // only what can be seen: the player's own region
+                if (region != v.PlayerRegion)
+                {
+                    // Phase 17: beyond sight, a group shows only where the player has a report of it (a world event they know
+                    // that names it), at the report's place and time — never its live position or numbers.
+                    var report = Reported(w, g);
+                    if (report == null) continue;
+                    var rv = new AtlasGroupView
+                    {
+                        GroupId = g.GroupId, Kind = g.Kind, Name = g.Name, Faction = w.FindFaction(g.FactionId)?.Name, Strength = -1, Members = -1, State = g.State, Seen = false,
+                        ReportedAt = TravelRules.Clock(report.KnownAt), ReportedFrom = report.KnownFrom, RegionId = report.RegionId,
+                    };
+                    if (w.FindSettlement(report.SettlementId) is SettlementData rs) (rv.X, rv.Z) = At(w, rs);
+                    else if (w.FindRoute(report.RouteId) is RouteSegmentData rr) (rv.X, rv.Z) = Along(w, rr, rr.A, 0.5);
+                    else continue;
+                    v.Groups.Add(rv);
+                    continue;
+                }
+
                 var gv = new AtlasGroupView
                 {
                     GroupId = g.GroupId, Kind = g.Kind, Name = g.Name, Faction = w.FindFaction(g.FactionId)?.Name, Leader = w.FindNpc(g.LeaderNpcId)?.Name, Members = g.Members,
-                    Strength = g.Strength, State = g.State, From = w.FindSettlement(g.OriginId)?.Name, To = w.FindSettlement(g.DestinationId)?.Name, X = x, Z = z,
+                    Strength = g.Strength, State = g.State, From = w.FindSettlement(g.OriginId)?.Name, To = w.FindSettlement(g.DestinationId)?.Name, X = x, Z = z, RegionId = region,
                 };
                 if (g.Kind == TravelGroupKind.Caravan && w.Shipments.Find(s => s.ShipmentId == g.ShipmentId) is ShipmentData sh) gv.Cargo = sh.Quantity + " " + sh.ResourceTypeId;
                 gv.History.AddRange(g.History);
@@ -272,6 +300,20 @@ namespace Realmkeeper.Application.Atlas
             v.Journey = Journey(w);
             foreach (var m in Simulation.Party.CompanionLoyalty.Present(w)) v.Party.Add(m.Name);
             return v;
+        }
+
+        /// <summary>The newest world event the player knows of that names this group (its own event, or one it answers), or null.</summary>
+        public static WorldEventData Reported(WorldData w, TravelingGroupData g)
+        {
+            WorldEventData best = null;
+            foreach (var e in w.WorldEvents)
+            {
+                if (e.Known == EventKnowledge.Unknown) continue;
+                if (e.GroupId != g.GroupId && e.EventId != g.EventId) continue;
+                if (best == null || e.KnownAt > best.KnownAt) best = e;
+            }
+
+            return best;
         }
 
         /// <summary>Where the player can check their news: in the settlement it concerns, or on the road it concerns.</summary>

@@ -6,10 +6,36 @@ using Realmkeeper.Domain.World;
 
 namespace Realmkeeper.Application
 {
+    /// <summary>Phase 17: a fight on the road, for the exploration layer to stage.</summary>
+    public sealed class RoadFightView
+    {
+        /// <summary>The settlement at the nearer end of the road: its open ground is where the fight is staged.</summary>
+        public SettlementId Ground { get; set; }
+        public string GroundName { get; set; }
+        public string RouteId { get; set; }
+        public string EncounterId { get; set; }
+
+        /// <summary>The fight is still going on (false: over, not yet left).</summary>
+        public bool Active { get; set; }
+    }
+
     public sealed partial class WorldSession
     {
         /// <summary>Phase 16: raised when a journey reaches its settlement (the exploration module enters it).</summary>
         public event Action<SettlementId> Arrived;
+
+        /// <summary>
+        /// Phase 17 (ADR-0086): the fight on the road the party is in, or has just finished and not yet left — the
+        /// exploration layer stages it on the ground at the nearer end of the road. Null when there is none.
+        /// </summary>
+        public RoadFightView GetRoadFight()
+        {
+            if (!HasWorld) return null;
+            var f = TravelCommandHandlers.RoadFight(_world);
+            if (f == null) return null;
+            var s = _world.FindSettlement(f.Value.ground);
+            return s == null ? null : new RoadFightView { Ground = s.SettlementId, GroundName = s.Name, RouteId = f.Value.routeId, EncounterId = f.Value.encounter.EncounterId.ToString(), Active = f.Value.encounter.IsActive };
+        }
 
         /// <summary>The words of the last travel run, hour by hour (for the travel panel).</summary>
         public IReadOnlyList<string> LastTravel { get; private set; } = Array.Empty<string>();

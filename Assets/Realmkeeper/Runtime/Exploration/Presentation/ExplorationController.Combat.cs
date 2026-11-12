@@ -55,7 +55,11 @@ namespace Realmkeeper.Exploration.Presentation
             Combat.WithdrawRequested += () => EndFight(withdraw: true);
             Combat.CallOffRequested += () => EndFight(withdraw: false);
             Combat.ContinueRequested += () => RunAiTurn();
-            Combat.CloseRequested += CloseFight;
+            Combat.CloseRequested += () =>
+            {
+                CloseFight();
+                if (RoadStage != null && !InFight) LeaveRoadFight(); // Phase 17: closing a finished road fight puts the party back on the road
+            };
             Combat.LootRequested += key => { CloseFight(); OpenStorage(key); }; // Phase 11
             Combat.CastRequested += a => CombatAct(a); // Phase 9
             Combat.FeatureRequested += f => CombatAct(f);
@@ -241,9 +245,10 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (_practiceButton == null) return;
             var character = _session?.GetCharacter();
-            _practiceButton.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
-            _casterPracticeButton?.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
-            _outingButton?.EnableInClassList("xk-hidden", character == null || character.NeedsCreation || character.IsDead || _fightOpen);
+            var hide = character == null || character.NeedsCreation || character.IsDead || _fightOpen || RoadStage != null; // Phase 17: not on the road
+            _practiceButton.EnableInClassList("xk-hidden", hide);
+            _casterPracticeButton?.EnableInClassList("xk-hidden", hide);
+            _outingButton?.EnableInClassList("xk-hidden", hide);
         }
 
         private void PauseTimeForFight()
@@ -275,8 +280,8 @@ namespace Realmkeeper.Exploration.Presentation
             UpdateCombatWorld(); // Combat Overhaul: hover, click to move, walking, keys
 
             var keys = Keyboard.current;
-            if (keys != null && !WindowOpen && !Typing() && !InPlace && keys.fKey.wasPressedThisFrame) StartPracticeFight(); // Phase 13: not inside places
-            if (keys != null && !WindowOpen && !Typing() && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
+            if (keys != null && !WindowOpen && !Typing() && !InPlace && RoadStage == null && keys.fKey.wasPressedThisFrame) StartPracticeFight(); // Phase 13: not inside places; Phase 17: not on the road
+            if (keys != null && !WindowOpen && !Typing() && RoadStage == null && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
         }
 
         // ----- Placeholder ground markers --------------------------------------------------------------

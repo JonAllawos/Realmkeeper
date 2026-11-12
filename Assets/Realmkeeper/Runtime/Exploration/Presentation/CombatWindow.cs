@@ -45,8 +45,11 @@ namespace Realmkeeper.Exploration.Presentation
             var head = TradeWindow.Row("xk-w-head");
             var titles = new VisualElement();
             titles.style.flexGrow = 1;
+            titles.style.flexShrink = 1; // Phase 17: a long encounter name wraps instead of running under the turn label
+            titles.style.minWidth = 0;
             _title = TradeWindow.Text("-", "xk-w-title");
             _title.name = "xk-combat-title";
+            _title.style.whiteSpace = WhiteSpace.Normal;
             _subtitle = TradeWindow.Text("-", "xk-w-subtitle");
             _subtitle.name = "xk-combat-subtitle";
             titles.Add(_title);
@@ -54,6 +57,7 @@ namespace Realmkeeper.Exploration.Presentation
             head.Add(titles);
             _turn = TradeWindow.Text("-", "xk-combat-turn");
             _turn.name = "xk-combat-turn";
+            _turn.style.flexShrink = 0;
             head.Add(_turn);
             _continue = HeadButton("Continue", "xk-combat-continue", () => ContinueRequested?.Invoke());
             _continue.tooltip = "Let the next computer-controlled combatant act now.";

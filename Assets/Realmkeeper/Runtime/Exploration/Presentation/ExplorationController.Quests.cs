@@ -46,6 +46,7 @@ namespace Realmkeeper.Exploration.Presentation
                 HubWindow.ReputationSource = () => _session?.GetReputation();
                 HubWindow.PlacesSource = () => _session?.GetKnownPlaces(); // Phase 13
                 HubWindow.CrimesSource = () => _session?.GetCrimes(); // Phase 14
+                HubWindow.CampaignSource = () => _session?.GetCampaigns(); // Phase 17
             }
 
             _questSignature = QuestSignature();

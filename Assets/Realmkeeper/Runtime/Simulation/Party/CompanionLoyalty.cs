@@ -139,7 +139,7 @@ namespace Realmkeeper.Simulation.Party
         {
             foreach (var r in w.Companions)
             {
-                if (r.PersonalQuestId != q.InstanceId) continue;
+                if (r.PersonalQuestId != q.InstanceId && r.StoryQuestId != q.InstanceId) continue; // Phase 17: their second story counts the same way
                 var name = QuestCatalog.Find(q.DefinitionId)?.Name ?? "their request";
                 if (to == QuestState.Completed) Apply(w, r.NpcId, q.InstanceId + ":done", 25, "you saw " + name + " through", report);
                 else if (to == QuestState.Failed) Apply(w, r.NpcId, q.InstanceId + ":failed", -10, name + " failed", report);
@@ -189,6 +189,7 @@ namespace Realmkeeper.Simulation.Party
                 if (record != null && record.Loyalty < PartyRules.LeaveBelow) { CompanionLoyalty.Leave(w, npc, CompanionStanding.Departed, "lost faith in you", report); continue; }
                 if (m.Temporary && now >= m.Until) { CompanionLoyalty.Leave(w, npc, CompanionStanding.TermEnded, "the agreed days are over", report); continue; }
                 if (record != null) OfferPersonalQuest(w, npc, record, m, now, report);
+                if (record != null) CompanionStories.OfferSecondStory(w, npc, record, m, report); // Phase 17 (ADR-0087)
             }
         }
 

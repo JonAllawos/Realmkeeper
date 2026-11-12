@@ -93,6 +93,31 @@ namespace Realmkeeper.Application
             NpcCharacterCommandHandlers.Register(_commands); // Phase 10
             Party.PartyCommandHandlers.Register(_commands); // Phase 15
             Atlas.TravelCommandHandlers.Register(_commands); // Phase 16
+            Campaigns.CampaignCommandHandlers.Register(_commands); // Phase 17
+        }
+
+        /// <summary>Phase 17: the campaign journal (what could begin here, and every campaign begun), as the player may see it.</summary>
+        public Campaigns.CampaignsView GetCampaigns() => HasWorld ? Campaigns.CampaignQueries.View(_world) : new Campaigns.CampaignsView();
+
+        /// <summary>Phase 17: the person a campaign role names now (empty when none), for tools and tests that drive the story through the UI.</summary>
+        public NpcId GetCampaignPerson(string campaignId, string role)
+        {
+            var c = HasWorld ? Simulation.Campaigns.CampaignEngine.Find(_world, campaignId) : null;
+            return c == null ? default : Simulation.Campaigns.CampaignEngine.Npc(_world, c, role)?.NpcId ?? default;
+        }
+
+        /// <summary>Phase 17: the settlement a campaign role names (empty when none).</summary>
+        public SettlementId GetCampaignSettlement(string campaignId, string role)
+        {
+            var c = HasWorld ? Simulation.Campaigns.CampaignEngine.Find(_world, campaignId) : null;
+            return c == null ? default : Simulation.Campaigns.CampaignEngine.Settlement(_world, c, role)?.SettlementId ?? default;
+        }
+
+        /// <summary>Phase 17: the quest instance a campaign quest key is (null when not offered).</summary>
+        public string GetCampaignQuest(string campaignId, string key)
+        {
+            var c = HasWorld ? Simulation.Campaigns.CampaignEngine.Find(_world, campaignId) : null;
+            return c != null && c.Quests.TryGetValue(key, out var id) && !string.IsNullOrEmpty(id) ? id : null;
         }
 
         public EconomyRules Rules => _rules;

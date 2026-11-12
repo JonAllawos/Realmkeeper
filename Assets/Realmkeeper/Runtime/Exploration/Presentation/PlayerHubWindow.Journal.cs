@@ -21,7 +21,7 @@ namespace Realmkeeper.Exploration.Presentation
         public Func<IReadOnlyList<PlaceSummaryView>> PlacesSource { get; set; } // Phase 13
         public Func<List<CrimeView>> CrimesSource { get; set; } // Phase 14
 
-        public static readonly IReadOnlyList<string> JournalTabs = new[] { "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Places", "Crimes", "Reputation" }; // Phase 14: Crimes
+        public static readonly IReadOnlyList<string> JournalTabs = new[] { "Campaign", "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Places", "Crimes", "Reputation" }; // Phase 14: Crimes; Phase 17: Campaign
 
         private string _journalTab = "Active";
         private string _selectedQuest;
@@ -76,6 +76,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Reputation": ReputationPanel(); break;
                 case "Places": PlacesPanel(); break;
                 case "Crimes": CrimesPanel(); break; // Phase 14
+                case "Campaign": CampaignPanel(); break; // Phase 17
             }
         }
 

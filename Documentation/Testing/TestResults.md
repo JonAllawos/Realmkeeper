@@ -722,3 +722,24 @@ Mutants, new tests, the existing tests that changed (and why), and bugs found: `
 | Phase 16 captures | Unity editor (not batch), `RK_CAPTURE_DIR` set | **1 passed**: 15 screenshots (`Screenshots/Phase16/`) |
 
 The full EditMode suite was not rerun after the one-line timeout change. The regressions found and fixed, and an intermittent .NET harness abort that did not reproduce, are described in `Reports/Phase16-Completion-Report.md` §7 and §17.
+
+## Phase 17 runs (2026-11-12)
+
+| Suite | Environment | Result |
+|---|---|---|
+| .NET (baseline, `7ab5163`) | Windows 11 Pro, .NET 8 SDK, Release | **750 passed**, 0 failed, 0 skipped |
+| Unity EditMode (full, baseline `7ab5163`) | Unity 6000.0.47f1, batch mode | **750 passed**, 0 failed, 0 skipped (31 min). This closes the Phase 16 gap: the Phase 14 save/reload test took 189 s, within its 10-minute limit |
+| .NET (final) | same | **791 passed**, 0 failed, 0 skipped (41 new) |
+| Unity EditMode (full, final) | Unity 6000.0.47f1, batch mode | **791 passed**, 0 failed, 0 skipped (34 min) |
+| Unity PlayMode (full, final) | Unity 6000.0.47f1, batch mode | **115 passed**, 0 failed, 0 inconclusive, 29 skipped (capture sets without `RK_CAPTURE_DIR`) |
+| Phase 17 capture | Unity editor (not batch), `RK_CAPTURE_DIR` set | **1 passed**: 19 screenshots (`Screenshots/Phase17/`) |
+
+- **New tests.**
+  - EditMode: `Campaigns/Phase17CampaignTests`, `Phase17DecisionTests`, `Phase17StoryTests` and `Phase17PerformanceTests`, plus `Atlas/Phase17AtlasTests`.
+  - PlayMode: `Phase17PlayModeTests` (road fight through the panel, the atlas checklist, the campaign journal, a decision in conversation) and `Phase17CaptureTests`.
+- **Existing tests changed, and why.**
+  - `Phase2CompletionTests.DailyOrder…`: the campaign pass joined the documented daily order.
+  - `Phase2Worlds`: gained a v18 strip step, so old-save chains rebuild the v18 layout.
+  - `Phase16AtlasPlayModeTests.EveryAtlasControl…`: the road fight now opens in the combat scene, and the outlaws act. Withdrawing is refused while one stands next to the player (an existing rule), so the test uses the atlas's Withdraw, then the labelled "Let it play out".
+- **Intermittent.** In one PlayMode run, a Unity engine log (a 160-byte temporary-allocator leak report while entering an ordinary town) failed the tests that followed it. It did not recur in the next runs.
+- **Not run:** a development-build frame-time probe; a hand-played session; video recording.

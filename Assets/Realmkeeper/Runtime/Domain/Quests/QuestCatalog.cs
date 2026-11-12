@@ -239,6 +239,7 @@ namespace Realmkeeper.Domain.Quests
             AddPhase14(); // Phase 14: quests of the new places
             AddPhase15(); // Phase 15: a companion's own quest
             AddPhase16(); // Phase 16: quests world events call for
+            AddPhase17(); // Phase 17: campaign quests, world stories, a companion's second story
         }
 
         /// <summary>Checks the templates: unique IDs, a giver first, objectives with IDs and stages, every role named in text and targets defined.</summary>

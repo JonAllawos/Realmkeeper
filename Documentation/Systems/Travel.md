@@ -68,7 +68,11 @@ The strip then offers three choices:
 | **Slip past** | Stealth against DC 10 + strength. |
 | **Pay** | 5 coin × strength. |
 
-A band met once does not bar the same journey again. *Fight it out* on the atlas plays the fight through the engine with the AI choosing the player's actions. This is a stated limitation: the map has no fight scene.
+A band met once does not bar the same journey again.
+
+**Fights on the road (Phase 17, ADR-0086).** Choosing to fight (or being seen while slipping past) starts the one engine's encounter, drawn near the road's nearer end, as before. The view now changes to it by itself: the exploration layer stages the fight on the open ground of that end of the road (the settlement's land without its buildings or people) and the existing combat panel runs it, with the tactical grid, the party and the outlaws. In the world the party stays on the road. When the fight is over, the ground stays until the player leaves it (closing the panel, or the HUD's return); the journey is then halted where it was ("after a fight on the road"), and travel goes on only when the player resumes it. Saving mid-fight keeps the fight and the road. "Let it play out (the AI plays your turns)" remains on the atlas as an explicit, labelled choice, never the default. Limitation: the ground shown is the near settlement's land, not a generated stretch of the road itself.
+
+**Groups beyond sight (Phase 17).** On the atlas, groups in the player's own region are seen where they are (letters). Elsewhere a group shows only where a report the player has puts it — a world event they know of that names it — marked "?", as of the report and from whom, with no live numbers or history. Unknown groups are not shown.
 
 ### The party
 

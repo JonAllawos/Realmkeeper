@@ -45,3 +45,25 @@ The DC moves with the person: (trait − 50) / 10, using greed against persuasio
 | Bread Before Winter, Empty Shelves | Accept · decline · give what was asked · report |
 
 Lines are written for their speakers: the elder is anxious about the ledger, the keeper practical, the suspect cornered, and the recipient wary of a broken seal.
+
+## Phase 17: campaign decisions, disabled choices, companions (ADR-0083, ADR-0087)
+
+- **New condition kinds** (in the shared evaluator), the campaign ones answered by the simulation's `CampaignConditions`:
+  - campaign arc, decision, flag, state, quest and arc-days;
+  - what has become of a person (`CharacterStatus`: dead, captured, hostile, away, …);
+  - a world event open on a road or at a place (`WorldEventOpen`);
+  - companion loyalty, settlement stability, a road being open, two people's bond;
+  - a companion having something to say, campaign standing with a faction;
+  - the player's coin, and a companion quarrel.
+
+  Roles in these conditions are the campaign's roles first, then the quest's.
+- **New consequences:**
+  - `CampaignDecision` makes a decision through the campaign engine (recorded once; effects applied once; later consequences scheduled; companions react). It fails the whole choose command if the decision is not open.
+  - `CampaignFlag`.
+  - `HearRemark`: a companion says what is on their mind.
+  - `Reconcile`: with a check, talks two companions round.
+  - `Relation`: changes two quest people's bond.
+- **Disabled choices.** A response may carry `Requirements`. When they fail and `ShowWhenUnavailable` is set, the response is shown disabled with `UnavailableText` as the reason (for example, the shared count without proof). Choosing it is refused, by the window and by the command. The keyboard numbers skip it.
+- **Decisions are marked.** A response that makes a campaign decision is marked "◆ … [decision]" in the window: its consequences last.
+- **Campaign roles in text.** In a campaign quest's dialogue, `{role}` tokens name the campaign's people and places (the warden, the far town) as well as the quest's own.
+- **Companions in general talk.** "Something on your mind?" (when they have something to say), and "You two need to settle this." (Persuasion, when they quarrel with another companion present).

@@ -892,6 +892,7 @@
 .rk-atlas-settlement--short { border-color: rgb(210, 70, 50); color: rgb(255, 170, 150); }
 .rk-atlas-settlement--here { border-color: rgb(240, 200, 90); border-width: 2px; }
 .rk-atlas-group { width: 18px; -unity-text-align: middle-center; background-color: rgba(60, 80, 110, 0.9); }
+.rk-atlas-group--reported { width: 24px; background-color: rgba(60, 80, 110, 0.35); border-width: 1px; border-color: rgba(200, 210, 230, 0.7); color: rgba(230, 230, 240, 0.85); }
 .rk-atlas-event { width: 16px; -unity-text-align: middle-center; background-color: rgba(170, 40, 30, 0.9); color: rgb(255, 230, 210); -unity-font-style: bold; }
 .rk-atlas-player { background-color: rgb(214, 170, 70); color: rgb(30, 22, 10); -unity-font-style: bold; }
 .rk-atlas-side { width: 360px; margin-left: 8px; }

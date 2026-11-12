@@ -66,3 +66,13 @@ The slice is played in the tests through the same commands the UI sends, and in 
    Ending C, silver: +50 coin, notoriety +5, stability −2, and the grain stays gone. Reporting it is a lie (Deception check). If caught, the giver's trust falls by 25 and they remember the lie.
 8. Reporting to the elder completes the quest. Experience goes through the keyed ledger, coin into the purse, and regard, faction standing and settlement reputation through the keyed reputation ledger. The giver's deed spreads as a rumour.
 9. Saved and reloaded, everything is kept, nothing is paid twice, and the elder's greeting reflects their gratitude.
+
+## Phase 17: quests in campaigns and the world's stories
+
+- **Campaign quests are ordinary quests.** A campaign (see `Campaigns.md`) offers existing quest definitions through `QuestLifecycle.Create`, their roles filled from the campaign's roles, with source key `campaign:{campaign}:{key}`. They are never pruned (they are the campaign's record). When one changes state, its campaign is re-read (`CampaignEngine.OnQuestMoved`, from `QuestLifecycle.Move`). There is no second journal: the journal's **Campaign** tab shows the campaign, and its quests stay in the usual lists.
+- **The main-campaign category is now used**, by the provisional *Waystone* quests: *A Letter Across the Line*, *Counting Carts*, *Who Holds the Road*, *The Toll-Keeper*, *The Tally Sticks* and *Settling Up*.
+- **Decision objectives** can name the person who puts the decision (`To`), so that person's general talk offers the way into the quest.
+- **The world's stories** (ADR-0085) are emergent quests with source key `story:…`:
+  - *What Became of the Caravan* (always holds: what became of a lost caravan can always be asked);
+  - *Grain Down the Road* (holds while the town is short of food).
+- **A companion's second story,** *Unfinished Business*, closes through the same loyalty rule as the first.

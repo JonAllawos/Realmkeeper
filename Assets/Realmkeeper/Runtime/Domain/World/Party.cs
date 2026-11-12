@@ -139,6 +139,14 @@ namespace Realmkeeper.Domain.World
         /// <summary>The personal quest offered to the player, if any (a quest instance ID).</summary>
         public string PersonalQuestId { get; set; }
 
+        /// <summary>Phase 17 (ADR-0087): their second story ("Unfinished Business"), if it was asked (a quest instance ID).</summary>
+        public string StoryQuestId { get; set; }
+
+        public const int MaxRemarks = 12;
+
+        /// <summary>Phase 17: things they will say when asked, caused by what happened (newest last, bounded).</summary>
+        public List<CompanionRemarkData> Remarks { get; set; } = new List<CompanionRemarkData>();
+
         public bool Counted(string key)
         {
             foreach (var a in Approvals) if (a.Key == key) return true;
@@ -150,8 +158,22 @@ namespace Realmkeeper.Domain.World
             var c = (CompanionRecordData)MemberwiseClone();
             c.Approvals = new List<ApprovalData>();
             foreach (var a in Approvals) c.Approvals.Add(a.Clone());
+            c.Remarks = new List<CompanionRemarkData>();
+            foreach (var r in Remarks) c.Remarks.Add(r.Clone());
             return c;
         }
+    }
+
+    /// <summary>Phase 17 (ADR-0087): something a companion will say when asked, and whether they have said it.</summary>
+    public sealed class CompanionRemarkData
+    {
+        /// <summary>The cause, as a key (the same cause never gives two remarks).</summary>
+        public string Key { get; set; }
+        public string Text { get; set; }
+        public long At { get; set; }
+        public bool Heard { get; set; }
+
+        public CompanionRemarkData Clone() => (CompanionRemarkData)MemberwiseClone();
     }
 
     /// <summary>Party rules (Phase 15): capacities and loyalty thresholds, data rather than hard-coded limits in the architecture.</summary>

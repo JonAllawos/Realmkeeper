@@ -58,6 +58,9 @@ namespace Realmkeeper.Exploration.Presentation
 
         public bool IsExploring => _streamer.IsLoaded;
 
+        /// <summary>Phase 17 (ADR-0086): the settlement whose open ground stages a fight on the road, while one is loaded (else null).</summary>
+        public SettlementId? RoadStage { get; private set; }
+
         /// <param name="input">Input to read; null creates the keyboard-and-mouse Input System bindings.</param>
         public void Initialize(RealmkeeperRuntime runtime, IExplorationInput input = null)
         {
@@ -127,11 +130,30 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             if (InPlace) UnloadEnvironment(); // left a place: the settlement (or the map) is rebuilt
+
+            // Phase 17 (ADR-0086): a fight on the road is staged on the open ground at the road's nearer end. The player
+            // stays on the road in the world; the scene is only where the existing combat is shown and played.
+            var road = player != null && !player.IsInSettlement ? _session.GetRoadFight() : null;
+            if (road != null)
+            {
+                if (forceReload || !_streamer.IsLoaded || RoadStage != road.Ground)
+                {
+                    UnloadEnvironment();
+                    LoadEnvironment(player, road);
+                }
+
+                RefreshCombat();
+                RefreshHud();
+                return;
+            }
+
             if (player == null || !player.IsInSettlement)
             {
                 UnloadEnvironment();
                 return;
             }
+
+            if (RoadStage != null) UnloadEnvironment(); // back from the road's fight into a settlement
 
             var loaded = _streamer.Current;
             if (forceReload || loaded == null || loaded.SettlementId != player.SettlementId)
@@ -151,9 +173,9 @@ namespace Realmkeeper.Exploration.Presentation
 
         // ----- Environment lifetime ----------------------------------------------------------
 
-        private void LoadEnvironment(PlayerSummary player)
+        private void LoadEnvironment(PlayerSummary player, RoadFightView road = null)
         {
-            var settlement = _session.FindSettlement(player.SettlementId);
+            var settlement = _session.FindSettlement(road?.Ground ?? player.SettlementId);
             if (settlement == null)
             {
                 Debug.LogError($"Realmkeeper: the character is in settlement {player.SettlementId}, which does not exist.");
@@ -161,6 +183,8 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             var layout = ExplorationModule.LayoutFor(_session, settlement);
+            if (road != null) layout = RoadsideGround(layout); // Phase 17: open country, not the town
+            RoadStage = road?.Ground;
             _materials = new ExplorationMaterials();
             _renderSnapshot = SettlementEnvironmentBuilder.RenderSettingsSnapshot.Capture();
             _atmosphere = new ExplorationAtmosphere();
@@ -184,7 +208,7 @@ namespace Realmkeeper.Exploration.Presentation
             Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)), Catalog,
                 Catalog != null ? CurrentLook() : null, Catalog != null ? Assets() : null);
             Player.Input = _input;
-            Player.Teleport(player.Pose);
+            Player.Teleport(road != null ? layout.ArrivalPose : player.Pose);
             CameraRig = ExplorationCameraRig.Create(null, Player);
             CameraRig.Input = _input;
             if (Catalog != null) ExplorationAtmosphere.ConfigureCamera(CameraRig.Camera);
@@ -223,8 +247,35 @@ namespace Realmkeeper.Exploration.Presentation
 
             _input?.Enable();
             SetCursorFree(false);
-            Debug.Log($"Realmkeeper: entered {settlement.Name} ({layout.EnvironmentKey}): {layout.Buildings.Count} buildings, " +
-                      $"{_residents.Count} residents, {layout.Props.Count} props; character at {player.Pose}.");
+            if (road != null) Hud.ShowMessage(CommandResult.Ok($"A fight on the road near {settlement.Name}."));
+            Debug.Log(road != null ? $"Realmkeeper: a fight on the road, staged on the open ground by {settlement.Name}."
+                : $"Realmkeeper: entered {settlement.Name} ({layout.EnvironmentKey}): {layout.Buildings.Count} buildings, " +
+                  $"{_residents.Count} residents, {layout.Props.Count} props; character at {player.Pose}.");
+        }
+
+        /// <summary>
+        /// Phase 17 (ADR-0086): the ground a fight on the road is staged on — the settlement's land and terrain at the
+        /// road's end, without its buildings, people, herds, doors or interactions (it is open country, not the town).
+        /// The fight itself is the engine's: positions, cover and terrain come from the encounter, not from this scene.
+        /// </summary>
+        public static LocalEnvironmentLayout RoadsideGround(LocalEnvironmentLayout town)
+        {
+            town.Buildings.Clear();
+            town.Props.Clear();
+            town.Interactables.Clear();
+            town.Residents.Clear();
+            town.Herds.Clear();
+            town.Streets.Clear();
+            town.HasWalls = false;
+            if (town.Plan != null) // the town's plan is shared: a copy without its walls (open country)
+            {
+                var plan = town.Plan.Clone();
+                plan.HasWalls = false;
+                plan.Wall.Clear();
+                town.Plan = plan;
+            }
+
+            return town;
         }
 
         private void UnloadEnvironment()
@@ -245,6 +296,7 @@ namespace Realmkeeper.Exploration.Presentation
             _interactables.Clear();
             CurrentTarget = null;
             _streamer.Unload(); // destroys every object in the exploration scene
+            RoadStage = null;
             Player = null;
             CameraRig = null;
             Hud = null;
@@ -274,6 +326,7 @@ namespace Realmkeeper.Exploration.Presentation
         public CommandResult RecordPose()
         {
             if (!IsExploring || Player == null || _session == null) return CommandResult.InvalidState("The character is not exploring.");
+            if (RoadStage != null) return CommandResult.Ok(); // Phase 17: on the road the party has no place in a settlement to record
             if (InPlace) return _placeScene.PlayerRoom == null ? CommandResult.Ok() : _session.Dispatch(new Realmkeeper.Application.Places.MoveInPlaceCommand(_placeScene.PlayerRoom, Player.CurrentPose)); // Phase 13
             var layout = _streamer.Current;
             var pose = Player.CurrentPose;
@@ -382,8 +435,18 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
             if (InPlace) return LeavePlace(); // Phase 13: only by the way out
+            if (RoadStage != null) return LeaveRoadFight(); // Phase 17: back to the road (the journey halted where it was)
             RecordPose();
             var result = _session.Dispatch(new ExitSettlementCommand());
+            if (!result.IsSuccess) Hud?.ShowMessage(result);
+            return result;
+        }
+
+        /// <summary>Phase 17 (ADR-0086): leaves the ground of a finished fight on the road; refused (with the reason) while it goes on.</summary>
+        public CommandResult LeaveRoadFight()
+        {
+            if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            var result = _session.Dispatch(new Realmkeeper.Application.Atlas.LeaveRoadFightCommand());
             if (!result.IsSuccess) Hud?.ShowMessage(result);
             return result;
         }
@@ -464,6 +527,14 @@ namespace Realmkeeper.Exploration.Presentation
             if (InPlace) { RefreshPlaceHud(); RefreshConditionsHud(); return; } // Phase 13; Phase 14: conditions, followers, rest
             if (Hud == null || _session == null || !_session.HasWorld) return;
             var player = _session.GetPlayer();
+            if (player != null && RoadStage != null) // Phase 17: where the party is, on the road
+            {
+                var ground = _session.FindSettlement(RoadStage.Value);
+                Hud.SetLocation("On the road", "a fight near " + (ground?.Name ?? "a town") + " · the party stays on the road", _session.GetOverview().Date.ToString());
+                SyncParty();
+                return;
+            }
+
             if (player == null || !player.IsInSettlement) return;
             var settlement = _session.FindSettlement(player.SettlementId);
             var region = _session.FindRegion(player.RegionId);

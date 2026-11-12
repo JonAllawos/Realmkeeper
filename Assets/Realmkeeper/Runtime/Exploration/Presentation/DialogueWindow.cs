@@ -100,13 +100,25 @@ namespace Realmkeeper.Exploration.Presentation
             for (var i = 0; i < view.Responses.Count; i++)
             {
                 var r = view.Responses[i];
-                var label = (i < 9 ? (i + 1) + ".  " : "    ") + r.Text + (r.Check != null ? $"   [{r.Check}]" : string.Empty);
+                // Phase 17: a campaign decision is marked as one (its consequences last); a choice that is not open now is
+                // shown disabled with the story's reason, so the player knows it exists and what it would take.
+                var label = (i < 9 ? (i + 1) + ".  " : "    ") + (r.Decision ? "◆ " : string.Empty) + r.Text + (r.Check != null ? $"   [{r.Check}]" : string.Empty)
+                            + (r.Decision ? "   [decision]" : string.Empty);
                 var b = new Button(() => Pick(r)) { text = label, name = "xk-dialogue-response-" + r.Id };
                 b.AddToClassList("xk-button");
                 b.AddToClassList("xk-dialogue-response");
                 b.EnableInClassList("xk-dialogue-response--quest", r.QuestInstanceId != null);
                 b.EnableInClassList("xk-dialogue-response--social", r.Kind == ResponseKind.Persuade || r.Kind == ResponseKind.Intimidate || r.Kind == ResponseKind.Deceive || r.Kind == ResponseKind.Bribe || r.Kind == ResponseKind.Negotiate);
+                b.EnableInClassList("xk-dialogue-response--decision", r.Decision);
+                b.SetEnabled(r.Enabled);
+                if (!r.Enabled) b.tooltip = r.Why;
                 _responses.Add(b);
+                if (!r.Enabled && r.Why != null)
+                {
+                    var why = Text("      " + r.Why, "xk-dialogue-why");
+                    why.name = "xk-dialogue-why-" + r.Id;
+                    _responses.Add(why);
+                }
             }
 
             if (message != null)
@@ -120,6 +132,7 @@ namespace Realmkeeper.Exploration.Presentation
         public bool PickNumber(int n)
         {
             if (View == null || n < 1 || n > View.Responses.Count) return false;
+            if (!View.Responses[n - 1].Enabled) return false; // Phase 17: shown, not open
             Pick(View.Responses[n - 1]);
             return true;
         }

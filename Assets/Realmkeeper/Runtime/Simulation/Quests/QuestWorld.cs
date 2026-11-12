@@ -770,6 +770,7 @@ namespace Realmkeeper.Simulation.Quests
             if (to == QuestState.Failed) QuestEffects.ApplyAll(w, q, ConsequenceTiming.OnFail, report);
             if (to == QuestState.Abandoned) QuestEffects.ApplyAll(w, q, ConsequenceTiming.OnAbandon, report);
             if (to == QuestState.Completed || to == QuestState.Failed || to == QuestState.Abandoned) Party.CompanionLoyalty.OnQuestClosed(w, q, to, report); // Phase 15
+            Campaigns.CampaignEngine.OnQuestMoved(w, q, report); // Phase 17: the campaign it belongs to (if any) is re-read
             return true;
         }
 
@@ -816,6 +817,7 @@ namespace Realmkeeper.Simulation.Quests
                 {
                     var q = w.Quests[i];
                     if (q.SourceKey == "authored" || q.IsOpen || q.State == QuestState.Offered) continue;
+                    if (q.SourceKey != null && q.SourceKey.StartsWith(Campaigns.CampaignEngine.QuestSourcePrefix, StringComparison.Ordinal)) continue; // Phase 17: a campaign's quests are its record
                     if (q.State == QuestState.Unavailable || q.IsClosed) { index = i; break; }
                 }
 
@@ -842,6 +844,9 @@ namespace Realmkeeper.Simulation.Quests
                     return PredatorsNear(w, new SettlementId(pg), parts[2]) > 0;
                 case "event": // Phase 16: a quest a world event called for holds while the event is open
                     return w.FindWorldEvent(key.Substring(6)) is WorldEventData ev && ev.IsOpen || q.Objectives.Exists(o => o.Done && o.Id != "report"); // done by the player: the cause ended by their hand
+                case "story": // Phase 17 (ADR-0085): a story holds while its cause does
+                    if (parts.Length >= 3 && parts[1] == "grain") return Guid.TryParse(parts[2], out var hg) && w.FindSettlement(new SettlementId(hg)) is SettlementData hs && hs.IsInFoodShortage;
+                    return true; // a lost caravan stays lost: what became of it can always be asked
                 case "supplies":
                     if (parts.Length < 3 || !Guid.TryParse(parts[1], out var shg)) return false;
                     var shop = w.FindShop(new ShopId(shg));

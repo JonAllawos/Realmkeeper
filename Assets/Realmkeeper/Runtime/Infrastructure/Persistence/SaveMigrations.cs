@@ -39,6 +39,35 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// fields read as absent (0,0; its geography from the world's seed). The route network is not written here: the session
     /// builds it once from the regenerated geography on load. An existing world keeps its single region.
     /// </summary>
+    /// <summary>
+    /// v18 → v19 (Phase 17: campaigns). Structural: no campaigns (an existing world stays an open-ended sandbox until the
+    /// player begins one), companions with nothing yet to say and no second story asked, and the campaign pass enabled
+    /// after the quest pass. Nothing in the world's history is rewritten.
+    /// </summary>
+    public sealed class MigrationV18ToV19 : ISaveMigration
+    {
+        public int SourceVersion => 18;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["campaigns"] == null) world["campaigns"] = new JArray();
+            if (world["companions"] is JArray companions)
+                foreach (var c in companions)
+                    if (c is JObject o && o["remarks"] == null) o["remarks"] = new JArray();
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken after = null;
+            foreach (var t in systems)
+            {
+                if (t.Type != JTokenType.String) continue;
+                if ((string)t == Simulation.Campaigns.CampaignSystem.Id) return;
+                if ((string)t == Simulation.Quests.QuestSystem.Id) after = t;
+            }
+
+            after?.AddAfterSelf(Simulation.Campaigns.CampaignSystem.Id);
+        }
+    }
+
     public sealed class MigrationV17ToV18 : ISaveMigration
     {
         public int SourceVersion => 17;

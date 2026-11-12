@@ -133,6 +133,21 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>Phase 15: sends the speaker home from the party.</summary>
         Dismiss = 31,
+
+        /// <summary>Phase 17 (ADR-0083): a campaign decision (Key: decision ID; Value: choice ID), made through the campaign engine.</summary>
+        CampaignDecision = 32,
+
+        /// <summary>Phase 17: a campaign flag (Key; Value), applied once.</summary>
+        CampaignFlag = 33,
+
+        /// <summary>Phase 17 (ADR-0087): the companion spoken to says the oldest thing they have not yet said.</summary>
+        HearRemark = 34,
+
+        /// <summary>Phase 17: the player tries to talk the companion and the one they quarrel with round (the response's check decides).</summary>
+        Reconcile = 35,
+
+        /// <summary>Phase 17: two people's bond (Role: a quest role; Value: the other role; Key: dimension; Amount).</summary>
+        Relation = 36,
     }
 
     public sealed class DialogueConsequence
@@ -169,6 +184,15 @@ namespace Realmkeeper.Domain.Quests
         public bool Once { get; set; }
 
         public ContentTags Tags { get; set; }
+
+        /// <summary>
+        /// Phase 17: further conditions that, when they fail, leave the response shown but disabled, with
+        /// <see cref="UnavailableText"/> as the reason (if <see cref="ShowWhenUnavailable"/>); otherwise it is not shown.
+        /// </summary>
+        public IReadOnlyList<QuestCondition> Requirements { get; set; } = Array.Empty<QuestCondition>();
+
+        public bool ShowWhenUnavailable { get; set; }
+        public string UnavailableText { get; set; }
     }
 
     public sealed class DialogueNode

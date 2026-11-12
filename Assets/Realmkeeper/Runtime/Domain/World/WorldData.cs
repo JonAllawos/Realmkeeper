@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 18;
+        public const int CurrentSchemaVersion = 19;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -160,6 +160,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>Phase 16 (ADR-0080): persistent world events and the number the next takes.</summary>
         public List<WorldEventData> WorldEvents { get; set; } = new List<WorldEventData>();
         public int NextWorldEventNumber { get; set; } = 1;
+
+        /// <summary>Phase 17 (ADR-0082): campaigns begun in this world (empty: an open-ended sandbox world).</summary>
+        public List<Realmkeeper.Domain.Campaigns.CampaignInstanceData> Campaigns { get; set; } = new List<Realmkeeper.Domain.Campaigns.CampaignInstanceData>();
 
         public RouteSegmentData FindRoute(string id)
         {
@@ -334,6 +337,7 @@ namespace Realmkeeper.Domain.World
             if (Groups != null) foreach (var g in Groups) copy.Groups.Add(g?.Clone());
             if (WorldEvents != null) foreach (var e in WorldEvents) copy.WorldEvents.Add(e?.Clone());
             copy.NextWorldEventNumber = NextWorldEventNumber;
+            if (Campaigns != null) foreach (var c in Campaigns) copy.Campaigns.Add(c?.Clone());
             return copy;
         }
 

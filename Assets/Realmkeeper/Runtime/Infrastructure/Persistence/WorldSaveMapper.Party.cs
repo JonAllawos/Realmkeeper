@@ -39,6 +39,8 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string LeftReason { get; set; }
         public bool ItemsGranted { get; set; }
         public string PersonalQuestId { get; set; }
+        public string StoryQuestId { get; set; } // v19
+        public List<CompanionRemarkDto> Remarks { get; set; } // v19
     }
 
     public sealed class ApprovalDto
@@ -67,8 +69,10 @@ namespace Realmkeeper.Infrastructure.Persistence
                 {
                     NpcId = c.NpcId.ToString(), Standing = c.Standing.ToString(), Loyalty = c.Loyalty, TimesRecruited = c.TimesRecruited, LeftAt = c.LeftAt, LeftReason = c.LeftReason,
                     ItemsGranted = c.ItemsGranted, PersonalQuestId = c.PersonalQuestId, Approvals = new List<ApprovalDto>(),
+                    StoryQuestId = c.StoryQuestId, Remarks = new List<CompanionRemarkDto>(),
                 };
                 foreach (var a in c.Approvals) d.Approvals.Add(new ApprovalDto { Key = a.Key, Delta = a.Delta, Reason = a.Reason, At = a.At });
+                foreach (var r in c.Remarks) d.Remarks.Add(new CompanionRemarkDto { Key = r.Key, Text = r.Text, At = r.At, Heard = r.Heard });
                 dto.Companions.Add(d);
             }
         }
@@ -95,9 +99,12 @@ namespace Realmkeeper.Infrastructure.Persistence
                 {
                     NpcId = new NpcId(RequiredGuid(d.NpcId, "companion npcId")), Standing = ParseEnum<CompanionStanding>(d.Standing, "companion standing"), Loyalty = d.Loyalty,
                     TimesRecruited = d.TimesRecruited, LeftAt = d.LeftAt, LeftReason = d.LeftReason, ItemsGranted = d.ItemsGranted, PersonalQuestId = d.PersonalQuestId,
+                    StoryQuestId = d.StoryQuestId,
                 };
                 foreach (var a in d.Approvals ?? new List<ApprovalDto>())
                     if (a != null) c.Approvals.Add(new ApprovalData { Key = a.Key, Delta = a.Delta, Reason = a.Reason, At = a.At });
+                foreach (var r in d.Remarks ?? new List<CompanionRemarkDto>())
+                    if (r != null) c.Remarks.Add(new CompanionRemarkData { Key = r.Key, Text = r.Text, At = r.At, Heard = r.Heard });
                 world.Companions.Add(c);
             }
         }
