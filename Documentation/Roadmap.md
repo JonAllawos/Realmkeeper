@@ -22,7 +22,7 @@
 | Phase 14: Exploration Integrity, Living Locations & World Reactivity | Done (`242fde2`, pushed on the owner's instruction) | `Systems/Conditions.md`, `Systems/Crime.md`, `Systems/Combat.md` (sight and cover), `Systems/Locations.md`, `Systems/RestAndRecovery.md`, `Phase14/Testing.md`, `Phase14/Limitations.md`, `Reports/Phase14-Preflight-Integration-Audit.md`, `Reports/Phase14-Completion-Report.md`, ADR-0067…0071 |
 | Combat overhaul: tactical movement, combat UI, action selection and visual feedback | Done (`08c222e`, pushed on the owner's instruction) | `Reports/Combat-Overhaul-Audit.md`, `Reports/Combat-Overhaul-Completion-Report.md`, `Systems/Combat.md` (the combat interface), ADR-0072 |
 | Art assets: KayKit skeletons and character animations (CC0); Quaternius Bestiary local only | Done (`d975302`, report `4324084`, pushed) | `Reports/Art-Assets-KayKit-Bestiary-Report.md`, `Art/` credits |
-| Phase 15: Companions, Parties, Relationships & Party Progression (with the Phase 15 art and animation addendum) | Done (this milestone); committed locally and not pushed | `Systems/Party.md`, `Reports/Phase15-Preflight-Audit.md`, `Reports/Phase15-Art-Animation-Report.md`, `Reports/Phase15-Completion-Report.md`, ADR-0073…0075 |
+| Phase 15: Companions, Parties, Relationships & Party Progression (with the Phase 15 art and animation addendum) | Done (`9a48d27`, pushed on the owner's instruction) | `Systems/Party.md`, `Reports/Phase15-Preflight-Audit.md`, `Reports/Phase15-Art-Animation-Report.md`, `Reports/Phase15-Completion-Report.md`, ADR-0073…0075 |
 | Phase 16 | Not started (needs the owner's authorisation) | — |
 
 ## Phase 2 completion: what it added

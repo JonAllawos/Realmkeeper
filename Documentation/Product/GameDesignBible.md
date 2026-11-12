@@ -35,7 +35,7 @@ present but visibly temporary; **Not started**.
 | 12 | Quests, dialogue, reputation and world interaction | Implemented (`1e593ae`) |
 | 13 | Persistent dungeons, ruins, interiors and exploration | Implemented (`cda9da0`) |
 | 14 | Exploration integrity, living locations, world reactivity (and the combat overhaul) | Implemented (`242fde2`, `08c222e`) |
-| 15 | Companions, parties, relationships and party progression | **Implemented** (this milestone, committed locally, not pushed). See below. |
+| 15 | Companions, parties, relationships and party progression | **Implemented** (`9a48d27`). See below. |
 | 16 | Onwards | Not started |
 
 ### §7 Character and RPG system

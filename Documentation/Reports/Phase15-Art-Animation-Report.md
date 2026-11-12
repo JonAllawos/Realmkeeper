@@ -1,6 +1,6 @@
 # Phase 15 (art addendum): character models, animation and combat presentation
 
-Date: 2026-11-12. Branch `feature/phase-0-1-foundation`, on top of `4324084`. Committed locally together with Phase 15 (see `Phase15-Completion-Report.md`); **not pushed**.
+Date: 2026-11-12. Branch `feature/phase-0-1-foundation`, on top of `4324084`. Committed together with Phase 15 as `9a48d27` (see `Phase15-Completion-Report.md`) and pushed on the owner's instruction.
 
 **Scope.** This covers the "Additional Phase 15 requirements: art assets, animations and combat presentation". The main Phase 15 brief (companions, parties) has not been supplied, so the parts that depend on it are **not done**:
 - companions using locomotion while following;

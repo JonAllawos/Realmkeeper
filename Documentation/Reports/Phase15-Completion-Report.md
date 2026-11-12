@@ -1,6 +1,6 @@
 # Phase 15: Companions, Parties, Relationships & Party Progression — completion report
 
-Date: 2026-11-12. Base: `4324084` (pushed). Phase 15, including the art and animation addendum (`Phase15-Art-Animation-Report.md`), is **committed locally and not pushed**. Phase 16 has not been started.
+Date: 2026-11-12. Base: `4324084` (pushed). Phase 15, including the art and animation addendum (`Phase15-Art-Animation-Report.md`), is committed as `9a48d27` and **pushed on the owner's instruction**. Phase 16 has not been started.
 
 ## 1. Summary
 
@@ -239,4 +239,4 @@ Screenshots in `Documentation/Screenshots/Phase15/` (captions in `p15_party_capt
 
 **Art addendum:** see `Phase15-Art-Animation-Report.md`. It is committed together with Phase 15, because the brief folds it in.
 
-**Git:** one local commit of Phase 15 work only. `ProjectSettings/GraphicsSettings.asset`, `Assets/InitTestScene*` and the ignored Bestiary are excluded. **Not pushed.**
+**Git:** one commit of Phase 15 work only (`9a48d27`). `ProjectSettings/GraphicsSettings.asset`, `Assets/InitTestScene*` and the ignored Bestiary are excluded. Pushed on the owner's instruction.
