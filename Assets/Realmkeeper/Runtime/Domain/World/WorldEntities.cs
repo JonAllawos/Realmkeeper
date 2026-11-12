@@ -313,6 +313,15 @@ namespace Realmkeeper.Domain.World
         EscortArrived = 79,
         Trespass = 80,
         PlaceSecretFound = 81,
+
+        // Phase 14: exploration integrity and world reactivity (ADR-0067 … ADR-0071).
+        BridgeCollapsed = 82,
+        CrimeWitnessed = 83,
+        CrimeDiscovered = 84,
+        CrimeSettled = 85,
+        CreaturesWoke = 86,
+        OutlawsDeparted = 87,
+        HarmTaken = 88,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Realmkeeper.Domain.Calendar;
 
 namespace Realmkeeper.Application
@@ -46,6 +47,9 @@ namespace Realmkeeper.Application
             return new AdvanceResult(true, $"Advanced {command.Minutes} minute(s).", null, 0, null);
         }
 
+        /// <summary>Phase 14: the conditions the last clock step ended (for the HUD's message).</summary>
+        public IReadOnlyList<string> LastExpired { get; private set; } = Array.Empty<string>();
+
         private long Absolute() => (long)_world.CurrentSimulationDate.ToDayNumber() * WorldTime.MinutesPerDay + _world.MinuteOfDay;
 
         private void SetClock(int minute, long startAbsolute)
@@ -54,6 +58,10 @@ namespace Realmkeeper.Application
             var player = _world.Player;
             var hours = (int)(Absolute() / 60 - startAbsolute / 60);
             if (player != null && hours > 0) player.Fed = Math.Max(0, player.Fed - hours * FedLostPerHour);
+            // Phase 14 (ADR-0068): lasting conditions whose time is up end now (in place: an end can never make the world invalid).
+            if (player?.Rpg != null) LastExpired = Realmkeeper.Domain.Rpg.LastingConditions.Expire(player.Rpg, Absolute());
+            foreach (var n in _world.Npcs)
+                if (n?.Character?.Sheet != null) Realmkeeper.Domain.Rpg.LastingConditions.Expire(n.Character.Sheet, Absolute());
             WorldChanged?.Invoke(new WorldChange(WorldChangeReason.TimeAdvanced, null));
         }
     }

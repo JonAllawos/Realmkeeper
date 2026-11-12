@@ -84,7 +84,7 @@ namespace Realmkeeper.Simulation.Places
                     PlayerAccess = !owned && ownerGroup == null, AcceptsDeposits = false, SourceKey = "place:" + place.PlaceId,
                 };
                 var table = f.Get("loot");
-                if (table != null && !owned)
+                if (table != null) // Phase 14: owned containers hold their owners' things too
                 {
                     var seed = SeedMixer.Combine(place.Seed, "contents:" + f.Id);
                     var loot = LootTables.Roll(table, new LootContext { MaxRarity = ItemRarity.Uncommon }, seed);
@@ -204,5 +204,40 @@ namespace Realmkeeper.Simulation.Places
         }
 
         public static string Now(WorldData world) => QuestClock.Now(world).ToString(CultureInfo.InvariantCulture);
+    }
+}
+
+namespace Realmkeeper.Simulation.Places
+{
+    using Realmkeeper.Domain.Economy;
+
+    /// <summary>
+    /// Phase 14 (ADR-0071): a bandit hideout above a road takes a share of the trade along it while its outlaws are
+    /// there. Driven off or talked off the road (the place records which), the road is free again.
+    /// </summary>
+    public static class RoadThreat
+    {
+        public const int Percent = 25;
+
+        public static int PercentTaken(WorldData world, TradeRouteData route)
+        {
+            if (world?.Places == null || route == null) return 0;
+            foreach (var p in world.Places)
+            {
+                if (p == null || p.DefinitionId != Phase14Places.Hideout || p.Variables.ContainsKey("road")) continue;
+                if (!p.Variables.TryGetValue("route", out var id)) continue;
+                var watched = world.FindTradeRoute(new Realmkeeper.Domain.Identifiers.TradeRouteId(System.Guid.Parse(id)));
+                if (watched == null) continue;
+                var same = (watched.OriginId == route.OriginId && watched.DestinationId == route.DestinationId) || (watched.OriginId == route.DestinationId && watched.DestinationId == route.OriginId);
+                if (!same) continue;
+                foreach (var g in p.Layout.Groups)
+                {
+                    var s = p.GroupStateOf(g.Id);
+                    if (g.WakesOn == null && s != GroupState.Defeated && s != GroupState.Departed) return Percent;
+                }
+            }
+
+            return 0;
+        }
     }
 }

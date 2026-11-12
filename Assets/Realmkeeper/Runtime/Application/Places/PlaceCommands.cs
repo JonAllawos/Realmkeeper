@@ -28,6 +28,14 @@ namespace Realmkeeper.Application.Places
         Activate = 11,
         Free = 12,
         Attack = 13,
+
+        // Phase 14: parley with outlaws, fire, theft (ADR-0069, ADR-0071).
+        PayToll = 14,
+        Persuade = 15,
+        Intimidate = 16,
+        Burn = 17,
+        Steal = 18,
+        StealQuietly = 19,
     }
 
     /// <summary>Go into a place: from the map (a wilderness place the player knows of) or from its settlement. A locked way in needs an approach.</summary>
@@ -103,6 +111,7 @@ namespace Realmkeeper.Application.Places
             commands.Register<TraversePlaceCommand>(new TraverseHandler());
             commands.Register<PlaceActionCommand>(new ActionHandler());
             commands.Register<SpringTrapCommand>(new TrapHandler());
+            commands.Register<AttackPersonCommand>(new AttackPersonHandler()); // Phase 14
         }
 
         private static CommandResult Ready(CommandContext context, bool inPlace, out PlayerCharacterData p)
@@ -143,6 +152,7 @@ namespace Realmkeeper.Application.Places
                     new Dictionary<string, string> { ["place"] = place.Name, ["by"] = p.Name });
             var followers = PlacePresence.Followers(w).Count;
             var room = place.Layout.Room(entrance.A);
+            PlaceFollowers.Enter(w, place, room.Id); // Phase 14 (ADR-0070): they come in with the player and keep a room of their own
             var said = PlaceRules.Arrive(context, w, place, room, entrance.Id);
             var name = place.Category == PlaceCategory.Interior ? place.Name : place.Name;
             return CommandResult.Ok($"{p.Name} enters {name}{(followers > 0 ? $", with {followers} following" : string.Empty)}. {room.Name}." + (said.Length > 0 ? " " + said : string.Empty));
@@ -212,9 +222,12 @@ namespace Realmkeeper.Application.Places
                 foreach (var e in place.Layout.Connections)
                     if (e.Kind == ConnectionKind.Entrance && e.A == w.Player.PlaceRoom) way = e;
                 if (way == null) return CommandResult.InvalidState("There is no way out from here: go back to the way you came in.");
+                var held = PlaceRules.Held(w);
+                if (held != null) return CommandResult.InvalidState(held);
                 if (place.DoorOf(way) == DoorState.Locked || place.DoorOf(way) == DoorState.Barred) place.Doors[way.Id] = DoorState.Open; // opened from the inside
 
                 var p = w.Player;
+                var behind = PlaceFollowers.Leave(w, place, p.PlaceRoom); // Phase 14 (ADR-0070): only those with the player leave
                 p.PlaceId = null;
                 p.PlaceRoom = null;
                 p.PlaceFloor = 0;
@@ -236,7 +249,7 @@ namespace Realmkeeper.Application.Places
                     where = "the open country";
                 }
 
-                return CommandResult.Ok($"{p.Name} leaves {place.Name} for {where}.");
+                return CommandResult.Ok($"{p.Name} leaves {place.Name} for {where}." + (behind.Count > 0 ? $" {string.Join(" and ", behind)} stay{(behind.Count == 1 ? "s" : string.Empty)} behind, waiting." : string.Empty));
             }
         }
 
@@ -255,7 +268,8 @@ namespace Realmkeeper.Application.Places
                 if (from != null && to.Id == from.Id)
                 {
                     w.Player.Pose = c.Pose;
-                    return CommandResult.Ok();
+                    var caught = PlaceFollowers.Follow(w, place, to.Id); // Phase 14: a follower whose way opened catches up as soon as it does
+                    return caught.Count > 0 ? CommandResult.Ok(string.Join(" ", caught)) : CommandResult.Ok();
                 }
 
                 if (from == null || to.Floor != from.Floor) return CommandResult.InvalidState("You can't get there from here.");
@@ -271,9 +285,34 @@ namespace Realmkeeper.Application.Places
                 }
 
                 if (way == null) return CommandResult.InvalidState(blocked ?? "You can't get there from here.");
+                var held = PlaceRules.Held(w);
+                if (held != null) return CommandResult.InvalidState(held);
+                if (way.Kind == ConnectionKind.Bridge && place.BridgeOf(way) == BridgeState.Damaged)
+                {
+                    // Phase 14 (ADR-0071): a damaged bridge holds only for the sure-footed; a fall brings it down for good.
+                    var limit = PlaceRules.AttemptsLeft(place, way.Id, "cross", out var key);
+                    if (limit != null) return CommandResult.InvalidState(limit);
+                    var roll = PlaceRules.Check(w, Domain.Rpg.Skill.Acrobatics, 12, key);
+                    if (!roll.Success)
+                    {
+                        place.Bridges[way.Id] = BridgeState.Destroyed;
+                        var fall = PlaceHarm.Apply(w, new HarmSpec { Source = "fall:bridge", Name = "a fall from the bridge in " + place.Name, Damage = new Domain.World.Dice(1, 6), DamageType = DamageType.Bludgeoning }, key, out _);
+                        place.Note(w.Player.Name + " brought down the bridge in " + place.Name + ".");
+                        context.ReportEvent(HistoricalEventType.BridgeCollapsed, EventSeverity.Warning, EventImportance.Minor, PlaceKnowledge.Settlements(place),
+                            new Dictionary<string, string> { ["place"] = place.Name, ["by"] = w.Player.Name });
+                        return CommandResult.Ok($"{roll.Text}. Halfway over, the planks give way and the bridge goes down into the channel. {fall} You drag yourself out on the side you started from — the bridge is gone.");
+                    }
+
+                    w.Player.Pose = c.Pose;
+                    var across = PlaceRules.Arrive(context, w, place, to, way.Id);
+                    var with = PlaceFollowers.Follow(w, place, to.Id);
+                    return CommandResult.Ok($"{roll.Text}. The bridge sways and creaks, but holds. {to.Name}." + (across.Length > 0 ? " " + across : string.Empty) + (with.Count > 0 ? " " + string.Join(" ", with) : string.Empty));
+                }
+
                 w.Player.Pose = c.Pose;
                 var said = PlaceRules.Arrive(context, w, place, to, way.Id);
-                return CommandResult.Ok(to.Name + (said.Length > 0 ? ". " + said : "."));
+                var follow = PlaceFollowers.Follow(w, place, to.Id); // Phase 14 (ADR-0070)
+                return CommandResult.Ok(to.Name + (said.Length > 0 ? ". " + said : ".") + (follow.Count > 0 ? " " + string.Join(" ", follow) : string.Empty));
             }
         }
 
@@ -288,7 +327,7 @@ namespace Realmkeeper.Application.Places
                 var x = place?.Layout.Connection(c.ConnectionId);
                 if (x == null || !x.IsVertical) return CommandResult.NotFound("There are no stairs or ladder there.");
                 if (!x.Joins(w.Player.PlaceRoom)) return CommandResult.InvalidState("You are not at those " + (x.Kind == ConnectionKind.Ladder ? "ladder rungs." : "stairs."));
-                var why = PlaceRules.Blocks(place, x, w.Player.PlaceRoom);
+                var why = PlaceRules.Blocks(place, x, w.Player.PlaceRoom) ?? PlaceRules.Held(w);
                 if (why != null) return CommandResult.InvalidState(why);
                 var up = x.A == w.Player.PlaceRoom;
                 var to = place.Layout.Room(up ? x.B : x.A);
@@ -296,7 +335,8 @@ namespace Realmkeeper.Application.Places
                 var verb = x.Kind == ConnectionKind.Ladder ? "climb" : "take the stairs";
                 var above = place.Layout.Floors.Find(f => f.Index == to.Floor);
                 var said = PlaceRules.Arrive(context, w, place, to, x.Id);
-                return CommandResult.Ok($"You {verb} to the {above?.Name?.ToLowerInvariant() ?? "next floor"}: {to.Name}." + (said.Length > 0 ? " " + said : string.Empty));
+                var follow = PlaceFollowers.Follow(w, place, to.Id); // Phase 14 (ADR-0070)
+                return CommandResult.Ok($"You {verb} to the {above?.Name?.ToLowerInvariant() ?? "next floor"}: {to.Name}." + (said.Length > 0 ? " " + said : string.Empty) + (follow.Count > 0 ? " " + string.Join(" ", follow) : string.Empty));
             }
         }
 
@@ -331,13 +371,8 @@ namespace Realmkeeper.Application.Places
             s.ChangedAt = QuestClock.Now(w);
             place.Variables["sprung:" + f.Id] = visit;
             var text = trap.Sprung;
-            if (!trap.Damage.IsEmpty)
-            {
-                var save = PlaceRules.Save(w, trap.Save, trap.SaveDc, place.PlaceId + ":" + f.Id + ":" + visit);
-                var lost = PlaceRules.Hurt(w, trap.Damage, save.Success, place.PlaceId + ":" + f.Id + ":" + visit);
-                text += $" {save.Text}: {lost} {trap.DamageType.ToString().ToLowerInvariant()} damage.";
-                if (!save.Success && trap.Condition != null) text += $" You are {trap.Condition.ToLowerInvariant()}.";
-            }
+            if (!trap.Damage.IsEmpty || trap.Inflicts.HasValue)
+                text += " " + PlaceHarm.Apply(w, PlaceRules.Harm(trap, place), place.PlaceId + ":" + f.Id + ":" + visit, out _); // Phase 14: the shared rules (ADR-0068)
 
             if (trap.Alarm)
             {
@@ -371,6 +406,40 @@ namespace Realmkeeper.Application.Places
                 if (room == null) return CommandResult.InvalidState("Step into a room first.");
                 return PlaceActions.Do(context, w, place, room, c.TargetId, c.Action);
             }
+        }
+    }
+}
+
+namespace Realmkeeper.Application.Places
+{
+    using Realmkeeper.Domain.Identifiers;
+    using Realmkeeper.Simulation.Places;
+
+    /// <summary>Phase 14 (ADR-0069): attack a person in the room — an assault, with everything that follows from it.</summary>
+    public sealed class AttackPersonCommand : ICommand
+    {
+        public AttackPersonCommand(NpcId npcId) { NpcId = npcId; }
+        public NpcId NpcId { get; }
+    }
+
+    internal sealed class AttackPersonHandler : ICommandHandler<AttackPersonCommand>
+    {
+        public CommandResult Handle(AttackPersonCommand c, CommandContext context)
+        {
+            if (!context.HasWorld) return CommandResult.InvalidState("There is no active world.");
+            var committed = context.Committed;
+            if (committed.ActiveEncounter != null) return CommandResult.InvalidState("Not during a fight.");
+            if (!committed.Player.IsInPlace) return CommandResult.InvalidState("There is nobody here to attack.");
+            var w = context.Edit();
+            var place = PlaceRules.Current(w);
+            var room = PlaceRules.CurrentRoom(w);
+            var npc = w.FindNpc(c.NpcId);
+            if (place == null || room == null || npc == null || npc.IsDeceased) return CommandResult.NotFound("They are not here.");
+            if (w.FindEscort(npc.NpcId) is Domain.Places.EscortData e && (e.State == Domain.Places.EscortState.Following || e.State == Domain.Places.EscortState.Waiting))
+                return CommandResult.InvalidState(npc.Name + " is in your care.");
+            foreach (var p in IndoorSchedule.Everyone(w, place, Simulation.Quests.QuestClock.Now(w)))
+                if (p.Npc.NpcId == npc.NpcId && p.Room == room.Id) return PlaceEncounters.StartAssault(context, w, place, room, npc, p.X, p.Z);
+            return CommandResult.InvalidState(npc.Name + " is not in this room.");
         }
     }
 }

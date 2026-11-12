@@ -147,6 +147,7 @@ namespace Realmkeeper.Tests.PlayMode
                 foreach (var p in v.Passages)
                 {
                     if (p.Kind == ConnectionKind.Entrance || !(p.A == r || p.B == r) || p.Guarded) continue;
+                    if (p.Kind == ConnectionKind.Bridge && v.Bridges.TryGetValue(p.Id, out var bridge) && bridge == BridgeState.Destroyed) continue; // Phase 14: a fallen bridge is no way
                     if (avoidLocked && (p.Door == DoorState.Locked || (p.Door == DoorState.Barred && p.A != r))) continue;
                     var o = p.A == r ? p.B : p.A;
                     if (o == null || prev.ContainsKey(o) || v.Room(o) == null) continue;

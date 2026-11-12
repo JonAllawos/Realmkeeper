@@ -125,9 +125,38 @@ namespace Realmkeeper.Domain.Places
                             edges.Add((s, n, false));
             }
 
+            // Phase 14 (ADR-0071): a story that wants a bridge needs a loop to put it on, so a fallen bridge never cuts the only way.
+            if (story != null && story.Bridges > 0 && !edges.Exists(e => !e.Tree && e.A.Floor == 0))
+                foreach (var s in slots)
+                {
+                    if (s.Floor != 0) continue;
+                    var n = slots.Find(o => o.Floor == 0 && ((o.Sx == s.Sx + 1 && o.Sz == s.Sz) || (o.Sx == s.Sx && o.Sz == s.Sz + 1)));
+                    if (n == null || edges.Exists(e => (e.A == s && e.B == n) || (e.A == n && e.B == s))) continue;
+                    edges.Add((s, n, false));
+                    break;
+                }
+
             // Passages on each floor.
             var connIndex = 0;
-            foreach (var (sa, sb, _) in edges) layout.Connections.Add(Corridor(a, rng, sa, sb, cw, ref connIndex));
+            var loops = new List<PlaceConnection>();
+            foreach (var (sa, sb, tree) in edges)
+            {
+                var corridor = Corridor(a, rng, sa, sb, cw, ref connIndex);
+                layout.Connections.Add(corridor);
+                if (!tree) loops.Add(corridor);
+            }
+
+            // Bridges over water or a chasm, on loop passages only.
+            if (story != null)
+                for (var i = 0; i < story.Bridges && i < loops.Count; i++)
+                {
+                    var b = loops[i];
+                    b.Kind = ConnectionKind.Bridge;
+                    b.Door = DoorState.Open;
+                    b.LockDc = 0;
+                    b.KeyItem = null;
+                    b.Bridge = i == 0 && story.DamagedBridge ? BridgeState.Damaged : BridgeState.Intact;
+                }
 
             // Stairs or ladders: each upper floor's first slot stands over a room of the floor before.
             for (var f = 1; f < floors; f++)
@@ -206,6 +235,7 @@ namespace Realmkeeper.Domain.Places
                 }
 
                 r.Ceiling = a.Ceiling;
+                if (a.Category == PlaceCategory.AbandonedSettlement && r.Kind == RoomKind.Yard && !r.Tags.Contains("open_sky")) r.Tags.Add("open_sky"); // Phase 14: the hamlet's yards lie under the sky
                 if (r == entrance || r.Secret) continue;
                 if (a.HazardChance > 0 && a.Hazards.Length > 0 && rng.Percent(a.HazardChance))
                 {
@@ -215,9 +245,87 @@ namespace Realmkeeper.Domain.Places
                 }
             }
 
+            // Phase 14: a story's burning room.
+            if (story?.FireRoom != null)
+            {
+                var fire = layout.Rooms.Find(r => r.Kind == story.FireRoom.Value && r != entrance && !r.Secret) ?? layout.Rooms.Find(r => r != entrance && !r.Secret);
+                if (fire != null) fire.Hazard = "fire";
+            }
+
             var cells = new Occupancy(layout);
             Populate(a, rng, layout, cells, depth, story);
+            if (story?.KeyItem != null) PlaceKey(layout, entrance, story.KeyItem, rng);
+            if (story != null && story.Bridges > 0 && !layout.Connections.Exists(c => c.Kind == ConnectionKind.Bridge)) SideBridge(layout, entrance, story);
             return layout;
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0071): a place with no loop for its bridge puts it on the way into a side room — a dead end that holds
+        /// nothing the place's story needs — so a fallen bridge cuts off only that room.
+        /// </summary>
+        private static void SideBridge(PlaceLayout layout, PlaceRoom entrance, PlaceDefinition story)
+        {
+            foreach (var r in layout.Rooms)
+            {
+                if (r == entrance || r.Secret || layout.Features.Exists(f => f.Room == r.Id && (f.Required || f.Id.StartsWith("story:", StringComparison.Ordinal) || f.Get("key") != null))) continue;
+                var ways = layout.Connections.FindAll(c => c.Joins(r.Id) && c.Kind != ConnectionKind.Secret);
+                if (ways.Count != 1) continue;
+                var c0 = ways[0];
+                if (c0.IsVertical || c0.Kind == ConnectionKind.Entrance || c0.KeyItem != null) continue;
+                c0.Kind = ConnectionKind.Bridge;
+                c0.Door = DoorState.Open;
+                c0.LockDc = 0;
+                c0.Bridge = story.DamagedBridge ? BridgeState.Damaged : BridgeState.Intact;
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0071): the deepest locked door takes the story's key (the deepest door is locked for it if none
+        /// is); the key goes into a container that can be reached from the way in without passing that door.
+        /// </summary>
+        private static void PlaceKey(PlaceLayout layout, PlaceRoom entrance, string keyItem, PlaceRng rng)
+        {
+            var depth = Depths(layout, entrance.Id, includeSecret: false);
+            int Deep(PlaceConnection c) => Math.Max(depth.TryGetValue(c.A, out var x) ? x : 0, c.B != null && depth.TryGetValue(c.B, out var y) ? y : 0);
+            PlaceConnection door = null;
+            foreach (var c in layout.Connections)
+                if (c.Kind == ConnectionKind.Door && c.Door == DoorState.Locked && (door == null || Deep(c) > Deep(door))) door = c;
+            if (door == null)
+            {
+                foreach (var c in layout.Connections)
+                    if (c.Kind == ConnectionKind.Door && (door == null || Deep(c) > Deep(door))) door = c;
+                if (door == null)
+                {
+                    // No door anywhere: the deepest open passage gets one, so the key has a lock to open.
+                    foreach (var c in layout.Connections)
+                        if (c.Kind == ConnectionKind.Opening && (door == null || Deep(c) > Deep(door))) door = c;
+                    if (door == null) return;
+                    door.Kind = ConnectionKind.Door;
+                }
+
+                door.Door = DoorState.Locked;
+                door.LockDc = Math.Max(door.LockDc, 15);
+            }
+
+            door.KeyItem = keyItem;
+            var near = new HashSet<string> { entrance.Id };
+            var queue = new Queue<string>();
+            queue.Enqueue(entrance.Id);
+            while (queue.Count > 0)
+            {
+                var room = queue.Dequeue();
+                foreach (var c in layout.Connections)
+                {
+                    if (c == door || c.Kind == ConnectionKind.Secret || c.Kind == ConnectionKind.Entrance || !c.Joins(room)) continue;
+                    var next = c.Other(room);
+                    if (next != null && near.Add(next)) queue.Enqueue(next);
+                }
+            }
+
+            var boxes = layout.Features.FindAll(f => f.Kind == FeatureKind.Container && near.Contains(f.Room) && f.Get("key") == null && f.Get("owned") == null && !f.Id.StartsWith("story:", StringComparison.Ordinal));
+            if (boxes.Count == 0) return; // the lock can still be picked or forced
+            boxes[rng.Next(boxes.Count)].Data["key"] = keyItem;
         }
 
         private static readonly (int, int)[] Steps = { (1, 0), (-1, 0), (0, 1), (0, -1) };
@@ -402,12 +510,42 @@ namespace Realmkeeper.Domain.Places
                     if (def == null) continue;
                     var room = ordinary.Find(r => r.Kind == kind) ?? ordinary[0];
                     if (!cells.Find(room, rng, 1, out var x, out var z)) continue;
-                    layout.Features.Add(new PlaceFeature { Id = "story:" + feature, Room = room.Id, Kind = def.Kind, DefinitionId = feature, X = x, Z = z, Required = required });
+                    var sf = new PlaceFeature { Id = "story:" + feature, Room = room.Id, Kind = def.Kind, DefinitionId = feature, X = x, Z = z, Required = required };
+                    if (story.StoryLoot.TryGetValue(feature, out var table)) sf.Data["loot"] = table;
+                    if (story.StoryItem.TryGetValue(feature, out var relic)) sf.Data["key"] = relic; // one named item, put in by the same path as a key
+                    layout.Features.Add(sf);
                 }
 
             // Inhabitants.
             var taken = new HashSet<string>(StringComparer.Ordinal);
             var g = 0;
+
+            // Phase 14: groups that sleep beside a story feature and wake when it is disturbed.
+            if (story != null)
+                foreach (var (feature, name, creatures, sleepers) in story.Waking)
+                {
+                    var at = layout.Features.Find(x => x.Id == "story:" + feature);
+                    var room = at == null ? null : layout.Room(at.Room);
+                    if (room == null) continue;
+                    taken.Add(room.Id);
+                    var waking = new PlaceGroup { Id = "g" + (g++), Room = room.Id, Name = name, Behaviour = GroupBehaviour.Lair, WakesOn = at.Id };
+                    for (var i = 0; i < sleepers; i++)
+                    {
+                        var creature = creatures[rng.Next(creatures.Length)];
+                        if (!cells.Find(room, rng, 1, out var x, out var z)) {
+                            // A crowded vault: any free cell of the room will do (they lie where they can).
+                            x = -1; z = -1;
+                            for (var cx = room.Rect.X; cx < room.Rect.MaxX && x < 0; cx++)
+                                for (var cz = room.Rect.Z; cz < room.Rect.MaxZ && x < 0; cz++)
+                                    if (cells.Free(room.Floor, cx, cz) && !layout.Features.Exists(ft => ft.Room == room.Id && ft.X == cx && ft.Z == cz)) { x = cx; z = cz; }
+                            if (x < 0) continue;
+                            cells.Take(room.Floor, x, z);
+                        }
+                        waking.Members.Add(new GroupMember { CreatureId = creature, X = x, Z = z });
+                    }
+
+                    if (waking.Members.Count > 0) layout.Groups.Add(waking);
+                }
             foreach (var t in a.Inhabitants)
             {
                 var room = ordinary.Find(r => !taken.Contains(r.Id) && Array.IndexOf(t.Rooms, r.Kind) >= 0) ?? ordinary.Find(r => !taken.Contains(r.Id));
@@ -423,6 +561,7 @@ namespace Realmkeeper.Domain.Places
                     group.Members.Add(new GroupMember { CreatureId = creature, X = x, Z = z });
                 }
 
+                if (story != null && story.Parley && !layout.Groups.Exists(x => x.Behaviour == GroupBehaviour.Parley)) group.Behaviour = GroupBehaviour.Parley;
                 if (group.Members.Count > 0) layout.Groups.Add(group);
             }
 

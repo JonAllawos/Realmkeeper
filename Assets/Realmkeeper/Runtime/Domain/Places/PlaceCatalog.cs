@@ -87,7 +87,7 @@ namespace Realmkeeper.Domain.Places
     /// </summary>
     public static class ArchetypeCatalog
     {
-        public const int GeneratorVersion = 1;
+        public const int GeneratorVersion = 2; // Phase 14: waking groups, fire rooms, bridges, keys, parley, new traps
 
         private static readonly Dictionary<string, ArchetypeDefinition> ById = new Dictionary<string, ArchetypeDefinition>(StringComparer.Ordinal);
 
@@ -157,7 +157,7 @@ namespace Realmkeeper.Domain.Places
                 CorridorWidth = 1, Ceiling = 2.6f, LitChance = 0, LoopChance = 40, DoorChance = 20, SecretRooms = 1, DeepRoom = RoomKind.Tomb,
                 RoomPool = new[] { RoomKind.Tomb, RoomKind.Corridor, RoomKind.Chamber }, Material = "brick",
                 Inhabitants = new[] { new GroupTemplate { Name = "bone-walkers", Creatures = new[] { "skeleton" }, Min = 2, Max = 4, Behaviour = GroupBehaviour.Ambush, Rooms = new[] { RoomKind.Tomb } } },
-                Traps = new[] { "pressure_darts", "spike_pit" }, MaxTraps = 2, Hazards = new[] { "darkness", "toxic_air" }, HazardChance = 40, ContainerFeature = "niche",
+                Traps = new[] { "pressure_darts", "spike_pit", "blinding_dust" }, MaxTraps = 2, Hazards = new[] { "darkness", "toxic_air" }, HazardChance = 40, ContainerFeature = "niche",
                 LootTable = "tomb_offerings", Clues = new[] { "epitaph", "disturbed_dust" }, ClueCount = 2,
             });
             Add(new ArchetypeDefinition
@@ -166,7 +166,7 @@ namespace Realmkeeper.Domain.Places
                 DoorChance = 40, LockedChance = 30, SecretRooms = 1, EntranceRoom = RoomKind.Hall, DeepRoom = RoomKind.Shrine,
                 RoomPool = new[] { RoomKind.Shrine, RoomKind.Chamber, RoomKind.Quarters, RoomKind.Storage }, Material = "dressed_stone",
                 Inhabitants = new[] { new GroupTemplate { Name = "cultists at prayer", Creatures = new[] { "cultist" }, Min = 2, Max = 3, Behaviour = GroupBehaviour.Lair, Rooms = new[] { RoomKind.Shrine } } },
-                Traps = new[] { "glyph_ward" }, MaxTraps = 1, ContainerFeature = "chest", LootTable = "tomb_offerings", Clues = new[] { "carved_symbol", "broken_statue" }, ClueCount = 2,
+                Traps = new[] { "glyph_ward", "flame_jet" }, MaxTraps = 1, ContainerFeature = "chest", LootTable = "tomb_offerings", Clues = new[] { "carved_symbol", "broken_statue" }, ClueCount = 2,
             });
             Add(new ArchetypeDefinition
             {
@@ -178,7 +178,7 @@ namespace Realmkeeper.Domain.Places
                     new GroupTemplate { Name = "a band of outlaws", Creatures = new[] { "bandit" }, Min = 2, Max = 3, Behaviour = GroupBehaviour.Lair, Rooms = new[] { RoomKind.Den } },
                     new GroupTemplate { Name = "their captain", Creatures = new[] { "bandit_captain" }, Min = 1, Max = 1, Behaviour = GroupBehaviour.Lair, Rooms = new[] { RoomKind.Quarters } },
                 },
-                Traps = new[] { "tripwire_alarm" }, MaxTraps = 1, ContainerFeature = "chest", LootTable = "outlaw_leader", Clues = new[] { "old_campfire", "stolen_goods" }, ClueCount = 2,
+                Traps = new[] { "tripwire_alarm", "snare_net" }, MaxTraps = 2, ContainerFeature = "chest", LootTable = "outlaw_leader", Clues = new[] { "old_campfire", "stolen_goods" }, ClueCount = 2,
             });
             Add(new ArchetypeDefinition
             {
@@ -186,7 +186,7 @@ namespace Realmkeeper.Domain.Places
                 LitChance = 10, LoopChance = 30, DoorChance = 40, LockedChance = 30, SecretRooms = 1, DeepRoom = RoomKind.Vault,
                 RoomPool = new[] { RoomKind.Chamber, RoomKind.Storage, RoomKind.Hall }, Material = "brick",
                 Inhabitants = new[] { new GroupTemplate { Name = "vermin", Creatures = new[] { "giant_rat" }, Min = 2, Max = 4, Behaviour = GroupBehaviour.Lair, Rooms = new[] { RoomKind.Storage, RoomKind.Chamber } } },
-                Traps = new[] { "pressure_darts", "spike_pit" }, MaxTraps = 2, Hazards = new[] { "deep_water", "darkness" }, HazardChance = 30, ContainerFeature = "chest",
+                Traps = new[] { "pressure_darts", "flame_jet" }, MaxTraps = 2, Hazards = new[] { "deep_water", "darkness" }, HazardChance = 30, ContainerFeature = "chest",
                 LootTable = "old_cache", Clues = new[] { "carved_symbol", "tally_marks" }, ClueCount = 2,
             });
             Add(new ArchetypeDefinition
@@ -331,6 +331,9 @@ namespace Realmkeeper.Domain.Places
             Add("desk", "Desk", FeatureKind.Document, "A desk with papers and an inkwell.", Skill.Investigation, 10, "Accounts and letters — ordinary household business.");
             Add("granary_ledger_in", "Store-room ledger", FeatureKind.Document, "The keeper's working ledger, kept by the door.", Skill.Investigation, 8,
                 "Measures in and out, day by day — the same figures the public tally shows.");
+
+            // Phase 14: the five new places' stories.
+            foreach (var f in Phase14Places.Features()) ById[f.Id] = f;
         }
 
         public static List<string> Validate()
@@ -381,8 +384,12 @@ namespace Realmkeeper.Domain.Places
         public Dice Damage { get; set; }
         public DamageType DamageType { get; set; }
 
-        /// <summary>A condition on a failed save ("Poisoned"), or null.</summary>
-        public string Condition { get; set; }
+        /// <summary>Phase 14 (ADR-0068): the lasting condition a failed save leaves, how long, and what ends it.</summary>
+        public Realmkeeper.Domain.Combat.ConditionType? Inflicts { get; set; }
+
+        public int ConditionMinutes { get; set; }
+        public ConditionRemedy Remedies { get; set; }
+        public int EscapeDc { get; set; }
 
         /// <summary>Wakes the place's inhabitants.</summary>
         public bool Alarm { get; set; }
@@ -435,8 +442,26 @@ namespace Realmkeeper.Domain.Places
             Add(new TrapDefinition
             {
                 Id = "poison_needle", Name = "Poisoned needle", DetectDc = 14, DisarmDc = 14, DisarmTool = "thieves_tools", Save = Ability.Constitution, SaveDc = 13, Damage = new Dice(1, 4),
-                DamageType = DamageType.Poison, Condition = "Poisoned", Reset = TrapReset.Rearms, Seen = "A needle's point, stained dark, in the keyhole's throat.",
+                DamageType = DamageType.Poison, Inflicts = Realmkeeper.Domain.Combat.ConditionType.Poisoned, ConditionMinutes = 60, Remedies = ConditionRemedy.Restoration, Reset = TrapReset.Rearms, Seen = "A needle's point, stained dark, in the keyhole's throat.",
                 Sprung = "A sting in the fingertip; the hand goes numb.",
+            });
+            Add(new TrapDefinition
+            {
+                Id = "snare_net", Name = "Snare net", DetectDc = 12, DisarmDc = 11, DisarmTool = null, Save = Ability.Dexterity, SaveDc = 12, Inflicts = Realmkeeper.Domain.Combat.ConditionType.Restrained,
+                Remedies = ConditionRemedy.Escape, EscapeDc = 12, Alarm = true, Reset = TrapReset.Once, Salvage = null,
+                Seen = "A net hangs folded in the shadows overhead, a line running from it down to a peg by your foot.", Sprung = "The line jerks and a weighted net drops over you.",
+            });
+            Add(new TrapDefinition
+            {
+                Id = "flame_jet", Name = "Flame jet", DetectDc = 13, DisarmSkill = Skill.Investigation, DisarmDc = 13, DisarmTool = "thieves_tools", Save = Ability.Dexterity, SaveDc = 13,
+                Damage = new Dice(2, 6), DamageType = DamageType.Fire, Reset = TrapReset.Rearms,
+                Seen = "A blackened nozzle in the wall, and a pressure plate in front of it.", Sprung = "A tongue of fire roars from the wall.",
+            });
+            Add(new TrapDefinition
+            {
+                Id = "blinding_dust", Name = "Blinding dust", DetectDc = 13, DisarmDc = 12, DisarmTool = "thieves_tools", Save = Ability.Constitution, SaveDc = 12,
+                Inflicts = Realmkeeper.Domain.Combat.ConditionType.Blinded, ConditionMinutes = 10, Remedies = ConditionRemedy.Restoration, Reset = TrapReset.Once,
+                Seen = "A fine grey powder caked around a hinge, and a bellows hidden behind it.", Sprung = "A puff of grey dust blows into your face. Your eyes burn shut.",
             });
             Add(new TrapDefinition
             {
@@ -473,7 +498,15 @@ namespace Realmkeeper.Domain.Places
         public int SaveDc { get; set; }
         public Dice Damage { get; set; }
         public DamageType DamageType { get; set; }
-        public string Condition { get; set; }
+
+        /// <summary>Phase 14 (ADR-0068): the lasting condition a failed save leaves, how long, and what ends it.</summary>
+        public Realmkeeper.Domain.Combat.ConditionType? Inflicts { get; set; }
+
+        public int ConditionMinutes { get; set; }
+        public ConditionRemedy Remedies { get; set; }
+
+        /// <summary>Phase 14: a burning hazard burns this many minutes from when the room is first entered, then is out (0: always).</summary>
+        public int BurnsMinutes { get; set; }
 
         /// <summary>The skill that reads the danger (on inspection) and what it tells.</summary>
         public Skill ReadSkill { get; set; }
@@ -500,7 +533,7 @@ namespace Realmkeeper.Domain.Places
             ById["toxic_air"] = new HazardDefinition
             {
                 Id = "toxic_air", Name = "Foul air", Describe = "The air is close and sour; lamps burn low and blue.", Save = Ability.Constitution, SaveDc = 11, Damage = new Dice(1, 6),
-                DamageType = DamageType.Poison, Condition = "Poisoned", ReadSkill = Skill.Nature, ReadDc = 10, Reading = "Damp — the kind of air that pools in old workings. Hold your breath and move through quickly.",
+                DamageType = DamageType.Poison, Inflicts = Realmkeeper.Domain.Combat.ConditionType.Poisoned, ConditionMinutes = 60, Remedies = ConditionRemedy.Restoration, ReadSkill = Skill.Nature, ReadDc = 10, Reading = "Damp — the kind of air that pools in old workings. Hold your breath and move through quickly.",
             };
             ById["darkness"] = new HazardDefinition
             {
@@ -515,12 +548,12 @@ namespace Realmkeeper.Domain.Places
             ById["deep_water"] = new HazardDefinition
             {
                 Id = "deep_water", Name = "Deep water", Describe = "Black water fills part of the floor; there is no telling how deep.", SwimDc = 10, Damage = new Dice(1, 4),
-                DamageType = DamageType.Bludgeoning, ReadSkill = Skill.Survival, ReadDc = 10, Reading = "Cold and deep, but still — a strong swimmer will cross.",
+                DamageType = DamageType.Bludgeoning, Save = Ability.Constitution, SaveDc = 10, Inflicts = Realmkeeper.Domain.Combat.ConditionType.Exhaustion, Remedies = ConditionRemedy.LongRestLevel, ReadSkill = Skill.Survival, ReadDc = 10, Reading = "Cold and deep, but still — a strong swimmer will cross.",
             };
             ById["fire"] = new HazardDefinition
             {
                 Id = "fire", Name = "Fire", Describe = "Flames lick across the floor.", Save = Ability.Dexterity, SaveDc = 12, Damage = new Dice(1, 10), DamageType = DamageType.Fire,
-                ReadSkill = Skill.Survival, ReadDc = 8, Reading = "It burns along the old oil; it will gutter out in time.",
+                ReadSkill = Skill.Survival, ReadDc = 8, Reading = "It burns along the old oil; it will gutter out in time.", BurnsMinutes = 240,
             };
         }
     }
@@ -541,6 +574,30 @@ namespace Realmkeeper.Domain.Places
 
         /// <summary>Story features added to the generated layout, each in a room of the given kind (deepest first).</summary>
         public List<(string Feature, RoomKind Room, bool Required)> Story { get; set; } = new List<(string, RoomKind, bool)>();
+
+        // ----- Phase 14 (ADR-0071) -----
+
+        /// <summary>A key item: the deepest locked door takes it, and it is put in a container reachable without that door.</summary>
+        public string KeyItem { get; set; }
+
+        /// <summary>Groups that sleep beside a story feature and wake when it is opened, taken from or used.</summary>
+        public List<(string Feature, string Name, string[] Creatures, int Count)> Waking { get; set; } = new List<(string, string, string[], int)>();
+
+        /// <summary>A room of this kind burns (the fire hazard), or null.</summary>
+        public RoomKind? FireRoom { get; set; }
+
+        /// <summary>How many loop passages become bridges, and whether the first is damaged.</summary>
+        public int Bridges { get; set; }
+
+        public bool DamagedBridge { get; set; }
+
+        /// <summary>The first group (the lookouts) parleys before fighting.</summary>
+        public bool Parley { get; set; }
+
+        /// <summary>What a story container holds: a loot table, and one named item (a relic) — by feature.</summary>
+        public Dictionary<string, string> StoryLoot { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        public Dictionary<string, string> StoryItem { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
     }
 
     public static class PlaceCatalog
@@ -585,6 +642,7 @@ namespace Realmkeeper.Domain.Places
             });
             Add(new PlaceDefinition { Id = Cave, Name = "Bramble Cave", ArchetypeId = "cave", Description = "A cave mouth behind brambles, known to hunters and avoided by them." });
             Add(new PlaceDefinition { Id = Ruin, Name = "The Broken Hall", ArchetypeId = "ruin", Description = "The shell of an old hall, roofless in places, older than any town nearby." });
+            foreach (var d in Phase14Places.Definitions()) Add(d);
         }
     }
 }

@@ -92,11 +92,16 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>One record per level gained after the first, in order.</summary>
         public List<AdvancementRecord> Advancements { get; set; } = new List<AdvancementRecord>();
 
+        /// <summary>Phase 14 (ADR-0068): conditions that outlive a fight or come from outside one (a trap's poison, exhaustion).</summary>
+        public List<LastingConditionData> Conditions { get; set; } = new List<LastingConditionData>();
+
         public IReadOnlyList<string> Chosen(string choiceId) => Choices.TryGetValue(choiceId, out var list) ? list : (IReadOnlyList<string>)System.Array.Empty<string>();
 
         public CharacterSheetData Clone()
         {
             var c = (CharacterSheetData)MemberwiseClone();
+            c.Conditions = new List<LastingConditionData>();
+            foreach (var k in Conditions ?? new List<LastingConditionData>()) c.Conditions.Add(k.Clone());
             c.BaseScores = (int[])BaseScores.Clone();
             c.Choices = new Dictionary<string, List<string>>();
             foreach (var pair in Choices) c.Choices[pair.Key] = new List<string>(pair.Value);

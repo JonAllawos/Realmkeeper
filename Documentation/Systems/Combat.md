@@ -332,3 +332,32 @@ The panel is docked along the bottom of the screen, so the fight stays visible a
 - **Presentation:** creature models, animations and a 3D grid renderer.
 - **Rewards and recovery:** experience awards from combat, resurrection, and recovery and medical
   systems.
+
+## Line of sight, line of effect and cover (Phase 14, ADR-0067)
+
+One function, `GridSight` (`Domain/Combat/GridSight.cs`), answers every sight question, in fights and in places alike. It works in whole numbers on a doubled grid, so it gives the same answer every time.
+
+**Cover.** From a corner of the attacker's square, four lines are drawn to the four corners of the target's square. A line is blocked if it passes through a wall square, between two diagonal walls, or along a seam that walls close on both sides.
+
+| Lines blocked | Cover | Effect |
+|---|---|---|
+| None | None | — |
+| 1–2 | Half | +2 AC and Dexterity saves |
+| 3 | Three-quarters | +5 AC and Dexterity saves |
+| 4 | Total | Cannot be targeted |
+
+The attacker uses whichever of its corners gives the least cover. Low obstacles (a table, a sarcophagus) and creatures in the way give half cover at most.
+
+**Where it applies:**
+- **Attacks.** Cover is added to the target's AC, and the breakdown and the log name it ("half cover from the pillar").
+- **Spells.** A target or point needs line of effect. An area spreads from its origin only to squares the centre line reaches, and only walls stop it. Dexterity saves get the cover bonus unless the spell ignores cover (Sacred Flame).
+- **The AI.** It takes the same rules. Melee and ranged choices need line of effect, and a shooter without a line closes in along a real route (`PathAround`), never through walls.
+
+**Doors and low cover in fights.** Fights in places carry the doors of the room and its neighbours (`EncounterData.Doors`: open or shut, locked) and the low obstacles (`EncounterData.LowCover`). A shut door is a wall until someone uses an action to open it (`DoorAction`). When the fight ends, the door states go back to the place.
+
+**The combat window:**
+- Walls, doors (brown) and low cover (tan) are drawn on the grid.
+- Figures out of the player's line of sight are drawn faded.
+- Each foe's square and order row say what cover it has from the player.
+
+Performance: a cover check on a 40×40 grid with 15 % walls takes 20–24 µs; an area line, 0.5–1 µs.

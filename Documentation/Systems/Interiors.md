@@ -51,3 +51,25 @@ Later entries reuse the same place. Leaving puts the character back outside the 
 - They are never duplicated: the settlement scene and the interior are never loaded together, and the settlement scene already hid people at home.
 - Household chests are not the player's. Opening one is refused ("It belongs to the household"), because theft is not part of Phase 13.
 - Entering a restricted room in someone's home is not yet trespass; only garrisons enforce restricted rooms.
+
+## Phase 14: people move through their house, and followers keep a room (ADR-0070)
+
+**Residents move.** Where a resident is is not a fixed room. `IndoorSchedule` (`Simulation/Places/IndoorSchedule.cs`) works it out from the person's daily plan and the minute:
+- the room that suits what they are doing (bedroom to sleep, kitchen or hall to eat, the workroom to work);
+- a free cell in it;
+- the room they came from.
+
+People move only along real passages (`PlaceRoutes`). Shut doors are opened as they pass. Residents hold the keys to their own house's locks and lift bars from the side they are on; nobody else passes a locked door. Secret ways are for the player once found, never for residents. A fallen bridge is no way for anyone, and a follower will not risk a damaged one.
+
+**In the scene:**
+- someone who has just changed rooms walks the route through the doorways (`PlaceWalker`, at 1.4 m/s);
+- they never cross a wall.
+
+**Followers** (a freed captive, an escort) have a room of their own:
+- They follow the player through open ways.
+- They wait at a locked or barred door or at a bridge they will not cross, and the HUD says why.
+- They catch up when the way opens.
+- Only those in the player's room join a fight there.
+- Leaving a place takes only those with the player. The others stay where they wait.
+
+Performance: an indoor schedule query takes 0.1 ms for a building with 24 people; a follower route takes 0.3–0.4 µs.

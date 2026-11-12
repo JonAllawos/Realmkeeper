@@ -155,6 +155,22 @@ namespace Realmkeeper.Application
                 var s = SpellCatalog.Find(command.SpellId);
                 var access = new SpellAccess(new CharacterRules(player.Rpg));
                 if (s == null || !access.IsReady(s.Id)) return CommandResult.Invalid("You do not have that spell ready.");
+                if (s.Id == "lesser_restoration")
+                {
+                    // Phase 14 (ADR-0068): Lesser Restoration ends a lasting Blinded, Deafened, Paralyzed or Poisoned.
+                    var at = Now(context.Committed);
+                    var curable = false;
+                    foreach (var k in LastingConditions.Active(player.Rpg, at))
+                        if ((k.Remedies & ConditionRemedy.Restoration) != 0) curable = true;
+                    if (!curable) return CommandResult.Invalid("Lesser Restoration would end nothing: you are not blinded, deafened, paralysed or poisoned.");
+                    if (!access.CastLevels(s).Contains(command.SlotLevel)) return CommandResult.Invalid($"No level {command.SlotLevel} slot is left for {s.Name}.");
+                    var rw = context.Edit();
+                    var rs = rw.Player.Rpg;
+                    rs.Resources[access.SlotResource(command.SlotLevel)] -= 1;
+                    var said = LastingConditions.Restore(rs, at);
+                    return CommandResult.Ok($"{s.Name}: {said}");
+                }
+
                 var heals = s.Effects.Count > 0;
                 foreach (var e in s.Effects) if (e.Kind != CombatEffectKind.Healing) heals = false;
                 if (!heals || !s.Castable) return CommandResult.Invalid($"Outside fights only instantaneous healing spells can be cast; {s.Name} is not one.");
@@ -195,6 +211,9 @@ namespace Realmkeeper.Application
                     ? CharacterRest.ShortRest(world.Player.Rpg, command.HitDice, Dice(world, command.Key), now, command.Key)
                     : CharacterRest.LongRest(world.Player.Rpg, now, command.Key);
                 if (command.Kind == RestKind.Long) lines.AddRange(RechargeItems(world.Player, Dice(world, command.Key + ":recharge")));
+                if (command.Kind == RestKind.Long && LastingConditions.LongRest(world.Player.Rpg) is string ex) lines.Add(ex); // Phase 14: one exhaustion level per long rest
+                var still = LastingConditions.Active(world.Player.Rpg, now);
+                if (still.Count > 0) lines.Add("Still: " + string.Join(", ", still.ConvertAll(k => LastingConditions.Name(k.Type).ToLowerInvariant())) + " (a rest does not end those).");
                 return CommandResult.Ok(string.Join("\n", lines));
             }
         }
@@ -247,7 +266,18 @@ namespace Realmkeeper.Application
             var sheet = _world.Player?.Rpg;
             var problem = kind == RestKind.Short ? CharacterRest.ShortRestProblem(sheet, hitDice) : CharacterRest.LongRestProblem(sheet, SpellCommandHandlers.Now(_world));
             if (problem != null) return new RestResult { Message = problem };
+            var where = Places.RestRules.Check(_world, kind); // Phase 14 (ADR-0068): where you rest matters
+            if (where.Problem != null) return new RestResult { Message = where.Problem };
             var minutes = kind == RestKind.Short ? CharacterRest.ShortRestMinutes : CharacterRest.LongRestMinutes;
+            if (kind == RestKind.Long && where.Interrupter != null)
+            {
+                // Inhabitants still stand in this place: half the night passes, then they find the sleeper. No rest is gained.
+                var half = Execute(new AdvanceTimeCommand(minutes / 2));
+                if (!half.IsSuccess) return new RestResult { Message = "The rest was interrupted: " + half.Message };
+                var woken = Dispatch(new Places.InterruptRestCommand(where.Interrupter));
+                return new RestResult { Message = $"Your rest is broken after {minutes / 120} hours. " + woken.Message, MinutesPassed = minutes / 2 };
+            }
+
             var time = Execute(new AdvanceTimeCommand(minutes));
             if (!time.IsSuccess) return new RestResult { Message = "The rest was interrupted: " + time.Message };
             var key = kind + ":" + SpellCommandHandlers.Now(_world).ToString(CultureInfo.InvariantCulture);
@@ -262,7 +292,25 @@ namespace Realmkeeper.Application
             if (!HasWorld) return "There is no active world.";
             if (_world.ActiveEncounter != null) return EncounterBlocksTime;
             var sheet = _world.Player?.Rpg;
-            return kind == RestKind.Short ? CharacterRest.ShortRestProblem(sheet, hitDice) : CharacterRest.LongRestProblem(sheet, SpellCommandHandlers.Now(_world));
+            return (kind == RestKind.Short ? CharacterRest.ShortRestProblem(sheet, hitDice) : CharacterRest.LongRestProblem(sheet, SpellCommandHandlers.Now(_world)))
+                   ?? Places.RestRules.Check(_world, kind).Problem;
+        }
+
+        /// <summary>Phase 14: what resting here would mean, for the HUD (allowed, refused and why, or a broken night ahead).</summary>
+        public Places.RestCheck RestHere(RestKind kind) => HasWorld ? Places.RestRules.Check(_world, kind) : new Places.RestCheck { Problem = "There is no active world." };
+
+        /// <summary>
+        /// Phase 14 (ADR-0068): one try at breaking free of a lasting restraint; each try takes a minute, and working free
+        /// once the tries are spent takes ten.
+        /// </summary>
+        public CommandResult BreakFree()
+        {
+            if (!HasWorld) return CommandResult.InvalidState("There is no active world.");
+            var held = _world.Player?.Rpg == null ? null : LastingConditions.Find(_world.Player.Rpg, Realmkeeper.Domain.Combat.ConditionType.Restrained, SpellCommandHandlers.Now(_world));
+            var working = held != null && held.EscapeTries >= LastingConditions.EscapeTries;
+            var r = Dispatch(new Places.BreakFreeCommand());
+            if (r.IsSuccess) Execute(new AdvanceTimeCommand(working ? LastingConditions.WorkFreeMinutes : LastingConditions.EscapeMinutes));
+            return r;
         }
     }
 }

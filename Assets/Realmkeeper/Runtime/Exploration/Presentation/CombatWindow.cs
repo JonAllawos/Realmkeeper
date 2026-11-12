@@ -205,7 +205,8 @@ namespace Realmkeeper.Exploration.Presentation
                 var state = c.State == VitalState.Dying ? $" · dying ({c.DeathSaveSuccesses}✓ {c.DeathSaveFailures}✗)" : c.State == VitalState.Stable ? " · unconscious, stable" : string.Empty;
                 var conditions = c.Conditions.Count > 0 ? " · " + string.Join(", ", c.Conditions) : string.Empty;
                 var magic = (c.Concentration != null ? " · concentrating on " + c.Concentration : string.Empty) + (c.Effects.Count > 0 ? " · " + string.Join(", ", c.Effects) : string.Empty);
-                row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Initiative,2}  {c.Name}\n     {hp} · AC {c.ArmorClass}{state}{conditions}{magic}";
+                var cover = string.IsNullOrEmpty(c.CoverFromPlayer) || c.CoverFromPlayer == "no cover" ? string.Empty : " · " + c.CoverFromPlayer; // Phase 14
+                row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Initiative,2}  {c.Name}\n     {hp} · AC {c.ArmorClass}{state}{conditions}{magic}{cover}";
                 _order.Add(row);
             }
         }
@@ -232,13 +233,33 @@ namespace Realmkeeper.Exploration.Presentation
                     if (Composing && NeedsPoint && yourTurn) { var aim = pos; cell.clicked += () => Aim(aim); }
                     if (s.DifficultTerrainContains(pos)) cell.AddToClassList("xk-combat-cell--difficult");
                     if (s.BlockedContains(pos)) cell.AddToClassList("xk-combat-cell--wall"); // Phase 13
+                    string terrain = null; // Phase 14: doors and low cover on the grid
+                    if (s.Doors != null)
+                        foreach (var d in s.Doors)
+                            if (d.Covers(pos))
+                            {
+                                cell.AddToClassList(d.Open ? "xk-combat-cell--door-open" : "xk-combat-cell--door");
+                                terrain = $"{d.Name} ({(d.Open ? "open" : d.Locked ? "locked" : "shut")})";
+                            }
+
+                    if (s.LowCover != null)
+                        foreach (var lc in s.LowCover)
+                            if (lc.X == pos.X && lc.Y == pos.Y)
+                            {
+                                cell.AddToClassList("xk-combat-cell--cover");
+                                terrain = lc.Name + " (half cover to anyone behind it)";
+                            }
+
+                    if (terrain != null) cell.tooltip = terrain;
                     if (at.TryGetValue((pos.X, pos.Y), out var who))
                     {
                         cell.text = Initials(who.Name);
                         cell.AddToClassList(SideClass(who));
                         cell.EnableInClassList("xk-combat-cell--active", who.IsActive);
                         cell.EnableInClassList("xk-combat-cell--down", who.State != VitalState.Conscious);
-                        cell.tooltip = $"{who.Name}: {who.Hp}/{who.MaxHp} HP, AC {who.ArmorClass}, {who.State.ToString().ToLowerInvariant()}";
+                        cell.EnableInClassList("xk-combat-cell--hidden", !who.InPlayersLine);
+                        cell.tooltip = $"{who.Name}: {who.Hp}/{who.MaxHp} HP, AC {who.ArmorClass}, {who.State.ToString().ToLowerInvariant()}" +
+                                       (string.IsNullOrEmpty(who.CoverFromPlayer) ? string.Empty : " · from you: " + who.CoverFromPlayer);
                         var id = who.Id;
                         cell.clicked += () => Inspect(id);
                     }
@@ -247,7 +268,7 @@ namespace Realmkeeper.Exploration.Presentation
                     {
                         var problem = MoveProblem?.Invoke(pos);
                         cell.EnableInClassList("xk-combat-cell--reachable", problem == null);
-                        cell.tooltip = problem ?? $"Move to {pos} ({s.Player.Position.DistanceFeet(pos)} ft away).";
+                        cell.tooltip = (terrain != null ? terrain + ". " : string.Empty) + (problem ?? $"Move to {pos} ({s.Player.Position.DistanceFeet(pos)} ft away).");
                         var p = pos;
                         if (problem == null) cell.clicked += () => MoveRequested?.Invoke(p);
                     }
@@ -259,7 +280,8 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             if (s.Player != null && s.IsPlayersTurn)
-                _grid.Add(TradeWindow.Text($"{s.Player.MovementLeft} ft of movement left (speed {s.Player.Speed} ft). Green squares are reachable; shaded ones are difficult terrain (double cost).", "xk-w-note"));
+                _grid.Add(TradeWindow.Text($"{s.Player.MovementLeft} ft of movement left (speed {s.Player.Speed} ft). Green squares are reachable; shaded ones are difficult terrain (double cost)." +
+                                                 (s.Doors.Count > 0 || s.LowCover.Count > 0 ? " Brown squares are doors (a shut door blocks sight); tan ones are low cover. Faded figures are out of your line of sight." : string.Empty), "xk-w-note"));
         }
 
         private void FillActions(EncounterSnapshot s)

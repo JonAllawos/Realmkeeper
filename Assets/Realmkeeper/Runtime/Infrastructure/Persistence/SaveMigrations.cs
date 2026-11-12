@@ -23,6 +23,24 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// here: the session adds them once with the rest of the living world, so an old save and a fresh world of its seed
     /// get the same places. A player in a settlement or on the map stays where they were.
     /// </summary>
+    /// <summary>
+    /// v15 → v16 (Phase 14: conditions, crime, bridges). Structural: an empty crime list (the next number 1). Lasting
+    /// conditions, fight doors, bridge states and woken groups are absent and read as none. The five new places are not
+    /// written here: the session ensures each place definition once with the living world, so a Phase 13 world gains them
+    /// and keeps every place, room, door, chest, creature and quest it had.
+    /// </summary>
+    public sealed class MigrationV15ToV16 : ISaveMigration
+    {
+        public int SourceVersion => 15;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["crimes"] == null) world["crimes"] = new JArray();
+            if (world["nextCrimeNumber"] == null) world["nextCrimeNumber"] = 1;
+        }
+    }
+
     public sealed class MigrationV14ToV15 : ISaveMigration
     {
         public int SourceVersion => 14;

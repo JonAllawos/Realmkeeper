@@ -39,11 +39,52 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
         /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
         /// <summary>
+        /// Rebuilds the v15 layout (Phase 13): no crimes, lasting conditions, fight doors or low cover, bridge states, woken
+        /// groups or goods lost on the road — and none of the Phase 14 places, their quests, chests or creatures.
+        /// </summary>
+        public static void StripToV15(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 15;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            foreach (var field in new[] { "crimes", "nextCrimeNumber" }) w.Remove(field);
+            var newer = new System.Collections.Generic.HashSet<string>(Realmkeeper.Domain.Places.Phase14Places.All.Select(d => "place:" + d));
+            if (w["places"] is Newtonsoft.Json.Linq.JArray places)
+            {
+                foreach (var p in places.Where(p => newer.Contains((string)p["placeId"])).ToList()) p.Remove();
+                foreach (Newtonsoft.Json.Linq.JObject p in places)
+                {
+                    p.Remove("bridges");
+                    foreach (Newtonsoft.Json.Linq.JObject c in (p["layout"]?["connections"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray()) c.Remove("bridge");
+                    foreach (var g in ((p["groups"] as Newtonsoft.Json.Linq.JObject)?.Properties() ?? Enumerable.Empty<Newtonsoft.Json.Linq.JProperty>()).ToList())
+                        (g.Value as Newtonsoft.Json.Linq.JObject)?.Remove("woken");
+                }
+            }
+
+            var quests = new[] { "founders_register", "fane_lantern", "road_tolls", "old_culverts" };
+            if (w["quests"] is Newtonsoft.Json.Linq.JArray qs)
+                foreach (var q in qs.Where(q => quests.Contains((string)q["definitionId"])).ToList()) q.Remove();
+            if (w["containers"] is Newtonsoft.Json.Linq.JArray boxes)
+                foreach (var b in boxes.Where(b => newer.Any(id => ((string)b["key"]).StartsWith("box:" + id + ":"))).ToList()) b.Remove();
+            if (w["creatures"] is Newtonsoft.Json.Linq.JArray creatures)
+                foreach (var c in creatures.Where(c => newer.Any(id => ((string)c["originId"] ?? string.Empty).StartsWith("place:" + id + ":"))).ToList()) c.Remove();
+
+            // Lasting conditions live on character sheets (a sheet has a classId); fight conditions stay, without their lasting key.
+            foreach (var o in w.DescendantsAndSelf().OfType<Newtonsoft.Json.Linq.JObject>().ToList())
+            {
+                if (o["classId"] != null && o["conditions"] is Newtonsoft.Json.Linq.JArray) o.Remove("conditions");
+                o.Remove("lastingKey");
+                o.Remove("lostOnRoad");
+                if (o["blocked"] != null && o["combatants"] != null) { o.Remove("doors"); o.Remove("lowCover"); }
+            }
+        }
+
+        /// <summary>
         /// Rebuilds the v14 layout (Phase 12): no places, escorts, place containers, garrison people, the rescue quest or
         /// place references on the player and containers.
         /// </summary>
         public static void StripToV14(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV15(doc); // Phase 14
             doc["schemaVersion"] = 14;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             var garrison = new System.Collections.Generic.HashSet<string>();

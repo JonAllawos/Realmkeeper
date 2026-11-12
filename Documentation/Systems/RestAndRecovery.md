@@ -81,3 +81,15 @@ for this.
   example Cure Wounds after a fight.
 - **Durations.** Other spells and the durations of buffs are not tracked outside encounters yet
   (ADR-0039).
+
+## Where you rest, and lasting conditions (Phase 14, ADR-0068)
+
+- **Where you rest matters** (`RestRules.Check`):
+  - Safe in a settlement or a camp on the map.
+  - In a place, only in a room with no live hazard and no foes in sight that is nobody's private room.
+  - Never in someone's house, and never while restrained.
+  - A long rest in a place with inhabitants still about is broken halfway: that group finds the sleeper and the fight starts in the player's room. Nothing is recovered.
+- **A long rest removes one level of exhaustion.** It cures nothing else; the summary lists what is "Still:" in force.
+- **Lesser Restoration** can be cast outside a fight from the conditions panel. It ends Blinded, Deafened, Paralyzed or Poisoned.
+
+See `Systems/Conditions.md`.

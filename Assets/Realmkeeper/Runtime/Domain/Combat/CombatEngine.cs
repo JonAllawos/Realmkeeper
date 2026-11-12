@@ -65,6 +65,8 @@ namespace Realmkeeper.Domain.Combat
             enc.Seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "encounter:" + enc.EncounterId);
             enc.DifficultTerrain.AddRange(setup.DifficultTerrain);
             enc.Blocked.AddRange(setup.Blocked);
+            foreach (var d in setup.Doors) enc.Doors.Add(d.Clone());
+            foreach (var c in setup.LowCover) enc.LowCover.Add(c.Clone());
             foreach (var p in setup.Participants)
             {
                 var c = BuildCombatant(world, enc, p, nextGuid, errors);
@@ -144,8 +146,54 @@ namespace Realmkeeper.Domain.Combat
                     for (var l = 0; l < def.Spellcasting.Slots.Count; l++) c.Resources["spell_slots_" + (l + 1)] = def.Spellcasting.Slots[l];
             }
 
+            // Phase 14 (ADR-0068): conditions that outlive fights come in with the character.
+            var lasting = c.Kind == CombatantKind.Player ? world.Player?.Rpg : c.Kind == CombatantKind.Npc && c.CreatureId == null ? world.FindNpc(p.NpcId)?.Character?.Sheet : null;
+            if (lasting != null) BringLasting(world, c, lasting);
+
             c.CombatantId = new CombatantId(nextGuid("combatant"));
             return c;
+        }
+
+        /// <summary>Absolute world minute (lasting conditions' clock).</summary>
+        public static long WorldMinute(WorldData world) => (long)world.CurrentSimulationDate.ToDayNumber() * 1440 + world.MinuteOfDay;
+
+        private static void BringLasting(WorldData world, CombatantData c, CharacterSheetData sheet)
+        {
+            foreach (var k in LastingConditions.Active(sheet, WorldMinute(world)))
+            {
+                if (LastingConditions.FightOnly(k.Type)) continue;
+                c.Conditions.Add(new ConditionInstance
+                {
+                    Type = k.Type, Reason = string.IsNullOrEmpty(k.Reason) ? "lasting" : k.Reason, Duration = ConditionDuration.UntilRemoved, Level = k.Type == ConditionType.Exhaustion ? k.Level : 0,
+                    EscapeDc = k.EscapeDc, EscapeByCheck = (k.Remedies & ConditionRemedy.Escape) != 0, LastingKey = string.IsNullOrEmpty(k.Source) ? k.Type.ToString() : k.Source,
+                });
+            }
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0068): what the fight did to lasting conditions goes back to the sheet — those removed in the fight
+        /// are gone; exhaustion keeps the level it reached (exhaustion gained in a fight lasts too).
+        /// </summary>
+        private void ReturnLasting()
+        {
+            foreach (var c in Encounter.Combatants)
+            {
+                var sheet = SheetOf(c);
+                if (sheet == null || sheet.IsDead) continue;
+                for (var i = sheet.Conditions.Count - 1; i >= 0; i--)
+                {
+                    var k = sheet.Conditions[i];
+                    if (k.Type == ConditionType.Exhaustion) continue;
+                    var key = string.IsNullOrEmpty(k.Source) ? k.Type.ToString() : k.Source;
+                    if (!c.Conditions.Exists(x => x.LastingKey == key && x.Type == k.Type)) sheet.Conditions.RemoveAt(i);
+                }
+
+                var level = ExhaustionLevel(c);
+                var held = sheet.Conditions.Find(x => x.Type == ConditionType.Exhaustion);
+                if (level <= 0) { if (held != null) sheet.Conditions.Remove(held); }
+                else if (held != null) held.Level = level;
+                else sheet.Conditions.Add(new LastingConditionData { Type = ConditionType.Exhaustion, Level = level, Source = "fight", Reason = "worn out in a fight", AppliedAt = WorldMinute(_world), Remedies = ConditionRemedy.LongRestLevel });
+            }
         }
 
         /// <summary>Rolls initiative, orders the combatants and starts the first turn.</summary>
@@ -322,6 +370,17 @@ namespace Realmkeeper.Domain.Combat
                 case UseItemAction u: DoUseItem(actor, u); break; // Phase 11
                 case UseFeatureAction f: DoFeature(actor, f); break;
                 case CastSpellAction cs: DoCastSpell(actor, cs); break;
+                case DoorAction da: // Phase 14 (ADR-0067): the free object interaction, or the action if that is spent
+                {
+                    var door = e.Doors.Find(x => x.Id == da.DoorId);
+                    var free = !actor.Turn.InteractionUsed;
+                    if (free) actor.Turn.InteractionUsed = true;
+                    else UseAction(actor);
+                    door.Open = !door.Open;
+                    Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} {(door.Open ? "opens" : "shuts")} the {door.Name}{(free ? string.Empty : " (using the action)")}.");
+                    break;
+                }
+
                 case EndTurnAction _:
                     Log(CombatLogKind.Action, actor.CombatantId, default, $"{actor.Name} ends their turn.");
                     AdvanceTurn();
@@ -356,6 +415,19 @@ namespace Realmkeeper.Domain.Combat
         public string Unavailable(CombatantData actor, CombatAction action)
         {
             var t = actor.Turn;
+            if (action is DoorAction door)
+            {
+                var d = Encounter.Doors.Find(x => x.Id == door.DoorId);
+                if (d == null) return "There is no such door here.";
+                if (Incapacitated(actor)) return $"{actor.Name} is incapacitated.";
+                if (d.Locked) return $"The {d.Name} is locked fast.";
+                var near = d.Squares.Exists(q => q.Equals(actor.Position) || q.IsAdjacent(actor.Position));
+                if (!near) return $"The {d.Name} is out of reach: stand next to it.";
+                if (d.Open && d.Squares.Exists(q => At(q) != null)) return $"Someone stands in the {d.Name}'s way.";
+                if (t.InteractionUsed && t.ActionUsed) return "The object interaction and the action this turn are used.";
+                return null;
+            }
+
             var incapacitated = Incapacitated(actor);
             switch (action)
             {
@@ -382,6 +454,8 @@ namespace Realmkeeper.Domain.Combat
                     var d = actor.Position.DistanceFeet(target.Position);
                     if (o.Melee && d > o.Reach) return $"{target.Name} is {d} ft away; {o.Name} reaches {o.Reach} ft.";
                     if (!o.Melee && d > o.LongRange) return $"{target.Name} is {d} ft away; {o.Name} reaches at most {o.LongRange} ft.";
+                    var cover = CoverOf(actor, target); // Phase 14: nothing passes through a wall or a closed door
+                    if (!cover.HasLineOfEffect) return $"{target.Name} cannot be reached by a clear line: total cover from {cover.By}.";
                     if (o.Kind == AttackKind.Grapple && Has(target, ConditionType.Grappled)) return $"{target.Name} is already grappled.";
                     var notReady = AttackNotReady(actor, o); // Phase 10: a recharging attack
                     if (notReady != null) return notReady;
@@ -459,7 +533,20 @@ namespace Realmkeeper.Domain.Combat
         }
 
         /// <summary>Phase 13: a wall or rock square (a place's geometry), which no one may enter.</summary>
-        public bool IsBlocked(GridPos p) => Encounter.Blocked.Count > 0 && Encounter.Blocked.Contains(p);
+        public bool IsBlocked(GridPos p)
+        {
+            if (Encounter.Blocked.Count > 0 && Encounter.Blocked.Contains(p)) return true;
+            foreach (var d in Encounter.Doors) if (!d.Open && d.Covers(p)) return true; // Phase 14: a closed door is a wall until opened
+            return false;
+        }
+
+        /// <summary>Phase 14 (ADR-0067): cover of a target against an attacker (or any two squares), from the one shared sight rule.</summary>
+        public CoverResult CoverOf(CombatantData from, CombatantData to) => GridSight.Cover(new EncounterSightGrid(Encounter, from, to), from.Position, to.Position);
+
+        public CoverResult CoverOf(GridPos from, GridPos to) => GridSight.Cover(new EncounterSightGrid(Encounter), from, to);
+
+        /// <summary>Whether an area spreading from a square reaches another (walls and closed doors stop it; creatures do not).</summary>
+        public bool Reaches(GridPos origin, GridPos square) => GridSight.CentreLineClear(new EncounterSightGrid(Encounter), origin, square);
 
         public CombatantData At(GridPos p)
         {
@@ -601,13 +688,8 @@ namespace Realmkeeper.Domain.Combat
         {
             var s = Stats(target);
             var r = new DamageResult { Rolled = amount, Type = type, HpBefore = Hp(target) };
-            var final = Math.Max(0, amount);
-            if (s.Immune(type)) { final = 0; r.Adjustments.Add("immune"); }
-            else
-            {
-                if (s.Resists(type) || Has(target, ConditionType.Petrified) || RageResists(target, type)) { final /= 2; r.Adjustments.Add("resistance (halved)"); }
-                if (s.Vulnerable(type)) { final *= 2; r.Adjustments.Add("vulnerability (doubled)"); }
-            }
+            // Phase 14 (ADR-0068): the one damage rule, shared with harm outside fights.
+            var final = DamageRules.Adjust(amount, s.Immune(type), s.Resists(type) || Has(target, ConditionType.Petrified) || RageResists(target, type), s.Vulnerable(type), r.Adjustments);
 
             r.Final = final;
             NoteDamageType(target, type, final); // Phase 10: fire and acid stop regeneration
@@ -939,6 +1021,7 @@ namespace Realmkeeper.Domain.Combat
             FinishOffRegenerators(); // Phase 10
             e.PendingReaction = null; // Phase 10: the question's window closes with the fight
             EndAllEffects(); // Phase 9: spell and feature effects are encounter time only
+            ReturnLasting(); // Phase 14: before the encounter's conditions are left behind
             foreach (var c in e.Combatants)
                 if (SheetOf(c) != null && c.State == VitalState.Dying)
                 {

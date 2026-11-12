@@ -81,6 +81,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v15 (Phase 13): explorable places and the people held in or brought out of them.
         public List<PlaceDto> Places { get; set; }
         public List<EscortDto> Escorts { get; set; }
+
+        // Schema v16 (Phase 14).
+        public List<CrimeDto> Crimes { get; set; }
+        public int NextCrimeNumber { get; set; } = 1;
     }
 
     public sealed class WorldSettingsDto
@@ -161,6 +165,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string ResourceTypeId { get; set; }
         public int Produced { get; set; }
         public int Wasted { get; set; }
+        public int LostOnRoad { get; set; } // v16
         public int Demand { get; set; }
         public int Consumed { get; set; }
         public int Shortfall { get; set; }
@@ -617,6 +622,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public System.Collections.Generic.List<ExperienceAwardDto> ExperienceLog { get; set; }
         public System.Collections.Generic.List<AdvancementRecordDto> Advancements { get; set; }
 
+        // Schema v16 (Phase 14): lasting conditions.
+        public System.Collections.Generic.List<LastingConditionDto> Conditions { get; set; }
+
         // Schema v10 (Phase 8): the dying state.
         public int DeathSaveSuccesses { get; set; }
         public int DeathSaveFailures { get; set; }
@@ -669,6 +677,10 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         // Schema v15 (Phase 13): walls around a fight in a place.
         public List<GridPosDto> Blocked { get; set; }
+
+        // Schema v16 (Phase 14): doors and low cover in the fight's area.
+        public List<EncounterDoorDto> Doors { get; set; }
+        public List<LowCoverDto> LowCover { get; set; }
         public string StartedOn { get; set; }
         public int StartedAtMinute { get; set; }
         public string EndedOn { get; set; }
@@ -847,6 +859,39 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int SaveDc { get; set; }
         public string SaveAbility { get; set; }
         public bool EscapeByCheck { get; set; }
+
+        // Schema v16 (Phase 14): a lasting condition brought into the fight.
+        public string LastingKey { get; set; }
+    }
+
+    /// <summary>Schema v16 (Phase 14).</summary>
+    public sealed class LastingConditionDto
+    {
+        public string Type { get; set; }
+        public int Level { get; set; }
+        public string Source { get; set; }
+        public string Reason { get; set; }
+        public long AppliedAt { get; set; }
+        public long ExpiresAt { get; set; } = -1;
+        public string Remedies { get; set; }
+        public int EscapeDc { get; set; }
+        public int EscapeTries { get; set; }
+    }
+
+    public sealed class EncounterDoorDto
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public List<GridPosDto> Squares { get; set; }
+        public bool Open { get; set; }
+        public bool Locked { get; set; }
+    }
+
+    public sealed class LowCoverDto
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Name { get; set; }
     }
 
     public sealed class TurnResourcesDto

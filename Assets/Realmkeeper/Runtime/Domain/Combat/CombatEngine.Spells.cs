@@ -187,6 +187,8 @@ namespace Realmkeeper.Domain.Combat
                     if (s.Targeting == SpellTargeting.FromSelf) return p.Equals(actor.Position) ? "Aim away from yourself." : null;
                     var d = actor.Position.DistanceFeet(p);
                     if (d > range) return $"That point is {d} ft away; {s.Name} reaches {range} ft.";
+                    var line = CoverOf(actor.Position, p); // Phase 14 (ADR-0067): the point must be in clear line
+                    if (!line.HasLineOfEffect) return $"There is no clear line to {p}: total cover from {line.By}.";
                     foreach (var e in s.Effects)
                         if (e.Kind == CombatEffectKind.Teleport && At(p) != null) return $"{p} is occupied.";
                     return null;
@@ -203,6 +205,12 @@ namespace Realmkeeper.Domain.Combat
             if (!s.Heals && target.State != VitalState.Conscious && s.Affects != SpellAffects.Hostile && !s.DealsDamage) { }
             var d = actor.Position.DistanceFeet(target.Position);
             if (d > range) return $"{target.Name} is {d} ft away; {s.Name} reaches {range} ft.";
+            if (target != actor)
+            {
+                var line = CoverOf(actor, target); // Phase 14 (ADR-0067): a spell needs a clear path to its target
+                if (!line.HasLineOfEffect) return $"{s.Name} needs a clear path to {target.Name}: total cover from {line.By}.";
+            }
+
             foreach (var k in actor.Conditions)
                 if (k.Type == ConditionType.Charmed && k.SourceId == target.CombatantId && s.Affects == SpellAffects.Hostile) return $"{actor.Name} is charmed by {target.Name} and cannot harm them.";
             return null;
@@ -323,16 +331,31 @@ namespace Realmkeeper.Domain.Combat
             return list;
         }
 
+        /// <summary>Phase 14: where an area spreads from — the caster for cones, lines and cubes from self; otherwise the point.</summary>
+        public static GridPos AreaOrigin(CombatantData caster, SpellDefinition s, GridPos point) => s.Targeting == SpellTargeting.FromSelf ? caster.Position : point;
+
+        /// <summary>Phase 14: the squares of an area its spread actually reaches (for the targeting preview).</summary>
+        public List<GridPos> ReachedSquares(CombatantData caster, SpellDefinition s, GridPos point)
+        {
+            var origin = AreaOrigin(caster, s, point);
+            var list = new List<GridPos>();
+            foreach (var q in AreaSquares(caster.Position, point, s.Area, s.AreaSize, s.Targeting == SpellTargeting.FromSelf))
+                if (!IsBlocked(q) && Reaches(origin, q)) list.Add(q);
+            return list;
+        }
+
         /// <summary>The creatures an area spell aimed at a point would affect (for the cast, the UI preview and the AI).</summary>
         public List<CombatantData> AreaTargets(CombatantData caster, SpellDefinition s, GridPos point)
         {
             var list = new List<CombatantData>();
             if (s.Area == AreaShape.None) return list;
             var squares = AreaSquares(caster.Position, point, s.Area, s.AreaSize, s.Targeting == SpellTargeting.FromSelf);
+            var origin = AreaOrigin(caster, s, point);
             foreach (var c in Encounter.Combatants)
             {
                 if (c.State == VitalState.Dead || c.State == VitalState.Fled) continue;
                 if (s.Targeting == SpellTargeting.FromSelf && c == caster) continue;
+                if (!Reaches(origin, c.Position)) continue; // Phase 14 (ADR-0067): the spread stops at walls and closed doors
                 foreach (var q in squares) if (q.X == c.Position.X && q.Y == c.Position.Y) { list.Add(c); break; }
             }
 
@@ -515,7 +538,20 @@ namespace Realmkeeper.Domain.Combat
                             save = new SaveResult { Ability = s.SaveAbility, Dc = dc, Success = true, AutomaticFailure = null, Roll = new D20Roll(), Bonus = new Breakdown() };
                             Log(CombatLogKind.Save, target.CombatantId, actor.CombatantId, $"{target.Name} is shielded from {s.Name} ({(sculpt.Contains(target) ? "Sculpt Spells" : "Careful Spell")}): an automatic success{(sculpt.Contains(target) ? " and no damage" : string.Empty)}.");
                         }
-                        else save = SavingThrow(target, s.SaveAbility, dc, $"{actor.Name}'s {s.Name}", target == heightenedFor);
+                        else
+                        {
+                            // Phase 14 (ADR-0067): cover against the effect's origin helps a Dexterity save (+2 half, +5 three-quarters).
+                            var coverBonus = 0;
+                            string coverWhy = null;
+                            if (s.SaveAbility == Ability.Dexterity && !s.IgnoresCover && target != actor)
+                            {
+                                var from = s.HasArea && a.Point.HasValue ? AreaOrigin(actor, s, a.Point.Value) : actor.Position;
+                                var cv = GridSight.Cover(new EncounterSightGrid(Encounter, actor, target), from, target.Position);
+                                if (cv.DexSaveBonus > 0) { coverBonus = cv.DexSaveBonus; coverWhy = cv.Describe(); }
+                            }
+
+                            save = SavingThrow(target, s.SaveAbility, dc, $"{actor.Name}'s {s.Name}", target == heightenedFor, null, coverBonus, coverWhy);
+                        }
 
                         tr.Save = save;
                         var evasion = s.SaveAbility == Ability.Dexterity && (TargetFeature(target, "evasion")) && !Incapacitated(target);

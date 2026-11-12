@@ -401,6 +401,15 @@ namespace Realmkeeper.Application
                     if (level >= Realmkeeper.Domain.Places.PlaceDiscovery.Discovered) events.Add(new QuestEvent { Kind = QuestEventKind.PlaceDiscovered, Subject = place.PlaceId });
                     break;
                 }
+                case DialogueConsequenceKind.SettleCrime: // Phase 14 (ADR-0069)
+                {
+                    var owed = Places.CrimeRules.Owed(Places.CrimeRules.KnownTo(w, npc));
+                    var said = Places.CrimeRules.Settle(context, w, npc);
+                    if (said == null) return CommandResult.InvalidState($"You cannot pay what is owed: {owed} coin, and you have {w.Player.Purse}.");
+                    c.Say("narration", said);
+                    break;
+                }
+
                 case DialogueConsequenceKind.GrantPassage:
                 {
                     var place = w.FindPlace(q?.Bound(x.Key) ?? x.Key) ?? (p.IsInPlace ? w.FindPlace(p.PlaceId) : null);

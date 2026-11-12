@@ -52,6 +52,7 @@ namespace Realmkeeper.Domain.Quests
                         Id = "start",
                         Lines = new[]
                         {
+                            L("{npc} looks at you hard. \"I know what you did. Don't think it's forgotten.\"", C(ConditionKind.KnowsCrime)), // Phase 14
                             L("{npc} keeps their distance. \"I've nothing to say to you.\"", C(ConditionKind.Regard, "Hostility", min: 50)),
                             L("{npc} watches you carefully. \"Yes? What do you want?\"", C(ConditionKind.Regard, "Fear", min: 40)),
                             L("\"There you are, {player}. Good to see a friendly face.\"", C(ConditionKind.Regard, "Gratitude", min: 20)),
@@ -63,6 +64,8 @@ namespace Realmkeeper.Domain.Quests
                         },
                         Responses = new[]
                         {
+                            new DialogueResponse { Id = "settle", Text = "Let me put it right. [Give back what I took and pay what is owed]", Kind = ResponseKind.Continue, Next = "start",
+                                Conditions = new[] { C(ConditionKind.KnowsCrime) }, Consequences = new[] { Do(DialogueConsequenceKind.SettleCrime) } }, // Phase 14 (ADR-0069)
                             new DialogueResponse { Id = "ask", Text = "I'd like to ask you something.", Kind = ResponseKind.Ask, Next = "topics" },
                             new DialogueResponse { Id = "bye", Text = "Farewell.", Kind = ResponseKind.End, Next = "end" },
                         },
@@ -334,6 +337,7 @@ namespace Realmkeeper.Domain.Quests
                 },
             });
             AddPhase13(); // Phase 13: dialogue for places
+            AddPhase14(); // Phase 14: givers of the new places' quests
         }
 
         /// <summary>Checks every graph: a start node, unique node and response IDs, every Next pointing at a node, "end" or the hub.</summary>

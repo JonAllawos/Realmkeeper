@@ -265,6 +265,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WriteItemWorld(w, dto); // Phase 11
             WriteQuestWorld(w, dto); // Phase 12
             WritePlaces(w, dto); // Phase 13
+            WriteCrimes(w, dto); // Phase 14
             return dto;
         }
 
@@ -318,6 +319,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     ResourceTypeId = f.ResourceTypeId.Value,
                     Produced = f.Produced,
                     Wasted = f.Wasted,
+                    LostOnRoad = f.LostOnRoad,
                     Demand = f.Demand,
                     Consumed = f.Consumed,
                     Shortfall = f.Shortfall,
@@ -616,6 +618,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadItemWorld(dto, world); // Phase 11
             ReadQuestWorld(dto, world); // Phase 12
             ReadPlaces(dto, world); // Phase 13
+            ReadCrimes(dto, world); // Phase 14
             return world;
         }
 
@@ -658,6 +661,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     ResourceTypeId = Resource(f.ResourceTypeId, "ledger resource"),
                     Produced = f.Produced,
                     Wasted = f.Wasted,
+                    LostOnRoad = f.LostOnRoad,
                     Demand = f.Demand,
                     Consumed = f.Consumed,
                     Shortfall = f.Shortfall,

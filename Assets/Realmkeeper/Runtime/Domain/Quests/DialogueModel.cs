@@ -124,6 +124,9 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>Phase 13: the speaker gives leave to pass a place's guarded way (Key: place id or role; Value: the group id).</summary>
         GrantPassage = 28,
+
+        /// <summary>Phase 14 (ADR-0069): the player settles what the speaker knows of — goods given back, the rest paid.</summary>
+        SettleCrime = 29,
     }
 
     public sealed class DialogueConsequence

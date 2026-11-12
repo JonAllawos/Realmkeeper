@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Realmkeeper.Domain.Combat;
 using Realmkeeper.Domain.Places;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
@@ -66,10 +67,18 @@ namespace Realmkeeper.Application.Places
                         var key = PlaceContents.Key(place.PlaceId, f.Id);
                         var box = w.FindContainer(key);
                         Add(PlaceAction.Open, s.Has(FeatureFlags.Opened) ? "Look inside" : "Open", box == null ? "It is empty and broken." : !box.PlayerAccess ? OwnerReason(place, f) : null);
+                        if (box != null && !box.PlayerAccess && (box.Items.Count > 0 || box.Coin > 0))
+                        {
+                            // Phase 14 (ADR-0069): what is not yours can still be taken — at a price, if anyone sees.
+                            Add(PlaceAction.Steal, "Take it anyway (theft)");
+                            Add(PlaceAction.StealQuietly, "Take it quietly (theft)", null, "Sleight of Hand");
+                        }
+
                         if (def?.Study != null) Add(PlaceAction.Inspect, "Examine", null, def.Study.Skill.ToString());
                         break;
                     case FeatureKind.Document:
-                        Add(PlaceAction.Read, "Read", PlaceRules.Dark(w, room) ? "Too dark to read without a light." : null);
+                        Add(PlaceAction.Read, "Read", PlaceRules.Dark(w, room) ? "Too dark to read without a light." :
+                            LastingConditions.Has(p.Rpg, ConditionType.Blinded, QuestClock.Now(w)) ? "You cannot see to read (blinded)." : null);
                         break;
                     case FeatureKind.Captive:
                         if (!s.Has(FeatureFlags.Freed)) Add(PlaceAction.Free, "Free them", HostileHere(place, room) ? "Not with enemies in the room." : null, "Athletics");
@@ -80,6 +89,8 @@ namespace Realmkeeper.Application.Places
                         break;
                     default:
                         Add(PlaceAction.Inspect, f.Kind == FeatureKind.Workstation || f.Kind == FeatureKind.Furniture ? "Look" : "Examine", null, def?.Study?.Skill.ToString());
+                        if (f.DefinitionId == "webbing" && !s.Has(FeatureFlags.Broken)) // Phase 14 (ADR-0071): fire meets what burns
+                            Add(PlaceAction.Burn, "Burn it away", PlaceRules.CarriesLight(p) ? null : "You need a flame: a lantern or a torch.");
                         break;
                 }
 
@@ -129,8 +140,20 @@ namespace Realmkeeper.Application.Places
             }
 
             var g = place.Layout.Group(targetId);
-            if (g != null && place.GroupStateOf(g.Id) != GroupState.Defeated && (g.Room == room.Id || PlaceRules.InSight(place, g.Room, room.Id)))
+            var gs = g == null ? GroupState.Defeated : place.GroupStateOf(g.Id);
+            if (g != null && gs != GroupState.Defeated && gs != GroupState.Departed && (g.Room == room.Id || PlaceRules.InSight(place, g.Room, room.Id)))
+            {
+                if (g.Behaviour == GroupBehaviour.Parley && gs == GroupState.Present)
+                {
+                    // Phase 14 (ADR-0071): outlaws on a road talk before they fight.
+                    Add(PlaceAction.PayToll, $"Pay their toll ({Toll} coin)", p.Purse < Toll ? $"You have only {p.Purse} coin." : null);
+                    Add(PlaceAction.Persuade, "Talk them off the road", null, "Persuasion");
+                    Add(PlaceAction.Intimidate, "Threaten them", null, "Intimidation");
+                }
+
                 Add(PlaceAction.Attack, "Attack " + g.Name);
+            }
+
             return list;
         }
 
@@ -206,6 +229,8 @@ namespace Realmkeeper.Application.Places
             var conn = place.Layout.Connection(targetId);
             if (conn != null) return OnPassage(context, w, place, room, conn, action);
             var group = place.Layout.Group(targetId);
+            if (group != null && (action == PlaceAction.PayToll || action == PlaceAction.Persuade || action == PlaceAction.Intimidate))
+                return Parley(context, w, place, room, group, action);
             if (group != null && action == PlaceAction.Attack)
             {
                 if (group.Behaviour == GroupBehaviour.Guard)
@@ -276,13 +301,27 @@ namespace Realmkeeper.Application.Places
                     s.Flags |= FeatureFlags.Opened;
                     s.ChangedAt = now;
                     box.Opened = true;
-                    foreach (var g in place.Layout.Groups)
-                        if (g.WakesOn == f.Id && place.GroupStateOf(g.Id) == GroupState.Present)
-                            return PlaceEncounters.Start(context, w, place, new List<PlaceGroup> { g }, place.Layout.Room(g.Room) ?? room, "As the lid shifts, ");
+                    var woke = Wake(context, w, place, room, f, "As the lid shifts, ");
+                    if (woke != null) return woke;
                     var count = 0;
                     foreach (var x in box.Items) count += x.Quantity;
                     return CommandResult.Ok(box.Items.Count == 0 && box.Coin == 0 ? $"{box.Name}: empty." : $"{box.Name}: {count} item{(count == 1 ? string.Empty : "s")}{(box.Coin > 0 ? $" and {box.Coin} coin" : string.Empty)}.");
                 }
+                case PlaceAction.Steal:
+                case PlaceAction.StealQuietly:
+                    return Steal(context, w, place, room, f, action == PlaceAction.StealQuietly);
+                case PlaceAction.Burn:
+                {
+                    s.Flags |= FeatureFlags.Broken | FeatureFlags.Found;
+                    s.ChangedAt = now;
+                    place.Note(p.Name + " burned the webbing in the " + room.Name.ToLowerInvariant() + ".");
+                    var said = "You put the flame to the webbing. It flares, shrivels and drops away in burning threads.";
+                    foreach (var g in place.Layout.Groups)
+                        if (g.Room == room.Id && (place.GroupStateOf(g.Id) == GroupState.Present || place.GroupStateOf(g.Id) == GroupState.Survived) && w.ActiveEncounter == null)
+                            return PlaceEncounters.Start(context, w, place, new List<PlaceGroup> { g }, room, said + " Something above you screams — ");
+                    return CommandResult.Ok(said + " The way is clear of it.");
+                }
+
                 case PlaceAction.Disarm:
                 {
                     var trap = TrapCatalog.Find(f.Get("trap"));
@@ -328,9 +367,15 @@ namespace Realmkeeper.Application.Places
                     }
 
                     context.Quest(new QuestEvent { Kind = QuestEventKind.FeatureUsed, Subject = place.PlaceId, Detail = f.Id });
-                    foreach (var g in place.Layout.Groups)
-                        if (g.WakesOn == f.Id && place.GroupStateOf(g.Id) == GroupState.Present)
-                            return PlaceEncounters.Start(context, w, place, new List<PlaceGroup> { g }, place.Layout.Room(g.Room) ?? room, said + " ");
+                    if (f.DefinitionId == "sluice_wheel" && !place.Variables.ContainsKey("drained"))
+                    {
+                        // Phase 14: the culverts' sluice drops the water in the channels; the deep water there is gone for good.
+                        place.Variables["drained"] = "yes";
+                        said += " Far off, water roars through the sluice, and the channels begin to drop.";
+                    }
+
+                    var stirred = Wake(context, w, place, room, f, said + " ");
+                    if (stirred != null) return stirred;
                     return CommandResult.Ok(said);
                 }
                 case PlaceAction.Free:
@@ -351,8 +396,8 @@ namespace Realmkeeper.Application.Places
                     s.Flags |= FeatureFlags.Freed | FeatureFlags.Used;
                     s.ChangedAt = now;
                     escort.State = EscortState.Following;
-                    escort.PlaceId = null;
-                    escort.Room = null;
+                    escort.PlaceId = place.PlaceId; // Phase 14 (ADR-0070): a follower inside a place keeps a room
+                    escort.Room = room.Id;
                     escort.ChangedAt = now;
                     npc.PlayerRegard.Gratitude += 10;
                     place.Note(p.Name + " freed " + npc.Name + ".");
@@ -364,6 +409,138 @@ namespace Realmkeeper.Application.Places
             }
 
             return CommandResult.InvalidState("That cannot be done here.");
+        }
+
+        public const int Toll = 10;
+
+        /// <summary>
+        /// Phase 14 (ADR-0069): taking what is not the player's. Everything in the container moves to the pack. Taken quietly,
+        /// the player's Sleight of Hand is set against each onlooker's passive Perception; taken openly, anyone who can see
+        /// sees. The crime is recorded either way — undiscovered if nobody saw — and its consequences follow only from
+        /// what the witnesses could tell.
+        /// </summary>
+        private static CommandResult Steal(CommandContext context, WorldData w, PlaceData place, PlaceRoom room, PlaceFeature f, bool quietly)
+        {
+            var p = w.Player;
+            var box = w.FindContainer(PlaceContents.Key(place.PlaceId, f.Id));
+            if (box == null || (box.Items.Count == 0 && box.Coin == 0)) return CommandResult.InvalidState("There is nothing in it to take.");
+            var quiet = -1;
+            var text = string.Empty;
+            if (quietly)
+            {
+                var roll = PlaceRules.Check(w, Skill.SleightOfHand, 0, PlaceHarm.Key(place, "steal:" + f.Id) + ":" + w.NextCrimeNumber.ToString(CultureInfo.InvariantCulture));
+                quiet = roll.Total;
+                text = $"Sleight of Hand {roll.Total}. ";
+            }
+
+            var witnesses = CrimeRules.Witnesses(w, place, room, f.X, f.Z, false, quiet);
+            var taken = new Dictionary<string, int>();
+            var value = box.Coin;
+            foreach (var stack in new List<ItemStackData>(box.Items))
+            {
+                taken[stack.ItemId] = (taken.TryGetValue(stack.ItemId, out var n) ? n : 0) + stack.Quantity;
+                value += (ItemCatalog.Find(stack.ItemId)?.BaseValue ?? 0) * stack.Quantity;
+                box.Items.Remove(stack);
+                ItemCommandHandlers.Merge(p.Inventory, stack);
+            }
+
+            var coin = box.Coin;
+            p.Purse += coin;
+            box.Coin = 0;
+            var owner = OwnerOf(w, place, f);
+            var shop = place.Category == PlaceCategory.Interior && (f.Get("stock") == "yes");
+            var deed = (shop ? "took goods from " : "took what was in ") + (owner?.Name is string who ? who + "'s " : "the ") + PlaceRules.Name(f).ToLowerInvariant();
+            var group = place.Layout.Group(f.Get("owner_group"));
+            var faction = group != null && !group.FactionId.IsEmpty ? group.FactionId : place.FactionId;
+            var crime = CrimeRules.Record(context, w, shop ? CrimeKind.ShopTheft : CrimeKind.Theft, place, room, owner?.NpcId ?? default, faction, deed, witnesses, taken, coin, value);
+            var got = taken.Count + (coin > 0 ? 1 : 0);
+            text += $"You take {(got == 0 ? "nothing" : string.Join(", ", new List<string>(taken.Keys).ConvertAll(id => ItemCatalog.Find(id)?.Name?.ToLowerInvariant() ?? id)) + (coin > 0 ? $" and {coin} coin" : string.Empty))}.";
+            if (witnesses.Count == 0) return CommandResult.Ok(text + " Nobody sees.");
+            var first = witnesses[0];
+            var shout = first.Recognized ? $"\"{p.Name}! Put that back!\"" : "\"Thief! Stop!\"";
+            return CommandResult.Ok($"{text} {first.Npc.Name} sees you ({first.How}): {shout}" + (crime.Bounty > 0 ? $" (Bounty: {crime.Bounty} coin in {w.FindSettlement(crime.SettlementId)?.Name ?? "these parts"}.)" : " They could not tell who you were."));
+        }
+
+        /// <summary>The person a household container belongs to: someone who lives or works in the building.</summary>
+        private static NpcData OwnerOf(WorldData w, PlaceData place, PlaceFeature f)
+        {
+            if (place.LocationId.IsEmpty) return null;
+            NpcData best = null;
+            foreach (var n in w.Npcs)
+                if (!n.IsDeceased && (n.ResidenceId == place.LocationId || n.WorkplaceId == place.LocationId) && (best == null || n.NpcId.CompareTo(best.NpcId) < 0)) best = n;
+            return best;
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0071): the outlaws' parley. Paying the toll buys passage (they stay on the road). Talking them off
+        /// it (Persuasion 14) or frightening them off (Intimidation 15) sends every outlaw group away for good, ends their
+        /// hold on the trade road, and settles the road quest; a failed threat, or talk that goes badly wrong, starts the fight.
+        /// </summary>
+        private static CommandResult Parley(CommandContext context, WorldData w, PlaceData place, PlaceRoom room, PlaceGroup g, PlaceAction action)
+        {
+            var p = w.Player;
+            var name = PlaceRules.Capital(g.Name);
+            if (action == PlaceAction.PayToll)
+            {
+                p.Purse -= Toll;
+                place.GroupOf(g.Id).State = GroupState.Peaceful;
+                place.Note(p.Name + " paid the outlaws' toll.");
+                return CommandResult.Ok($"You count out {Toll} coin. {name} step aside, grinning: \"Pleasure doing business.\" They are still here — and still on the road.");
+            }
+
+            var skill = action == PlaceAction.Persuade ? Skill.Persuasion : Skill.Intimidation;
+            var dc = action == PlaceAction.Persuade ? 14 : 15;
+            var limit = PlaceRules.AttemptsLeft(place, g.Id, action.ToString(), out var key);
+            if (limit != null) return CommandResult.InvalidState(limit);
+            var roll = PlaceRules.Check(w, skill, dc, key);
+            if (!roll.Success)
+            {
+                PlaceRules.Failed(place, g.Id, action.ToString());
+                if (action == PlaceAction.Intimidate || roll.Dc - roll.Total >= 5)
+                    return PlaceEncounters.Start(context, w, place, new List<PlaceGroup> { g }, room, $"{roll.Text}. They laugh, and draw — ");
+                return CommandResult.Ok($"{roll.Text}. They hear you out, and do not move.");
+            }
+
+            var how = action == PlaceAction.Persuade ? "talked off it" : "frightened off it";
+            foreach (var other in place.Layout.Groups)
+            {
+                var s = place.GroupStateOf(other.Id);
+                if (other.WakesOn != null || s == GroupState.Defeated) continue;
+                place.GroupOf(other.Id).State = GroupState.Departed;
+            }
+
+            place.Variables["road"] = "left";
+            place.Note($"The outlaws left {place.Name}, {how} by {p.Name}.");
+            context.ReportEvent(HistoricalEventType.OutlawsDeparted, EventSeverity.Positive, EventImportance.Minor, PlaceKnowledge.Settlements(place),
+                new Dictionary<string, string> { ["place"] = place.Name, ["how"] = how, ["by"] = p.Name });
+            context.Quest(new QuestEvent { Kind = QuestEventKind.Decision, Subject = "crowfoot_dealt" });
+            PlaceRules.UpdateDiscovery(context, w, place);
+            return CommandResult.Ok(action == PlaceAction.Persuade
+                ? $"{roll.Text}. They look at each other, then at the road. \"Plenty of other roads.\" By nightfall the den is empty."
+                : $"{roll.Text}. Their nerve breaks. They gather what they can carry and are gone before you can count them.");
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0071): whoever sleeps beside this feature wakes, once. If the player can see them (same room, or
+        /// through an open way) the fight starts now; otherwise they are awake and fight on sight when found. Nobody wakes
+        /// through a wall, and nobody wakes twice.
+        /// </summary>
+        private static CommandResult Wake(CommandContext context, WorldData w, PlaceData place, PlaceRoom room, PlaceFeature f, string prefix)
+        {
+            var near = new List<PlaceGroup>();
+            var far = new List<string>();
+            foreach (var g in place.Layout.Groups)
+            {
+                if (g.WakesOn != f.Id || place.GroupStateOf(g.Id) != GroupState.Present || place.GroupOf(g.Id).Woken) continue;
+                place.GroupOf(g.Id).Woken = true;
+                context.ReportEvent(HistoricalEventType.CreaturesWoke, EventSeverity.Warning, EventImportance.Minor, PlaceKnowledge.Settlements(place),
+                    new Dictionary<string, string> { ["group"] = PlaceRules.Capital(g.Name), ["place"] = place.Name, ["by"] = w.Player.Name, ["what"] = PlaceRules.Name(f) });
+                if (g.Room == room.Id || PlaceRules.InSight(place, g.Room, room.Id)) near.Add(g);
+                else far.Add(g.Name);
+            }
+
+            if (near.Count > 0) return PlaceEncounters.Start(context, w, place, near, room, prefix + (prefix.TrimEnd().EndsWith(",", StringComparison.Ordinal) ? "something wakes! " : "Something wakes! "));
+            return far.Count > 0 ? CommandResult.Ok(prefix + "Somewhere beyond the walls, something stirs.") : null;
         }
 
         private static void Learn(CommandContext context, WorldData w, PlaceData place, PlaceFeature f, FeatureDefinition def, QuestReporter report)

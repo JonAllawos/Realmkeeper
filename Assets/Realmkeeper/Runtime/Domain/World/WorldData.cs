@@ -42,7 +42,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 15;
+        public const int CurrentSchemaVersion = 16;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -131,6 +131,18 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 13 (ADR-0066): people held captive, following the player, or brought home.</summary>
         public List<Realmkeeper.Domain.Places.EscortData> Escorts { get; set; } = new List<Realmkeeper.Domain.Places.EscortData>();
+
+        /// <summary>Phase 14 (ADR-0069): crimes as they happened (who knows of them lives in people's memories, not here).</summary>
+        public List<CrimeRecordData> Crimes { get; set; } = new List<CrimeRecordData>();
+
+        /// <summary>The number the next crime record takes ("crime:{n}").</summary>
+        public int NextCrimeNumber { get; set; } = 1;
+
+        public CrimeRecordData FindCrime(string id)
+        {
+            if (Crimes != null) foreach (var c in Crimes) if (c != null && c.CrimeId == id) return c;
+            return null;
+        }
 
         public Realmkeeper.Domain.Places.PlaceData FindPlace(string placeId)
         {
@@ -264,6 +276,8 @@ namespace Realmkeeper.Domain.World
             copy.Conversation = Conversation?.Clone();
             if (Places != null) foreach (var p in Places) copy.Places.Add(p?.Clone());
             if (Escorts != null) foreach (var e in Escorts) copy.Escorts.Add(e?.Clone());
+            if (Crimes != null) foreach (var c in Crimes) copy.Crimes.Add(c?.Clone());
+            copy.NextCrimeNumber = NextCrimeNumber;
             return copy;
         }
 

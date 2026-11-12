@@ -40,6 +40,11 @@ namespace Realmkeeper.Application
         /// <summary>Phase 10: what the bestiary says of a creature (category, challenge, behaviour, traits, source), or null.</summary>
         public string Bestiary { get; set; }
 
+        /// <summary>Phase 14 (ADR-0067): this combatant's cover against the player ("half cover from a wall"), and whether the player has a clear line to it.</summary>
+        public string CoverFromPlayer { get; set; }
+
+        public bool InPlayersLine { get; set; } = true;
+
         /// <summary>For the stand-in figure: a beast (the wolf) rather than a person.</summary>
         public bool CreatureIsBeast { get; set; }
 
@@ -115,6 +120,11 @@ namespace Realmkeeper.Application
         /// <summary>Phase 13: walls (a place's geometry) no one can enter.</summary>
         public IReadOnlyList<GridPos> Blocked { get; set; } = new List<GridPos>();
 
+        /// <summary>Phase 14 (ADR-0067): the fight's doors (closed ones block movement, sight and spells) and low cover.</summary>
+        public IReadOnlyList<EncounterDoorData> Doors { get; set; } = new List<EncounterDoorData>();
+
+        public IReadOnlyList<LowCoverData> LowCover { get; set; } = new List<LowCoverData>();
+
         public bool BlockedContains(GridPos p)
         {
             foreach (var d in Blocked) if (d.Equals(p)) return true;
@@ -188,6 +198,8 @@ namespace Realmkeeper.Application
                     SpellSaveDc = s.IsCaster ? engine.SpellSaveDc(c) : 0, SpellAttack = s.IsCaster ? s.SpellAttack().Total : 0, Resources = ResourceText(engine, c),
                     Form = c.FormCreatureId == null ? null : CreatureCatalog.Find(c.FormCreatureId)?.Name,
                     Bestiary = c.CreatureId != null && c.FormCreatureId == null ? BestiaryText(CreatureCatalog.Find(c.CreatureId)) : null,
+                    CoverFromPlayer = player != null && c != player ? engine.CoverOf(player, c).Describe() : null,
+                    InPlayersLine = player == null || c == player || engine.CoverOf(player, c).HasLineOfEffect,
                 };
             }
 
@@ -196,7 +208,7 @@ namespace Realmkeeper.Application
             var snap = new EncounterSnapshot
             {
                 Id = e.EncounterId, Name = e.Name, Kind = e.Kind, Lethality = e.Lethality, Status = e.Status, Outcome = e.Outcome, WinningSide = e.WinningSide,
-                Round = e.Round, Sequence = e.ActionSequence, Order = order, Log = e.Log, DifficultTerrain = e.DifficultTerrain, Blocked = e.Blocked,
+                Round = e.Round, Sequence = e.ActionSequence, Order = order, Log = e.Log, DifficultTerrain = e.DifficultTerrain, Blocked = e.Blocked, Doors = e.Doors, LowCover = e.LowCover,
                 Active = e.Active != null ? View(e.Active) : null, Player = player != null ? View(player) : null,
             };
             var loot = world.FindContainer(WorldEncounters.LootKey(e.EncounterId)); // Phase 11: what the fight left
@@ -232,6 +244,14 @@ namespace Realmkeeper.Application
             var list = new List<CombatOption>();
             var e = engine.Encounter;
             var s = engine.Stats(player);
+            foreach (var door in e.Doors) // Phase 14: doors within reach can be opened or shut
+            {
+                var act = new DoorAction(door.Id);
+                var why = engine.Unavailable(player, act);
+                if (why != null && why.Contains("out of reach")) continue;
+                list.Add(new CombatOption { Label = (door.Open ? "Shut the " : "Open the ") + door.Name, Action = act, Unavailable = why });
+            }
+
             foreach (var a in s.Attacks)
                 foreach (var target in e.Combatants)
                 {

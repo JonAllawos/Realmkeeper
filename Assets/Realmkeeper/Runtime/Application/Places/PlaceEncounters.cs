@@ -41,7 +41,7 @@ namespace Realmkeeper.Application.Places
             NpcId protectedNpc = default;
             foreach (var e in w.Escorts)
             {
-                var here = e.State == EscortState.Following || ((e.State == EscortState.Captive || e.State == EscortState.Waiting) && e.PlaceId == place.PlaceId && e.Room == room.Id);
+                var here = (e.State == EscortState.Following && (e.PlaceId == null || e.Room == room.Id)) || ((e.State == EscortState.Captive || e.State == EscortState.Waiting) && e.PlaceId == place.PlaceId && e.Room == room.Id); // Phase 14: only those in the room
                 if (!here || w.FindNpc(e.NpcId) is not NpcData npc || npc.IsDeceased) continue;
                 var at = Free(place, room, taken, px, pz);
                 setup.Participants.Add(new ParticipantSetup { Kind = CombatantKind.Npc, NpcId = npc.NpcId, Side = "player", Position = new GridPos(at.Item1, at.Item2) });
@@ -100,21 +100,7 @@ namespace Realmkeeper.Application.Places
                 return CommandResult.Ok("Nothing stirs: they are gone.");
             }
 
-            // The room's walls: every cell around the fight that is not floor.
-            var floor = Floor(place, room.Floor);
-            for (var x = room.Rect.X - Margin; x < room.Rect.MaxX + Margin; x++)
-                for (var z = room.Rect.Z - Margin; z < room.Rect.MaxZ + Margin; z++)
-                    if (!floor.Contains((x, z))) setup.Blocked.Add(new GridPos(x, z));
-            // Closed doors are walls too.
-            foreach (var c in place.Layout.Connections)
-            {
-                if (c.IsVertical || c.Kind == ConnectionKind.Entrance || c.Kind == ConnectionKind.Opening) continue;
-                var s = place.DoorOf(c);
-                if (s == DoorState.Open || s == DoorState.Broken || (c.Kind == ConnectionKind.Secret && place.Found(c) && s != DoorState.Closed)) continue;
-                for (var x = c.Rect.X; x < c.Rect.MaxX; x++)
-                    for (var z = c.Rect.Z; z < c.Rect.MaxZ; z++)
-                        if (!InAnyRoom(place, room.Floor, x, z)) setup.Blocked.Add(new GridPos(x, z));
-            }
+            Geometry(setup, place, room);
 
             var title = PlaceRules.Capital(string.Join(" and ", names));
             setup.Name = title + " — " + place.Name;
@@ -130,6 +116,80 @@ namespace Realmkeeper.Application.Places
             if (result.IsSuccess && w.ActiveEncounter != null)
                 foreach (var g in groups) place.GroupOf(g.Id).EncounterId = w.ActiveEncounter.EncounterId;
             return result;
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0069): the player attacks a person who was no threat — an assault, recorded before the first blow
+        /// with whoever sees it (the victim always knows). If they die, the fight's end records the murder.
+        /// </summary>
+        public static CommandResult StartAssault(CommandContext context, WorldData w, PlaceData place, PlaceRoom room, NpcData victim, int vx, int vz)
+        {
+            if (w.ActiveEncounter != null) return CommandResult.InvalidState("A fight is already going on.");
+            var (px, pz) = PlaceRules.CellOf(w.Player.Pose);
+            if (!room.Rect.Contains(px, pz)) (px, pz) = Nearest(room, px, pz);
+            var witnesses = CrimeRules.Witnesses(w, place, room, px, pz, true);
+            if (!witnesses.Exists(x => x.Npc.NpcId == victim.NpcId))
+            {
+                var known = victim.HasMetPlayer || (w.Player.Social?.Notoriety ?? 0) >= 30;
+                witnesses.Insert(0, new Witness { Npc = victim, Recognized = known, Description = known ? w.Player.Name : CrimeRules.Describe(w), How = "attacked" });
+            }
+
+            var crime = CrimeRules.Record(context, w, CrimeKind.Assault, place, room, victim.NpcId, default, "attacked " + victim.Name, witnesses);
+            var setup = new EncounterSetup { Kind = EncounterKind.Skirmish, Lethality = Lethality.Lethal, SettlementId = place.SettlementId, Name = victim.Name + " — " + place.Name };
+            setup.Participants.Add(new ParticipantSetup { Kind = CombatantKind.Player, Side = "player", Position = new GridPos(px, pz), Control = CombatControl.Player });
+            var taken = new HashSet<(int, int)> { (px, pz) };
+            var at = taken.Contains((vx, vz)) ? Free(place, room, taken, px, pz) : Tuple.Create(vx, vz);
+            setup.Participants.Add(new ParticipantSetup { Kind = CombatantKind.Npc, NpcId = victim.NpcId, Side = FoeSide, Position = new GridPos(at.Item1, at.Item2) });
+            Geometry(setup, place, room);
+            setup.Origin = new EncounterOriginData
+            {
+                Type = EncounterType.Patrol, Objective = EncounterObjective.Defeat, NearSettlementId = place.SettlementId, Context = crime.CrimeId, Terrain = place.ArchetypeId,
+                Difficulty = "assault", PlaceId = place.PlaceId, GroupId = string.Empty, Room = room.Id, PlanSeed = SeedMixer(place, room),
+            };
+            return CombatCommandHandlers.StartGenerated(context, setup, $"You attack {victim.Name}.");
+        }
+
+        /// <summary>The fight's ground in a place: walls and rock round the room's floor, doors as doors, fallen bridges as gaps, furniture as low cover.</summary>
+        public static void Geometry(EncounterSetup setup, PlaceData place, PlaceRoom room)
+        {
+            // The room's walls: every cell around the fight that is not floor.
+            var floor = Floor(place, room.Floor);
+            for (var x = room.Rect.X - Margin; x < room.Rect.MaxX + Margin; x++)
+                for (var z = room.Rect.Z - Margin; z < room.Rect.MaxZ + Margin; z++)
+                    if (!floor.Contains((x, z))) setup.Blocked.Add(new GridPos(x, z));
+            // Phase 14 (ADR-0067): doors are doors — closed ones block movement, sight and spells until someone opens them;
+            // a fallen bridge is a gap nobody crosses; furniture gives half cover.
+            foreach (var c in place.Layout.Connections)
+            {
+                if (c.IsVertical || c.Kind == ConnectionKind.Entrance || c.Kind == ConnectionKind.Opening) continue;
+                if (place.Layout.Room(c.A)?.Floor != room.Floor) continue;
+                var squares = new List<GridPos>();
+                for (var x = c.Rect.X; x < c.Rect.MaxX; x++)
+                    for (var z = c.Rect.Z; z < c.Rect.MaxZ; z++)
+                        if (!InAnyRoom(place, room.Floor, x, z)) squares.Add(new GridPos(x, z));
+                if (squares.Count == 0) continue;
+                if (c.Kind == ConnectionKind.Bridge)
+                {
+                    if (place.BridgeOf(c) == BridgeState.Destroyed) setup.Blocked.AddRange(squares);
+                    continue;
+                }
+
+                if (c.Kind == ConnectionKind.Secret && !place.Found(c)) { setup.Blocked.AddRange(squares); continue; }
+                var s = place.DoorOf(c);
+                setup.Doors.Add(new EncounterDoorData
+                {
+                    Id = c.Id, Name = c.Kind == ConnectionKind.Secret ? "hidden door" : "door", Squares = squares,
+                    Open = s == DoorState.Open || s == DoorState.Broken, Locked = s == DoorState.Locked || s == DoorState.Barred,
+                });
+            }
+
+            foreach (var f in place.Layout.Features)
+            {
+                var fr = place.Layout.Room(f.Room);
+                if (fr == null || fr.Floor != room.Floor || !GivesCover(f)) continue;
+                setup.LowCover.Add(new LowCoverData { X = f.X, Y = f.Z, Name = "the " + PlaceRules.Name(f).ToLowerInvariant() });
+            }
+
         }
 
         private static ulong SeedMixer(PlaceData place, PlaceRoom room) => Domain.Randomness.SeedMixer.Combine(place.Seed, "fight:" + room.Id + ":" + place.Visits.ToString(CultureInfo.InvariantCulture));
@@ -159,6 +219,11 @@ namespace Realmkeeper.Application.Places
 
             return cells;
         }
+
+        /// <summary>Phase 14: furniture, workstations, altars and big containers stand between a creature and a shot (half cover).</summary>
+        public static bool GivesCover(PlaceFeature f) =>
+            f.Kind == FeatureKind.Furniture || f.Kind == FeatureKind.Workstation || f.Kind == FeatureKind.Altar ||
+            (f.Kind == FeatureKind.Container && (f.DefinitionId == "sarcophagus" || f.DefinitionId == "chest" || f.DefinitionId == "ore_crate" || f.DefinitionId == "crate" || f.DefinitionId == "strongbox" || f.DefinitionId == "sealed_vault" || f.DefinitionId == "grain_bin"));
 
         private static bool SecretOpen(PlaceData place, PlaceRoom r)
         {
@@ -198,6 +263,17 @@ namespace Realmkeeper.Application.Places
             var place = w.FindPlace(o?.PlaceId);
             if (place == null) return;
             var won = e.WinningSide == "player";
+
+            // Phase 14: doors opened or shut in the fight stay that way.
+            foreach (var d in e.Doors)
+            {
+                var c = place.Layout.Connection(d.Id);
+                if (c == null || d.Locked) continue;
+                var before = place.DoorOf(c);
+                if (d.Open && before == DoorState.Closed) place.Doors[c.Id] = DoorState.Open;
+                else if (!d.Open && before == DoorState.Open) place.Doors[c.Id] = DoorState.Closed;
+            }
+
             foreach (var id in (o.GroupId ?? string.Empty).Split(','))
             {
                 if (id.Length == 0) continue;
@@ -213,6 +289,35 @@ namespace Realmkeeper.Application.Places
                 {
                     place.Note(PlaceRules.Capital(g?.Name ?? id) + " defeated.");
                     PlaceContents.FreeGuarded(w, place, id);
+                }
+            }
+
+            // Phase 14 (ADR-0069): an assault that killed is murder, known to whoever saw the attack and still lives.
+            if (o.Difficulty == "assault" && w.FindCrime(o.Context) is CrimeRecordData assault)
+                foreach (var c in e.Combatants)
+                {
+                    if (c.Kind != CombatantKind.Npc || c.Side != FoeSide || c.State != VitalState.Dead || !Guid.TryParse(c.SourceId, out var dead)) continue;
+                    var survivors = new List<Witness>();
+                    foreach (var x in assault.Witnesses)
+                        if (x.NpcId != new NpcId(dead) && w.FindNpc(x.NpcId) is NpcData seen && !seen.IsDeceased)
+                            survivors.Add(new Witness { Npc = seen, Recognized = x.Recognized, Description = x.Description, How = x.How });
+                    CrimeRules.Record(context, w, CrimeKind.Murder, place, place.Layout.Room(o.Room), new NpcId(dead), default, "killed " + c.Name, survivors);
+                }
+
+            // Phase 14: outlaws all gone, by blade or by word — the road is free.
+            if (place.DefinitionId == Phase14Places.Hideout && !place.Variables.ContainsKey("road"))
+            {
+                var anyone = false;
+                foreach (var g in place.Layout.Groups)
+                {
+                    var gs = place.GroupStateOf(g.Id);
+                    if (g.WakesOn == null && gs != GroupState.Defeated && gs != GroupState.Departed) anyone = true;
+                }
+
+                if (!anyone)
+                {
+                    place.Variables["road"] = "cleared";
+                    context.Quest(new QuestEvent { Kind = QuestEventKind.Decision, Subject = "crowfoot_dealt" });
                 }
             }
 

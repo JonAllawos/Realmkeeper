@@ -236,6 +236,7 @@ namespace Realmkeeper.Domain.Quests
                 Consequences = new[] { new ConsequenceDefinition { Kind = ConsequenceKind.PlayerDeed, Role = "giver", Key = "supplied_shop" } },
             });
             AddPhase13(); // Phase 13: quests in places
+            AddPhase14(); // Phase 14: quests of the new places
         }
 
         /// <summary>Checks the templates: unique IDs, a giver first, objectives with IDs and stages, every role named in text and targets defined.</summary>

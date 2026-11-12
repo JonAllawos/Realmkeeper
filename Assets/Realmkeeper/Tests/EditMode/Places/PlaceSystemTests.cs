@@ -151,7 +151,11 @@ namespace Realmkeeper.Tests.EditMode.Places
         {
             var w = W;
             var places = w.Places.Where(p => p.ParentKind == PlaceParentKind.Region).ToList();
-            Assert.That(places.Select(p => p.DefinitionId), Is.EquivalentTo(new[] { PlaceCatalog.Mine, PlaceCatalog.Crypt, PlaceCatalog.Fort, PlaceCatalog.Cave, PlaceCatalog.Ruin }));
+            var phase13 = new[] { PlaceCatalog.Mine, PlaceCatalog.Crypt, PlaceCatalog.Fort, PlaceCatalog.Cave, PlaceCatalog.Ruin };
+            Assert.That(places.Select(p => p.DefinitionId).Where(phase13.Contains), Is.EquivalentTo(phase13));
+            var newer = places.Select(p => p.DefinitionId).Where(Phase14Places.All.Contains).ToList();
+            Assert.That(newer.Count, Is.InRange(3, 5), "Phase 14 (ADR-0071): three to five of the new places, chosen by the world.");
+            Assert.That(places.Count, Is.EqualTo(5 + newer.Count), "No place twice, nothing else.");
             foreach (var p in places)
             {
                 Assert.That(PlaceValidator.Validate(p.Layout), Is.Empty, p.Name);

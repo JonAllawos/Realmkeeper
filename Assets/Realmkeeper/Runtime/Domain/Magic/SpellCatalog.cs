@@ -87,7 +87,7 @@ namespace Realmkeeper.Domain.Magic
             },
             new SpellDefinition
             {
-                Id = "sacred_flame", Name = "Sacred Flame", Level = 0, School = SpellSchool.Evocation, Range = 60, Targeting = SpellTargeting.Creatures, Affects = SpellAffects.Hostile,
+                Id = "sacred_flame", Name = "Sacred Flame", Level = 0, IgnoresCover = true, School = SpellSchool.Evocation, Range = 60, Targeting = SpellTargeting.Creatures, Affects = SpellAffects.Hostile,
                 Classes = Cls(C), Resolution = SpellResolution.Save, SaveAbility = Ability.Dexterity, CantripScaling = true, Effects = new[] { Dmg(1, 8, DamageType.Radiant) },
                 Description = "Radiance falls on a creature you can see; it must dodge or burn.", Upcast = "One more d8 at character levels 5, 11 and 17.",
             },

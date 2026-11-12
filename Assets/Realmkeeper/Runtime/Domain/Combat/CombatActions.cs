@@ -66,6 +66,14 @@ namespace Realmkeeper.Domain.Combat
 
     public sealed class EndTurnAction : CombatAction { public override string Describe => "End turn"; }
 
+    /// <summary>Phase 14 (ADR-0067): open or shut a door in the fight's area (the free object interaction, or the action).</summary>
+    public sealed class DoorAction : CombatAction
+    {
+        public DoorAction(string doorId) { DoorId = doorId; }
+        public string DoorId { get; }
+        public override string Describe => "Open or shut the door";
+    }
+
     /// <summary>Phase 11: use an item from the pack in a fight (drink a potion: a bonus action in SRD 5.2.1).</summary>
     public sealed class UseItemAction : CombatAction
     {
@@ -130,6 +138,9 @@ namespace Realmkeeper.Domain.Combat
         public SaveResult Save { get; set; }
 
         public ConditionType? ConditionApplied { get; set; }
+
+        /// <summary>Phase 14 (ADR-0067): the target's cover against this attack.</summary>
+        public CoverResult Cover { get; set; }
     }
 
     /// <summary>A saving throw (or ability check) against a DC, explained.</summary>
@@ -198,6 +209,11 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>Phase 13: squares nobody can enter (a place's walls).</summary>
         public List<GridPos> Blocked { get; set; } = new List<GridPos>();
+
+        /// <summary>Phase 14 (ADR-0067): doors in the fight's area, and low obstacles giving half cover.</summary>
+        public List<EncounterDoorData> Doors { get; set; } = new List<EncounterDoorData>();
+
+        public List<LowCoverData> LowCover { get; set; } = new List<LowCoverData>();
         public string QuestRef { get; set; }
         public string WorldEventRef { get; set; }
 

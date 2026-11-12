@@ -113,6 +113,13 @@ namespace Realmkeeper.Application
                 case HistoricalEventType.EscortArrived: return $"{e.Get("npc")} was brought home to {s} by {e.Get("by") ?? "the player"}.";
                 case HistoricalEventType.Trespass: return $"{e.Get("by") ?? "A stranger"} was caught trespassing in the {(e.Get("room") ?? "keep").ToLowerInvariant()} of {e.Get("place")}.";
                 case HistoricalEventType.PlaceSecretFound: return $"A hidden way was found in {e.Get("place")}.";
+                case HistoricalEventType.BridgeCollapsed: return $"The bridge in {e.Get("place")} gave way under {e.Get("by") ?? "someone"} and fell.";
+                case HistoricalEventType.CrimeWitnessed: return $"{e.Get("witness") ?? "Someone"} saw {e.Get("culprit") ?? "a stranger"} {e.Get("deed") ?? "commit a crime"} in {e.Get("place") ?? s}.";
+                case HistoricalEventType.CrimeDiscovered: return $"{e.Get("victim") ?? "Someone"} found that {e.Get("deed") ?? "they had been robbed"}; nobody knows who did it.";
+                case HistoricalEventType.CrimeSettled: return $"{e.Get("by") ?? "The player"} set right {e.Get("deed") ?? "a wrong"} in {s}{(e.Get("how") is string how ? " (" + how + ")" : string.Empty)}.";
+                case HistoricalEventType.CreaturesWoke: return $"{e.Get("group") ?? "Something"} woke in {e.Get("place")} when {e.Get("by") ?? "someone"} disturbed {(e.Get("what") ?? "them").ToLowerInvariant()}.";
+                case HistoricalEventType.OutlawsDeparted: return $"The outlaws of {e.Get("place")} left the road, {e.Get("how") ?? "talked off it"} by {e.Get("by") ?? "the player"}.";
+                case HistoricalEventType.HarmTaken: return $"{e.Get("by") ?? "The player"} was hurt by {e.Get("source") ?? "a hazard"} in {e.Get("place")}: {e.Get("what") ?? "injured"}.";
                 case HistoricalEventType.EncounterResolved:
                     return $"The aftermath of {e.Get("name") ?? "a fight"} near {s}: {e.Get("summary") ?? "nothing further"}.";
                 case HistoricalEventType.LabourNoticePosted:

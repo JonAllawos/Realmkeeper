@@ -94,6 +94,55 @@ namespace Realmkeeper.Domain.World
             }
 
             if (following > MaxFollowers) result.AddError($"{following} people follow the player (at most {MaxFollowers}).");
+
+            // ----- Phase 14 (ADR-0068 … ADR-0071) -----
+            foreach (var e in world.Escorts)
+            {
+                if (e == null || e.State != EscortState.Following || e.PlaceId == null) continue;
+                var p = world.FindPlace(e.PlaceId);
+                if (p == null || p.Layout.Room(e.Room) == null) result.AddError($"A follower stands in an unknown room ('{e.PlaceId}' / '{e.Room}').");
+            }
+
+            foreach (var p in world.Places)
+            {
+                if (p == null) continue;
+                foreach (var pair in p.Bridges)
+                    if (p.Layout.Connection(pair.Key)?.Kind != ConnectionKind.Bridge) result.AddError($"{p.Name} records a bridge state for '{pair.Key}', which is not a bridge.");
+            }
+
+            var crimeIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var c in world.Crimes)
+            {
+                if (c == null || string.IsNullOrEmpty(c.CrimeId)) { result.AddError("A crime record has no id."); continue; }
+                if (!crimeIds.Add(c.CrimeId)) result.AddError($"Crime '{c.CrimeId}' is recorded twice.");
+                if (c.Bounty < 0) result.AddError($"Crime '{c.CrimeId}' has a negative bounty.");
+                if (c.Status == CrimeStatus.Settled && c.Bounty != 0) result.AddError($"Crime '{c.CrimeId}' is settled but still has a bounty.");
+                if (c.Status == CrimeStatus.Undiscovered && c.Witnesses.Count > 0) result.AddError($"Crime '{c.CrimeId}' was seen but is recorded undiscovered.");
+                var seen = new HashSet<NpcId>();
+                foreach (var x in c.Witnesses)
+                {
+                    if (world.FindNpc(x.NpcId) == null) result.AddError($"Crime '{c.CrimeId}' names an unknown witness.");
+                    if (!seen.Add(x.NpcId)) result.AddError($"Crime '{c.CrimeId}' names a witness twice.");
+                }
+            }
+
+            if (world.NextCrimeNumber < 1) result.AddError("The next crime number must be at least 1.");
+            ValidateConditions(world.Player?.Rpg, world.Player?.Name ?? "The player", result);
+            foreach (var n in world.Npcs) if (n?.Character?.Sheet != null) ValidateConditions(n.Character.Sheet, n.Name, result);
+        }
+
+        private static void ValidateConditions(Realmkeeper.Domain.Rpg.CharacterSheetData sheet, string who, ValidationResult result)
+        {
+            if (sheet?.Conditions == null) return;
+            var types = new HashSet<Realmkeeper.Domain.Combat.ConditionType>();
+            foreach (var k in sheet.Conditions)
+            {
+                if (k == null) { result.AddError($"{who} has a null lasting condition."); continue; }
+                if (!types.Add(k.Type)) result.AddError($"{who} has {k.Type} twice (conditions do not stack).");
+                if (Realmkeeper.Domain.Rpg.LastingConditions.FightOnly(k.Type)) result.AddError($"{who} keeps {k.Type} outside a fight.");
+                if (k.Type == Realmkeeper.Domain.Combat.ConditionType.Exhaustion && (k.Level < 1 || k.Level > 6)) result.AddError($"{who}'s exhaustion level {k.Level} is out of range.");
+                if (k.ExpiresAt >= 0 && k.ExpiresAt < k.AppliedAt) result.AddError($"{who}'s {k.Type} ends before it began.");
+            }
         }
     }
 }

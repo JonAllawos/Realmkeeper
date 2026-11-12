@@ -115,6 +115,9 @@ namespace Realmkeeper.Domain.Economy
         /// <summary>Output discarded because storage was full.</summary>
         public int Wasted { get; set; }
 
+        /// <summary>Phase 14 (ADR-0071): goods bound here that outlaws on the road took (never stored, never consumed).</summary>
+        public int LostOnRoad { get; set; }
+
         /// <summary>Amount the population needed today.</summary>
         public int Demand { get; set; }
 
@@ -136,6 +139,7 @@ namespace Realmkeeper.Domain.Economy
             ResourceTypeId = ResourceTypeId,
             Produced = Produced,
             Wasted = Wasted,
+            LostOnRoad = LostOnRoad,
             Demand = Demand,
             Consumed = Consumed,
             Shortfall = Shortfall,

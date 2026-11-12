@@ -44,6 +44,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public Dictionary<string, GroupStateDto> Groups { get; set; }
         public Dictionary<string, string> Variables { get; set; }
         public List<string> Notes { get; set; }
+
+        /// <summary>v16 (Phase 14): bridges whose state changed.</summary>
+        public Dictionary<string, string> Bridges { get; set; }
     }
 
     public sealed class PlaceLayoutDto
@@ -97,6 +100,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int LockDc { get; set; }
         public int FindDc { get; set; }
         public string GuardedBy { get; set; }
+
+        /// <summary>v16: a bridge's state as made (absent: intact).</summary>
+        public string Bridge { get; set; }
     }
 
     public sealed class PlaceFeatureDto
@@ -145,6 +151,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string State { get; set; }
         public string EncounterId { get; set; }
         public bool Alerted { get; set; }
+
+        /// <summary>v16: woken by what disturbed them.</summary>
+        public bool Woken { get; set; }
     }
 
     public sealed class EscortDto
@@ -177,9 +186,11 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Notes = new List<string>(p.Notes), Doors = new Dictionary<string, string>(), Features = new Dictionary<string, FeatureStateDto>(), Groups = new Dictionary<string, GroupStateDto>(),
                 };
                 foreach (var pair in p.Doors) d.Doors[pair.Key] = pair.Value.ToString();
+                d.Bridges = new Dictionary<string, string>();
+                foreach (var pair in p.Bridges) d.Bridges[pair.Key] = pair.Value.ToString();
                 foreach (var pair in p.Features) d.Features[pair.Key] = new FeatureStateDto { Flags = pair.Value.Flags.ToString(), Attempts = pair.Value.Attempts, ChangedAt = pair.Value.ChangedAt };
                 foreach (var pair in p.Groups)
-                    d.Groups[pair.Key] = new GroupStateDto { State = pair.Value.State.ToString(), EncounterId = pair.Value.EncounterId.IsEmpty ? null : pair.Value.EncounterId.ToString(), Alerted = pair.Value.Alerted };
+                    d.Groups[pair.Key] = new GroupStateDto { State = pair.Value.State.ToString(), EncounterId = pair.Value.EncounterId.IsEmpty ? null : pair.Value.EncounterId.ToString(), Alerted = pair.Value.Alerted, Woken = pair.Value.Woken };
                 dto.Places.Add(d);
             }
 
@@ -205,7 +216,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 Connections = l.Connections.ConvertAll(c => new PlaceConnectionDto
                 {
                     Id = c.Id, Kind = c.Kind.ToString(), A = c.A, B = c.B, X = c.Rect.X, Z = c.Rect.Z, W = c.Rect.W, D = c.Rect.D, ToX = c.ToX, ToZ = c.ToZ, Door = c.Door.ToString(),
-                    KeyItem = c.KeyItem, LockDc = c.LockDc, FindDc = c.FindDc, GuardedBy = c.GuardedBy,
+                    KeyItem = c.KeyItem, LockDc = c.LockDc, FindDc = c.FindDc, GuardedBy = c.GuardedBy, Bridge = c.Kind == ConnectionKind.Bridge ? c.Bridge.ToString() : null,
                 }),
                 Features = l.Features.ConvertAll(f => new PlaceFeatureDto
                 {
@@ -243,6 +254,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Variables = new Dictionary<string, string>(d.Variables ?? new Dictionary<string, string>(), StringComparer.Ordinal), Notes = new List<string>(d.Notes ?? new List<string>()),
                 };
                 foreach (var pair in d.Doors ?? new Dictionary<string, string>()) p.Doors[pair.Key] = ParseEnum<DoorState>(pair.Value, "place door");
+                foreach (var pair in d.Bridges ?? new Dictionary<string, string>()) p.Bridges[pair.Key] = ParseEnum<BridgeState>(pair.Value, "place bridge");
                 foreach (var pair in d.Features ?? new Dictionary<string, FeatureStateDto>())
                 {
                     if (pair.Value == null) throw new SaveDataException($"Place '{d.PlaceId}' has a null feature state.");
@@ -254,7 +266,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     if (pair.Value == null) throw new SaveDataException($"Place '{d.PlaceId}' has a null group state.");
                     p.Groups[pair.Key] = new GroupStateData
                     {
-                        State = ParseEnum<GroupState>(pair.Value.State, "group state"), EncounterId = new EncounterId(OptionalGuid(pair.Value.EncounterId, "group encounterId")), Alerted = pair.Value.Alerted,
+                        State = ParseEnum<GroupState>(pair.Value.State, "group state"), EncounterId = new EncounterId(OptionalGuid(pair.Value.EncounterId, "group encounterId")), Alerted = pair.Value.Alerted, Woken = pair.Value.Woken,
                     };
                 }
 
@@ -302,6 +314,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 {
                     Id = c.Id, Kind = ParseEnum<ConnectionKind>(c.Kind, "connection kind"), A = c.A, B = c.B, Rect = new CellRect(c.X, c.Z, c.W, c.D), ToX = c.ToX, ToZ = c.ToZ,
                     Door = ParseEnum<DoorState>(c.Door, "door state"), KeyItem = c.KeyItem, LockDc = c.LockDc, FindDc = c.FindDc, GuardedBy = c.GuardedBy,
+                    Bridge = c.Bridge == null ? BridgeState.Intact : ParseEnum<BridgeState>(c.Bridge, "bridge state"),
                 });
             }
 

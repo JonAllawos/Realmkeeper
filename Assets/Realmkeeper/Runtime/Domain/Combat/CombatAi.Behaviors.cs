@@ -101,7 +101,7 @@ namespace Realmkeeper.Domain.Combat
                         {
                             if (o.Melee || o.OnHit == null || engine.AttackNotReady(actor, o) != null || engine.Has(prey, o.OnHit.Value)) continue;
                             var d = actor.Position.DistanceFeet(prey.Position);
-                            if (d > 5 && d <= o.Range) return new AttackAction(prey.CombatantId, o.Id);
+                            if (d > 5 && d <= o.Range && engine.Unavailable(actor, new AttackAction(prey.CombatantId, o.Id)) == null) return new AttackAction(prey.CombatantId, o.Id);
                         }
 
                     return Close(engine, actor, prey) ?? new EndTurnAction();
@@ -133,11 +133,11 @@ namespace Realmkeeper.Domain.Combat
                 if (away.Count > 0) return new MoveAction(away.ToArray());
 
                 // Phase 13: cornered among walls (nowhere further to run), it turns and fights rather than dash in place for ever.
-                if (engine.Encounter.Blocked.Count > 0 && targets.Count > 0) return Close(engine, actor, Nearest(actor, targets));
+                if ((engine.Encounter.Blocked.Count > 0 || engine.Encounter.Doors.Count > 0) && targets.Count > 0) return Close(engine, actor, Nearest(actor, targets));
             }
 
-            if (!t.ActionUsed && engine.Speed(actor) > 0 && !adjacent && engine.Encounter.Blocked.Count == 0) return new DashAction();
-            if (engine.Encounter.Blocked.Count > 0 && targets.Count > 0 && !t.ActionUsed) return Close(engine, actor, Nearest(actor, targets));
+            if (!t.ActionUsed && engine.Speed(actor) > 0 && !adjacent && engine.Encounter.Blocked.Count == 0 && engine.Encounter.Doors.Count == 0) return new DashAction();
+            if ((engine.Encounter.Blocked.Count > 0 || engine.Encounter.Doors.Count > 0) && targets.Count > 0 && !t.ActionUsed) return Close(engine, actor, Nearest(actor, targets));
             return null;
         }
 

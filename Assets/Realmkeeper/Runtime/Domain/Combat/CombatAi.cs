@@ -83,7 +83,7 @@ namespace Realmkeeper.Domain.Combat
             {
                 CombatantData best = null;
                 foreach (var c in targets)
-                    if (actor.Position.DistanceFeet(c.Position) <= melee.Reach && (best == null || engine.Hp(c) < engine.Hp(best))) best = c;
+                    if (actor.Position.DistanceFeet(c.Position) <= melee.Reach && engine.CoverOf(actor, c).HasLineOfEffect && (best == null || engine.Hp(c) < engine.Hp(best))) best = c;
                 if (best != null) return new AttackAction(best.CombatantId, melee.Id);
             }
 
@@ -96,6 +96,7 @@ namespace Realmkeeper.Domain.Combat
                 {
                     var d = actor.Position.DistanceFeet(c.Position);
                     if (d > ranged.LongRange) continue;
+                    if (!engine.CoverOf(actor, c).HasLineOfEffect) continue; // Phase 14: no shots through walls
                     if (best == null || (d <= ranged.Range) && actor.Position.DistanceFeet(best.Position) > ranged.Range) best = c;
                 }
 
@@ -110,7 +111,14 @@ namespace Realmkeeper.Domain.Combat
             }
 
             if (!t.ActionUsed && melee != null && actor.Position.DistanceFeet(targets[0].Position) > melee.Reach && engine.Speed(actor) > 0) return new DashAction();
-            if (canAttack && ranged != null && actor.Position.DistanceFeet(targets[0].Position) <= ranged.LongRange && !adjacentEnemy)
+            // Phase 14: a shooter with nobody in clear line closes in until it has one.
+            if (ranged != null && melee == null && engine.MovementLeft(actor) > 0 && !t.Disengaged && !targets.Exists(c => engine.CoverOf(actor, c).HasLineOfEffect))
+            {
+                var seek = PathToward(engine, actor, targets[0], 5);
+                if (seek.Count > 0) return new MoveAction(seek.ToArray());
+            }
+
+            if (canAttack && ranged != null && actor.Position.DistanceFeet(targets[0].Position) <= ranged.LongRange && !adjacentEnemy && engine.CoverOf(actor, targets[0]).HasLineOfEffect)
                 return new AttackAction(targets[0].CombatantId, ranged.Id);
             return new EndTurnAction();
         }
@@ -118,7 +126,7 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>A greedy path toward a target (each step the free square closest to it) until within reach or out of movement.</summary>
         public static List<GridPos> PathToward(CombatEngine engine, CombatantData actor, CombatantData target, int reach)
         {
-            if (engine.Encounter.Blocked.Count > 0) return PathAround(engine, actor, target, reach); // Phase 13: walls need a real route
+            if (engine.Encounter.Blocked.Count > 0 || engine.Encounter.Doors.Count > 0) return PathAround(engine, actor, target, reach); // Phase 13: walls need a real route
             var path = new List<GridPos>();
             var at = actor.Position;
             var left = engine.MovementLeft(actor);
@@ -153,6 +161,8 @@ namespace Realmkeeper.Domain.Combat
         public static List<GridPos> PathAround(CombatEngine engine, CombatantData actor, CombatantData target, int reach)
         {
             var start = actor.Position;
+            // Already where it can strike from: nowhere to go (otherwise it would shuffle between squares in reach).
+            if (start.DistanceFeet(target.Position) <= reach && engine.CoverOf(start, target.Position).HasLineOfEffect) return new List<GridPos>();
             var parent = new Dictionary<GridPos, GridPos>();
             var queue = new Queue<GridPos>();
             queue.Enqueue(start);
@@ -169,7 +179,8 @@ namespace Realmkeeper.Domain.Combat
                     var who = engine.At(n);
                     if (who != null && who != actor) continue;
                     parent[n] = at;
-                    if (n.DistanceFeet(target.Position) <= reach) { goal = n; break; }
+                    // Phase 14 (ADR-0067): a square it can strike from — in reach and with a clear line (not across a wall's corner).
+                    if (n.DistanceFeet(target.Position) <= reach && engine.CoverOf(n, target.Position).HasLineOfEffect) { goal = n; break; }
                     queue.Enqueue(n);
                 }
             }

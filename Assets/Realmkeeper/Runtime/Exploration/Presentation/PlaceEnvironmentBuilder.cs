@@ -15,7 +15,7 @@ namespace Realmkeeper.Exploration.Presentation
     /// cell meets rock or a room it does not open onto. Doors, stairs, ladders, the way out, lights and the objects of the
     /// place are simple shapes in the place's own material. Nothing here holds state: the scene is rebuilt from the world.
     /// </summary>
-    public static class PlaceEnvironmentBuilder
+    public static partial class PlaceEnvironmentBuilder
     {
         public const float Cell = 1.5f;
         public const float WallThickness = 0.18f;
@@ -131,19 +131,22 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         /// <summary>Builds the whole place: every floor the player may see, under one root.</summary>
-        public static GameObject Build(PlaceSceneView v, ExplorationMaterials materials, out GeneratedAssets assets)
+        public static GameObject Build(PlaceSceneView v, ExplorationMaterials materials, out GeneratedAssets assets, ArtCatalog catalog = null)
         {
             var root = new GameObject("Place — " + v.Name);
             assets = root.AddComponent<GeneratedAssets>();
             var palette = For(v.Material);
-            var floorMat = materials.Get(palette.Floor, 0.05f);
-            var wallMat = materials.Get(palette.Wall, 0.05f);
-            var ceilMat = materials.Get(palette.Ceiling, 0.02f);
+            // Phase 14: each kind of place in its own surfaces — the kit's textured materials when the art catalog is present.
+            var look = Surfaces(v, catalog);
+            var floorMat = look.Wall != null ? look.Floor : materials.Get(palette.Floor, 0.05f);
+            var wallMat = look.Wall ?? materials.Get(palette.Wall, 0.05f);
+            var ceilMat = look.Ceiling ?? materials.Get(palette.Ceiling, 0.02f);
             foreach (var f in v.Floors)
             {
                 var owner = Owners(v, f.Index);
                 if (owner.Count == 0) continue;
                 var floorParts = new MeshParts();
+                var outdoorParts = new MeshParts();
                 var wallParts = new MeshParts();
                 var ceilParts = new MeshParts();
                 var y = f.Elevation;
@@ -155,8 +158,13 @@ namespace Realmkeeper.Exploration.Presentation
                     var z0 = z * Cell;
                     var x1 = x0 + Cell;
                     var z1 = z0 + Cell;
-                    floorParts.Quad(new Vector3(x0, y, z0), new Vector3(x0, y, z1), new Vector3(x1, y, z1), new Vector3(x1, y, z0), Vector3.up, 1f, 1f);
-                    floorParts.Quad(new Vector3(x0, y, z0), new Vector3(x1, y, z0), new Vector3(x1, y, z1), new Vector3(x0, y, z1), Vector3.up, 1f, 1f); // both windings: seen from any side
+                    var bridged = IsBridgeCell(v, pair.Value);
+                    var fp = OpenSky(v, pair.Value) ? outdoorParts : floorParts;
+                    if (!bridged) // a bridge's deck (or its gap) is drawn with the bridge, as it stands (Phase 14)
+                    {
+                        fp.Quad(new Vector3(x0, y, z0), new Vector3(x0, y, z1), new Vector3(x1, y, z1), new Vector3(x1, y, z0), Vector3.up, 1f, 1f);
+                        fp.Quad(new Vector3(x0, y, z0), new Vector3(x1, y, z0), new Vector3(x1, y, z1), new Vector3(x0, y, z1), Vector3.up, 1f, 1f); // both windings: seen from any side
+                    }
                     if (!OpenSky(v, pair.Value))
                         ceilParts.Quad(new Vector3(x0, y + height, z0), new Vector3(x1, y + height, z0), new Vector3(x1, y + height, z1), new Vector3(x0, y + height, z1), Vector3.down, 1f, 1f);
                     if (!OpenSky(v, pair.Value))
@@ -170,12 +178,14 @@ namespace Realmkeeper.Exploration.Presentation
                 }
 
                 Surface(root.transform, "Floor " + f.Index, floorParts.Build("floor-" + f.Index, assets), floorMat, true);
+                Surface(root.transform, "Ground " + f.Index, outdoorParts.Build("ground-" + f.Index, assets), look.Outdoor ?? materials.Get(ExplorationMaterials.Grass, 0.02f), true);
                 Surface(root.transform, "Walls " + f.Index, wallParts.Build("walls-" + f.Index, assets), wallMat, true);
                 Surface(root.transform, "Ceiling " + f.Index, ceilParts.Build("ceiling-" + f.Index, assets), ceilMat, true);
             }
 
             Lights(v, root.transform, palette);
             Dress(v, root.transform, materials, palette);
+            Dress14(v, root.transform, materials, palette, catalog);
             return root;
         }
 
@@ -356,7 +366,7 @@ namespace Realmkeeper.Exploration.Presentation
                 }
 
                 var hazard = r.Hazard;
-                if (hazard == "toxic_air" || hazard == "deep_water")
+                if (hazard == "toxic_air") // Phase 14: deep water is drawn as it stands now (drained or not), with the bridges
                 {
                     var tint = hazard == "toxic_air" ? new Color(0.45f, 0.62f, 0.30f) : new Color(0.10f, 0.20f, 0.30f);
                     var plane = Box(props, hazard, new Vector3((r.Rect.X + r.Rect.W / 2f) * Cell, y + (hazard == "toxic_air" ? 0.6f : 0.05f), (r.Rect.Z + r.Rect.D / 2f) * Cell),

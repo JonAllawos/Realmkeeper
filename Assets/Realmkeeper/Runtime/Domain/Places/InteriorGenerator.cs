@@ -96,7 +96,7 @@ namespace Realmkeeper.Domain.Places
                     Door(layout, NextC(), "work", "quarters", ConnectionKind.Door);
                     Feature(layout, rng, "work", req.Function == BuildingFunction.Smithy ? "forge" : "workbench");
                     Feature(layout, rng, "quarters", "bed");
-                    Box(layout, rng, "store", "crate", owned: true);
+                    Box(layout, rng, "store", "crate", owned: true, loot: "shop_stock", stock: true);
                     break;
                 case "store":
                     main = Room("hall", 0, 0, 0, w, d - Math.Min(3, back), RoomKind.Storage, req.Function == BuildingFunction.Granary ? "Store floor" : "Store hall");
@@ -104,8 +104,8 @@ namespace Realmkeeper.Domain.Places
                     Room("office", 0, 0, main.Rect.D, Math.Max(3, w / 2), officeD, RoomKind.Office, "Keeper's office");
                     Door(layout, NextC(), "hall", "office", ConnectionKind.Door);
                     Feature(layout, rng, "office", req.Function == BuildingFunction.Granary ? "granary_ledger_in" : "desk");
-                    Box(layout, rng, "hall", "crate", owned: true);
-                    Box(layout, rng, "hall", "crate", owned: true);
+                    Box(layout, rng, "hall", "crate", owned: true, loot: "shop_stock", stock: true);
+                    Box(layout, rng, "hall", "crate", owned: true, loot: "shop_stock", stock: true);
                     break;
                 case "guard":
                     main = Room("guardroom", 0, 0, 0, w, front, RoomKind.Barracks, "Guard room");
@@ -130,7 +130,7 @@ namespace Realmkeeper.Domain.Places
                     Room("office", 0, 0, front, w, back, RoomKind.Office, "Clerk's office", restricted: true);
                     Door(layout, NextC(), "hall", "office", ConnectionKind.Door);
                     Feature(layout, rng, "office", "desk");
-                    Box(layout, rng, "office", "chest", owned: true);
+                    Box(layout, rng, "office", "chest", owned: true, loot: "household_goods");
                     break;
                 case "tower":
                     main = Room("base", 0, 0, 0, w, d, RoomKind.Hall, "Tower hall");
@@ -149,7 +149,7 @@ namespace Realmkeeper.Domain.Places
                     Door(layout, NextC(), "main", "bedroom", ConnectionKind.Door);
                     Feature(layout, rng, "main", "hearth");
                     Feature(layout, rng, "bedroom", "bed");
-                    Box(layout, rng, "bedroom", "chest", owned: true);
+                    Box(layout, rng, "bedroom", "chest", owned: true, loot: "household_goods");
                     if (req.Wealth >= 55) Feature(layout, rng, "main", "desk");
                     break;
             }
@@ -180,7 +180,7 @@ namespace Realmkeeper.Domain.Places
                 cellar.Lit = false;
                 cellar.Hazard = "darkness";
                 layout.Connections.Add(new PlaceConnection { Id = NextC(), Kind = ConnectionKind.Stairs, A = main.Id, B = cellar.Id, Rect = new CellRect(main.Rect.X + 1, main.Rect.MaxZ - 2, 1, 1), ToX = 1, ToZ = cellar.Rect.MaxZ - 2 });
-                Box(layout, rng, "cellar", "crate", owned: true);
+                Box(layout, rng, "cellar", "crate", owned: true, loot: "household_goods");
             }
 
             // Nothing stands on a stair: furniture placed before the stairs were added moves aside.
@@ -243,8 +243,8 @@ namespace Realmkeeper.Domain.Places
             layout.Features.Add(new PlaceFeature { Id = def + ":" + room, Room = room, Kind = d.Kind, DefinitionId = def, X = x, Z = z });
         }
 
-        /// <summary>A container that belongs to the household (looked into, not taken from: theft is not part of Phase 13).</summary>
-        private static void Box(PlaceLayout layout, PlaceRng rng, string room, string def, bool owned, string loot = null)
+        /// <summary>A container that belongs to the household. Phase 14 (ADR-0069): it holds their things, which can be stolen.</summary>
+        private static void Box(PlaceLayout layout, PlaceRng rng, string room, string def, bool owned, string loot = null, bool stock = false)
         {
             var r = layout.Room(room);
             if (r == null) return;
@@ -253,6 +253,7 @@ namespace Realmkeeper.Domain.Places
             var f = new PlaceFeature { Id = def + ":" + room + ":" + layout.Features.Count, Room = room, Kind = FeatureKind.Container, DefinitionId = def, X = x, Z = z };
             if (owned) f.Data["owned"] = "yes";
             if (loot != null) f.Data["loot"] = loot;
+            if (stock) f.Data["stock"] = "yes"; // Phase 14: a business's stock (theft from it is shop theft)
             layout.Features.Add(f);
         }
 

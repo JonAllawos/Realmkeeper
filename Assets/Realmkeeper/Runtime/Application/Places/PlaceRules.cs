@@ -102,6 +102,35 @@ namespace Realmkeeper.Application.Places
 
         // ----- Passages ------------------------------------------------------------------------
 
+        /// <summary>Phase 14 (ADR-0069): shown out of a building: back in the street by its door, with those who follow.</summary>
+        public static void Eject(WorldData w, PlaceData place)
+        {
+            var p = w.Player;
+            PlaceFollowers.Leave(w, place, p.PlaceRoom);
+            p.PlaceId = null;
+            p.PlaceRoom = null;
+            p.PlaceFloor = 0;
+            p.LocationKind = CharacterLocationKind.Settlement;
+            p.SettlementId = place.SettlementId;
+            p.Pose = place.ExitPose;
+        }
+
+        /// <summary>Phase 14: a room's hazard as it stands now (the culverts' water is gone once the sluice is turned).</summary>
+        public static HazardDefinition HazardOf(PlaceData place, PlaceRoom room)
+        {
+            var h = HazardCatalog.Find(room?.Hazard);
+            if (h != null && h.SwimDc > 0 && place.Variables.ContainsKey("drained")) return null;
+            return h;
+        }
+
+        /// <summary>Phase 14 (ADR-0068): why the player cannot move at all (a lasting restraint), or null.</summary>
+        public static string Held(WorldData w)
+        {
+            var sheet = w.Player?.Rpg;
+            var k = sheet == null ? null : LastingConditions.Find(sheet, ConditionType.Restrained, QuestClock.Now(w));
+            return k == null ? null : $"You are restrained ({(string.IsNullOrEmpty(k.Reason) ? "held fast" : k.Reason)}): break free first.";
+        }
+
         /// <summary>Why the player cannot pass a connection from a room, or null when they can.</summary>
         public static string Blocks(PlaceData p, PlaceConnection c, string fromRoom)
         {
@@ -109,6 +138,7 @@ namespace Realmkeeper.Application.Places
             if (c.GuardedBy != null && !HasPassage(p, c.GuardedBy) && p.GroupStateOf(c.GuardedBy) != GroupState.Peaceful)
                 return (p.Layout.Group(c.GuardedBy)?.Name is string n ? Capital(n) : "The guards") + " bar the way. Talk to them, or find another way in.";
             if (c.Kind == ConnectionKind.Opening || c.IsVertical) return null;
+            if (c.Kind == ConnectionKind.Bridge) return p.BridgeOf(c) == BridgeState.Destroyed ? "The bridge is gone: there is no way across here." : null; // Phase 14 (ADR-0071)
             var state = p.DoorOf(c);
             switch (state)
             {
@@ -154,25 +184,57 @@ namespace Realmkeeper.Application.Places
             public string Text;
         }
 
-        /// <summary>A skill check against a DC with the world's dice; at a disadvantage two dice and the lower counts.</summary>
-        public static Roll Check(WorldData w, Skill skill, int dc, string key, bool disadvantage = false)
+        /// <summary>
+        /// A skill check against a DC with the world's dice. Phase 14 (ADR-0068): the character's lasting conditions count
+        /// as in a fight — poisoned or frightened: disadvantage; exhaustion: −2 per level; blinded: a check that needs sight
+        /// fails; deafened: listening fails. At a disadvantage two dice are rolled and the lower counts.
+        /// </summary>
+        public static Roll Check(WorldData w, Skill skill, int dc, string key, bool disadvantage = false, bool needsSight = false, bool needsHearing = false)
         {
-            var bonus = w.Player.Rpg != null && w.Player.Rpg.State == CreationState.Complete ? Rules(w).SkillBonus(skill).Total : 0;
+            var sheet = w.Player.Rpg;
+            var ready = sheet != null && sheet.State == CreationState.Complete;
+            var bonus = ready ? Rules(w).SkillBonus(skill).Total : 0;
+            var now = QuestClock.Now(w);
+            var why = new List<string>();
+            if (disadvantage) why.Add("in the dark");
+            if (ready && LastingConditions.Has(sheet, ConditionType.Poisoned, now)) why.Add("poisoned");
+            if (ready && LastingConditions.Has(sheet, ConditionType.Frightened, now)) why.Add("frightened");
+            var exhaustion = ready ? LastingConditions.ExhaustionLevel(sheet, now) : 0;
+            if (ready && needsSight && LastingConditions.Has(sheet, ConditionType.Blinded, now))
+                return new Roll { Die = 1, Total = 0, Dc = dc, Success = false, Text = SkillName(skill) + ": you cannot see (blinded), so it fails" };
+            if (ready && needsHearing && LastingConditions.Has(sheet, ConditionType.Deafened, now))
+                return new Roll { Die = 1, Total = 0, Dc = dc, Success = false, Text = SkillName(skill) + ": you cannot hear (deafened), so it fails" };
             var die = SpellCommandHandlers.Dice(w, "place:" + key);
             var d = die(20);
-            if (disadvantage) d = Math.Min(d, die(20));
-            var total = d + bonus;
+            if (why.Count > 0) d = Math.Min(d, die(20));
+            var total = d + bonus - 2 * exhaustion;
             var ok = d == 20 || (d != 1 && total >= dc);
-            return new Roll { Die = d, Total = total, Dc = dc, Success = ok, Text = $"{SkillName(skill)} {total} ({d}{(bonus >= 0 ? "+" : string.Empty)}{bonus}{(disadvantage ? ", in the dark" : string.Empty)}) against {dc}: {(ok ? "success" : "failure")}" };
+            var notes = new List<string>(why);
+            if (exhaustion > 0) notes.Add("−" + (2 * exhaustion) + " exhaustion");
+            var sign = bonus >= 0 ? "+" : string.Empty;
+            var extra = notes.Count > 0 ? ", " + string.Join(", ", notes) : string.Empty;
+            return new Roll { Die = d, Total = total, Dc = dc, Success = ok, Text = $"{SkillName(skill)} {total} ({d}{sign}{bonus}{extra}) against {dc}: {(ok ? "success" : "failure")}" };
         }
 
+        /// <summary>A saving throw outside a fight, with the modes a fight uses (exhaustion; restrained: disadvantage on Dexterity saves).</summary>
         public static Roll Save(WorldData w, Ability ability, int dc, string key)
         {
-            var bonus = w.Player.Rpg != null && w.Player.Rpg.State == CreationState.Complete ? Rules(w).SaveBonus(ability).Total : 0;
-            var d = SpellCommandHandlers.Dice(w, "place-save:" + key)(20);
-            var total = d + bonus;
+            var sheet = w.Player.Rpg;
+            var ready = sheet != null && sheet.State == CreationState.Complete;
+            var bonus = ready ? Rules(w).SaveBonus(ability).Total : 0;
+            var now = QuestClock.Now(w);
+            var exhaustion = ready ? LastingConditions.ExhaustionLevel(sheet, now) : 0;
+            var restrained = ready && ability == Ability.Dexterity && LastingConditions.Has(sheet, ConditionType.Restrained, now);
+            var die = SpellCommandHandlers.Dice(w, "place-save:" + key);
+            var d = die(20);
+            if (restrained) d = Math.Min(d, die(20));
+            var total = d + bonus - 2 * exhaustion;
             var ok = d == 20 || (d != 1 && total >= dc);
-            return new Roll { Die = d, Total = total, Dc = dc, Success = ok, Text = $"{ability} save {total} against {dc}: {(ok ? "success" : "failure")}" };
+            var notes = new List<string>();
+            if (restrained) notes.Add("restrained");
+            if (exhaustion > 0) notes.Add("−" + (2 * exhaustion) + " exhaustion");
+            var extra = notes.Count > 0 ? " (" + string.Join(", ", notes) + ")" : string.Empty;
+            return new Roll { Die = d, Total = total, Dc = dc, Success = ok, Text = $"{ability} save {total}{extra} against {dc}: {(ok ? "success" : "failure")}" };
         }
 
         public static int PassivePerception(WorldData w, PlaceRoom room)
@@ -198,25 +260,6 @@ namespace Realmkeeper.Application.Places
             var counter = "attempts:" + target + ":" + what + ":" + p.Visits.ToString(CultureInfo.InvariantCulture);
             p.Variables.TryGetValue(counter, out var v);
             p.Variables[counter] = ((int.TryParse(v, out var x) ? x : 0) + 1).ToString(CultureInfo.InvariantCulture);
-        }
-
-        // ----- Harm outside a fight -------------------------------------------------------------
-
-        /// <summary>
-        /// Damage from a trap or hazard: rolled with the world's dice, halved on a successful save, taken from the sheet's hit
-        /// points. Outside a fight it never takes the last hit point (ADR-0064: fair challenges, no instant death).
-        /// </summary>
-        public static int Hurt(WorldData w, Dice dice, bool halved, string key)
-        {
-            if (dice.IsEmpty || w.Player.Rpg == null) return 0;
-            var die = SpellCommandHandlers.Dice(w, "place-harm:" + key);
-            var total = dice.Bonus;
-            for (var i = 0; i < dice.Count; i++) total += die(dice.Sides);
-            if (halved) total /= 2;
-            var sheet = w.Player.Rpg;
-            var before = sheet.CurrentHp;
-            sheet.CurrentHp = Math.Max(Math.Min(1, before), before - Math.Max(0, total));
-            return before - sheet.CurrentHp;
         }
 
         // ----- Arriving in a room ---------------------------------------------------------------
@@ -264,7 +307,7 @@ namespace Realmkeeper.Application.Places
                 }
 
             // The room's hazard, once a visit.
-            var hazard = HazardCatalog.Find(room.Hazard);
+            var hazard = HazardOf(place, room);
             if (hazard != null)
             {
                 var met = "hazard:" + room.Id;
@@ -273,6 +316,31 @@ namespace Realmkeeper.Application.Places
                 {
                     place.Variables[met] = visit;
                     lines.Add(Meet(w, place, room, hazard));
+                }
+            }
+
+            // Phase 14 (ADR-0069): a household's private rooms. Whoever lives here and sees the player warns them once a
+            // visit; caught there again, they show the player out, and it is trespass.
+            if (place.Category == PlaceCategory.Interior && room.Restricted)
+            {
+                var (cx, cz) = CellOf(p.Pose);
+                var seen = CrimeRules.Witnesses(w, place, room, cx, cz, false);
+                if (seen.Count > 0)
+                {
+                    var by = seen[0].Npc;
+                    var warned = "warned:" + place.Visits.ToString(CultureInfo.InvariantCulture);
+                    if (!place.Variables.ContainsKey(warned))
+                    {
+                        place.Variables[warned] = room.Id;
+                        lines.Add($"{by.Name} stops you: \"Not in there — that's ours. Back out, please.\"");
+                    }
+                    else
+                    {
+                        CrimeRules.Record(context, w, CrimeKind.Trespass, place, room, by.NpcId, default, "went into a private room of " + place.Name + " after being warned", seen);
+                        lines.Add($"{by.Name} has had enough: \"Out. Now.\" You are shown the door.");
+                        Eject(w, place);
+                        return string.Join(" ", lines);
+                    }
                 }
             }
 
@@ -296,7 +364,8 @@ namespace Realmkeeper.Application.Places
             var hostile = new List<PlaceGroup>();
             foreach (var g in place.Layout.Groups)
             {
-                if (g.Room != room.Id || g.Behaviour == GroupBehaviour.Guard || g.WakesOn != null) continue;
+                if (g.Room != room.Id || g.Behaviour == GroupBehaviour.Guard || g.Behaviour == GroupBehaviour.Parley) continue;
+                if (g.WakesOn != null && !place.GroupOf(g.Id).Woken) continue; // Phase 14: sleepers wake only when disturbed
                 var s = place.GroupStateOf(g.Id);
                 if (s == GroupState.Present || s == GroupState.Survived) hostile.Add(g);
             }
@@ -313,26 +382,70 @@ namespace Realmkeeper.Application.Places
 
         private static string Meet(WorldData w, PlaceData place, PlaceRoom room, HazardDefinition h)
         {
-            var key = place.PlaceId + ":" + room.Id + ":" + place.Visits.ToString(CultureInfo.InvariantCulture);
+            var key = PlaceHarm.Key(place, "hazard:" + room.Id);
             if (h.Dark) return h.Describe + (Dark(w, room) ? " Without a light you will miss things here." : string.Empty);
+            if (h.BurnsMinutes > 0)
+            {
+                var burning = Burning(w, place, room, h);
+                if (!burning) return "The fire here has burnt itself out: charred beams, ash, and the smell of smoke.";
+            }
+
+            var spec = Harm(h, place);
             if (h.SwimDc > 0)
             {
                 var swim = Check(w, Skill.Athletics, h.SwimDc, "swim:" + key);
                 if (swim.Success) return h.Describe + " You swim across (" + swim.Text + ").";
-                var lost = Hurt(w, h.Damage, false, "swim:" + key);
+                // Floundering: the knocks of the crossing (no save), then the cold (a Constitution save or a level of exhaustion).
+                var knocks = PlaceHarm.Apply(w, new HarmSpec { Source = spec.Source, Name = spec.Name, Damage = h.Damage, DamageType = h.DamageType }, "swim:" + key, out _);
+                var cold = PlaceHarm.Apply(w, new HarmSpec { Source = spec.Source, Name = spec.Name, Save = h.Save, SaveDc = h.SaveDc, Condition = h.Inflicts, Remedies = h.Remedies }, "cold:" + key, out _);
                 place.Note(w.Player.Name + " floundered in the water in " + room.Name + ".");
-                return h.Describe + $" The cold takes your breath; you drag yourself across ({swim.Text}): {lost} damage.";
+                return h.Describe + $" The cold takes your breath; you drag yourself across ({swim.Text}). {knocks} {cold}".TrimEnd();
             }
 
-            if (h.Save.HasValue)
-            {
-                var save = Save(w, h.Save.Value, h.SaveDc, "hazard:" + key);
-                var lost = Hurt(w, h.Damage, save.Success, "hazard:" + key);
-                var cond = !save.Success && h.Condition != null ? $" You are left {h.Condition.ToLowerInvariant()} for a while." : string.Empty;
-                return $"{h.Describe} {save.Text}: {lost} {h.DamageType.ToString().ToLowerInvariant()} damage.{cond}";
-            }
-
+            if (h.Save.HasValue) return h.Describe + " " + PlaceHarm.Apply(w, spec, "hazard:" + key, out _);
             return h.Describe;
+        }
+
+        /// <summary>A hazard as harm (ADR-0068): its save, damage and the lasting condition it leaves.</summary>
+        public static HarmSpec Harm(HazardDefinition h, PlaceData place) => new HarmSpec
+        {
+            Source = "hazard:" + h.Id, Name = h.Name.ToLowerInvariant() + " in " + place.Name, Damage = h.Damage, DamageType = h.DamageType, Save = h.Save, SaveDc = h.SaveDc,
+            Condition = h.Inflicts, ConditionMinutes = h.ConditionMinutes, Remedies = h.Remedies,
+        };
+
+        /// <summary>A trap as harm.</summary>
+        public static HarmSpec Harm(TrapDefinition t, PlaceData place) => new HarmSpec
+        {
+            Source = "trap:" + t.Id, Name = t.Name.ToLowerInvariant() + " in " + place.Name, Damage = t.Damage, DamageType = t.DamageType, Save = t.SaveDc > 0 ? t.Save : (Ability?)null,
+            SaveDc = t.SaveDc, Condition = t.Inflicts, ConditionMinutes = t.ConditionMinutes, Remedies = t.Remedies, EscapeDc = t.EscapeDc,
+        };
+
+        /// <summary>
+        /// Phase 14 (ADR-0071): a fire burns for its hazard's time from when the room was first found burning, then is out
+        /// for good. The start is recorded once; nothing ticks.
+        /// </summary>
+        public static bool Burning(WorldData w, PlaceData place, PlaceRoom room, HazardDefinition h)
+        {
+            if (h == null || h.Id != "fire") return false;
+            if (h.BurnsMinutes <= 0) return true;
+            var lit = "fire_lit:" + room.Id;
+            var now = QuestClock.Now(w);
+            if (!place.Variables.TryGetValue(lit, out var v) || !long.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out var at))
+            {
+                place.Variables[lit] = now.ToString(CultureInfo.InvariantCulture);
+                return true;
+            }
+
+            return now < at + h.BurnsMinutes;
+        }
+
+        /// <summary>Whether a fire is burning in a room now, for the scene and queries (does not light it).</summary>
+        public static string FireState(WorldData w, PlaceData place, PlaceRoom room)
+        {
+            if (room?.Hazard != "fire") return null;
+            var h = HazardCatalog.Find("fire");
+            if (!place.Variables.TryGetValue("fire_lit:" + room.Id, out var v) || !long.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out var at)) return "burning";
+            return QuestClock.Now(w) < at + h.BurnsMinutes ? "burning" : "burnt out";
         }
 
         /// <summary>The group that catches the player trespassing on entering a room, with what happens, or null.</summary>

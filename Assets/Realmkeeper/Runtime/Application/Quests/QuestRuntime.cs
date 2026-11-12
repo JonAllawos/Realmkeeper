@@ -401,6 +401,8 @@ namespace Realmkeeper.Application
                     return p.Rpg != null && InRange(x, p.Rpg.Level);
                 case ConditionKind.NpcMorale:
                     return c.Npc != null && InRange(x, c.Npc.Condition.Morale);
+                case ConditionKind.KnowsCrime:
+                    return c.Npc != null && Places.CrimeRules.KnownTo(w, c.Npc).Count > 0;
                 default:
                     return false;
             }

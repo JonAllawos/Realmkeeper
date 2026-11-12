@@ -450,7 +450,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void RefreshHud()
         {
-            if (InPlace) { RefreshPlaceHud(); return; } // Phase 13
+            if (InPlace) { RefreshPlaceHud(); RefreshConditionsHud(); return; } // Phase 13; Phase 14: conditions, followers, rest
             if (Hud == null || _session == null || !_session.HasWorld) return;
             var player = _session.GetPlayer();
             if (player == null || !player.IsInSettlement) return;
@@ -460,6 +460,7 @@ namespace Realmkeeper.Exploration.Presentation
             var politics = _session.GetSettlementPolitics(player.SettlementId);
             var authority = politics == null ? string.Empty : politics.IsIndependent ? " · independent" : " · governed by " + politics.GoverningFactionName;
             Hud.SetLocation(settlement?.Name ?? "-", (region != null ? region.Name : "-") + authority, _session.GetOverview().Date.ToString());
+            RefreshConditionsHud(); // Phase 14
         }
 
         private void OnDestroy()

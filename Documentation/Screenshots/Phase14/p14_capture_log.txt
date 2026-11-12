@@ -1,0 +1,20 @@
+p14_08_locked_for_the_night: 23:00 at Enter Keep: "" — offered: 1  Pick the lock (Sleight of Hand; breaking in) / 2  Force the door (Athletics; loud, and breaking in) / 3  Leave it
+p14_01_lasting_conditions_hud: The conditions panel in town: Poisoned (a poisoned needle): Disadvantage on attack rolls and ability checks. Ends: Lesser Restoration ends it Exhausted 1 (cold water): Level 1: −2 to every d20 test and −5 ft speed. Death at level 6. Ends: each long rest removes a level Restrained (a net): Speed 0: you can't move from room to room; attacks against you have advantage; disadvantage on Dexterity saves. Ends: break free (Athletics or Acrobatics, DC 12)
+p14_02_rest_in_a_place: Inside The Fordkeepers' Crypt; the HUD's rest line: "You can rest here, but not unseen: something still lives in this place."
+p14_03_combat_grid_walls_cover: A fight in tomb 2: 802 wall squares, 3 door(s), 3 low cover square(s) on the grid. Cover from you — Skeleton 1: no cover; Zombie 2: half cover (+2 AC and Dexterity saves) from the sarcophagus
+p14_04_combat_cover_in_the_log: Round 3; the order list shows each foe's cover from you.
+p14_05_household_before_theft: House 8, the bedroom: Fenna Oakes is here (Resting) beside the chest.
+p14_06_theft_seen: Taken from the chest: "You take linen tunic and 9 coin. Fenna Oakes sees you (in the same room): "Thief! Stop!" They could not tell who you were."
+p14_07_journal_crimes: The journal's Crimes tab: Took what was in Fenna Oakes's chest — Witnessed; Fenna Oakes saw it (in the same room) but could not say who it was
+p14_09_map_new_places: The map, with this world's 5 new places: Crowfoot Den (Bandit hideout), The Ashgrave Catacombs (Catacombs), The Lantern Fane (Forsaken temple), The Old Culverts (Underground works), Thornwick (Abandoned hamlet).
+p14_10_catacombs_inside: The Ashgrave Catacombs: the entrance, dressed as a catacomb.
+p14_11_vault_sleepers_wake: The sealed vault opened: "As the lid shifts, something wakes! The vault's sleepers in the tomb 7.
+The vault's sleepers — The Ashgrave Catacombs: round 1, Skeleton 1's turn." — the sleepers are up and the fight begins.
+p14_12_fane_on_fire: The Lantern Fane: the quarters burning; "Quarters. Flames lick across the floor. Dexterity save 14 against 12: success. 3 fire damage: 25 → 22 HP."
+p14_13_place_map_fire: The place map: the burning room marked in red.
+p14_14_culverts_bridge: The Old Culverts: a damaged bridge over the channel.
+p14_15_crossing_and_place_map: After crossing: "Acrobatics 20 (16+4) against 12: success. The bridge sways and creaks, but holds. Hall 6. No light reaches here." — the bridge is now damaged.
+p14_16_outlaws_parley: The outlaws talk before they fight: Pay their toll (10 coin) / Talk them off the road / Threaten them / Attack a band of outlaws
+p14_17_hamlet: Thornwick: the yard under the open sky.
+p14_18_map_place_states: Places and how they stand: The Lantern Fane: on fire; The Old Culverts: a damaged bridge
+p14_19_follower: Wenna Fairweather follows into the office 2; the HUD: Wenna Fairweather: with you Rest: A quiet corner: you can rest here.

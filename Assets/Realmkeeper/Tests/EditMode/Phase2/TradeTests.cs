@@ -152,7 +152,8 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         public void NoDuplication_LongRunConservesEveryNonPerishableGood()
         {
             // Full simulation on a generated world: each day, the change in total timber, stone
-            // and iron (stock + on the road) must equal what was produced minus what was consumed.
+            // and iron (stock + on the road) must equal what was produced minus what was consumed —
+            // and, since Phase 14 (ADR-0071), minus what outlaws on the road took.
             var world = Phase2Worlds.Generated(123456789);
             var scheduler = StandardSimulationSystems.CreateScheduler(new Xoshiro256RandomFactory());
             var shipments = 0;
@@ -168,6 +169,7 @@ namespace Realmkeeper.Tests.EditMode.Phase2
                         var f = s.Economy.FindFlow(r);
                         produced += f.Produced;
                         consumed += f.Consumed;
+                        consumed += f.LostOnRoad;
                     }
 
                     Assert.That(Total(step.World, r) - Total(world, r), Is.EqualTo(produced - consumed), $"{r} on {step.World.CurrentSimulationDate}");

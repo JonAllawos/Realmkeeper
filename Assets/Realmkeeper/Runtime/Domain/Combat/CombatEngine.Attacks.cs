@@ -150,6 +150,9 @@ namespace Realmkeeper.Domain.Combat
             r.AttackBonus = o.AttackBonus;
             r.Total = roll.Natural + o.AttackBonus.Total - 2 * exhaustion + dieBonus + flat;
             r.TargetAcBreakdown = ArmorClass(target);
+            var cover = CoverOf(attacker, target); // Phase 14 (ADR-0067): half +2, three-quarters +5
+            if (cover.AcBonus > 0) r.TargetAcBreakdown.Add(cover.Level == CoverLevel.Half ? "half cover (" + cover.By + ")" : "three-quarters cover (" + cover.By + ")", cover.AcBonus);
+            r.Cover = cover;
             r.TargetAc = r.TargetAcBreakdown.Total;
             var critFrom = 20;
             if (o.Kind == AttackKind.Weapon || o.Kind == AttackKind.Unarmed)
@@ -173,7 +176,7 @@ namespace Realmkeeper.Domain.Combat
             var verb = opportunity ? "Opportunity attack" : o.Name;
             Log(CombatLogKind.Attack, attacker.CombatantId, target.CombatantId,
                 $"{attacker.Name} → {target.Name}: {verb}, d20 {roll.Natural}{(roll.Advantage || roll.Disadvantage ? $" ({roll.First}/{roll.Second}, {roll.ModeText})" : string.Empty)} " +
-                $"{Breakdown.Signed(o.AttackBonus.Total)}{(exhaustion > 0 ? $" −{2 * exhaustion} exhaustion" : string.Empty)}{(notes.Count > 0 ? " " + string.Join(" ", notes) : string.Empty)} = {r.Total} vs AC {r.TargetAc}: " +
+                $"{Breakdown.Signed(o.AttackBonus.Total)}{(exhaustion > 0 ? $" −{2 * exhaustion} exhaustion" : string.Empty)}{(notes.Count > 0 ? " " + string.Join(" ", notes) : string.Empty)} = {r.Total} vs AC {r.TargetAc}{(cover.AcBonus > 0 ? " (with " + cover.Describe() + ")" : string.Empty)}: " +
                 (r.Critical ? "critical hit!" : r.Hit ? "hit." : "miss (" + r.MissReason + ")."), r.Total, roll);
             return r;
         }
@@ -393,7 +396,7 @@ namespace Realmkeeper.Domain.Combat
         /// Bardic Inspiration, Indomitable, and automatic failures (Strength and Dexterity saves while paralyzed,
         /// petrified, stunned or unconscious).
         /// </summary>
-        public SaveResult SavingThrow(CombatantData c, Ability ability, int dc, string against, bool disadvantage = false, string advantage = null)
+        public SaveResult SavingThrow(CombatantData c, Ability ability, int dc, string against, bool disadvantage = false, string advantage = null, int cover = 0, string coverWhy = null)
         {
             var s = Stats(c);
             var r = new SaveResult { Ability = ability, Dc = dc, Bonus = s.SaveBonus(ability) };
@@ -422,9 +425,10 @@ namespace Realmkeeper.Domain.Combat
             var notes = new List<string>();
             var aura = AuraOfProtection(c);
             if (aura > 0) notes.Add($"Aura of Protection +{aura}");
-            r.Total = roll.Natural + r.Bonus.Total - 2 * ExhaustionLevel(c) + RollDieEffects(c, notes) + aura;
+            if (cover > 0) notes.Add($"+{cover} {coverWhy ?? "cover"}"); // Phase 14
+            r.Total = roll.Natural + r.Bonus.Total - 2 * ExhaustionLevel(c) + RollDieEffects(c, notes) + aura + cover;
             r.Success = r.Total >= dc;
-            if (!r.Success) DecideOnFailedSave(c, ability, dc, r, r.Bonus.Total - 2 * ExhaustionLevel(c), notes, aura); // Phase 10: Bardic Inspiration, Indomitable
+            if (!r.Success) DecideOnFailedSave(c, ability, dc, r, r.Bonus.Total - 2 * ExhaustionLevel(c) + cover, notes, aura); // Phase 10: Bardic Inspiration, Indomitable
 
             Log(CombatLogKind.Save, c.CombatantId, default,
                 $"{c.Name}'s {ability} save against {against}: d20 {roll.Natural}{(roll.Advantage || roll.Disadvantage ? $" ({roll.First}/{roll.Second}, {roll.ModeText})" : string.Empty)} {Breakdown.Signed(r.Bonus.Total)}{(notes.Count > 0 ? " " + string.Join(" ", notes) : string.Empty)} = {r.Total} vs DC {dc}: {(r.Success ? "success" : "failure")}.", r.Total, roll);

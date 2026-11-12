@@ -275,8 +275,8 @@ namespace Realmkeeper.Tests.EditMode.Places
             var town = Realmkeeper.Simulation.Quests.QuestGenesis.FirstTown(W);
             Ok(_s.Dispatch(new EnterSettlementCommand(town.SettlementId)));
             var layout = ExplorationModule.LayoutFor(W, W.FindSettlement(town.SettlementId));
-            // A home with someone in it now: the night, when people are at home.
-            _h.Edit(w => w.MinuteOfDay = 23 * 60 + 30);
+            // A home with someone in it now: late evening, when people are at home (from ten the door is locked: Phase 14).
+            _h.Edit(w => w.MinuteOfDay = 21 * 60 + 50);
             var w0 = W;
             var home = layout.Buildings.First(b => b.Function != null && Realmkeeper.Domain.Places.InteriorGenerator.Plan(b.Function.Value) == "home" &&
                                                    w0.Locations.Any(l => l.LayoutKey == b.Key && l.SettlementId == town.SettlementId && w0.Npcs.Any(n => n.ResidenceId == l.LocationId && !n.IsDeceased && n.Tier != NpcTier.Unassigned)));
@@ -287,9 +287,9 @@ namespace Realmkeeper.Tests.EditMode.Places
             Assert.That(W.Player.PlaceId, Is.EqualTo(id));
             var scene = _s.GetPlaceScene();
             Assert.That(scene.Category, Is.EqualTo(PlaceCategory.Interior));
-            Assert.That(scene.Figures.Any(f => f.Role == "resident"), Is.True, "The people who live here are here, asleep.");
+            Assert.That(scene.Figures.Any(f => f.Role == "resident"), Is.True, "The people who live here are here.");
             var resident = scene.Figures.First(f => f.Role == "resident");
-            Assert.That(scene.Rooms.Single(r => r.Id == resident.Room).Kind, Is.EqualTo(RoomKind.Bedroom).Or.EqualTo(RoomKind.Chamber));
+            Assert.That(new[] { RoomKind.Bedroom, RoomKind.Chamber, RoomKind.Hall, RoomKind.Kitchen, RoomKind.Quarters }.Contains(scene.Rooms.Single(r => r.Id == resident.Room).Kind), Is.True, "A room that suits what they are doing (Phase 14: they move between rooms).");
             Assert.That(_s.GetPresenceIn(town.SettlementId).Count(p => p.NpcId == resident.NpcId), Is.LessThanOrEqualTo(1), "One identity, never two.");
 
             var box = scene.Features.FirstOrDefault(f => f.Kind == FeatureKind.Container);
@@ -382,6 +382,7 @@ namespace Realmkeeper.Tests.EditMode.Places
         public void AVersion14Save_GainsItsPlacesOnce_AndKeepsEverythingElse()
         {
             var serializer = new JsonWorldSerializer();
+            var before = W.Places.Count(p => p.ParentKind == PlaceParentKind.Region);
             var doc = JObject.Parse(serializer.Serialize(W));
             Phase2Worlds.StripToV14(doc);
             Assert.That(doc["world"]["places"], Is.Null);
@@ -390,7 +391,7 @@ namespace Realmkeeper.Tests.EditMode.Places
             var load = _s.Execute(new LoadWorldCommand("v14"));
             Assert.That(load.IsSuccess, Is.True, load.Message + " " + string.Join("; ", load.Errors));
             var w = W;
-            Assert.That(w.Places.Count(p => p.ParentKind == PlaceParentKind.Region), Is.EqualTo(5), "The places come with the living world on load.");
+            Assert.That(w.Places.Count(p => p.ParentKind == PlaceParentKind.Region), Is.EqualTo(before), "The places come with the living world on load (the Phase 13 five and the world's Phase 14 ones).");
             Assert.That(w.Quests.Count(q => q.DefinitionId == QuestCatalog.LostBelow), Is.EqualTo(1));
             Assert.That(w.Escorts.Count, Is.EqualTo(1));
             var again = JObject.Parse(serializer.Serialize(w));

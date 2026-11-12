@@ -24,12 +24,33 @@ namespace Realmkeeper.Infrastructure.Generation
         public const int MinDistance = 6;
         public const int MaxDistance = 22;
 
+        /// <summary>The Phase 13 definitions (made together, once).</summary>
+        public static readonly string[] Phase13 = { PlaceCatalog.Mine, PlaceCatalog.Crypt, PlaceCatalog.Fort, PlaceCatalog.Cave, PlaceCatalog.Ruin };
+
+        /// <summary>
+        /// Ensures the world's places. Each generation of definitions is ensured on its own (ADR-0071): the Phase 13 five
+        /// together, once; the Phase 14 places chosen by the world's context, once. A world that has a generation's places
+        /// is never changed by it again, so a Phase 13 save gains the new places exactly once and keeps everything else.
+        /// </summary>
         public static bool Ensure(WorldData world, RegionMap map, IRandomSourceFactory random)
         {
             if (world == null) throw new ArgumentNullException(nameof(world));
             if (map == null || world.Settlements.Count == 0) return false;
-            foreach (var p in world.Places) if (p != null && p.ParentKind == PlaceParentKind.Region) return false; // made once
+            var changed = EnsurePhase13(world, map, random);
+            changed |= EnsurePhase14(world, map);
+            return changed;
+        }
 
+        private static bool Has(WorldData world, IEnumerable<string> definitions)
+        {
+            var ids = new HashSet<string>(definitions, StringComparer.Ordinal);
+            foreach (var p in world.Places) if (p != null && p.ParentKind == PlaceParentKind.Region && ids.Contains(p.DefinitionId)) return true;
+            return false;
+        }
+
+        private static bool EnsurePhase13(WorldData world, RegionMap map, IRandomSourceFactory random)
+        {
+            if (Has(world, Phase13)) return false; // made once
             var report = QuestGenesis.Direct(world);
             var made = new List<PlaceData>();
             Make(world, map, made, PlaceCatalog.Mine, s => true, t => t == TerrainType.Hills || t == TerrainType.Mountain, near: false);
@@ -51,6 +72,101 @@ namespace Realmkeeper.Infrastructure.Generation
             var fort = made.Find(p => p.DefinitionId == PlaceCatalog.Fort);
             if (fort != null) Garrison(world, fort, random);
             return true;
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0071): the five new places, chosen by the world's context — a catacomb near a village or town, a
+        /// temple near a settlement with a faction (who built it), a bandit hideout above a road two trading settlements
+        /// share, old works near a town, an abandoned hamlet in open country. Among those the world allows, three to five
+        /// are taken (by the world seed), so worlds differ in which places they hold. Once any is made, the choice is
+        /// settled: none is added later.
+        /// </summary>
+        private static bool EnsurePhase14(WorldData world, RegionMap map)
+        {
+            if (Has(world, Phase14Places.All)) return false;
+            var eligible = new List<string>();
+            var routeFor = (TradeRouteFinder)null;
+            foreach (var id in Phase14Places.All)
+            {
+                switch (id)
+                {
+                    case Phase14Places.Catacomb: if (world.Settlements.Exists(s => s.SettlementType == SettlementType.Village || s.SettlementType == SettlementType.Town)) eligible.Add(id); break;
+                    case Phase14Places.Temple: if (world.Settlements.Exists(s => !s.FactionId.IsEmpty)) eligible.Add(id); break;
+                    case Phase14Places.Hideout:
+                        routeFor = new TradeRouteFinder(world);
+                        if (routeFor.Route != null || world.Settlements.Count >= 2) eligible.Add(id);
+                        break;
+                    case Phase14Places.Works: if (world.Settlements.Exists(s => s.SettlementType == SettlementType.Town || s.SettlementType == SettlementType.City)) eligible.Add(id); break;
+                    case Phase14Places.Hamlet: eligible.Add(id); break;
+                }
+            }
+
+            if (eligible.Count == 0) return false;
+            var seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "phase14-places");
+            eligible.Sort((a, b) =>
+            {
+                var ha = SeedMixer.Mix(SeedMixer.Combine(seed, a));
+                var hb = SeedMixer.Mix(SeedMixer.Combine(seed, b));
+                return ha != hb ? ha.CompareTo(hb) : string.CompareOrdinal(a, b);
+            });
+            var count = Math.Min(eligible.Count, 3 + (int)(SeedMixer.Mix(seed) % 3UL));
+            var made = new List<PlaceData>();
+            foreach (var p in world.Places) if (p != null && p.ParentKind == PlaceParentKind.Region) made.Add(p); // keep their distance from the old places
+            var start = made.Count;
+            for (var i = 0; i < eligible.Count && made.Count - start < count; i++) // one that cannot be sited gives way to the next
+            {
+                var id = eligible[i];
+                switch (id)
+                {
+                    case Phase14Places.Catacomb:
+                        Make(world, map, made, id, s => s.SettlementType == SettlementType.Village || s.SettlementType == SettlementType.Town, t => t == TerrainType.Plains || t == TerrainType.Forest || t == TerrainType.Hills, near: true);
+                        break;
+                    case Phase14Places.Temple:
+                        Make(world, map, made, id, s => !s.FactionId.IsEmpty, t => t == TerrainType.Hills || t == TerrainType.Plains || t == TerrainType.Forest, near: false);
+                        break;
+                    case Phase14Places.Hideout:
+                    {
+                        var route = routeFor?.Route;
+                        Make(world, map, made, id, s => route == null || s.SettlementId == route.OriginId, t => t == TerrainType.Forest || t == TerrainType.Hills || t == TerrainType.Plains, near: true, byRoad: true);
+                        var den = made.Count > 0 ? made[made.Count - 1] : null;
+                        if (den != null && den.DefinitionId == id && route != null) den.Variables["route"] = route.TradeRouteId.ToString();
+                        break;
+                    }
+
+                    case Phase14Places.Works:
+                        Make(world, map, made, id, s => s.SettlementType == SettlementType.Town || s.SettlementType == SettlementType.City, t => t != TerrainType.Mountain, near: true);
+                        break;
+                    case Phase14Places.Hamlet:
+                        Make(world, map, made, id, s => true, t => t == TerrainType.Plains || t == TerrainType.Forest, near: false);
+                        break;
+                }
+            }
+
+            if (made.Count == start) return false;
+            for (var i = start; i < made.Count; i++)
+            {
+                var p = made[i];
+                if (p.DefinitionId == Phase14Places.Temple && world.FindSettlement(p.SettlementId) is SettlementData anchor && !anchor.FactionId.IsEmpty)
+                    p.Variables["built_by"] = anchor.FactionId.ToString(); // the faction whose fane it was (ADR-0071)
+                world.Places.Add(p);
+                PlaceContents.Ensure(world, p);
+                p.Threat = PlaceThreat.Of(p);
+            }
+
+            Phase14Quests.Bind(world, made.GetRange(start, made.Count - start), QuestGenesis.Direct(world));
+            return true;
+        }
+
+        /// <summary>The trade route a hideout preys on: the first active route between two settlements (by ID), or none.</summary>
+        private sealed class TradeRouteFinder
+        {
+            public TradeRouteFinder(WorldData world)
+            {
+                foreach (var r in world.TradeRoutes)
+                    if (r != null && (Route == null || r.TradeRouteId.CompareTo(Route.TradeRouteId) < 0)) Route = r;
+            }
+
+            public Realmkeeper.Domain.Economy.TradeRouteData Route { get; }
         }
 
         private static void Make(WorldData world, RegionMap map, List<PlaceData> made, string definitionId, Func<SettlementData, bool> anchorOk,

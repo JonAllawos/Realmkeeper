@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Realmkeeper.Application.Places;
 using Realmkeeper.Domain.Combat;
 using Realmkeeper.Domain.Identifiers;
@@ -33,6 +34,9 @@ namespace Realmkeeper.Application
         public string Faction { get; set; }
         public List<(string Id, string Label)> Entrances { get; } = new List<(string, string)>();
         public bool HasQuest { get; set; }
+
+        /// <summary>Phase 14: how the place stands now, as far as the player has seen it ("a bridge has fallen", "the outlaws have gone").</summary>
+        public List<string> State { get; } = new List<string>();
     }
 
     public sealed class RoomView
@@ -98,6 +102,19 @@ namespace Realmkeeper.Application
 
         public string GroupId { get; set; }
         public string Activity { get; set; }
+
+        // ----- Phase 14 (ADR-0070) -----
+
+        /// <summary>Where they were a few minutes ago, and the passages they took (the scene walks them through the doorways).</summary>
+        public string FromRoom { get; set; }
+
+        public List<string> Route { get; set; } = new List<string>();
+
+        /// <summary>On their way out of the building.</summary>
+        public bool Leaving { get; set; }
+
+        /// <summary>For a waiting follower: why they cannot reach the player.</summary>
+        public string Waiting { get; set; }
     }
 
     public sealed class PlaceSceneView
@@ -119,6 +136,17 @@ namespace Realmkeeper.Application
         public string FloorName { get; set; }
         public bool PlayerHasLight { get; set; }
         public string Status { get; set; }
+
+        // ----- Phase 14 -----
+
+        /// <summary>Burning rooms ("burning") and burnt-out ones ("burnt out"), by room.</summary>
+        public Dictionary<string, string> Fires { get; } = new Dictionary<string, string>();
+
+        /// <summary>Bridges and their state, by connection.</summary>
+        public Dictionary<string, BridgeState> Bridges { get; } = new Dictionary<string, BridgeState>();
+
+        /// <summary>Rooms whose water is gone (the culverts drained).</summary>
+        public bool Drained { get; set; }
 
         public RoomView Room(string id) => Rooms.Find(r => r.Id == id);
     }
@@ -173,6 +201,22 @@ namespace Realmkeeper.Application
 
             foreach (var q in _world.Quests)
                 if (q.IsOpen && q.Bindings.ContainsValue(p.PlaceId)) v.HasQuest = true;
+            if (p.Discovery >= PlaceDiscovery.Visited) // Phase 14: the place as the player last saw it
+            {
+                if (p.Layout.Connections.Any(c => c.Kind == ConnectionKind.Bridge && p.BridgeOf(c) == BridgeState.Destroyed)) v.State.Add("a bridge has fallen");
+                else if (p.Layout.Connections.Any(c => c.Kind == ConnectionKind.Bridge && p.BridgeOf(c) == BridgeState.Damaged)) v.State.Add("a damaged bridge");
+                if (p.Variables.ContainsKey("drained")) v.State.Add("drained");
+                foreach (var r in p.Layout.Rooms.Where(r => p.ExploredRooms.Contains(r.Id))) // only what the player has seen
+                {
+                    var fire = PlaceRules.FireState(_world, p, r);
+                    if (fire == "burning") { v.State.Add("on fire"); break; }
+                    if (fire == "burnt out") { v.State.Add("burnt out in places"); break; }
+                }
+
+                if (p.Groups.Values.Any(g => g.Woken && g.State == GroupState.Present)) v.State.Add("its sleepers are awake");
+                if (p.Groups.Values.Any(g => g.State == GroupState.Departed)) v.State.Add("some have left");
+            }
+
             return v;
         }
 
@@ -265,25 +309,48 @@ namespace Realmkeeper.Application
             {
                 var npc = w.FindNpc(e.NpcId);
                 if (npc == null || npc.IsDeceased) continue;
-                if ((e.State == EscortState.Captive || e.State == EscortState.Waiting) && e.PlaceId == p.PlaceId)
+                var captiveFeature = p.Layout.Features.Find(x => x.Kind == FeatureKind.Captive && x.Get("npc") == e.NpcId.ToString());
+                var held = captiveFeature != null && !p.Has(captiveFeature.Id, FeatureFlags.Freed);
+                if (e.State == EscortState.Captive && e.PlaceId == p.PlaceId)
+                    v.Figures.Add(new FigureView { Name = npc.Name, NpcId = npc.NpcId, Room = e.Room, X = captiveFeature?.X ?? 0, Z = captiveFeature?.Z ?? 0, Role = "captive" });
+                else if ((e.State == EscortState.Waiting || e.State == EscortState.Following) && e.PlaceId == p.PlaceId && !held)
                 {
-                    var f = p.Layout.Features.Find(x => x.Kind == FeatureKind.Captive && x.Get("npc") == e.NpcId.ToString());
-                    v.Figures.Add(new FigureView { Name = npc.Name, NpcId = npc.NpcId, Room = e.Room, X = f?.X ?? 0, Z = f?.Z ?? 0, Role = "captive" });
+                    // Phase 14 (ADR-0070): a follower stands in their own room — beside the player, or waiting where the way was shut.
+                    var room = p.Layout.Room(e.Room) ?? p.Layout.Room(w.Player.PlaceRoom);
+                    if (room == null) continue;
+                    var waiting = e.State == EscortState.Waiting;
+                    v.Figures.Add(new FigureView
+                    {
+                        Name = npc.Name, NpcId = npc.NpcId, Room = room.Id, X = room.Rect.CenterX, Z = room.Rect.CenterZ, Role = "follower",
+                        Waiting = waiting ? PlaceRoutes.Find(p, room.Id, w.Player.PlaceRoom, Mover.Follower) == null ? PlaceRoutes.Blocker(p, room.Id, w.Player.PlaceRoom) : "waiting" : null,
+                    });
                 }
-                else if (e.State == EscortState.Following) v.Figures.Add(new FigureView { Name = npc.Name, NpcId = npc.NpcId, Room = w.Player.PlaceRoom, Role = "follower" });
+                else if (e.State == EscortState.Waiting && e.PlaceId == p.PlaceId)
+                    v.Figures.Add(new FigureView { Name = npc.Name, NpcId = npc.NpcId, Room = e.Room, X = captiveFeature?.X ?? 0, Z = captiveFeature?.Z ?? 0, Role = "captive" });
             }
 
+            // Phase 14 (ADR-0070): people inside move between rooms on their own rhythm, along real passages.
             if (!p.LocationId.IsEmpty)
-                foreach (var npc in w.Npcs)
+                foreach (var presence in IndoorSchedule.Everyone(w, p, Simulation.Quests.QuestClock.Now(w)))
                 {
-                    if (npc.IsDeceased || PlacePresence.IsAway(w, npc)) continue;
-                    var now = NpcActivityPlan.Now(w, npc);
-                    if (!now.IsKnown || now.Location != p.LocationId) continue;
-                    var room = OccupantRoom(p, now.Activity);
-                    if (room == null) continue;
-                    var (x, z) = OccupantCell(p, room, npc.NpcId);
-                    v.Figures.Add(new FigureView { Name = npc.Name, NpcId = npc.NpcId, Room = room.Id, X = x, Z = z, Role = "resident", Activity = now.Activity.ToString() });
+                    var fig = new FigureView
+                    {
+                        Name = presence.Npc.Name, NpcId = presence.Npc.NpcId, Room = presence.Room, X = presence.X, Z = presence.Z, Role = "resident",
+                        Activity = presence.Activity.ToString(), FromRoom = presence.FromRoom, Leaving = presence.Leaving,
+                    };
+                    foreach (var step in presence.Route) fig.Route.Add(step.ConnectionId);
+                    v.Figures.Add(fig);
                 }
+
+            foreach (var r in p.Layout.Rooms)
+            {
+                var fire = PlaceRules.FireState(w, p, r);
+                if (fire != null) v.Fires[r.Id] = fire;
+            }
+
+            foreach (var c in p.Layout.Connections)
+                if (c.Kind == ConnectionKind.Bridge) v.Bridges[c.Id] = p.BridgeOf(c);
+            v.Drained = p.Variables.ContainsKey("drained");
 
             foreach (var c in w.Containers)
                 if (c.PlaceId == p.PlaceId && c.FeatureId != null && c.FeatureId.StartsWith("loot:", StringComparison.Ordinal) && (c.Items.Count > 0 || c.Coin > 0))
@@ -302,7 +369,7 @@ namespace Realmkeeper.Application
             if (room == null) return null;
             var parts = new List<string>();
             if (room.Restricted) parts.Add("restricted");
-            var h = HazardCatalog.Find(room.Hazard);
+            var h = PlaceRules.HazardOf(p, room);
             if (h != null) parts.Add(h.Name.ToLowerInvariant() + (PlaceRules.Dark(_world, room) ? " — you have no light" : string.Empty));
             if (!room.Lit && h == null) parts.Add("dim");
             return parts.Count == 0 ? null : string.Join(" · ", parts);

@@ -177,6 +177,9 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>The person's morale (Min/Max).</summary>
         NpcMorale = 19,
+
+        /// <summary>Phase 14 (ADR-0069): the person knows of an unsettled crime by the player (first-hand, or by sure hearsay).</summary>
+        KnowsCrime = 20,
     }
 
     public sealed class ObjectiveDefinition

@@ -638,6 +638,13 @@ namespace Realmkeeper.Application
                 return null;
             }
 
+            var crime = keeper == null ? null : Places.CrimeRules.RefusesTrade(world, keeper); // Phase 14 (ADR-0069): they know what you did
+            if (crime != null)
+            {
+                failure = CommandResult.InvalidState(crime);
+                return null;
+            }
+
             return shop;
         }
 

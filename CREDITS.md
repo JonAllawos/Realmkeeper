@@ -46,6 +46,8 @@ conversation use the SRD 5.2.1 skills already credited above.
 
 **Places (Phase 13).** Every place name, description, clue, document, trap and hazard text, and the rescue quest, is Realmkeeper's own, written for this project. Archetypes are generic kinds (mine, crypt, cave and so on), not any game's levels. Place geometry, props and figures are built at runtime from Unity primitives and generated meshes: no new art assets, no third-party models. Traps, hazards and checks use the SRD 5.2.1 rules already credited (skills, saves, damage types). No campaign canon is established.
 
+**Places, crime and conditions (Phase 14).** The five new places, their stories, quests and dialogue, the crime, condition and rest texts are Realmkeeper's own, written for this project. Line of sight and cover follow the SRD 5.2.1 cover rules (half, three-quarters, total) with Realmkeeper's own grid method; conditions, exhaustion and Lesser Restoration are the SRD 5.2.1 rules already credited. The new places are dressed with the CC0 kits and materials already listed below (Quaternius, ambientCG): no new third-party assets were added.
+
 Spell names are the SRD's; every spell and feature description, and all names and setting text,
 are Realmkeeper's own. Realmkeeper does not use the
 "Dungeons & Dragons" trademark and is not affiliated with or endorsed by Wizards of the Coast. Which

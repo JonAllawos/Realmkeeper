@@ -123,6 +123,12 @@ namespace Realmkeeper.Domain.World
                 I("shield_round", weight: 1, condition: ItemCondition.Worn), I("travel_rations", 1, 3, weight: 2), I("potion_healing", weight: 1));
             Add("vault_treasure", "Hidden treasure", 3, Coin(30, 90), I("gold_ring", weight: 2), I("silver_amulet", weight: 2), I("potion_greater_healing", weight: 1),
                 I("ring_of_protection", chance: 15, tags: new[] { "rare-allowed" }), I("dagger_plus1", chance: 10, tags: new[] { "rare-allowed" }));
+
+            // Phase 14: what a household keeps (taken only by theft, ADR-0069), a shop's stock, and goods stolen from the road.
+            Add("household_goods", "A household's things", 1, Coin(2, 15), I("bread_loaf", 1, 2, weight: 3), I("tunic_linen", weight: 2), I("silver_amulet", weight: 1), I("gold_ring", weight: 1),
+                I("almanac", weight: 1));
+            Add("shop_stock", "Shop stock", 2, Coin(5, 25), I("tunic_work", weight: 2), I("travel_rations", 1, 3, weight: 3), I("timber_plank", 1, 2, weight: 2), I("hooded_lantern", weight: 1));
+            Add("stolen_goods", "Goods taken from the road", 2, Coin(10, 40), I("merchants_cloth", 1, 3, weight: 4), I("grain_sack", 1, 2, weight: 2), I("silver_amulet", weight: 1));
         }
 
         /// <summary>

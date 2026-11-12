@@ -59,7 +59,7 @@ namespace Realmkeeper.Presentation
                 title.AddToClassList("rk-place-name");
                 row.Add(title);
                 var state = p.Discovery == PlaceDiscovery.Rumored ? "rumoured" : p.Discovery.ToString().ToLowerInvariant();
-                var line = new Label($"{p.Kind} · {state} · {p.Direction}" + (p.Discovery >= PlaceDiscovery.Visited ? " · " + p.Threat : string.Empty));
+                var line = new Label($"{p.Kind} · {state} · {p.Direction}" + (p.Discovery >= PlaceDiscovery.Visited ? " · " + p.Threat : string.Empty) + (p.State.Count > 0 ? " · " + string.Join(", ", p.State) : string.Empty)); // Phase 14: place states
                 line.AddToClassList("rk-place-line");
                 row.Add(line);
                 foreach (var (id, label) in p.Entrances)

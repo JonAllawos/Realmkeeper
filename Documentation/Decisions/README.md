@@ -68,5 +68,10 @@
 | [0064](ADR-0064-interaction-framework-traps-hazards.md) | One interaction framework for places; traps and hazards through the rules; fights among real walls | Accepted (Phase 13) |
 | [0065](ADR-0065-discovery-and-player-knowledge-of-places.md) | What the player knows of a place is a state; the map, journal and scene show only that | Accepted (Phase 13) |
 | [0066](ADR-0066-people-in-places-escort-rescue-garrisons.md) | People in places are the same persistent identities — held, following, posted or at home | Accepted (Phase 13) |
+| [0067](ADR-0067-line-of-sight-and-cover.md) | One grid function for line of sight, line of effect and cover | Accepted (Phase 14) |
+| [0068](ADR-0068-lasting-conditions-shared-damage-rest-rules.md) | Lasting conditions on the sheet, one damage rule, and rest that depends on where you are | Accepted (Phase 14) |
+| [0069](ADR-0069-crime-witnesses-local-consequences.md) | Crime is a record of what happened; who knows is a matter of who perceived it | Accepted (Phase 14) |
+| [0070](ADR-0070-indoor-movement-and-followers.md) | People move through rooms along real passages; followers keep a room of their own | Accepted (Phase 14) |
+| [0071](ADR-0071-archetype-placement-wake-bridges-fire.md) | New places reach every world once, chosen by context; creatures wake in sight; bridges and fire have state | Accepted (Phase 14) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

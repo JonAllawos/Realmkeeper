@@ -94,3 +94,46 @@ World
 | The Broken Hall | ruin | Goblin squatters, a trap, a secret room |
 
 Interiors are made when first entered. Their number grows only with the buildings the player goes into.
+
+## Phase 14: the five unused archetypes, waking, bridges and fire (ADR-0071)
+
+**The new places.** Phase 14 gives the five archetypes Phase 13 defined but never placed their own places:
+
+| Place | Archetype | Its story |
+|---|---|---|
+| The Ashgrave Catacombs | `catacomb` | A sealed vault whose sleepers wake when it is opened, and a founder's register |
+| The Lantern Fane | `temple` | A shrine with a burning room, and a lantern to return |
+| Crowfoot Den | `bandit_hideout` | Outlaws who tax the trade road, and a strongbox |
+| The Old Culverts | `underground` | A damaged bridge, deep channels and a sluice wheel that drains them |
+| Thornwick | `abandoned_settlement` | A hamlet empty since the floods: shut houses, yards under the open sky, wolves at dusk |
+
+**Placement.**
+- Each world gets three to five of them, chosen by its own context. The catacombs need a village or town, the fane a faction-held settlement, the den a trade route (or two settlements), and the culverts a town or city; the hamlet fits anywhere. A place that cannot be sited gives way to the next eligible one. The same seed always makes the same choice.
+- `PlaceGenesis.EnsurePhase14` adds them once to new worlds and to old saves alike. A Phase 13 save keeps every place it had, unchanged.
+- Each place brings its quest: The Founders' Register, The Lantern of the Fane, Tolls on the Road or The Old Culverts.
+
+**Waking.** A group may sleep beside a story feature (`GroupTemplate.WakesOn`).
+- Opening, taking or using that feature wakes them.
+- The fight starts only if the player is in that room or can see it through an open way. Otherwise the group is marked awake and fights when the player comes in.
+- It happens once. The creatures are keyed, so going back in never wakes or spawns them again.
+
+**Bridges** have a state:
+- **Intact:** free to cross.
+- **Damaged:** an Acrobatics check to cross. A failure drops the player into the water (harm through the shared rule) and brings the bridge down for good.
+- **Destroyed:** no way for anyone, including followers and residents.
+
+Bridges sit on loops, or on the passage to a side room that holds nothing a quest needs. The place map draws each bridge in its state.
+
+**Fire.** A burning room is a hazard: a Dexterity save against fire damage.
+- It burns for four hours from when it was first found, then stays burnt out. There is no spreading and no ticking: its state is the minute recorded in the place's variables.
+- A torch or lantern burns away marked webbing, once.
+- The scene shows firelight while the room burns. The place map marks the burning room.
+
+**Map states.** The map's list of places and the journal's Places tab say how each visited place stands now:
+- a damaged or fallen bridge;
+- drained;
+- on fire, or burnt out in places;
+- its sleepers awake;
+- some have left.
+
+"Cleared" was already shown by the Phase 13 discovery state, so it is not repeated.

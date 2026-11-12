@@ -87,6 +87,19 @@ namespace Realmkeeper.Domain.Places
         Den = 23,
     }
 
+    /// <summary>Phase 14 (ADR-0071): how a bridge stands.</summary>
+    public enum BridgeState
+    {
+        /// <summary>Sound: free to cross.</summary>
+        Intact = 0,
+
+        /// <summary>Cracked planks, a sagging rope: an Acrobatics check to cross; a fall brings it down.</summary>
+        Damaged = 1,
+
+        /// <summary>Gone: no longer a way across.</summary>
+        Destroyed = 2,
+    }
+
     public enum ConnectionKind
     {
         /// <summary>An open doorway or the mouth of a passage.</summary>
@@ -229,6 +242,9 @@ namespace Realmkeeper.Domain.Places
 
         public int FindDc { get; set; }
 
+        /// <summary>Phase 14 (ADR-0071): for a bridge, how it stands when the place is made (its current state is in <see cref="PlaceData.Bridges"/>).</summary>
+        public BridgeState Bridge { get; set; }
+
         public PlaceConnection Clone() => (PlaceConnection)MemberwiseClone();
 
         public string Other(string room) => room == A ? B : room == B ? A : null;
@@ -313,6 +329,9 @@ namespace Realmkeeper.Domain.Places
 
         /// <summary>Waits to fall on whoever comes (an ambush; starts the fight with surprise).</summary>
         Ambush = 2,
+
+        /// <summary>Phase 14: challenges before fighting (outlaws on a road): a parley first; a fight only if it fails or the player attacks.</summary>
+        Parley = 3,
     }
 
     /// <summary>One member of an inhabitant group: a creature of the bestiary, or a persistent person.</summary>
@@ -461,6 +480,9 @@ namespace Realmkeeper.Domain.Places
 
         /// <summary>Some survived a fight the player left: they remain, with their wounds.</summary>
         Survived = 4,
+
+        /// <summary>Phase 14: talked into leaving (outlaws persuaded off the road): gone, without a fight.</summary>
+        Departed = 5,
     }
 
     public sealed class GroupStateData
@@ -470,6 +492,9 @@ namespace Realmkeeper.Domain.Places
 
         /// <summary>Alerted (an alarm, an earlier fight): they lose surprise and gain it.</summary>
         public bool Alerted { get; set; }
+
+        /// <summary>Phase 14: woken by what disturbed them (a group that waits for a feature); they now fight on sight.</summary>
+        public bool Woken { get; set; }
 
         public GroupStateData Clone() => (GroupStateData)MemberwiseClone();
     }
@@ -540,10 +565,15 @@ namespace Realmkeeper.Domain.Places
         /// <summary>Small named facts ("access" = "granted", "collapse" = "cleared").</summary>
         public Dictionary<string, string> Variables { get; set; } = new Dictionary<string, string>(StringComparer.Ordinal);
 
+        /// <summary>Phase 14 (ADR-0071): bridges whose state has changed from how they were made.</summary>
+        public Dictionary<string, BridgeState> Bridges { get; set; } = new Dictionary<string, BridgeState>(StringComparer.Ordinal);
+
         /// <summary>What happened here, newest last (bounded).</summary>
         public List<string> Notes { get; set; } = new List<string>();
 
         public DoorState DoorOf(PlaceConnection c) => Doors.TryGetValue(c.Id, out var s) ? s : c.Door;
+
+        public BridgeState BridgeOf(PlaceConnection c) => Bridges.TryGetValue(c.Id, out var s) ? s : c.Bridge;
 
         public FeatureStateData StateOf(string featureId)
         {
@@ -583,6 +613,7 @@ namespace Realmkeeper.Domain.Places
             c.Groups = new Dictionary<string, GroupStateData>(StringComparer.Ordinal);
             foreach (var p in Groups) c.Groups[p.Key] = p.Value.Clone();
             c.Variables = new Dictionary<string, string>(Variables, StringComparer.Ordinal);
+            c.Bridges = new Dictionary<string, BridgeState>(Bridges, StringComparer.Ordinal);
             c.Notes = new List<string>(Notes);
             return c;
         }
@@ -615,7 +646,7 @@ namespace Realmkeeper.Domain.Places
         public NpcId NpcId { get; set; }
         public EscortState State { get; set; }
 
-        /// <summary>Where they are while Captive or Waiting.</summary>
+        /// <summary>Where they are while Captive or Waiting. Phase 14: also while Following inside a place (the room they are in; ADR-0070).</summary>
         public string PlaceId { get; set; }
         public string Room { get; set; }
 

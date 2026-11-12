@@ -176,6 +176,11 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>The holder can spend its action on a Strength (Athletics) check against <see cref="EscapeDc"/> to end it (Entangle).</summary>
         public bool EscapeByCheck { get; set; }
 
+        // ----- Phase 14 -----
+
+        /// <summary>Set when this is a lasting condition from the character sheet (ADR-0068): the sheet's source key. Removing it in the fight removes it from the sheet.</summary>
+        public string LastingKey { get; set; }
+
         public ConditionInstance Clone() => (ConditionInstance)MemberwiseClone();
     }
 
@@ -406,6 +411,12 @@ namespace Realmkeeper.Domain.Combat
         /// <summary>Phase 13 (ADR-0064): squares nobody can enter (walls and rock around a room in a place).</summary>
         public List<GridPos> Blocked { get; set; } = new List<GridPos>();
 
+        /// <summary>Phase 14 (ADR-0067): the doors in the fight's area; closed ones block movement, sight and effect.</summary>
+        public List<EncounterDoorData> Doors { get; set; } = new List<EncounterDoorData>();
+
+        /// <summary>Phase 14: low obstacles (furniture, rubble): half cover, passable at difficult cost when listed as difficult terrain too.</summary>
+        public List<LowCoverData> LowCover { get; set; } = new List<LowCoverData>();
+
         public WorldDate StartedOn { get; set; }
         public int StartedAtMinute { get; set; }
         public WorldDate EndedOn { get; set; }
@@ -444,6 +455,10 @@ namespace Realmkeeper.Domain.Combat
             foreach (var c in Combatants) e.Combatants.Add(c.Clone());
             e.DifficultTerrain = new List<GridPos>(DifficultTerrain);
             e.Blocked = new List<GridPos>(Blocked);
+            e.Doors = new List<EncounterDoorData>();
+            foreach (var d in Doors) e.Doors.Add(d.Clone());
+            e.LowCover = new List<LowCoverData>();
+            foreach (var c in LowCover) e.LowCover.Add(c.Clone());
             e.Log = new List<CombatLogEntry>();
             foreach (var l in Log) e.Log.Add(l.Clone());
             e.Effects = new List<ActiveEffectData>();
@@ -523,5 +538,46 @@ namespace Realmkeeper.Domain.Combat
         public bool SingleUse { get; set; }
 
         public ActiveEffectData Clone() => (ActiveEffectData)MemberwiseClone();
+    }
+}
+
+namespace Realmkeeper.Domain.Combat
+{
+    using System.Collections.Generic;
+
+    /// <summary>Phase 14 (ADR-0067): a door inside a fight's area, tied to a place connection; opening it changes the grid at once.</summary>
+    public sealed class EncounterDoorData
+    {
+        /// <summary>The place connection it is (its state goes back to the place when the fight ends).</summary>
+        public string Id { get; set; }
+
+        public string Name { get; set; } = "door";
+        public List<GridPos> Squares { get; set; } = new List<GridPos>();
+        public bool Open { get; set; }
+
+        /// <summary>Locked or barred: it cannot be opened in the fight.</summary>
+        public bool Locked { get; set; }
+
+        public bool Covers(GridPos p)
+        {
+            foreach (var s in Squares) if (s.X == p.X && s.Y == p.Y) return true;
+            return false;
+        }
+
+        public EncounterDoorData Clone()
+        {
+            var c = (EncounterDoorData)MemberwiseClone();
+            c.Squares = new List<GridPos>(Squares);
+            return c;
+        }
+    }
+
+    /// <summary>Phase 14: a low obstacle square (a table, a sarcophagus, rubble) that gives half cover.</summary>
+    public sealed class LowCoverData
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public LowCoverData Clone() => (LowCoverData)MemberwiseClone();
     }
 }

@@ -94,6 +94,19 @@ namespace Realmkeeper.Simulation.Systems
                         lost.TryGetValue(resource, out var l);
                         lost[resource] = l + loss;
                     }
+
+                    // Phase 14 (ADR-0071): outlaws holding the road take their cut of every shipment that passes.
+                    var cut = Places.RoadThreat.PercentTaken(context.World, route);
+                    if (cut > 0 && !shipment.IsReturning)
+                    {
+                        var kept = (int)((long)shipment.Quantity * (100 - cut) / 100);
+                        var taken = shipment.Quantity - kept;
+                        shipment.Quantity = kept;
+                        shipment.LostQuantity += taken;
+                        EconomyMath.Flow(destination.Economy, resource, day).LostOnRoad += taken;
+                        lost.TryGetValue(resource, out var t);
+                        lost[resource] = t + taken;
+                    }
                 }
 
                 var free = (long)destination.Economy.CapacityOf(resource) - destination.ResourceInventory.Get(resource);

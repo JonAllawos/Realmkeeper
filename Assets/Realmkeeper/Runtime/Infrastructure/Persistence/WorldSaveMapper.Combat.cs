@@ -41,6 +41,10 @@ namespace Realmkeeper.Infrastructure.Persistence
                 foreach (var p in e.DifficultTerrain) d.DifficultTerrain.Add(PosDto(p));
                 d.Blocked = new List<GridPosDto>();
                 foreach (var p in e.Blocked) d.Blocked.Add(PosDto(p));
+                d.Doors = new List<EncounterDoorDto>();
+                foreach (var x in e.Doors) d.Doors.Add(new EncounterDoorDto { Id = x.Id, Name = x.Name, Open = x.Open, Locked = x.Locked, Squares = x.Squares.ConvertAll(PosDto) });
+                d.LowCover = new List<LowCoverDto>();
+                foreach (var x in e.LowCover) d.LowCover.Add(new LowCoverDto { X = x.X, Y = x.Y, Name = x.Name });
                 foreach (var c in e.Combatants)
                 {
                     var cd = new CombatantDto
@@ -69,7 +73,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                         {
                             Type = k.Type.ToString(), SourceId = IdText(k.SourceId), Reason = k.Reason, AppliedRound = k.AppliedRound, Duration = k.Duration.ToString(),
                             ExpiresOn = IdText(k.ExpiresOn), ExpiresRound = k.ExpiresRound, Level = k.Level, EscapeDc = k.EscapeDc,
-                            InstanceId = k.InstanceId, RepeatSave = k.RepeatSave, SaveDc = k.SaveDc, SaveAbility = k.SaveAbility.ToString(), EscapeByCheck = k.EscapeByCheck,
+                            InstanceId = k.InstanceId, RepeatSave = k.RepeatSave, SaveDc = k.SaveDc, SaveAbility = k.SaveAbility.ToString(), EscapeByCheck = k.EscapeByCheck, LastingKey = k.LastingKey,
                         });
                     d.Combatants.Add(cd);
                 }
@@ -114,6 +118,13 @@ namespace Realmkeeper.Infrastructure.Persistence
                 foreach (var id in d.Order ?? new List<string>()) e.Order.Add(new CombatantId(RequiredGuid(id, "encounter order")));
                 foreach (var p in d.DifficultTerrain ?? new List<GridPosDto>()) e.DifficultTerrain.Add(Pos(p));
                 foreach (var p in d.Blocked ?? new List<GridPosDto>()) e.Blocked.Add(Pos(p));
+                foreach (var x in d.Doors ?? new List<EncounterDoorDto>())
+                {
+                    if (x == null) throw new SaveDataException("Null encounter door.");
+                    e.Doors.Add(new EncounterDoorData { Id = x.Id, Name = x.Name ?? "door", Open = x.Open, Locked = x.Locked, Squares = (x.Squares ?? new List<GridPosDto>()).ConvertAll(Pos) });
+                }
+
+                foreach (var x in d.LowCover ?? new List<LowCoverDto>()) if (x != null) e.LowCover.Add(new LowCoverData { X = x.X, Y = x.Y, Name = x.Name ?? string.Empty });
                 foreach (var cd in d.Combatants ?? new List<CombatantDto>())
                 {
                     if (cd == null) throw new SaveDataException("Null combatant entry.");
@@ -150,6 +161,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                             AppliedRound = k.AppliedRound, Duration = ParseEnum<ConditionDuration>(k.Duration, "condition duration"),
                             ExpiresOn = CombatantRef(k.ExpiresOn, "condition expiresOn"), ExpiresRound = k.ExpiresRound, Level = k.Level, EscapeDc = k.EscapeDc,
                             InstanceId = k.InstanceId, RepeatSave = k.RepeatSave, SaveDc = k.SaveDc, EscapeByCheck = k.EscapeByCheck,
+                            LastingKey = k.LastingKey,
                             SaveAbility = string.IsNullOrEmpty(k.SaveAbility) ? default : ParseEnum<Realmkeeper.Domain.Rpg.Ability>(k.SaveAbility, "condition saveAbility"),
                         });
                     }

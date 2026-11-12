@@ -1109,6 +1109,10 @@
 
 /* ----- Phase 13: places ----- */
 .xk-combat-cell--wall { background-color: rgba(24, 22, 20, 0.95); }
+.xk-combat-cell--door { background-color: rgba(96, 62, 30, 0.95); border-color: rgb(150, 105, 55); }
+.xk-combat-cell--door-open { background-color: rgba(96, 62, 30, 0.35); border-color: rgb(150, 105, 55); }
+.xk-combat-cell--cover { background-color: rgba(120, 110, 80, 0.55); border-bottom-width: 3px; border-bottom-color: rgb(170, 150, 100); }
+.xk-combat-cell--hidden { opacity: 0.45; }
 .xk-place { position: absolute; left: 18px; bottom: 120px; max-width: 460px; padding: 8px 12px; background-color: rgba(18, 16, 12, 0.72); border-radius: 4px; }
 .xk-place-name { color: rgb(236, 222, 186); font-size: 18px; -unity-font-style: bold; }
 .xk-place-where { color: rgb(214, 200, 168); font-size: 14px; }
@@ -1123,3 +1127,16 @@
 .xk-place-map-room--secret { background-color: rgba(120, 96, 150, 0.85); }
 .xk-place-map-passage { position: absolute; background-color: rgba(110, 96, 70, 0.85); }
 .xk-place-map-legend { color: rgb(170, 160, 136); font-size: 11px; margin-top: 6px; white-space: normal; }
+
+/* Phase 14 (ADR-0068 … ADR-0070): lasting conditions, followers, where you can rest. */
+.xk-conditions { position: absolute; left: 18px; top: 150px; max-width: 360px; padding: 6px 10px; background-color: rgba(30, 14, 12, 0.78); border-radius: 4px; border-left-width: 3px; border-left-color: rgb(196, 92, 60); }
+.xk-condition-name { color: rgb(246, 196, 150); font-size: 14px; -unity-font-style: bold; }
+.xk-condition-effect { color: rgb(226, 214, 190); font-size: 12px; white-space: normal; }
+.xk-condition-end { color: rgb(184, 172, 150); font-size: 11px; white-space: normal; -unity-font-style: italic; margin-bottom: 4px; }
+.xk-condition-button { font-size: 12px; margin: 2px 0 4px 0; padding: 2px 8px; background-color: rgb(92, 52, 38); color: rgb(246, 226, 196); border-width: 0; border-radius: 3px; align-self: flex-start; }
+.xk-followers { color: rgb(196, 214, 170); font-size: 12px; white-space: normal; margin-top: 4px; }
+.xk-rest { color: rgb(170, 186, 200); font-size: 12px; white-space: normal; margin-top: 2px; }
+.xk-place-map-bridge { position: absolute; background-color: rgba(176, 140, 82, 0.95); }
+.xk-place-map-bridge--damaged { background-color: rgba(214, 160, 70, 0.95); border-width: 1px; border-color: rgb(196, 80, 50); }
+.xk-place-map-bridge--destroyed { background-color: rgba(60, 40, 30, 0.6); border-width: 1px; border-color: rgb(196, 60, 40); }
+.xk-place-map-fire { position: absolute; background-color: rgba(230, 110, 40, 0.55); }

@@ -264,6 +264,9 @@ namespace Realmkeeper.Domain.Magic
         /// <summary>Only humanoids can be targeted (Hold Person).</summary>
         public bool HumanoidsOnly { get; set; }
 
+        /// <summary>Phase 14 (ADR-0067): the target gains no benefit from half or three-quarters cover (Sacred Flame). A clear line is still needed.</summary>
+        public bool IgnoresCover { get; set; }
+
         public AreaShape Area { get; set; }
 
         /// <summary>Radius (sphere, cylinder), side (cube) or length (cone, line), in feet.</summary>

@@ -19,8 +19,9 @@ namespace Realmkeeper.Exploration.Presentation
         public Func<string, QuestDetailView> QuestSource { get; set; }
         public Func<ReputationView> ReputationSource { get; set; }
         public Func<IReadOnlyList<PlaceSummaryView>> PlacesSource { get; set; } // Phase 13
+        public Func<List<CrimeView>> CrimesSource { get; set; } // Phase 14
 
-        public static readonly IReadOnlyList<string> JournalTabs = new[] { "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Places", "Reputation" };
+        public static readonly IReadOnlyList<string> JournalTabs = new[] { "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Places", "Crimes", "Reputation" }; // Phase 14: Crimes
 
         private string _journalTab = "Active";
         private string _selectedQuest;
@@ -74,6 +75,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Events": Lines(j.Events, "Nothing yet."); break;
                 case "Reputation": ReputationPanel(); break;
                 case "Places": PlacesPanel(); break;
+                case "Crimes": CrimesPanel(); break; // Phase 14
             }
         }
 
@@ -161,6 +163,32 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         /// <summary>Phase 13 (ADR-0065): the places the player knows of — a rumour gives only a name and a direction.</summary>
+        private void CrimesPanel()
+        {
+            var crimes = CrimesSource?.Invoke();
+            if (crimes == null || crimes.Count == 0)
+            {
+                _content.Add(Text("No crimes of yours that anyone knows of.", "xk-w-empty"));
+                return;
+            }
+
+            var box = Column("xk-store");
+            box.name = "xk-journal-crimes";
+            foreach (var c in crimes)
+            {
+                var row = Row("xk-w-row");
+                row.name = "xk-journal-crime-" + c.Id;
+                row.Add(Text(c.What, "xk-w-name"));
+                row.Add(Text(c.Status.ToString() + (c.Known ? " · known to be you" : string.Empty) + (c.Bounty > 0 ? $" · bounty {c.Bounty}" : string.Empty), "xk-w-price"));
+                box.Add(row);
+                box.Add(Text(c.Where, "xk-w-desc"));
+                foreach (var s in c.Seen) box.Add(Text("· " + s, "xk-w-desc"));
+                if (!string.IsNullOrEmpty(c.Consequence)) box.Add(Text(c.Consequence, "xk-w-note"));
+            }
+
+            _content.Add(box);
+        }
+
         private void PlacesPanel()
         {
             var places = PlacesSource?.Invoke();
@@ -175,7 +203,7 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var p in places)
             {
                 var state = p.Discovery == Realmkeeper.Domain.Places.PlaceDiscovery.Rumored ? "Heard of" : p.Discovery.ToString();
-                var row = Pair(p.Name, $"{p.Kind} · {state} · {p.Direction}" + (p.Visits > 0 ? $" · visited {p.Visits}× · {p.Threat}" : string.Empty));
+                var row = Pair(p.Name, $"{p.Kind} · {state} · {p.Direction}" + (p.Visits > 0 ? $" · visited {p.Visits}× · {p.Threat}" : string.Empty) + (p.State.Count > 0 ? " · " + string.Join(", ", p.State) : string.Empty)); // Phase 14
                 row.name = "xk-journal-place-" + p.PlaceId;
                 box.Add(row);
                 if (p.Discovery >= Realmkeeper.Domain.Places.PlaceDiscovery.Discovered) box.Add(Text(p.Description, "xk-w-desc"));

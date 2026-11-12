@@ -86,7 +86,9 @@ namespace Realmkeeper.Exploration.Presentation
             _atmosphere = new ExplorationAtmosphere();
             _atmosphere.Capture();
             _streamer.Load(layout, scene.Name);
-            Catalog = null; // places are built from simple shapes, not the settlement art kit
+            // Phase 14: places use the CC0 kit's textured materials and props too (and the character's own body), when present.
+            var kit = ArtCatalog.Load();
+            Catalog = kit != null && kit.Modules.Count > 0 ? kit : null;
 
             // Underground or indoors: dim ambient light, no sun.
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
@@ -99,7 +101,8 @@ namespace Realmkeeper.Exploration.Presentation
             _placeScene = scene;
             BuildPlaceGeometry();
 
-            Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)), null, null, null);
+            Player = PlayerCharacter.Create(null, _materials.Get(new Color(0.24f, 0.36f, 0.52f)), _materials.Get(new Color(0.55f, 0.42f, 0.30f)), Catalog,
+                Catalog != null ? CurrentLook() : null, Catalog != null ? Assets() : null);
             Player.Input = _input;
             Player.Teleport(player.Pose);
             _lastGoodPose = player.Pose;
@@ -134,7 +137,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void BuildPlaceGeometry()
         {
             if (_placeGeometry != null) UnityEngine.Object.Destroy(_placeGeometry);
-            _placeGeometry = PlaceEnvironmentBuilder.Build(_placeScene, _materials, out _placeAssets);
+            _placeGeometry = PlaceEnvironmentBuilder.Build(_placeScene, _materials, out _placeAssets, Catalog);
             _placeGeometry.transform.SetParent(EnvironmentRoot.transform, true);
             _placeSignature = Signature(_placeScene);
         }
@@ -147,7 +150,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (Signature(scene) != _placeSignature) BuildPlaceGeometry();
             // Only what changed is rebuilt: the clock ticking (the place lives while the player is in it) changes nothing here.
             var dynamicSignature = DynamicSignature(scene);
-            if (!snap && dynamicSignature == _dynamicSignature && _placeDynamic != null) { RefreshPlaceHud(); return; }
+            if (!snap && dynamicSignature == _dynamicSignature && _placeDynamic != null) { RefreshPlaceHud(); RefreshConditionsHud(); return; }
             _dynamicSignature = dynamicSignature;
             foreach (var t in _placeTargets) if (t != null) _detector.Unregister(t);
             _placeTargets.Clear();
@@ -236,7 +239,8 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var fig in scene.Figures)
             {
                 Vector3 at;
-                if (fig.Role == "follower" && Player != null)
+                var withPlayer = fig.Role == "follower" && fig.Waiting == null && fig.Room == scene.PlayerRoom;
+                if (withPlayer && Player != null)
                     at = Player.transform.position - Player.transform.forward * (1.4f + followerSlot++ * 0.9f) + Player.transform.right * 0.6f;
                 else
                 {
@@ -249,7 +253,11 @@ namespace Realmkeeper.Exploration.Presentation
                 if (!InFight)
                 {
                     var body = PlaceEnvironmentBuilder.Figure(root, scene, fig, _materials, at);
-                    if (fig.Role == "follower") _followerViews.Add(body);
+                    if (withPlayer) _followerViews.Add(body);
+                    else if (fig.Role == "follower") body.name += " (waiting: " + (fig.Waiting ?? "the way is shut") + ")";
+                    // Phase 14 (ADR-0070): someone who has just changed rooms walks the real way, through the doorways, to where they are now.
+                    if (fig.Role == "resident" && fig.FromRoom != null && fig.FromRoom != fig.Room && fig.Route.Count > 0 && !snap)
+                        PlaceWalker.Walk(body, PlaceEnvironmentBuilder.RouteWaypoints(scene, fig.FromRoom, fig.Route, at));
                 }
                 if (fig.Role == "foe" || fig.Role == "guard" && fig.NpcId.IsEmpty)
                 {
@@ -259,6 +267,9 @@ namespace Realmkeeper.Exploration.Presentation
                 else Target(PlaceInteractable.TargetKind.Person, fig.NpcId.ToString(), "Talk to " + fig.Name, at + Vector3.up * 1.2f);
             }
 
+            // Phase 14 (ADR-0071): fire burning or burnt out, bridges as they stand, drained water.
+            PlaceEnvironmentBuilder.Hazards(root, scene, _materials, Catalog);
+
             if (_lantern != null)
             {
                 _lantern.intensity = scene.PlayerHasLight ? 1.5f : 0.45f;
@@ -267,12 +278,14 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             RefreshPlaceHud();
+            RefreshConditionsHud(); // Phase 14: followers, conditions and rest change with every step
         }
 
         private string DynamicSignature(PlaceSceneView s) =>
             s.PlayerRoom + "|" + s.PlayerHasLight + "|" + InFight + "|" + string.Join(",", s.Passages.Select(p => p.Id + p.Door + p.Guarded)) + "|" +
             string.Join(",", s.Features.Select(f => f.Id + (int)f.Flags + f.Hidden + f.Armed)) + "|" + string.Join(",", s.Figures.Select(f => f.Name + f.Room + f.Role + f.X + f.Z + f.Activity)) + "|" +
-            string.Join(",", s.LootPiles.Select(l => l.Key));
+            string.Join(",", s.LootPiles.Select(l => l.Key)) + "|" + string.Join(",", s.Fires.Select(f => f.Key + f.Value)) + "|" + string.Join(",", s.Bridges.Select(b => b.Key + b.Value)) + "|" +
+            s.Drained + "|" + string.Join(",", s.Figures.Select(f => f.Waiting ?? string.Empty));
 
         private void TeardownPlace()
         {
@@ -361,8 +374,16 @@ namespace Realmkeeper.Exploration.Presentation
                 foreach (var p in floor.Passages)
                 {
                     if (p.Kind == ConnectionKind.Stairs || p.Kind == ConnectionKind.Ladder || p.Kind == ConnectionKind.Entrance) continue;
-                    var e = new VisualElement();
+                    var e = new VisualElement { name = "xk-place-map-passage-" + p.Id };
                     e.AddToClassList("xk-place-map-passage");
+                    if (p.Kind == ConnectionKind.Bridge && _placeScene != null && _placeScene.Bridges.TryGetValue(p.Id, out var bridge)) // Phase 14: bridges as they stand
+                    {
+                        e.AddToClassList("xk-place-map-bridge");
+                        e.EnableInClassList("xk-place-map-bridge--damaged", bridge == BridgeState.Damaged);
+                        e.EnableInClassList("xk-place-map-bridge--destroyed", bridge == BridgeState.Destroyed);
+                        e.tooltip = "Bridge: " + bridge.ToString().ToLowerInvariant();
+                    }
+
                     e.style.left = (p.Rect.X - minX + 1) * scale;
                     e.style.top = h - (p.Rect.MaxZ - minZ + 1) * scale;
                     e.style.width = Mathf.Max(2f, p.Rect.W * scale);
@@ -376,6 +397,7 @@ namespace Realmkeeper.Exploration.Presentation
                     e.AddToClassList("xk-place-map-room");
                     e.EnableInClassList("xk-place-map-room--here", r.Id == map.PlayerRoom);
                     e.EnableInClassList("xk-place-map-room--secret", r.Secret);
+                    e.EnableInClassList("xk-place-map-fire", _placeScene != null && _placeScene.Fires.TryGetValue(r.Id, out var fire) && fire == "burning");
                     e.style.left = (r.Rect.X - minX + 1) * scale;
                     e.style.top = h - (r.Rect.MaxZ - minZ + 1) * scale;
                     e.style.width = r.Rect.W * scale;
@@ -388,7 +410,9 @@ namespace Realmkeeper.Exploration.Presentation
                 _placeMap.Add(canvas);
             }
 
-            var legend = new Label("Only rooms you have seen are drawn. Gold: where you stand. Violet: a hidden room you found.");
+            var legend = new Label("Only rooms you have seen are drawn. Gold: where you stand. Violet: a hidden room you found." +
+                                   (_placeScene != null && _placeScene.Bridges.Count > 0 ? " Plank-coloured: a bridge (ringed red if damaged; dark if fallen)." : string.Empty) +
+                                   (_placeScene != null && _placeScene.Fires.Values.Any(f => f == "burning") ? " A room on fire: " + string.Join(", ", _placeScene.Fires.Where(f => f.Value == "burning").Select(f => _placeScene.Room(f.Key)?.Name)) + "." : string.Empty));
             legend.AddToClassList("xk-place-map-legend");
             _placeMap.Add(legend);
             Hud.Root.Add(_placeMap);
@@ -434,6 +458,13 @@ namespace Realmkeeper.Exploration.Presentation
                 {
                     Player.Teleport(_lastGoodPose); // the world says no (a guarded way): back where it allows
                     Hud?.ShowMessage(r);
+                }
+                else if (_session.GetPlaceScene() is PlaceSceneView now && now.PlayerRoom != null && now.PlayerRoom != room.Id && _session.GetPlayer() is PlayerSummary after)
+                {
+                    // Phase 14: the world kept the player where they were (a bridge gave way under them): back to its pose.
+                    Player.Teleport(after.Pose);
+                    _lastGoodPose = after.Pose;
+                    if (!string.IsNullOrEmpty(r.Message)) Say(room.Name, r.Message);
                 }
                 else
                 {
@@ -481,11 +512,34 @@ namespace Realmkeeper.Exploration.Presentation
                     OpenStorage(t.TargetId);
                     return new InteractionResponse(t.Label, "What the fight left.", InteractionKind.Informational);
                 case PlaceInteractable.TargetKind.Person:
-                    var r = StartDialogue(new Realmkeeper.Domain.Identifiers.NpcId(Guid.Parse(t.TargetId)));
-                    return new InteractionResponse(t.Label, r.IsSuccess ? string.Empty : ResidentView.Describe(r), InteractionKind.StateChanging, r);
+                {
+                    // Phase 14 (ADR-0069): talk, or attack — an assault, with witnesses and everything that follows.
+                    var npcId = new Realmkeeper.Domain.Identifiers.NpcId(Guid.Parse(t.TargetId));
+                    _placeChoices = new List<(string, Action)>
+                    {
+                        ("Talk", () => { var r = StartDialogue(npcId); if (!r.IsSuccess) Hud?.ShowMessage(r); }),
+                        ("Attack (a crime: anyone who sees it will remember)", () => Respond("Attack", _session.Dispatch(new AttackPersonCommand(npcId)))),
+                    };
+                    Hud?.ShowTopics(_placeChoices.Select(c => (c.Label, c.Act)).ToList());
+                    return new InteractionResponse(t.Label, "Choose what to do (number keys or click).", InteractionKind.Informational);
+                }
+
                 case PlaceInteractable.TargetKind.BuildingDoor:
+                {
                     RecordPose();
-                    return Respond(t.Label, _session.Dispatch(new EnterBuildingCommand(t.TargetId)));
+                    var entered = _session.Dispatch(new EnterBuildingCommand(t.TargetId));
+                    if (entered.IsSuccess || !entered.Message.Contains("locked for the night")) return Respond(t.Label, entered);
+                    // Phase 14 (ADR-0069): locked for the night — getting in is breaking in.
+                    var key = t.TargetId;
+                    _placeChoices = new List<(string, Action)>
+                    {
+                        ("Pick the lock (Sleight of Hand; breaking in)", () => { RecordPose(); Respond("Pick the lock", _session.Dispatch(new EnterBuildingCommand(key, PlaceAction.Pick))); }),
+                        ("Force the door (Athletics; loud, and breaking in)", () => { RecordPose(); Respond("Force the door", _session.Dispatch(new EnterBuildingCommand(key, PlaceAction.Force))); }),
+                        ("Leave it", () => Say(t.Label, "You leave the door alone.")),
+                    };
+                    Hud?.ShowTopics(_placeChoices.Select(c => (c.Label, c.Act)).ToList());
+                    return new InteractionResponse(t.Label, entered.Message, InteractionKind.Informational);
+                }
             }
 
             // A feature, a door, the room, a group: the actions the world allows here.

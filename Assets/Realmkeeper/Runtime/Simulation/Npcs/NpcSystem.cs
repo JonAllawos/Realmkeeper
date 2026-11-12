@@ -81,6 +81,7 @@ namespace Realmkeeper.Simulation.Npcs
 
             Converse(context);
             React(context);
+            DiscoverCrimes(context); // Phase 14 (ADR-0069)
             if (dayNumber % WorldDate.DaysPerWeek == 0) Weekly(context);
         }
 
@@ -610,6 +611,38 @@ namespace Realmkeeper.Simulation.Npcs
         {
             var n = 0;
             return () => new KnowledgeId(NpcHash.Guid(NpcHash.Of(world.Seed, "knowledge-" + purpose, npc.NpcId + ":" + npc.Knowledge.Count + ":" + n++, today.ToDayNumber())));
+        }
+
+        /// <summary>
+        /// Phase 14 (ADR-0069): a theft, a break-in or a smashed door nobody saw is found out the next day by the person
+        /// it was done to — they know it happened, not who did it. It travels as news, and costs the player nothing.
+        /// </summary>
+        private static void DiscoverCrimes(SimulationDayContext context)
+        {
+            var world = context.World;
+            var today = context.Date;
+            foreach (var c in world.Crimes)
+            {
+                if (c.Status != CrimeStatus.Undiscovered) continue;
+                if (c.Kind != CrimeKind.Theft && c.Kind != CrimeKind.ShopTheft && c.Kind != CrimeKind.UnauthorizedEntry && c.Kind != CrimeKind.PropertyDamage) continue;
+                if (c.At / 1440 >= today.ToDayNumber()) continue; // found the next day
+                var victim = world.FindNpc(c.VictimNpcId);
+                c.Status = CrimeStatus.Discovered;
+                c.DiscoveredAt = today.ToDayNumber() * 1440L;
+                var deed = c.Kind == CrimeKind.Theft || c.Kind == CrimeKind.ShopTheft ? "they had been robbed" : "someone had broken in";
+                if (victim != null && !victim.IsDeceased)
+                {
+                    NpcMind.Remember(victim, new NpcMemoryData
+                    {
+                        MemoryId = MemoryIdFor(world, victim, today, c.CrimeId), Date = today, Category = MemoryCategory.Hardship, Subject = "found that " + deed + " — nobody knows who",
+                        SettlementId = c.SettlementId, Salience = 60, Source = MemorySource.Experienced,
+                    });
+                    NpcMind.Learn(victim, KnowledgeTopic.RecentEvent, c.CrimeId, deed + " (culprit unknown)", KnowledgeStatus.Known, 100, today, default, 0, default, KnowledgeIds(world, victim, today, "crime"));
+                }
+
+                context.ReportEvent(HistoricalEventType.CrimeDiscovered, EventSeverity.Warning, EventImportance.Minor, c.SettlementId.IsEmpty ? new SettlementId[0] : new[] { c.SettlementId },
+                    new EventData().Set("source", SimulationSource).Set("victim", victim?.Name ?? "Someone").Set("deed", deed));
+            }
         }
 
         private static MemoryId MemoryIdFor(WorldData world, NpcData npc, WorldDate today, string what) =>

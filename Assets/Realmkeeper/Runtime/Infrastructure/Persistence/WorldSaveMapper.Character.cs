@@ -41,6 +41,13 @@ namespace Realmkeeper.Infrastructure.Persistence
                 d.ExperienceLog.Add(new ExperienceAwardDto { Key = a.Key, Source = a.Source.ToString(), SourceId = a.SourceId, Amount = a.Amount, Date = a.Date.IsValidDate ? a.Date.ToIsoString() : null, Reason = a.Reason });
             foreach (var r in s.Advancements)
                 d.Advancements.Add(new AdvancementRecordDto { Level = r.Level, Date = r.Date.IsValidDate ? r.Date.ToIsoString() : null, HitPointsGained = r.HitPointsGained, Summary = r.Summary });
+            d.Conditions = new List<LastingConditionDto>(); // Phase 14 (v16)
+            foreach (var k in s.Conditions)
+                d.Conditions.Add(new LastingConditionDto
+                {
+                    Type = k.Type.ToString(), Level = k.Level, Source = k.Source, Reason = k.Reason, AppliedAt = k.AppliedAt, ExpiresAt = k.ExpiresAt, Remedies = k.Remedies.ToString(),
+                    EscapeDc = k.EscapeDc, EscapeTries = k.EscapeTries,
+                });
             var keys = new List<string>(s.Choices.Keys);
             keys.Sort(System.StringComparer.Ordinal);
             foreach (var k in keys) d.Choices[k] = new List<string>(s.Choices[k]);
@@ -119,6 +126,17 @@ namespace Realmkeeper.Infrastructure.Persistence
             {
                 if (r == null) throw new SaveDataException("An advancement record is empty.");
                 s.Advancements.Add(new AdvancementRecord { Level = r.Level, Date = OptionalDate(r.Date, "advancement date"), HitPointsGained = r.HitPointsGained, Summary = r.Summary ?? string.Empty });
+            }
+
+            foreach (var k in d.Conditions ?? new List<LastingConditionDto>())
+            {
+                if (k == null) throw new SaveDataException("A lasting condition is empty.");
+                s.Conditions.Add(new LastingConditionData
+                {
+                    Type = ParseEnum<Realmkeeper.Domain.Combat.ConditionType>(k.Type, "lasting condition type"), Level = k.Level, Source = k.Source ?? string.Empty, Reason = k.Reason ?? string.Empty,
+                    AppliedAt = k.AppliedAt, ExpiresAt = k.ExpiresAt, EscapeDc = k.EscapeDc, EscapeTries = k.EscapeTries,
+                    Remedies = string.IsNullOrEmpty(k.Remedies) ? ConditionRemedy.None : (ConditionRemedy)System.Enum.Parse(typeof(ConditionRemedy), k.Remedies),
+                });
             }
 
             return s;
