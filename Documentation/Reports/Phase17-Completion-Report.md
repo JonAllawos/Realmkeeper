@@ -279,7 +279,7 @@ Where the capture changed the world to show something, the caption says so:
 
 ## 25. Git and remote status
 
-COMMIT_STATUS
+- **Committed locally on `feature/phase-0-1-foundation`.** One commit holds the Phase 17 implementation, tests, screenshots and documentation, on top of `7ab5163`; this section was filled in by a following docs-only commit. Its hash is in `git log` and in the hand-off message.
 
 - **Not pushed.** The brief says "Do not push".
 - **The working tree before Phase 17 was clean.** `ProjectSettings/GraphicsSettings.asset` was not touched, nothing was discarded, and Unity's `Assets/InitTestScene*` files and the local-only Bestiary were not staged.
