@@ -89,5 +89,15 @@
 | [0085](ADR-0085-the-world-offers-its-own-stories-from-what-happened.md) | The world offers its own stories, built only from what happened and who knows it | Accepted (Phase 17) |
 | [0086](ADR-0086-road-fights-are-fought-on-the-ground-at-the-roads-end.md) | A fight met on the road is fought on the ground at the road's nearer end, with the existing combat; the party stays on the road | Accepted (Phase 17) |
 | [0087](ADR-0087-companions-react-remember-and-relate-through-existing-records.md) | Companions react by their nature, say what they think when asked, and relate to each other through the existing records | Accepted (Phase 17) |
+| [0088](ADR-0088-discoveries-have-a-kind-a-certainty-and-people-who-care.md) | Discoveries have a kind, a certainty, and people who care about them | Accepted (Phase 18) |
+| [0089](ADR-0089-places-in-every-region-and-three-complete-mechanism-patterns.md) | Places in every region, and three complete mechanism patterns | Accepted (Phase 18) |
+| [0090](ADR-0090-faction-conflicts-have-stages-and-factions-act-without-the-player.md) | Faction conflicts move through stages, factions act without the player, and the player can take part | Accepted (Phase 18) |
+| [0091](ADR-0091-four-quest-chains-and-a-deeper-waystone-count.md) | Four quest chains, and The Waystone Count deepened without changing what it is | Accepted (Phase 18) |
+| [0092](ADR-0092-rewards-are-tools-with-uses-and-are-given-once.md) | Rewards are tools with uses, and every reward is given once | Accepted (Phase 18) |
+| [0093](ADR-0093-every-world-event-has-follow-up-gameplay.md) | Every kind of world event has follow-up gameplay, and the story lifecycle is audited | Accepted (Phase 18) |
+| [0094](ADR-0094-peoples-days-show-their-natures-and-they-talk-to-each-other.md) | People's days show their natures and their town's condition, and they talk to each other about what they know | Accepted (Phase 18) |
+| [0095](ADR-0095-companions-react-to-more-and-have-more-stories.md) | Companions react to more of what happens, keep quiet in between, and have more stories | Accepted (Phase 18) |
+| [0096](ADR-0096-save-schema-v20.md) | Save schema v20 | Accepted (Phase 18) |
+| [0097](ADR-0097-third-party-creatures-and-scenery-through-one-pipeline.md) | Third-party creatures and scenery come in through one pipeline, licence first | Accepted (Phase 18) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

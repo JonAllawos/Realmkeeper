@@ -743,3 +743,19 @@ The full EditMode suite was not rerun after the one-line timeout change. The reg
   - `Phase16AtlasPlayModeTests.EveryAtlasControl…`: the road fight now opens in the combat scene, and the outlaws act. Withdrawing is refused while one stands next to the player (an existing rule), so the test uses the atlas's Withdraw, then the labelled "Let it play out".
 - **Intermittent.** In one PlayMode run, a Unity engine log (a 160-byte temporary-allocator leak report while entering an ordinary town) failed the tests that followed it. It did not recur in the next runs.
 - **Not run:** a development-build frame-time probe; a hand-played session; video recording.
+
+## Phase 18 runs (2026-11-12)
+
+| Run | Passed | Failed | Skipped | Inconclusive | Timed out | Notes |
+|---|---|---|---|---|---|---|
+| .NET, Release, all tests (final) | 830 | 0 | 0 | — | 0 | 3 m 33 s; includes the 39 Phase 18 tests |
+| Unity EditMode, full | 827 | 0 | 0 | 0 | 0 | 39.6 min; run before the last fixes, which added 3 tests that ran in .NET only |
+| Unity PlayMode, full | 113 | 1 | 30 | 2 | 0 | Run before the last fixes |
+| Unity PlayMode, targeted (final) | 8 | 0 | 0 | 0 | 0 | Phase 18 capture, Phase 18 UI test, Phase 15 art tests |
+
+Notes on the full PlayMode run:
+- **The failure.** `Phase15ArtPlayModeTests.WithoutTheLocalBestiary_BodiesFallBack_WithoutErrors` expected goblins and wolves to have no model. They now have repository models (ADR-0097). The test was updated and passes in the targeted run.
+- **The skipped tests** are the capture sets, which need `RK_CAPTURE_DIR`.
+- **The inconclusive tests** are dice-dependent `Assume` guards in Phase 9 and Phase 11.
+
+At the owner's direction, the full Unity suites were not rerun after the last fixes.

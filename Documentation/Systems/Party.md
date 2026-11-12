@@ -104,3 +104,16 @@ The player's short or long rest applies the same rest to each member present, on
 
   Closing it moves loyalty through the same rule as the first story.
 - **In the Party section:** each companion's second story and its state, how many things they have to say, what they last said, and how they get on with each of the others (liking, trust, rivalry).
+
+## Phase 18: more reactions, more stories (ADR-0095)
+
+- **Reactions** (`CompanionStories.Phase18.cs`):
+  - quest outcomes (a table of trait leanings, once per quest);
+  - major discoveries of a kind their nature cares about;
+  - hardship in a hungry or restless town (once a week per town);
+  - banter between companions who like each other (once a week per pair).
+
+  The passing kinds wait out a 6-hour cooldown.
+- **Stories.** Going Home (family living elsewhere) and Words at the Grave (someone dead within 60 days) join Old Ground and Unfinished Business. Unfinished Business now needs a real quarrel.
+- **Followers** refuse undrained deep water ("the water is too deep for them").
+- **Not verified by hand:** formation, waiting and transitions in play. They are on the owner playtest checklist (`Testing/Phase18-Owner-Playtest-Checklist.md`).

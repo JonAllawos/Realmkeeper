@@ -209,3 +209,14 @@ This note does not change any requirement.
   - road fights played in the existing combat scene.
 
   It keeps the binding principles: one world, no copies of anyone; every change a command; nothing waits for the player; a world with no campaign is a complete sandbox; and v18 saves upgraded once (schema v19). The protagonist stays the player's own and is not a chosen one (Bible §2–3). **No canon is decided.** The one campaign, *The Waystone Count*, is labelled provisional demonstration content. It names only bound world entities and establishes no kingdom, antagonist or history.
+- **Phase 18 (2026-11-12).** Phase 18 deepens the world the earlier phases built, rather than adding a new layer:
+  - places in every region with working puzzles;
+  - discoveries that matter to people;
+  - four authored quest chains;
+  - follow-up gameplay for every kind of world event;
+  - faction conflicts that move through stages;
+  - people whose days show their natures and who talk to each other;
+  - companions who react to more and have more stories;
+  - animal, monster and scenery models in place of primitives.
+
+  It adds no second system of any kind. The new places use the existing archetypes, the stories the existing quest engine, the conflicts the existing relations and events, and the creatures the existing combat controller. Schema v20 adds only optional discovery fields. **No canon is decided:** the places' histories are local; *The Waystone Count* stays provisional; and the new texts fix no kingdom, antagonist or history.

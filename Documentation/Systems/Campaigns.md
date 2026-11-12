@@ -104,3 +104,10 @@ There are five endings: *A Count Kept Twice*, *the home town's road*, *the far t
 - One authored campaign, kept small to prove the engine. Its content is provisional.
 - Decisions with no speaker (made from the journal) are supported but unused in the demonstration.
 - Two kinds of world story. A merchant's death, a faction losing influence and similar causes are not yet stories.
+
+## Phase 18 additions (ADR-0091, ADR-0093)
+
+- ***The Waystone Count*** is deepened but stays provisional: no new arc, chapter or canon.
+  - The Cairn Watch log or the ringers' verse can make the case for a shared count.
+  - "Witness" settles the toll-keeper's count before both towns, with its own delayed consequence and companion leanings.
+- **The world's own stories** now come in seven kinds: those in `WorldEvents.md` and `Quests.md`. The lifecycle rules there replace the Phase 17 limit of three open stories.

@@ -47,3 +47,14 @@
 | A hand-played Phase 17 session; gameplay video (Phase 17) | Every flow is checked by automated tests driving the real UI, not by a person; no video was recorded (the batch test runner cannot) | A recorded, hand-played session of the Waystone campaign and a road fight |
 | Story content variety (Phase 17) | Two kinds of world story and one provisional campaign; the writing was reviewed, but by the author | Owner review of the text; more story kinds once canon is decided |
 | Companion second story in generated worlds (Phase 17) | It needs a companion at loyalty 70 with a bond to someone living elsewhere; generated people's bonds are mostly within their own town, so it may be rare in play (tested with a bond made for the test) | Let the simulation create bonds across towns (travel, trade, marriage) |
+
+## Phase 18 (places, discoveries, chains, stories, natures, companions, creature models)
+
+| Area | Risk | How to close |
+|---|---|---|
+| Hand play of the four places, the chains and the stories | Medium. Every rule is covered by code tests, and the bells and journal by a UI-driven PlayMode test, but nobody has played them. Pacing and clarity are unjudged. | `Testing/Phase18-Owner-Playtest-Checklist.md` |
+| Companion formation, waiting, regrouping and transitions | Low to medium. Code tests only; the water rule was found by inspection | Owner checklist, scenario D |
+| Overheard exchanges on screen over a long session | Low. Exchanges are shown only where a real pair stands within earshot; how often that happens in play is unmeasured | Watch a town through a day |
+| Creature models in every fight setting (narrow rooms, night, many foes) | Low. Size, facing and materials were checked in one line-up capture and one place fight | Fight each creature kind once |
+| Frame time with many animated creatures | Not profiled | Run the performance probe in a development build |
+| Very long games with lasting faction conflicts | Low. Weekly keys are now bounded per period (tested); event history notes are bounded as before | A 5-year soak test |

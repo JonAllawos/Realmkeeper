@@ -1,0 +1,21 @@
+p18_01_settlement_scenery: Bramhaven in daylight: trees from the Stylized Nature MegaKit (CC0) where the layout plants them, and the modelled well where it has one.
+p18_02_overheard_exchange: No pair of people who know each other stood together near the player at this hour (the line appears only for real pairs).
+p18_03_drift_pump_cracked: Greywater Drift: the drainage pump worked with its intake choked — You lean on the handle. It fights you — silt grinds in the barrel — and then, with a crack like a shot, the barrel splits. Water sprays from the seam. The pump is useless until it is braced and mended.
+p18_05_creature_combat: A fight in Greywater Drift: the den's creatures drawn with the new creature models (Quaternius CC0), on the existing tactical grid.
+p18_06_vault_bells_verse: The Ringers' Vault: three bells of three trades, and the painted verse read by lantern-light — Lines painted on the wall above the bells, flaking but legible in a good light. "Ring first for the water that carried us over, then for the wheel that fed us after, last for the fire that made our tools — and the ringers' door opens to the true."
+p18_07_vault_wrong_bell: The forge bell rung first (wrong): The forge bell jangles against the others, sour and wrong. Grit and stone sift down from the vault. Dexterity save 7 against 12: failure. 1 bludgeoning damage: 10 → 9 HP. The sequence is lost; it must be begun again.
+p18_08_vault_door_open: Rung in the verse's order: The forge bell answers the other two, and the three notes run together. Below, stone grinds on stone: the ringers' door swings open.
+p18_09_hollin_raking_light: Hollin Tower: a flame held to the scored lintel — Over a bricked alcove, a lintel scored with fine lines too faint to make out. Held close, the flame throws the scoring into relief: a reeve's staff, and below it an arrow pointing down — "beneath the reeve's step". The floor stone under the alcove rings hollow.
+p18_10_journal_discoveries: The journal's Discoveries tab: grouped by kind (Dangers first), ◆ marks what matters, [unverified] what was only guessed; each with where it was found.
+p18_11_quest_in_conversation: Talking to Bertil Inkpen, who gives The Drowned Drift.
+p18_12_creature_lineup: The creature models as the game uses them (set out in a row for the capture): Sheep 1.19 m, BlackBear 1.20 m (static), Boar 0.90 m (static), Goat 0.90 m (static), Bull 1.65 m, Chicken 0.32 m, Cow 1.56 m, Deer 1.29 m, Fox 0.45 m, Giant 2.37 m, Goblin 0.74 m, Horse 1.81 m, Husky 0.61 m, Orc 1.67 m, Rat 0.40 m, Spider 1.02 m, Stag 1.52 m, Wolf 0.70 m.
+
+Inspection notes (each image looked at, 2026-11-12). Genuine Unity captures, taken automatically in the editor by
+Phase18CaptureTests with RK_CAPTURE_DIR set; nothing was hand-played.
+- p18_02: no pair of acquainted people stood together in earshot during the ten hours stepped, so no overheard line is shown.
+- p18_04 (the drained gallery) was dropped: the camera showed only fog in that room, so it was no evidence. The drain is
+  shown by its message in p18_03's sequence and by the Discoveries entry in p18_10.
+- p18_05: the fight is real and the place panels step aside, but the spider itself is out of frame in this shot.
+- p18_12: the creature models set out for the capture (not in the world). In this run the town's rise hides part of the
+  rows; the logged heights are the size check. Facing and textures were verified in earlier captures of the same set-up
+  after the model fixes (ADR-0097).

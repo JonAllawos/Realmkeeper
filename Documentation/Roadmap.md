@@ -24,8 +24,29 @@
 | Art assets: KayKit skeletons and character animations (CC0); Quaternius Bestiary local only | Done (`d975302`, report `4324084`, pushed) | `Reports/Art-Assets-KayKit-Bestiary-Report.md`, `Art/` credits |
 | Phase 15: Companions, Parties, Relationships & Party Progression (with the Phase 15 art and animation addendum) | Done (`9a48d27`, pushed on the owner's instruction) | `Systems/Party.md`, `Reports/Phase15-Preflight-Audit.md`, `Reports/Phase15-Art-Animation-Report.md`, `Reports/Phase15-Completion-Report.md`, ADR-0073…0075 |
 | Phase 16: World Events, Regional Travel, Dynamic Simulation & Persistent World Expansion | Done (`7ab5163`, pushed on the owner's instruction); closeout verified in Phase 17 (full EditMode 750/750) | `Systems/Travel.md`, `Systems/WorldEvents.md`, `Systems/WorldGeneration.md` (the connected world), `Reports/Phase16-Preflight-Audit.md`, `Reports/Phase16-Completion-Report.md`, ADR-0076…0081 |
-| Phase 17: Phase 16 closeout, Campaign Engine, Narrative Systems & Persistent Storytelling | Done (committed locally; not pushed) | `Systems/Campaigns.md`, `Systems/Travel.md` (road fights, groups beyond sight), `Systems/Party.md`, `Systems/Dialogue.md`, `Reports/Phase17-Preflight-Audit.md`, `Reports/Phase16-Final-Verification.md`, `Reports/Phase17-Completion-Report.md`, ADR-0082…0087 |
-| Phase 18 | Not started (needs the owner's authorisation) | — |
+| Phase 17: Phase 16 closeout, Campaign Engine, Narrative Systems & Persistent Storytelling | Done (`8f36025`, committed locally; not pushed) | `Systems/Campaigns.md`, `Systems/Travel.md` (road fights, groups beyond sight), `Systems/Party.md`, `Systems/Dialogue.md`, `Reports/Phase17-Preflight-Audit.md`, `Reports/Phase16-Final-Verification.md`, `Reports/Phase17-Completion-Report.md`, ADR-0082…0087 |
+| Phase 18: World Depth, Exploration, Living Content & Gameplay Expansion | Done (`713b9a0`, committed locally; not pushed). Not hand-played: the owner playtest checklist is open | `Systems/Locations.md`, `Systems/Quests.md`, `Systems/WorldEvents.md`, `Systems/NPCs.md`, `Systems/Party.md`, `Systems/Dialogue.md`, `Systems/Campaigns.md`, `Systems/Persistence.md` (v20), `Reports/Phase18-Preflight-Audit.md`, `Reports/Phase18-Asset-Research.md`, `Reports/Phase18-Completion-Report.md`, `Testing/Phase18-Owner-Playtest-Checklist.md`, ADR-0088…0097 |
+| Phase 19 | Not started (needs the owner's authorisation) | — |
+
+## Phase 17 carry-forward (status after Phase 18)
+
+| Phase 17 limitation | Status |
+|---|---|
+| Two kinds of world story | **Done in Phase 18:** seven kinds, and every kind of world event has follow-up gameplay. The lost-caravan story could never appear in play (a lifecycle bug); this is fixed. |
+| The second companion story needs a bond to someone elsewhere, which worlds rarely make | **Partly done in Phase 18:** two more stories (Going Home, Words at the Grave) start from bonds most worlds have. |
+| No hand-played session and no video | **Still open.** Phase 18 also had no hand play and no recording, because no screen recorder is installed. The owner playtest checklist (`Testing/Phase18-Owner-Playtest-Checklist.md`) is the way to close it. |
+| Road fights staged on the near settlement's land | Open |
+| One provisional campaign; setting canon undecided | Open. *The Waystone Count* was deepened and is still provisional. |
+
+## Phase 18 known limitations (carried forward)
+
+| Limitation | Why |
+|---|---|
+| Not hand-played; no gameplay video | Claude drives Unity only through test runs, and no screen recorder is installed. See the owner checklist. |
+| Dungeon walls and floors are still the built shapes | The KayKit kit dresses features only. Full kit walls would mean rebuilding the place builder (workstream D). |
+| No sitting poses | The streets and interiors have no seats (workstreams A and D). |
+| Companion formation, waiting and transitions not checked in play | Covered by code tests only. |
+| Cairn Watch and its chain exist only where two factions exist | By design: the dispute needs two claimants. |
 
 ## Phase 16 carry-forward (status after Phase 17)
 
@@ -39,7 +60,7 @@
 
 ## Workstreams kept for later milestones (not started; not reordered)
 
-These were reaffirmed in the Phase 17 brief as important future work. None of them is part of Phase 17, and their order is the owner's to set.
+These were reaffirmed in the Phase 17 and Phase 18 briefs as required future milestones. None of them is part of Phase 18: Phase 18 made only small usability fixes and integrated assets. Their order is the owner's to set.
 
 - **A. Complete UI/UX and visual design overhaul.** Main menus; world and campaign selection; navigation, tabs and panels; HUD and combat HUD; character sheets; inventory and equipment; spellbook; skill trees and progression; quest journal; dialogue; bestiary; faction interfaces; settlement and kingdom management; world atlas; settings and accessibility; transitions and animation; visual hierarchy, typography, colour system; icons and licensed downloadable assets. Study patterns (not assets or copied designs) from Baldur's Gate 3, Assassin's Creed, Far Cry, Kingdom Come: Deliverance, The Witcher, Dragon Age, Pathfinder, Crusader Kings, Red Dead Redemption and Skyrim.
 - **B. Advanced character creation and character systems.** Expanded species and subspecies; classes and subclasses; backgrounds and origins; appearance (body types, faces, hair and facial hair, skin, distinguishing features, scars and tattoos); detailed previews; starting equipment; progression presentation; detailed character sheets; NPC creation and inspection; character identity and personality. Study *The Tavern Table* as a separate reference project; do not merge projects or copy its code without authorisation.

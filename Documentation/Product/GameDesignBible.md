@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 17, 2026-11-12)
+## Implementation status (updated at the end of Phase 18, 2026-11-12)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -91,8 +91,14 @@ present but visibly temporary; **Not started**.
 | Campaign engine (§4.1, authored campaign) | **Implemented** (Phase 17), 1 provisional demonstration | Campaigns as validated data laid over the one world: roles cast from the world's own people, places, factions and roads; chapters and arcs of linked quests, decisions and world-state objectives (sequential, parallel, optional, alternative, timed, refusable); set aside, take up, give up; endings; the world never waits (ADR-0082) |
 | Lasting decisions | **Implemented** (Phase 17) | Recorded once, typed effects applied once through each system's own path, delayed consequences that come in their time, disabled choices shown with their reason (ADR-0083) |
 | Narrative resilience | **Implemented** (Phase 17) | What became of people read from the world (dead, captured, hostile, away …); other people speak, other ways open, or the story ends another way; nobody is protected or raised (ADR-0084) |
-| Emergent stories (§4.1, emergent campaign) | **Implemented** (Phase 17), 2 kinds | A lost caravan and a hungry town beside a full one become stories from what happened and who knows it; one per cause, three open at most (ADR-0085) |
-| Companions in the story | **Implemented** (Phase 17) | Reactions to decisions by personality, remarks when asked, companion-to-companion bonds and quarrels, a second personal story (ADR-0087) |
+| Emergent stories (§4.1, emergent campaign) | **Implemented** (Phases 17–18), 7 kinds | A lost caravan, a hungry town beside a full one, refugees arriving, local unrest, a cut trade road, a recent death with a friend elsewhere, and a faction conflict become stories from what happened and who knows it; one per cause, one new a day, five open at most, offers lapse after 10 days; every kind of world event has follow-up gameplay; goods taken on the road come back when the band is broken (ADR-0085, ADR-0093) |
+| Companions in the story | **Implemented** (Phases 17–18) | Reactions to decisions, quest outcomes, major discoveries, hardship at home and each other (once-only and cooldown rules), remarks when asked, companion-to-companion bonds and quarrels, four personal stories; followers refuse undrained deep water (ADR-0087, ADR-0095) |
+| Discoveries | **Implemented** (Phase 18) | Ten kinds; confirmed or unverified, with proof that confirms a guess; every clue records; major findings give experience once; telling a finding to someone who cares rewards once per settlement; journal grouped by kind (ADR-0088) |
+| Place puzzles and deeper places | **Implemented** (Phase 18), 3 patterns, 4 places per region | Bells rung in a painted verse's order, a pump drained in stages (a choked intake cracks it), raking light on a scored lintel; state saved with the place, failures cost something, never reset; Greywater Drift, the Ringers' Vault, Hollin Tower and Cairn Watch in every region (ADR-0089) |
+| Authored quest chains | **Implemented** (Phase 18), 4 chains of 2 quests | Investigation, faction, wilderness/dungeon and settlement/economy; each with a decision, two or more endings and lasting consequences; *The Waystone Count* deepened (precedent from the places, a fourth way to settle the count) and still provisional (ADR-0091) |
+| Faction conflict stages | **Implemented** (Phase 18) | Peace, tension, dispute, skirmishes, open conflict read from the relationship; weekly strain on border towns; factions send relief and garrison without the player; the player can back a side, mediate or stay out (ADR-0090) |
+| People's natures in their day; overheard talk | **Implemented** (Phase 18) | Discipline, curiosity, compassion, courage and the town's prosperity change where people are; people who know each other talk about what they really know, worded by certainty; sitting poses deferred (ADR-0094) |
+| Creature and scenery models | **Implemented** (Phase 18) | 19 creatures drawn with 15 CC0 or CC BY animal and monster models, animated or tipping over when they fall; settlement trees, wells and place props from CC0 kits; licences and credits recorded (ADR-0097) |
 | Road fights in the combat scene | **Implemented** (Phase 17) | A fight met on the road is played with the existing tactical combat on the ground at the road's end; the party stays on the road (ADR-0086) |
 | Main campaign, setting canon | **Not started** | The kingdoms, antagonist and world history are not approved canon; the one campaign is provisional demonstration content |
 

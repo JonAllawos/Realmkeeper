@@ -76,3 +76,25 @@ The slice is played in the tests through the same commands the UI sends, and in 
   - *What Became of the Caravan* (always holds: what became of a lost caravan can always be asked);
   - *Grain Down the Road* (holds while the town is short of food).
 - **A companion's second story,** *Unfinished Business*, closes through the same loyalty rule as the first.
+
+## Phase 18: four chains, new stories and new vocabulary (ADR-0091, ADR-0093)
+
+- **Chains** (`QuestCatalog.Phase18.cs`). Each has two quests; the second follows through `FollowUps`, with the same people and place.
+
+  | Chain | Ways to end |
+  |---|---|
+  | Ashes in the Record-House → The Reeve's Accounts | exposed, restored, bought off |
+  | The Cairn Question → Who Keeps the Cairn | back the claim, uphold the holder, mediate, stay aside |
+  | The Drowned Drift → Greywater's Future | reopened (only once drained), sealed |
+  | The Miller's Measure → A Mill for Two | measure restored, miller judged right, shortfall supplied |
+
+  Bound by `Phase18Quests` to people of the place's nearest settlement.
+- **World stories** (`QuestCatalog.Phase18Stories.cs`): Bad Blood at the Crossing, Room at the Hearth, Hard Words in {settlement}, The Long Way Round, Word for a Friend. Each offer lapses after 10 days (`ExpiresAfterDays`).
+- **Companion stories** (`QuestCatalog.Phase18Companions.cs`): Going Home, Words at the Grave.
+- **New kinds:**
+  - `ConditionKind.KnowsDiscovery` (38);
+  - `ConsequenceKind.FactionRelation` (10), which moves two factions' opinion;
+  - `ConsequenceKind.ResolveWorldEvent` (11), which ends the event a story is about.
+
+  Faction-standing rewards and conditions now resolve a faction role directly (`QuestEffects.FactionFor`).
+- **Rewards** are keyed and given once (ADR-0092). The new tools have uses in the place mechanics: the pump-wright's wrench and the shuttered lantern.

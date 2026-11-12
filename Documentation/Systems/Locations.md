@@ -137,3 +137,23 @@ Bridges sit on loops, or on the passage to a side room that holds nothing a ques
 - some have left.
 
 "Cleared" was already shown by the Phase 13 discovery state, so it is not repeated.
+
+## Phase 18: places in every region, puzzles and discoveries (ADR-0088, ADR-0089)
+
+- **Four more places, on the existing archetypes:**
+  - Greywater Drift (a mine);
+  - the Ringers' Vault (a crypt);
+  - Hollin Tower (a ruin);
+  - Cairn Watch (a keep, only where two factions exist).
+
+  Every region gets its own set, sited deterministically from the world seed and the region. Their IDs carry the region (`place:{def}@{region}`). Old saves gain them on load, once per region.
+- **A finishing step.** `PlaceDefinition.Finish` wires each mechanism to what it works, after generation. A layout whose puzzle cannot be solved (its workings behind the door they open) is rejected, and the generator tries again. Tested on 60 seeds per place.
+- **Three mechanism patterns** (`PlaceActions.Mechanisms.cs`). State lives in the place's saved `Variables` and is never reset.
+  - **Sequence:** bells in a verse's order. A wrong bell costs a save and resets the sequence; a second wrong peal wakes the dead. The door can still be picked or forced at DC 22.
+  - **Staged water:** clear the intake (Athletics), then pump FULL → HALF → DRY. A choked intake cracks the barrel until it is mended. The gallery can still be swum.
+  - **Raking light:** a flame held close reads a scored lintel and reveals the hidden way. A thorough search can find it too.
+
+  New place actions: Clear (20), Illuminate (21), Mend (22).
+- **Discoveries.** Every clue with an insight records a discovery with a kind and a certainty. A guess is confirmed by its proof, including `group:{name}@{place}` for creatures seen in a fight. Major findings give 25 XP once.
+- **Followers** refuse undrained deep water and say why.
+- **Older places.** Bramble Cave and the Broken Hall gain story features in worlds made from now on. Saved layouts are never changed.

@@ -67,3 +67,12 @@ Lines are written for their speakers: the elder is anxious about the ledger, the
 - **Decisions are marked.** A response that makes a campaign decision is marked "◆ … [decision]" in the window: its consequences last.
 - **Campaign roles in text.** In a campaign quest's dialogue, `{role}` tokens name the campaign's people and places (the warden, the far town) as well as the quest's own.
 - **Companions in general talk.** "Something on your mind?" (when they have something to say), and "You two need to settle this." (Persuasion, when they quarrel with another companion present).
+
+## Phase 18: discoveries in conversation (ADR-0088, ADR-0091)
+
+- **`ConditionKind.KnowsDiscovery`** opens lines for players who found something: the Cairn Watch log, or the ringers' verse, as precedent in *The Waystone Count*.
+- **Sharing a finding.** General conversation offers at most two findings the person would care about (`DiscoveryRules.Offerable`), as "share:" lines.
+  - Telling one gives what such a person has: standing, regard, or a little coin for trade news.
+  - This happens once per settlement, recorded on the discovery's `SharedIn` (consequence `ShareDiscovery`, 37).
+  - Unverified minor guesses are not offered.
+- **"Witness"** is a fourth way to settle the toll-keeper's count in *The Waystone Count*.

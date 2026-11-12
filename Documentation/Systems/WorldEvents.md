@@ -65,3 +65,16 @@ The Phase 12 food-shortage quest is linked to the shortage event, not duplicated
 ## Chronicle
 
 Every change of state of an event is a chronicle line (`WorldEventChanged`). The exception is a lost caravan, which writes its own `CaravanLost` line.
+
+## Phase 18: follow-up gameplay, conflict stages, recovered goods (ADR-0090, ADR-0093)
+
+- **Every kind of event has follow-up gameplay.** A lifecycle audit test asserts it.
+  - **New stories:** refugees, unrest, trade cut off, a recent death, a faction conflict.
+  - **Lifecycle fix:** a caravan loss resolved within 14 days still counts as a cause (it is raised and resolved in the same moment).
+  - **Limits:** one story per cause ever, one new a day, five open at most, and a priority order.
+- **Conflict stages** (`WorldEventSystem.ConflictStage`), stored as the event's severity: peace, tension, dispute (opinion −40), skirmishes (hostile), open conflict (hostile, −75).
+  - Stage changes are noted, and the towns at the crossing are told.
+  - From dispute up, the border towns lose stability weekly.
+  - Open conflict is the Phase 16 blockade.
+- **Faction activity.** Relief: 40 food for 50 coin, weekly, to a hungry governed town. Garrisons: 30 coin weekly from skirmishes up, for 2 stability.
+- **Recovered goods.** `GroupSystem.Lose` records cargo and band. When that band is broken, half the goods reach the town they were bound for: once, within storage.

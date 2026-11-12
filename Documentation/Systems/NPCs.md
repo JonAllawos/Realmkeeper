@@ -247,3 +247,17 @@ call for (a captain, a guard and a priest in the town; a warden in the hamlet): 
 - **Upkeep:** people with sheets take a long rest each night and fight as themselves.
 
 Details: `Documentation/Phase10/CreatureAndNpcSystems.md`.
+
+## Phase 18: natures in the day, overheard talk (ADR-0094)
+
+- **`NpcActivityPlan.At`** now reads personality and the town's condition. The reason is shown in words.
+  - Discipline moves working hours; shopkeepers and guards are excepted.
+  - Curiosity goes to the market on a free day.
+  - Compassion hands out bread in a hungry town.
+  - The timid stay in during unrest.
+  - Prosperity sets how readily people go to the tavern.
+- **Overheard exchanges** (`NpcExchanges.Now`, `WorldSession.GetExchanges`).
+  - Only between people who know each other, at the same place now, and free to talk.
+  - They say what they really know, worded by certainty; rivals argue.
+  - The scene shows lines above pairs within 14 m and turns them to each other. Nothing in the world changes.
+- **Deferred:** sitting poses, because the streets and interiors have no seats.
