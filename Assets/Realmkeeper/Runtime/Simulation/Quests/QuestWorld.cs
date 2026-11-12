@@ -769,6 +769,7 @@ namespace Realmkeeper.Simulation.Quests
 
             if (to == QuestState.Failed) QuestEffects.ApplyAll(w, q, ConsequenceTiming.OnFail, report);
             if (to == QuestState.Abandoned) QuestEffects.ApplyAll(w, q, ConsequenceTiming.OnAbandon, report);
+            if (to == QuestState.Completed || to == QuestState.Failed || to == QuestState.Abandoned) Party.CompanionLoyalty.OnQuestClosed(w, q, to, report); // Phase 15
             return true;
         }
 

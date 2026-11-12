@@ -167,3 +167,19 @@ This note does not change any requirement.
   - rescue and escort of a real resident;
   - discovery from rumour to map marker.
   The binding requirements still hold: one world model, every change a command, the scene rebuilt from the world, and older saves upgraded once (schema v15). No campaign canon is fixed.
+- **Phase 15 (2026-11-12): a recorded conflict, for this feature only.** Phase 15 adds the Bible's companions and
+  party (§11.2–11.3), as the roadmap now directs:
+  - named people recruited from the world, with refusals that state their cause;
+  - an active line-up and a reserve, follow and wait, formation and leader;
+  - companions' own sheets and items;
+  - fights beside the player through the one combat engine, with a companion layer of the one AI that explains itself;
+  - loyalty moved only by real events;
+  - one personal quest;
+  - resting together.
+
+  This document's §1 describes a simulation and exploration platform, not a party RPG. For companions and the
+  party, the Bible's direction is followed and this document's narrower statement is treated as superseded **for
+  this feature only**. The rest of §1 is not rewritten, and the general scope question remains the owner's. The
+  binding requirements still hold: a companion is the world's own persistent person, not a copy; every change is a
+  validated command; the scene is rebuilt from the world; and v16 saves upgrade once (schema v17). Solo play stays
+  complete: nothing in the world or its quests requires a party.

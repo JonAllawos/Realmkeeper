@@ -51,6 +51,28 @@ namespace Realmkeeper.Exploration.Presentation
 
         public RuntimeAnimatorController Locomotion;
 
+        /// <summary>Phase 15: creature bodies by ID (the KayKit skeletons: "Skeleton_Warrior", "Skeleton_Minion", "Skeleton_Rogue", "Skeleton_Mage").</summary>
+        public List<PrefabEntry> Creatures = new List<PrefabEntry>();
+
+        /// <summary>Phase 15: props held in a hand slot, by ID ("Skeleton_Blade", "Skeleton_Quiver" …).</summary>
+        public List<PrefabEntry> Props = new List<PrefabEntry>();
+
+        /// <summary>Phase 15: the shared combat controller for humanoid combatants (locomotion, attacks, cast, block, hit, death, interact, jump).</summary>
+        public RuntimeAnimatorController Combatant;
+
+        /// <summary>Phase 15: the same controller with the skeletons' own idle, walk and death (an override controller).</summary>
+        public RuntimeAnimatorController SkeletonCombatant;
+
+        /// <summary>Phase 15: the same controller with the Universal Animation Library clips made for the Quaternius bodies (the player and people).</summary>
+        public RuntimeAnimatorController PersonCombatant;
+
+        private Dictionary<string, GameObject> _creatures;
+        private Dictionary<string, GameObject> _props;
+
+        public GameObject Creature(string id) => Lookup(ref _creatures, Creatures, id);
+
+        public GameObject Prop(string id) => Lookup(ref _props, Props, id);
+
         private Dictionary<string, ModuleEntry> _modules;
         private Dictionary<string, Material> _materials;
         private Dictionary<string, GameObject> _bodies;

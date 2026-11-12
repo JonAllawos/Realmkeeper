@@ -266,6 +266,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WriteQuestWorld(w, dto); // Phase 12
             WritePlaces(w, dto); // Phase 13
             WriteCrimes(w, dto); // Phase 14
+            WriteParty(w, dto); // Phase 15
             return dto;
         }
 
@@ -619,6 +620,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadQuestWorld(dto, world); // Phase 12
             ReadPlaces(dto, world); // Phase 13
             ReadCrimes(dto, world); // Phase 14
+            ReadParty(dto, world); // Phase 15
             return world;
         }
 

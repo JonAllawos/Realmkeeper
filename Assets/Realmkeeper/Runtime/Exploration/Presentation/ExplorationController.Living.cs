@@ -123,6 +123,10 @@ namespace Realmkeeper.Exploration.Presentation
                 // Phase 11: the item screens read query snapshots and ask for changes through the session.
                 HubWindow.InventorySource = (g, q, sort, desc) => _session?.GetInventory(g, q, sort, desc);
                 HubWindow.InspectSource = id => _session?.InspectItem(id);
+                // Phase 15: the Party section reads the party snapshot and changes it only through commands.
+                HubWindow.PartySource = () => _session?.GetParty();
+                HubWindow.PartyDispatch = c => PartyCommand(c);
+                HubWindow.TalkRequested += id => { CloseWindows(); StartDialogue(id); };
                 HubWindow.CompareSource = (id, slot) => _session?.CompareItem(id, slot);
                 HubWindow.WorkshopSource = () => _session?.GetWorkshop();
                 HubWindow.StorageSource = () => _session?.GetReachableContainers();
@@ -194,6 +198,7 @@ namespace Realmkeeper.Exploration.Presentation
             _speedButton = TimeButton(row, "×1", "xk-time-speed", CycleSpeed);
             TimeButton(row, "Wait 1 h (T)", "xk-time-wait", () => WaitHour());
             TimeButton(row, "Hub (H)", "xk-open-hub", () => ToggleHub());
+            TimeButton(row, "Party (K)", "xk-open-party", () => OpenParty()); // Phase 15
             _createButton = TimeButton(row, "Create character (C)", "xk-open-creator", () => OpenCreator());
             _createButton.AddToClassList("xk-button--primary");
             _levelUpButton = TimeButton(row, "Level up (L)", "xk-open-levelup", () => OpenAdvancement());
@@ -344,7 +349,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (Player == null) return;
             var hub = _session.GetPlayerHub();
             if (hub == null) return;
-            Player.SpeedMultiplier = hub.SpeedFactor;
+            Player.SpeedMultiplier = 1f; // Phase 15: free exploration movement is never slowed by load, hunger or combat budgets (the rules still apply them in fights; the hub still shows them)
             var look = PlayerLook.From(hub);
             if (Catalog != null && look.Signature != Player.LookSignature) Player.RebuildBody(look, Catalog, Assets());
             if (HubWindow != null && HubWindow.IsOpen) ShowHub(null, false);
@@ -657,6 +662,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (UpdateDialogueInput(keys)) return; // Phase 12: a conversation takes the number keys
             if (keys.hKey.wasPressedThisFrame) ToggleHub();
+            if (keys.kKey.wasPressedThisFrame) OpenParty(); // Phase 15: K, the party (P is pause)
             if (keys.cKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.NeedsCreation == true) OpenCreator();
             if (keys.lKey.wasPressedThisFrame && !WindowOpen && _session?.GetCharacter()?.CanAdvance == true) OpenAdvancement();
             if (WindowOpen && keys.escapeKey.wasPressedThisFrame) CloseWindows();

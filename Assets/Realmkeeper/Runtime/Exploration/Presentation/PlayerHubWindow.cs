@@ -22,7 +22,7 @@ namespace Realmkeeper.Exploration.Presentation
     {
         public static readonly IReadOnlyList<string> Sections = new[]
         {
-            "Character", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Journal", "Currency & possessions", "Info",
+            "Character", "Party", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Journal", "Currency & possessions", "Info",
         };
 
         private readonly Dictionary<string, Button> _tabs = new Dictionary<string, Button>(StringComparer.Ordinal);
@@ -160,6 +160,7 @@ namespace Realmkeeper.Exploration.Presentation
             switch (Section)
             {
                 case "Character": Character(h); break;
+                case "Party": Party(); break; // Phase 15
                 case "Spells & rest": Spells(); break; // Phase 9
                 case "Appearance": Appearance(h); break;
                 case "Inventory": Inventory(h); break;

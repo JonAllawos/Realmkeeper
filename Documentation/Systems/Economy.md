@@ -28,6 +28,7 @@ that does not fit is recorded as **wasted**; unmet demand is recorded as **short
 | 460 | `realmkeeper.fauna` | Phase 10. Once a week: wildlife breeds toward capacity, wolves take deer, settlement hunters take game, herds move toward what the farms keep (a hungry settlement slaughters a tenth). See `Documentation/Phase10/CreatureAndNpcSystems.md`. |
 | 470 | `realmkeeper.gathering` | Phase 11. On the first day of each week every gathering site (hedgerows, deadfall, an ore seam, fishing water, from what the settlement produces) recovers its weekly amount up to its capacity. See `Documentation/Phase11/Items.md`. |
 | 480 | `realmkeeper.quests` | Phase 12. Daily: offers lapse (expiry or their cause ended), open quests fail when a failure condition holds, timed objectives run out, people who heard of the player's deeds today react once. Emergent quests arise from food shortages (daily) and from predators near herds and shops out of stock (weekly). See `Systems/Quests.md`. |
+| 485 | `realmkeeper.party` | Phase 15. Daily, judged at midnight: temporary arrangements end when their days are over; a member who died or whose loyalty fell below 15 during a fight leaves now; a companion who has travelled a full day at loyalty 60+ asks their personal quest once. Reserve members need nothing (they live their ordinary lives). See `Systems/Party.md`. |
 | 500 | `realmkeeper.chronicle` | Milestone events (ratings, population, treasury, production). |
 
 Each day is one transaction (ADR-0008): the scheduler copies the world, runs these systems in

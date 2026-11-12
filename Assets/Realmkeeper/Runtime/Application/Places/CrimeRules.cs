@@ -173,6 +173,8 @@ namespace Realmkeeper.Application.Places
                 Reputation.Change(w, "notoriety", "Notoriety", kind == CrimeKind.Murder ? 10 : 3, key + ":notoriety", deed, report);
             }
 
+            Realmkeeper.Simulation.Party.CompanionLoyalty.OnCrime(w, c, deed, report); // Phase 15: companions who saw it weigh it, once
+
             return c;
         }
 

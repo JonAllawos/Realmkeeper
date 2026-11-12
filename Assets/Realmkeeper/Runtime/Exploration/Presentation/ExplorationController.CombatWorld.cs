@@ -270,6 +270,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void UpdateCombatWorld()
         {
+            if (CameraRig != null) FaceCamera.Target = CameraRig.Camera; // labels and floating words face the camera that draws them
             if (Combat == null) return;
             WalkBodies();
             if (!InFight) { if (HoverPlan != null) ClearPreview(); return; }
@@ -389,7 +390,9 @@ namespace Realmkeeper.Exploration.Presentation
                 if (!_markerViews.TryGetValue(pair.Key, out var view) || view == null) continue;
                 var pos = view.transform.position;
                 var flat = new Vector3(pair.Value.x - pos.x, 0f, pair.Value.z - pos.z);
-                if (flat.sqrMagnitude < 0.0001f) continue;
+                _markerAnims.TryGetValue(pair.Key, out var walker);
+                if (flat.sqrMagnitude < 0.0001f) { walker?.SetSpeed(0f); continue; } // stopped: back to idle
+                walker?.SetSpeed(WalkMetresPerSecond);
                 view.transform.position = flat.magnitude <= step ? pair.Value : pos + flat.normalized * step;
                 var figure = view.transform.Find("Figure"); // the body turns to the way it walks; its name label stays as it is
                 if (figure != null) figure.rotation = Quaternion.Slerp(figure.rotation, Quaternion.LookRotation(flat.normalized, Vector3.up) * Quaternion.Euler(figure.localEulerAngles.x, 0f, 0f), Mathf.Clamp01(Time.deltaTime * 10f));
@@ -414,6 +417,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (_fxSeen < 0) { _fxSeen = last; return; } // a fight just opened (or a load): the history is not replayed
             var delay = 0f;
             _floatStack.Clear();
+            var casters = new HashSet<CombatantId>();
             foreach (var e in s.Log)
             {
                 if (e.Sequence <= _fxSeen) continue;
@@ -424,14 +428,24 @@ namespace Realmkeeper.Exploration.Presentation
                     case CombatLogKind.Attack:
                     case CombatLogKind.Spell:
                     {
+                        // Phase 15: a spell the engine cast plays its caster's cast motion (a cast line may name no target);
+                        // that caster's spell-attack lines in the same batch are the spell, not a weapon swing.
+                        var actorAnim = AnimOf(e.ActorId);
+                        if (e.Kind == CombatLogKind.Spell && casters.Add(e.ActorId)) actorAnim?.Play(CombatMotion.Cast);
                         if (actor == null || target == null || actor == target) break;
-                        var ranged = (actor.position - target.position).magnitude > SquareMetres * 1.6f;
-                        if (actor != (Player != null ? Player.transform : null)) CombatLunge.Play(actor.Find("Figure") ?? actor, target.position, ranged ? 0.05f : 0.35f);
+                        var ranged = IsRanged(e); // from the squares the engine holds, not from where the bodies are drawn mid-walk
+                        Face(actor, target.position);
+                        if (actorAnim != null) { if (!casters.Contains(e.ActorId)) actorAnim.Play(MotionFor(e.Text, ranged)); } // the body performs it
+                        else if (actor != (Player != null ? Player.transform : null)) CombatLunge.Play(actor.Find("Figure") ?? actor, target.position, ranged ? 0.05f : 0.35f);
                         if (ranged) CombatProjectile.Launch(actor.position + Vector3.up * 1.3f, target.position + Vector3.up * 1.1f, _materials.Get(e.Kind == CombatLogKind.Spell ? SpellColour(e.Text) : new Color(0.75f, 0.7f, 0.6f), 0.6f), e.Kind == CombatLogKind.Spell ? 0.35f : 0.1f, 0.35f);
                         delay = ranged ? 0.35f : 0.2f;
                         var miss = e.Text.IndexOf(": miss", System.StringComparison.OrdinalIgnoreCase) >= 0 || e.Text.EndsWith("miss.", System.StringComparison.OrdinalIgnoreCase);
                         var crit = e.Text.IndexOf("critical", System.StringComparison.OrdinalIgnoreCase) >= 0;
-                        if (e.Kind == CombatLogKind.Attack && miss) Float(target, "Miss", new Color(0.8f, 0.8f, 0.8f), delay, 1f);
+                        if (e.Kind == CombatLogKind.Attack && miss)
+                        {
+                            Float(target, "Miss", new Color(0.8f, 0.8f, 0.8f), delay, 1f);
+                            if (HasShield(e.TargetId)) AnimOf(e.TargetId)?.Play(CombatMotion.Block); // a shield turned it
+                        }
                         else if (crit) Float(target, "Critical!", new Color(1f, 0.85f, 0.3f), delay, 1.3f);
                         break;
                     }
@@ -442,7 +456,9 @@ namespace Realmkeeper.Exploration.Presentation
                         target = actor;
                         if (target == null) break;
                         Float(target, "-" + e.Value.ToString(CultureInfo.InvariantCulture) + (e.Text.IndexOf("resistance", System.StringComparison.OrdinalIgnoreCase) >= 0 ? " resisted" : e.Text.IndexOf("immun", System.StringComparison.OrdinalIgnoreCase) >= 0 ? " immune" : string.Empty), new Color(0.95f, 0.35f, 0.25f), delay + 0.05f, 1.15f);
-                        if (Player == null || target != Player.transform) CombatLunge.Flinch(target.Find("Figure") ?? target, delay);
+                        var hurt = AnimOf(e.ActorId); // the applied-damage entry names the victim as its actor
+                        if (hurt != null) hurt.Play(CombatMotion.Hit);
+                        else if (Player == null || target != Player.transform) CombatLunge.Flinch(target.Find("Figure") ?? target, delay);
                         break;
                     case CombatLogKind.Healing:
                         if (target == null) target = actor;
@@ -459,6 +475,7 @@ namespace Realmkeeper.Exploration.Presentation
                     case CombatLogKind.Downed:
                     case CombatLogKind.Died:
                         if (target == null) target = actor;
+                        AnimOf(e.TargetId.IsEmpty ? e.ActorId : e.TargetId)?.SetDead(true); // Phase 15: death holds; nothing replays over it
                         if (target != null) Float(target, e.Kind == CombatLogKind.Died ? "Dies" : "Down", new Color(0.9f, 0.3f, 0.3f), delay + 0.15f, 1.1f);
                         break;
                     case CombatLogKind.Stabilized:

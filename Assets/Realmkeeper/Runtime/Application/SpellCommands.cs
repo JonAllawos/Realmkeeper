@@ -212,6 +212,7 @@ namespace Realmkeeper.Application
                     : CharacterRest.LongRest(world.Player.Rpg, now, command.Key);
                 if (command.Kind == RestKind.Long) lines.AddRange(RechargeItems(world.Player, Dice(world, command.Key + ":recharge")));
                 if (command.Kind == RestKind.Long && LastingConditions.LongRest(world.Player.Rpg) is string ex) lines.Add(ex); // Phase 14: one exhaustion level per long rest
+                lines.AddRange(Party.PartyRest.Apply(world, command.Kind, command.Key, now, k => Dice(world, k))); // Phase 15: the party rests too, each once
                 var still = LastingConditions.Active(world.Player.Rpg, now);
                 if (still.Count > 0) lines.Add("Still: " + string.Join(", ", still.ConvertAll(k => LastingConditions.Name(k.Type).ToLowerInvariant())) + " (a rest does not end those).");
                 return CommandResult.Ok(string.Join("\n", lines));

@@ -1413,3 +1413,18 @@
     right: 30%;
     bottom: 140px;
 }
+
+/* ----- Phase 15: the party (HUD strip, hub section, combat marks) ----- */
+.xk-party { position: absolute; left: 18px; bottom: 96px; width: 250px; padding: 4px 6px; background-color: rgba(16, 22, 18, 0.72); border-radius: 4px; border-left-width: 3px; border-left-color: rgb(118, 168, 104); }
+.xk-party-row { flex-direction: column; align-items: stretch; margin: 2px 0; padding: 3px 6px; background-color: rgba(40, 52, 40, 0.55); border-width: 0; border-radius: 3px; }
+.xk-party-row:hover { background-color: rgba(70, 92, 66, 0.75); }
+.xk-party-row--reserve { opacity: 0.6; }
+.xk-party-name { color: rgb(232, 236, 214); font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-left; }
+.xk-party-hp { height: 5px; margin: 2px 0; background-color: rgba(0, 0, 0, 0.5); border-radius: 2px; }
+.xk-party-hp-fill { height: 5px; background-color: rgb(112, 178, 92); border-radius: 2px; }
+.xk-party-hp-fill--low { background-color: rgb(206, 84, 60); }
+.xk-party-info { color: rgb(196, 204, 182); font-size: 11px; -unity-text-align: middle-left; }
+.xk-party-card { margin: 4px 0; padding: 6px 8px; background-color: rgba(255, 255, 255, 0.04); border-radius: 4px; border-left-width: 3px; border-left-color: rgba(118, 168, 104, 0.5); }
+.xk-party-card--selected { border-left-color: rgb(214, 186, 112); background-color: rgba(255, 240, 200, 0.07); }
+.xk-party-detail { margin-top: 10px; padding: 8px; background-color: rgba(0, 0, 0, 0.18); border-radius: 4px; }
+.xk-combat-log--reason { color: rgb(160, 204, 150); -unity-font-style: italic; font-size: 11px; }

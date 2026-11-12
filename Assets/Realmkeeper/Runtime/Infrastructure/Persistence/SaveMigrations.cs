@@ -29,6 +29,33 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// written here: the session ensures each place definition once with the living world, so a Phase 13 world gains them
     /// and keeps every place, room, door, chest, creature and quest it had.
     /// </summary>
+    /// <summary>
+    /// v16 → v17 (Phase 15: companions and the party). Structural: an empty party, no companion records, and the party
+    /// system enabled after the quest system. People keep their gear by name (they own no item instances until they join).
+    /// </summary>
+    public sealed class MigrationV16ToV17 : ISaveMigration
+    {
+        public int SourceVersion => 16;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (world["party"] == null) world["party"] = new JObject { ["members"] = new JArray() };
+            if (world["companions"] == null) world["companions"] = new JArray();
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            JToken after = null;
+            var has = false;
+            foreach (var id in systems)
+            {
+                if (id.Type != JTokenType.String) continue;
+                if ((string)id == Simulation.Quests.QuestSystem.Id) after = id;
+                if ((string)id == Simulation.Party.PartySystem.Id) has = true;
+            }
+
+            if (after != null && !has) after.AddAfterSelf(Simulation.Party.PartySystem.Id);
+        }
+    }
+
     public sealed class MigrationV15ToV16 : ISaveMigration
     {
         public int SourceVersion => 15;

@@ -1,0 +1,80 @@
+# Companions and the party (Phase 15)
+
+Decisions: ADR-0073 (companions are the world's own people), ADR-0074 (loyalty from real events), ADR-0075 (the party in combat; the companion AI layer).
+
+## Movement: exploration is free, combat is tactical
+
+Exploration movement is the real-time `PlayerCharacter` controller. It has no grid, no movement budget, and no slowdown from weight or hunger: since the art addendum, `SpeedMultiplier` is always 1 in exploration. Squares, feet and Dash exist only inside `CombatEngine`. Companions follow the same rule: they walk, jog and run freely in a settlement, and in a fight they move square by square through the engine.
+
+## Recruiting
+
+| Step | What happens |
+|---|---|
+| Ask | In conversation, "Travel with me" (permanent) or "Come with me for a few days" (3 days). The same rules as `RecruitCompanionCommand`. |
+| Refusal | `RecruitRules.Problem` returns the first cause in words, and the person says it; nothing changes. Causes, in order: dead or not alive; no character; in a fight; already with you; under 16; being escorted; posted elsewhere; not here; left over a grievance not yet mended (loyalty below 35); Familiarity below 15; Hostility 30+ or Affinity below 0; Trust below 20; knows an unsettled crime of yours; their faction's standing with you −20 or lower; and for a permanent arrangement only, a post (elder, merchant, innkeeper, smith, guard), Courage below 25, or an active request of their own still open. Last, the party is full. |
+| Joining | A sheet if they have none (`NpcCharacterGenesis.Make`, their own archetype), the companion record (loyalty starts at 40 plus a third of their liking, up to +30), their gear turned into real items once, a place in the party (active if there is room, else reserve), a memory, and a chronicle line. |
+| Parting | "It's time we parted ways", or Part ways in the Party section. They go home with everything they carry and resume their life; their record stays. |
+| Leaving on their own | Loyalty below 15 (after the fight, never during it), a temporary term ended, or death. |
+
+## The party
+
+- **Active (3) and reserve (3).** Active members travel and fight. Reserve members live their ordinary lives at home until called up.
+- **Follow and wait.** A waiting member stays in the settlement, or the place and room, where they were told. Follow again works only where they wait. Regroup gathers everyone waiting where the player stands and says where the others are.
+- **Formation.** Order 0, 1, 2… with no gaps, and an optional leader (presentation only; the player always leads the party).
+
+## Following in the world
+
+- **Settlements.** Each active member with the player has one body (`CompanionFollower`): a `CharacterController` with gravity, keeping a slot behind the player that depends on their order. They walk, jog or run to keep up and step aside from each other and the player.
+  - **Recovery** happens only when they are more than 35 m away, or have tried to move for 3 s without moving (held by a wall). It places them on clear ground behind the player and is counted and logged. Moving more slowly than the player is not being stuck.
+  - **No double bodies.** A member's resident body is removed before their follower body appears, and comes back where they stood when they leave the party.
+- **Places.** The place scene draws followers beside the player and a waiting member in the room where they were left.
+- **Fights.** The fight draws everyone; follower bodies are hidden meanwhile.
+
+## Items
+
+A companion owns `Inventory` and `Equipment` like the player. Commands:
+
+- `TransferItemCommand(from, to, stack, quantity)`. An empty ID means the player. The instance moves with its state and provenance. Equipped and bound items cannot be handed over.
+- `CompanionEquipCommand`, using the player's slot rules: rings, two-handed weapons free the off hand, and an off-hand item displaces a two-handed weapon.
+- `CompanionUnequipCommand`. A curse refuses.
+
+The rules engine reads their equipment for AC and attacks (`CharacterRules.LoadoutOf(companion)`). The validator checks one holder per instance across everyone.
+
+## Fights
+
+See ADR-0075. Active members with the player join every fight on the player's side. Their sheets are used live, so wounds, slots and conditions persist, and they gain experience by the existing keyed awards. Their decisions come from `CombatAi.ForCompanion`, with a reason in the log (`Reason` entries; the combat HUD shows them in green italics).
+
+## Loyalty
+
+See ADR-0074. Only real events move it, once per cause, with the reason recorded:
+
+- crimes they saw, weighed by their own traits;
+- their quest settled;
+- being left on the ground, or saved by the player's own hands.
+
+Changes of 5 or more are chronicled. Liking moves at half the rate.
+
+## The personal quest
+
+"Old Ground" (`companion_old_ground`) is offered once by a companion with loyalty 60 or more who has travelled with the player for a full day. It is bound to them and to the place near their home with the lowest ID. Objectives: go into the place with them, then talk it over. Done +25; failed −10; abandoned −15.
+
+## Rest
+
+The player's short or long rest applies the same rest to each member present, once each (keyed by rest and person), with the same once-a-day rule. Their nightly self-rest is skipped while they are active. On a short rest a companion spends hit dice only as far as needed.
+
+## UI
+
+- **HUD strip**, lower left: each member with an HP bar, state (or "waiting", "reserve") and loyalty word. Click it to open them in the Party section.
+- **Hub → Party** (K, or "Party (K)" by the clock):
+  - the line-up and reserve, each with Wait here or Follow me, To reserve or Call up, Move up, Lead, Talk and Part ways;
+  - the selected member's sheet, loyalty and its recent reasons, personal quest, items (Equip, Take off, Take) and the player's pack (Give);
+  - former companions and why they left.
+- **Combat HUD:** companions are allies in the initiative strip; their reasons appear in the log.
+
+## Not done (see the Phase 15 report)
+
+- Direct player control of companions' turns.
+- Authored companion backstories beyond the one personal quest template.
+- Companion-to-companion banter or relationships beyond the existing person-to-person relations.
+- Party travel on the strategic map shown as separate markers (the party travels with the player's marker).
+- Charged items recharging for companions on a long rest (the player's items do).

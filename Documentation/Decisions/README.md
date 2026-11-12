@@ -74,5 +74,8 @@
 | [0070](ADR-0070-indoor-movement-and-followers.md) | People move through rooms along real passages; followers keep a room of their own | Accepted (Phase 14) |
 | [0071](ADR-0071-archetype-placement-wake-bridges-fire.md) | New places reach every world once, chosen by context; creatures wake in sight; bridges and fire have state | Accepted (Phase 14) |
 | [0072](ADR-0072-combat-presentation-and-move-planning.md) | The combat interface shows and asks; one planner proposes moves; the engine decides | Accepted (Combat overhaul) |
+| [0073](ADR-0073-companions-are-the-worlds-own-people.md) | Companions are the world's own people; the party is a record of who travels together | Accepted (Phase 15) |
+| [0074](ADR-0074-loyalty-from-real-events.md) | Loyalty moves only from real events, once per cause, with its reason | Accepted (Phase 15) |
+| [0075](ADR-0075-party-in-combat-and-companion-ai-layer.md) | The party fights through the one engine; companions think in a layer of the one AI, and say why | Accepted (Phase 15) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

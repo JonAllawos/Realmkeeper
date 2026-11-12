@@ -62,6 +62,7 @@ namespace Realmkeeper.Application.Places
             if (p == null || npc == null || npc.IsDeceased) return false;
             var e = w.FindEscort(npc.NpcId);
             if (e != null && e.State == EscortState.Following) return true; // a follower is always beside the player
+            if (Realmkeeper.Simulation.Party.CompanionLoyalty.Present(w).Exists(x => x.NpcId == npc.NpcId)) return true; // Phase 15: so is a party member with the player
             if (!p.IsInPlace) return false;
             if (e != null && (e.State == EscortState.Captive || e.State == EscortState.Waiting) && e.PlaceId == p.PlaceId) return true;
             if (PlacePresence.PostedAt(w, npc.NpcId)?.PlaceId == p.PlaceId) return true;

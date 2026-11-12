@@ -85,6 +85,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v16 (Phase 14).
         public List<CrimeDto> Crimes { get; set; }
         public int NextCrimeNumber { get; set; } = 1;
+
+        // Schema v17 (Phase 15): the party and companions' histories.
+        public PartyDto Party { get; set; }
+        public List<CompanionRecordDto> Companions { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -510,6 +514,11 @@ namespace Realmkeeper.Infrastructure.Persistence
         public List<string> Carried { get; set; }
         public int Purse { get; set; }
         public string SheetSince { get; set; }
+
+        // Schema v17 (Phase 15): a companion's own items (absent: none; they still have their gear by name).
+        public bool OwnsItems { get; set; }
+        public List<ItemStackDto> Inventory { get; set; }
+        public Dictionary<string, ItemStackDto> Equipment { get; set; }
     }
 
     public sealed class PlayerRegardDto

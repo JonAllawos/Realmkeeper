@@ -88,6 +88,7 @@ namespace Realmkeeper.Application
             Places.PlaceCommandHandlers.Register(_commands); // Phase 13
             Places.RestCommandHandlers.Register(_commands); // Phase 14
             NpcCharacterCommandHandlers.Register(_commands); // Phase 10
+            Party.PartyCommandHandlers.Register(_commands); // Phase 15
         }
 
         public EconomyRules Rules => _rules;

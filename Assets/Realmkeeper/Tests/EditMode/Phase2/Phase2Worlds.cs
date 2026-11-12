@@ -39,11 +39,31 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// <summary>Rewrites a current save document to the v5 layout: no NPC-engine data, no NPC system.</summary>
         /// <summary>Rebuilds the v10 layout: no spellcasting record; an uncreated character on rules version 7 (Phase 9).</summary>
         /// <summary>
+        /// Rebuilds the v16 layout (Phase 14): no party, no companion records, no party system, no items owned by people
+        /// (their gear stays by name) and no AI reasons in fight logs.
+        /// </summary>
+        public static void StripToV16(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 16;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            foreach (var field in new[] { "party", "companions" }) w.Remove(field);
+            var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;
+            systems?.FirstOrDefault(t => (string)t == Realmkeeper.Simulation.Party.PartySystem.Id)?.Remove();
+            foreach (var o in w.DescendantsAndSelf().OfType<Newtonsoft.Json.Linq.JObject>().ToList())
+            {
+                if (o["archetypeId"] != null) { o.Remove("ownsItems"); o.Remove("inventory"); o.Remove("equipment"); }
+                if (o["log"] is Newtonsoft.Json.Linq.JArray log && o["combatants"] != null)
+                    foreach (var l in log.Where(l => (string)l["kind"] == "Reason").ToList()) l.Remove();
+            }
+        }
+
+        /// <summary>
         /// Rebuilds the v15 layout (Phase 13): no crimes, lasting conditions, fight doors or low cover, bridge states, woken
         /// groups or goods lost on the road — and none of the Phase 14 places, their quests, chests or creatures.
         /// </summary>
         public static void StripToV15(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV16(doc); // Phase 15
             doc["schemaVersion"] = 15;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             foreach (var field in new[] { "crimes", "nextCrimeNumber" }) w.Remove(field);

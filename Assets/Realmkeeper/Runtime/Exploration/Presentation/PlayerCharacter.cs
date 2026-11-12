@@ -154,7 +154,11 @@ namespace Realmkeeper.Exploration.Presentation
 
             IsGrounded = _controller.isGrounded;
             if (IsGrounded && _verticalVelocity < 0f) _verticalVelocity = -2f; // keep contact on slopes and steps
-            if (IsGrounded && jump) _verticalVelocity = Mathf.Sqrt(2f * -Gravity * JumpHeight);
+            if (IsGrounded && jump)
+            {
+                _verticalVelocity = Mathf.Sqrt(2f * -Gravity * JumpHeight);
+                GetComponentInChildren<CharacterAnimationDriver>()?.Jump(); // Phase 15: the body jumps too
+            }
             _verticalVelocity += Gravity * deltaTime;
 
             var flags = _controller.Move((planar * speed + Vector3.up * _verticalVelocity) * deltaTime);

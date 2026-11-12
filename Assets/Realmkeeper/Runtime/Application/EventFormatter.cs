@@ -120,6 +120,9 @@ namespace Realmkeeper.Application
                 case HistoricalEventType.CreaturesWoke: return $"{e.Get("group") ?? "Something"} woke in {e.Get("place")} when {e.Get("by") ?? "someone"} disturbed {(e.Get("what") ?? "them").ToLowerInvariant()}.";
                 case HistoricalEventType.OutlawsDeparted: return $"The outlaws of {e.Get("place")} left the road, {e.Get("how") ?? "talked off it"} by {e.Get("by") ?? "the player"}.";
                 case HistoricalEventType.HarmTaken: return $"{e.Get("by") ?? "The player"} was hurt by {e.Get("source") ?? "a hazard"} in {e.Get("place")}: {e.Get("what") ?? "injured"}.";
+                case HistoricalEventType.CompanionJoined: return $"{e.Get("name")} joined {e.Get("player") ?? "the player"}'s party{(e.Get("terms") is string t && t.Length > 0 ? " (" + t + ")" : string.Empty)}.";
+                case HistoricalEventType.CompanionLeft: return $"{e.Get("name")} left {e.Get("player") ?? "the player"}'s party: {e.Get("why")}.";
+                case HistoricalEventType.CompanionLoyalty: return $"{e.Get("name")}: {e.Get("why")}.";
                 case HistoricalEventType.EncounterResolved:
                     return $"The aftermath of {e.Get("name") ?? "a fight"} near {s}: {e.Get("summary") ?? "nothing further"}.";
                 case HistoricalEventType.LabourNoticePosted:

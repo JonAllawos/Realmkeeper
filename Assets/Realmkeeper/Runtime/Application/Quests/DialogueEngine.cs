@@ -401,6 +401,23 @@ namespace Realmkeeper.Application
                     if (level >= Realmkeeper.Domain.Places.PlaceDiscovery.Discovered) events.Add(new QuestEvent { Kind = QuestEventKind.PlaceDiscovered, Subject = place.PlaceId });
                     break;
                 }
+                case DialogueConsequenceKind.Recruit: // Phase 15 (ADR-0073)
+                {
+                    var temporary = x.Value == "temporary";
+                    var why = Party.RecruitRules.Problem(w, npc, temporary);
+                    c.Say("narration", why != null ? npc.Name + " shakes their head. " + why : Party.PartyCommandHandlers.Recruit(context, w, npc.NpcId, temporary));
+                    break;
+                }
+
+                case DialogueConsequenceKind.Dismiss:
+                    if (w.ActiveEncounter == null && w.Party.Contains(npc.NpcId))
+                    {
+                        Party.PartyCommandHandlers.Leave(context, w, npc, CompanionStanding.Dismissed, "sent home");
+                        c.Say("narration", npc.Name + " nods, and turns for home.");
+                    }
+
+                    break;
+
                 case DialogueConsequenceKind.SettleCrime: // Phase 14 (ADR-0069)
                 {
                     var owed = Places.CrimeRules.Owed(Places.CrimeRules.KnownTo(w, npc));

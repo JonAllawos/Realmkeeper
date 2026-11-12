@@ -486,3 +486,42 @@ MonoBehaviour:
   - Id: Hair_SimpleParted
     Prefab: {fileID: 919132149155446097, guid: 299af147aeafad64cbcc2d2da185018c, type: 3}
   Locomotion: {fileID: 9100000, guid: 30e453f1d8536234fad3673dbc9ff159, type: 2}
+  Creatures:
+  - Id: Skeleton_Mage
+    Prefab: {fileID: 919132149155446097, guid: 5e2d2394879a85c48805cc2ba1f3d87d, type: 3}
+  - Id: Skeleton_Minion
+    Prefab: {fileID: 919132149155446097, guid: ff490b41f42a7db4fbc93ca19008d497, type: 3}
+  - Id: Skeleton_Rogue
+    Prefab: {fileID: 919132149155446097, guid: 6f06e8fda222e3240bb66d2931ac0abe, type: 3}
+  - Id: Skeleton_Warrior
+    Prefab: {fileID: 919132149155446097, guid: 0f75eea04b2b2f047bc2d5667ff6c5cb, type: 3}
+  Props:
+  - Id: Skeleton_Arrow
+    Prefab: {fileID: 919132149155446097, guid: 3e6ce9f0c6f70014aa0053c4f38b3be5, type: 3}
+  - Id: Skeleton_Arrow_Broken
+    Prefab: {fileID: 919132149155446097, guid: cf383859190aeec4898a488a95f61ad4, type: 3}
+  - Id: Skeleton_Arrow_Broken_Half
+    Prefab: {fileID: 919132149155446097, guid: 95ac66a2d4c91a34f8eb4e83b5962060, type: 3}
+  - Id: Skeleton_Arrow_Half
+    Prefab: {fileID: 919132149155446097, guid: 14cfe60833abae64cb0d48d96f5c4a70, type: 3}
+  - Id: Skeleton_Axe
+    Prefab: {fileID: 919132149155446097, guid: 6b417a2e59b0a08449294e6f1cf49d92, type: 3}
+  - Id: Skeleton_Blade
+    Prefab: {fileID: 919132149155446097, guid: 4559936ae93ad524aad7b7f4db03d3bc, type: 3}
+  - Id: Skeleton_Crossbow
+    Prefab: {fileID: 919132149155446097, guid: a94ecbff2374bc440829338a4e8f5b96, type: 3}
+  - Id: Skeleton_Quiver
+    Prefab: {fileID: 919132149155446097, guid: 3c51ca841bb3ecf44b3b2faadc845bd6, type: 3}
+  - Id: Skeleton_Shield_Large_A
+    Prefab: {fileID: 919132149155446097, guid: 5e90f5ec5d003d3429d0b3ed91b89a58, type: 3}
+  - Id: Skeleton_Shield_Large_B
+    Prefab: {fileID: 919132149155446097, guid: a2b3dd2cea8d4484a83f16f42853accd, type: 3}
+  - Id: Skeleton_Shield_Small_A
+    Prefab: {fileID: 919132149155446097, guid: a2faac8e375d2514f89e77e689d86490, type: 3}
+  - Id: Skeleton_Shield_Small_B
+    Prefab: {fileID: 919132149155446097, guid: cb9249deaa3426e45b673c39500c31d6, type: 3}
+  - Id: Skeleton_Staff
+    Prefab: {fileID: 919132149155446097, guid: 8cac2decc932fbf45ad337a4dd22b1b0, type: 3}
+  Combatant: {fileID: 9100000, guid: b84d3447ac2069240a180149cb217684, type: 2}
+  SkeletonCombatant: {fileID: 22100000, guid: fd6f1f4389a7dde4dba85b04b59bac0a, type: 2}
+  PersonCombatant: {fileID: 22100000, guid: 9e708ea8a2bb43641be47318288d72f9, type: 2}

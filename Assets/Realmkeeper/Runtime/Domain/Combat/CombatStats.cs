@@ -121,6 +121,14 @@ namespace Realmkeeper.Domain.Combat
             return npc.Character.Sheet;
         }
 
+        /// <summary>Phase 15: the person's record when they own item instances (a companion); null otherwise (their gear strings apply).</summary>
+        private static NpcCharacterData CompanionRecordOf(WorldData world, CombatantData c)
+        {
+            if (c.Kind != CombatantKind.Npc || c.CreatureId != null || !System.Guid.TryParse(c.SourceId, out var guid)) return null;
+            var record = world.FindNpc(new Identifiers.NpcId(guid))?.Character;
+            return record != null && record.OwnsItems ? record : null;
+        }
+
         public static CombatStats For(WorldData world, CombatantData c)
         {
             var s = new CombatStats(c);
@@ -130,13 +138,14 @@ namespace Realmkeeper.Domain.Combat
                 // The player, or (Phase 10) a named person with a character sheet: the same rules, their own equipment.
                 s.Player = p;
                 s.Gear = gear;
-                s.Rules = new CharacterRules(sheet, p != null ? CharacterRules.LoadoutOf(p) : gear?.Loadout ?? Loadout.Unarmored);
+                var companion = p == null ? CompanionRecordOf(world, c) : null; // Phase 15: a companion's own item instances
+                s.Rules = new CharacterRules(sheet, p != null ? CharacterRules.LoadoutOf(p) : companion != null ? CharacterRules.LoadoutOf(companion) : gear?.Loadout ?? Loadout.Unarmored);
                 s.ArmorClass = s.Rules.ArmorClass(p);
                 s.BaseSpeed = s.Rules.Speed;
                 s.ProficiencyBonus = s.Rules.ProficiencyBonus;
                 s.AttacksPerAction = s.Rules.HasFeature("three_extra_attacks") ? 4 : s.Rules.HasFeature("two_extra_attacks") ? 3 : s.Rules.HasFeature("extra_attack") ? 2 : 1;
-                s.BuildSheetAttacks(p != null ? p.Equipped(EquipmentSlot.MainHand)?.ItemId : gear?.MainHand,
-                    p != null ? p.Equipped(EquipmentSlot.OffHand)?.ItemId : gear?.Shield ?? gear?.OffHand);
+                s.BuildSheetAttacks(p != null ? p.Equipped(EquipmentSlot.MainHand)?.ItemId : companion != null ? companion.Equipped(EquipmentSlot.MainHand)?.ItemId : gear?.MainHand,
+                    p != null ? p.Equipped(EquipmentSlot.OffHand)?.ItemId : companion != null ? companion.Equipped(EquipmentSlot.OffHand)?.ItemId : gear?.Shield ?? gear?.OffHand);
                 if (c.FormCreatureId != null && CreatureCatalog.Find(c.FormCreatureId) is CreatureDefinition form)
                 {
                     // Wild Shape (Phase 9 foundation): the beast's armour class, speed, physical scores and attacks; the druid's own hit points, mind and proficiencies.

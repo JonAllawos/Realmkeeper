@@ -232,6 +232,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (!_streamer.IsLoaded) return;
             TeardownPlace(); // Phase 13
             TeardownLiving();
+            ClearCompanions(); // Phase 15
             _input?.Disable();
             if (Hud != null)
             {
@@ -294,12 +295,21 @@ namespace Realmkeeper.Exploration.Presentation
         public InteractionResponse Interact()
         {
             if (!IsExploring || CurrentTarget == null) return null;
+            if (Player != null) Player.GetComponentInChildren<CharacterAnimationDriver>()?.Interact(); // Phase 15: reaching out to what is used
             if (CurrentTarget is PlaceInteractable placed)
             {
                 // Phase 13: places and building doors answer for themselves (choices stay on screen).
                 LastResponse = placed.Interact(_session, Player.transform);
                 if (LastResponse != null && !string.IsNullOrEmpty(LastResponse.Text)) Hud?.ShowResponse(LastResponse);
                 RefreshHud();
+                return LastResponse;
+            }
+
+            if (CurrentTarget is CompanionFollower companion) // Phase 15: a companion is talked to in full conversation
+            {
+                var talk = StartDialogue(companion.NpcId);
+                companion.Animation?.Talk(3f);
+                LastResponse = new InteractionResponse(companion.DisplayName, talk.IsSuccess ? string.Empty : talk.Message, companion.Kind, talk);
                 return LastResponse;
             }
 
@@ -395,6 +405,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             UpdateLivingInput();
             UpdateCombat(); // Phase 8
+            UpdateParty(); // Phase 15: companions walk with the player
             if (InPlace) UpdatePlace(Keyboard.current); // Phase 13
             if (WindowOpen)
             {
@@ -461,6 +472,7 @@ namespace Realmkeeper.Exploration.Presentation
             var authority = politics == null ? string.Empty : politics.IsIndependent ? " · independent" : " · governed by " + politics.GoverningFactionName;
             Hud.SetLocation(settlement?.Name ?? "-", (region != null ? region.Name : "-") + authority, _session.GetOverview().Date.ToString());
             RefreshConditionsHud(); // Phase 14
+            SyncParty(); // Phase 15
         }
 
         private void OnDestroy()

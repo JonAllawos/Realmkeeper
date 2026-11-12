@@ -180,6 +180,9 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>Phase 14 (ADR-0069): the person knows of an unsettled crime by the player (first-hand, or by sure hearsay).</summary>
         KnowsCrime = 20,
+
+        /// <summary>Phase 15: the person travels in the player's party.</summary>
+        InParty = 21,
     }
 
     public sealed class ObjectiveDefinition

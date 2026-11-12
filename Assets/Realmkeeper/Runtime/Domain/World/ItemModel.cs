@@ -196,6 +196,16 @@ namespace Realmkeeper.Domain.World
     {
         public static int StackGrams(ItemStackData s) => (ItemCatalog.Find(s?.ItemId)?.WeightGrams ?? 0) * (s?.Quantity ?? 0);
 
+        /// <summary>Phase 15: what a companion carries and wears, by the same weights.</summary>
+        public static int CarriedGrams(NpcCharacterData c)
+        {
+            if (c == null) return 0;
+            var grams = 0;
+            foreach (var s in c.Inventory) grams += StackGrams(s);
+            foreach (var s in c.Equipment.Values) grams += StackGrams(s);
+            return grams;
+        }
+
         public static int CarriedGrams(PlayerCharacterData p)
         {
             if (p == null) return 0;

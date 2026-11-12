@@ -48,6 +48,9 @@ namespace Realmkeeper.Application
         /// <summary>For the stand-in figure: a beast (the wolf) rather than a person.</summary>
         public bool CreatureIsBeast { get; set; }
 
+        /// <summary>Phase 15: the creature this combatant is (its bestiary ID; null for the player and named people), for choosing its body.</summary>
+        public string CreatureId { get; set; }
+
         // ----- Phase 9 -----
 
         /// <summary>What it concentrates on, or null.</summary>
@@ -193,7 +196,7 @@ namespace Realmkeeper.Application
                     DeathSaveSuccesses = engine.Successes(c), DeathSaveFailures = engine.Failures(c),
                     ActionUsed = c.Turn.ActionUsed, BonusActionUsed = c.Turn.BonusActionUsed, ReactionUsed = c.Turn.ReactionUsed, AttacksLeft = c.Turn.AttacksLeft,
                     Stats = string.Join(" · ", scores) + $" · speed {s.BaseSpeed} ft · proficiency +{s.ProficiencyBonus}",
-                    CreatureIsBeast = s.Creature != null && s.Creature.Type == "Beast" || c.FormCreatureId != null,
+                    CreatureIsBeast = s.Creature != null && s.Creature.Type == "Beast" || c.FormCreatureId != null, CreatureId = c.FormCreatureId ?? c.CreatureId,
                     Concentration = c.Concentration?.Name, Effects = EffectLines(engine, c), IsCaster = s.IsCaster && c.FormCreatureId == null,
                     SpellSaveDc = s.IsCaster ? engine.SpellSaveDc(c) : 0, SpellAttack = s.IsCaster ? s.SpellAttack().Total : 0, Resources = ResourceText(engine, c),
                     Form = c.FormCreatureId == null ? null : CreatureCatalog.Find(c.FormCreatureId)?.Name,

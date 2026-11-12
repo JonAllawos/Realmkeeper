@@ -1,0 +1,10 @@
+p15_01_player_jump_town: Exploration: the player's body in its jump state (Jump trigger on the extended locomotion controller).
+p15_02_goblin_local_vs_fallback: Staged: left, a goblin's body on this machine (local Puglin); right, what a clone without the local Bestiary shows (Create returned null, so the placeholder capsule).
+p15_03_practice_fight_people: Practice fight, people in the towns' humanoid bodies: Quenby Thorne: humanoid Female_Peasant; Bandit archer: humanoid Male_Peasant; Bandit: humanoid Male_Peasant; Cult Fanatic: humanoid Male_Peasant
+p15_04_caster_spell: The Cult Fanatic casts (motions asked for: Cast; in its cast state now: True). Log: "Cult Fanatic casts Hold Person at level 2 (a level 2 slot; concentration)."
+p15_05_crypt_skeletons: The crypt's dead in their KayKit bodies, idling (skeleton idle on the override controller): Skeleton 1: KayKit Skeleton_Warrior with Skeleton_Blade; Zombie 2: KayKit Skeleton_Minion
+p15_06_skeleton_attack: Skeleton 1 (KayKit Skeleton_Warrior with Skeleton_Blade): motion Attack1H; attack/hit state now: True. Log: "Skeleton 1 → Tamsin Vale: Shortsword, d20 3 +4 = 7 vs AC 17: miss (7 is below AC 17)."
+p15_08_skeleton_hit: Skeleton 1 (KayKit Skeleton_Warrior with Skeleton_Blade): motion Hit; attack/hit state now: True. Log: "Tamsin Vale → Skeleton 1: Arming sword, d20 13 +5 = 18 vs AC 13: hit."
+p15_07_player_attack: Tamsin Vale (the player's body): motion Attack1H; attack/hit state now: True. Log: "Tamsin Vale → Skeleton 1: Arming sword, d20 19 +5 = 24 vs AC 13: critical hit!"
+p15_09_skeleton_death: Skeleton 1 fell: in its death state True (skeleton death on the override controller), and it stays there.
+p15_04_player_spell: A wizard casts Fire Bolt: motions Cast; in the cast state now: True. Log: "Tamsin Vale casts Fire Bolt (cantrip)."

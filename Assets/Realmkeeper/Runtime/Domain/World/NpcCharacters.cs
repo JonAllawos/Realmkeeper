@@ -30,6 +30,20 @@ namespace Realmkeeper.Domain.World
         /// <summary>When the sheet was made (generation or promotion).</summary>
         public Calendar.WorldDate SheetSince { get; set; }
 
+        /// <summary>
+        /// Phase 15: a companion's own item instances (the player's model: real stacks with state and provenance). Empty for
+        /// people who have never travelled with the player; their <see cref="Gear"/> strings describe what they wear.
+        /// </summary>
+        public List<ItemStackData> Inventory { get; set; } = new List<ItemStackData>();
+
+        /// <summary>Phase 15: what a companion wears and wields, by slot (stacks also listed nowhere else).</summary>
+        public Dictionary<EquipmentSlot, ItemStackData> Equipment { get; set; } = new Dictionary<EquipmentSlot, ItemStackData>();
+
+        /// <summary>Phase 15: this person's equipment is item instances (the rules read <see cref="Equipment"/>, not <see cref="Gear"/>).</summary>
+        public bool OwnsItems { get; set; }
+
+        public ItemStackData Equipped(EquipmentSlot slot) => Equipment.TryGetValue(slot, out var s) ? s : null;
+
         public bool HasSheet => Sheet != null && Sheet.State == CreationState.Complete;
 
         public NpcCharacterData Clone()
@@ -37,6 +51,10 @@ namespace Realmkeeper.Domain.World
             var c = (NpcCharacterData)MemberwiseClone();
             c.Sheet = Sheet?.Clone();
             c.Gear = (Gear ?? new NpcGearData()).Clone();
+            c.Inventory = new List<ItemStackData>();
+            foreach (var s in Inventory ?? new List<ItemStackData>()) c.Inventory.Add(s?.Clone());
+            c.Equipment = new Dictionary<EquipmentSlot, ItemStackData>();
+            foreach (var pair in Equipment ?? new Dictionary<EquipmentSlot, ItemStackData>()) c.Equipment[pair.Key] = pair.Value?.Clone();
             return c;
         }
     }

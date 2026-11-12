@@ -403,6 +403,8 @@ namespace Realmkeeper.Application
                     return c.Npc != null && InRange(x, c.Npc.Condition.Morale);
                 case ConditionKind.KnowsCrime:
                     return c.Npc != null && Places.CrimeRules.KnownTo(w, c.Npc).Count > 0;
+                case ConditionKind.InParty: // Phase 15
+                    return c.Npc != null && w.Party.Contains(c.Npc.NpcId);
                 default:
                     return false;
             }

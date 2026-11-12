@@ -285,14 +285,24 @@ namespace Realmkeeper.Infrastructure.Persistence
             Carried = c.Gear?.Carried != null ? new List<string>(c.Gear.Carried) : new List<string>(),
             Purse = c.Purse,
             SheetSince = c.SheetSince.IsValidDate ? Date(c.SheetSince) : null,
+            OwnsItems = c.OwnsItems,
+            Inventory = c.OwnsItems ? c.Inventory.ConvertAll(StackDto) : null,
+            Equipment = c.OwnsItems ? EquipmentDto(c.Equipment) : null,
         };
+
+        private static Dictionary<string, ItemStackDto> EquipmentDto(Dictionary<EquipmentSlot, ItemStackData> equipment)
+        {
+            var d = new Dictionary<string, ItemStackDto>();
+            foreach (var pair in equipment) d[pair.Key.ToString()] = StackDto(pair.Value);
+            return d;
+        }
 
         private static NpcCharacterData NpcCharacter(NpcCharacterDto d, string who)
         {
             if (d == null) return null;
             if (string.IsNullOrWhiteSpace(d.ArchetypeId)) throw new SaveDataException($"{who}'s character record has no archetype.");
             if (d.Purse < 0) throw new SaveDataException($"{who}'s purse is negative.");
-            return new NpcCharacterData
+            var made = new NpcCharacterData
             {
                 ArchetypeId = d.ArchetypeId,
                 Occupation = d.Occupation ?? string.Empty,
@@ -301,6 +311,11 @@ namespace Realmkeeper.Infrastructure.Persistence
                 Purse = d.Purse,
                 SheetSince = OptionalDate(d.SheetSince, "npc sheetSince"),
             };
+            made.OwnsItems = d.OwnsItems;
+            foreach (var s in d.Inventory ?? new List<ItemStackDto>()) made.Inventory.Add(Stack(s, who + " inventory"));
+            foreach (var pair in d.Equipment ?? new Dictionary<string, ItemStackDto>())
+                made.Equipment[ParseEnum<EquipmentSlot>(pair.Key, "equipment slot")] = Stack(pair.Value, who + " equipment");
+            return made;
         }
     }
 }

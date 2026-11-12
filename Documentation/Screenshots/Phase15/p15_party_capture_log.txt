@@ -1,0 +1,9 @@
+p15_party_01_dialogue_recruit: Conversation: "Travel with me" — Travel with me. [Ask them to join your party] / Maud Redmayne joins you. / "Hello again, Tamsin Vale."
+p15_party_02_exploration: Town: three companions following in formation (distances to the player: Maud Redmayne 2.6 m, Ulric Dunmore 3.8 m, Elric Brooke 4.9 m; recoveries 0). HUD party strip at lower left.
+p15_party_03_party_ui: Hub → Party: the line-up with HP, AC, state, loyalty, and each member's commands (wait, reserve, move up, lead, talk, part ways).
+p15_party_04_companion_sheet: The priest's sheet, made by the rules engine on joining: class, HP, AC, abilities, saves, skills, features, spells and resources; loyalty and its reasons.
+p15_party_05_inventory: The priest's own items (their gear became real items once, equipped where worn) beside the player's pack, with Equip / Take off / Take / Give.
+p15_party_06_combat: Practice fight with the party: Elric Brooke (ally); Cult Fanatic (foe); Quenby Thorne (ally); Bandit archer (foe); Maud Redmayne (ally); Bandit (foe); Tamsin Vale (ally); Ulric Dunmore (ally)
+p15_party_07_companion_spell: The priest casts in the fight: "Maud Redmayne casts Healing Word at level 1 (a level 1 slot).". Reason logged: "Maud Redmayne: heals Elric Brooke (1/10 HP)". Motions asked of the body: Cast.
+p15_party_08_party_rest: Long rest together: the player's recovery and each companion's, applied once each — Long rest (8 hours). Maud Redmayne: Recovered: 1st-level spell slots 3→4. Ulric Dunmore: rested; nothing needed recovering. Elric Brooke: rested; nothing needed recovering.
+performance: walking in town 5.34 ms/frame alone, 2.86 ms/frame with three followers (p95 5.95 / 3.30); GetParty 0.561 ms each; recoveries 0

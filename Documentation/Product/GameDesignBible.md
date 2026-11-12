@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 13, 2026-11-11)
+## Implementation status (updated at the end of Phase 15, 2026-11-12)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -32,8 +32,11 @@ present but visibly temporary; **Not started**.
 | 9 | Spellcasting, class features and combat integration | Implemented (`27a5261`) |
 | 10 | Bestiary, NPC character systems, encounters, settlement generation | Implemented (`1707805`) |
 | 11 | Inventory, loot, equipment, crafting and item progression | Implemented (`7b2831b`) |
-| 12 | Quests, dialogue, reputation and world interaction | **Implemented, awaiting review.** See below. |
-| 13–16 | Onwards | Not started |
+| 12 | Quests, dialogue, reputation and world interaction | Implemented (`1e593ae`) |
+| 13 | Persistent dungeons, ruins, interiors and exploration | Implemented (`cda9da0`) |
+| 14 | Exploration integrity, living locations, world reactivity (and the combat overhaul) | Implemented (`242fde2`, `08c222e`) |
+| 15 | Companions, parties, relationships and party progression | **Implemented** (this milestone, committed locally, not pushed). See below. |
+| 16 | Onwards | Not started |
 
 ### §7 Character and RPG system
 
@@ -62,7 +65,8 @@ present but visibly temporary; **Not started**.
 | Settlement structures | **Implemented** (Phase 8), simulation partly | Functional ones are the existing places and shops; informational and decorative ones are listed and signed, with no production (`Systems/SettlementStructures.md`) |
 | Character creator | Implemented | Now includes the rules-v7 level-1 choices |
 | Character sheet in the Player Hub | Implemented | Adds Progression, breakdowns, roll modes, senses, movement |
-| NPC and companion progression | **Implemented** for NPCs (Phase 10); companions Not started | Every named person has a record; fighters, healers and wardens hold full sheets by the player's rules; promotion, keyed experience and advancement (ADR-0043) |
+| NPC and companion progression | **Implemented** for NPCs (Phase 10) and companions (Phase 15) | Every named person has a record; fighters, healers and wardens hold full sheets by the player's rules; promotion, keyed experience and advancement (ADR-0043). A recruit without a sheet is promoted once on joining; companions gain experience from the fights they are in, by the same keyed awards (ADR-0073, ADR-0075) |
+| §11.2 Companions and party | **Implemented** (Phase 15) | Recruit named people (with stated refusals), temporary or permanent; dismiss and rejoin; 3 active and 3 in reserve; follow, wait, regroup, formation order and leader; their own items and equipment; following bodies in settlements and places; fights beside the player with a companion AI layer that explains itself; loyalty from real events only, departure and return; one personal quest; resting together; save v17 (ADR-0073–0075, `Systems/Party.md`). Companion backgrounds as authored stories: Not started (the personal quest is one template) |
 | §10.1 Equipment | **Implemented** (Phase 11) | 114 items (66 SRD 5.2.1); eleven slots with two rings, off-hand Light weapons, ammunition; per-instance condition that changes the rules and wears in play; the hub's numbers are the rules engine's (ADR-0050, ADR-0052) |
 | Magic items, attunement | **Implemented** (Phase 11), 11 items | Bonuses and effects as typed rule effects; attunement (three, a short rest); a cursed item that binds; a wand casting through the spell engine with charges and recharge |
 | §10.2 Loot | **Implemented** (Phase 11) | 15 tables, carried gear, seeded and filled once into a container per fight; caches per settlement; rarity bounded (ADR-0053) |

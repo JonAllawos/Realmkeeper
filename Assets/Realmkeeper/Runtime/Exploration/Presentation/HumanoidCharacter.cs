@@ -165,6 +165,10 @@ namespace Realmkeeper.Exploration.Presentation
         private static readonly int SpeedId = Animator.StringToHash("Speed");
         private static readonly int TalkingId = Animator.StringToHash("Talking");
         private static readonly int ActivityId = Animator.StringToHash("Activity");
+        private static readonly int JumpId = Animator.StringToHash("Jump"); // Phase 15: exploration one-shots
+        private static readonly int InteractId = Animator.StringToHash("Interact");
+        private bool _hasJump;
+        private bool _hasInteract;
 
         private Animator _animator;
         private Transform _owner;
@@ -191,10 +195,27 @@ namespace Realmkeeper.Exploration.Presentation
         {
             _animator = animator;
             _owner = transform.parent != null ? transform.parent : transform;
-            foreach (var p in animator.parameters) if (p.nameHash == ActivityId) _hasActivity = true;
+            foreach (var p in animator.parameters)
+            {
+                if (p.nameHash == ActivityId) _hasActivity = true;
+                if (p.nameHash == JumpId) _hasJump = true;
+                if (p.nameHash == InteractId) _hasInteract = true;
+            }
             _lastPosition = _owner.position;
             _lastYaw = _owner.eulerAngles.y;
             _initialised = true;
+        }
+
+        /// <summary>Phase 15: the jump motion (the body leaves the ground; movement itself is the controller's).</summary>
+        public void Jump()
+        {
+            if (_initialised && _hasJump && _animator != null && _animator.runtimeAnimatorController != null) _animator.SetTrigger(JumpId);
+        }
+
+        /// <summary>Phase 15: the interact motion (opening, taking, using).</summary>
+        public void Interact()
+        {
+            if (_initialised && _hasInteract && _animator != null && _animator.runtimeAnimatorController != null) _animator.SetTrigger(InteractId);
         }
 
         /// <summary>Plays the talking animation for a while (the owner calls this when a conversation happens).</summary>

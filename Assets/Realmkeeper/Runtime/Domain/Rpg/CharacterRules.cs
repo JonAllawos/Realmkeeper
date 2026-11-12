@@ -586,15 +586,22 @@ namespace Realmkeeper.Domain.Rpg
         }
 
         /// <summary>The loadout a player's equipment gives: the suit of armour in the chest slot and a shield in the off hand.</summary>
-        public static Loadout LoadoutOf(PlayerCharacterData player)
+        public static Loadout LoadoutOf(PlayerCharacterData player) =>
+            player == null ? Loadout.Unarmored : LoadoutOf(player.Equipment, ItemWeights.CarriedGrams(player));
+
+        /// <summary>Phase 15: a companion's loadout from their own item instances, by the same rule as the player's.</summary>
+        public static Loadout LoadoutOf(NpcCharacterData companion) =>
+            companion == null ? Loadout.Unarmored : companion.OwnsItems ? LoadoutOf(companion.Equipment, ItemWeights.CarriedGrams(companion)) : companion.Gear?.Loadout ?? Loadout.Unarmored;
+
+        /// <summary>The loadout a set of equipped stacks gives (the player's or a companion's): armour, shield and worn magic.</summary>
+        public static Loadout LoadoutOf(IDictionary<EquipmentSlot, ItemStackData> equipment, int carriedGrams)
         {
-            if (player == null) return Loadout.Unarmored;
-            var body = player.Equipped(EquipmentSlot.Chest);
-            var shield = player.Equipped(EquipmentSlot.OffHand);
+            equipment.TryGetValue(EquipmentSlot.Chest, out var body);
+            equipment.TryGetValue(EquipmentSlot.OffHand, out var shield);
 
             // Phase 11 (ADR-0052): worn magic items' effects, only those that apply now (attuned where it is required, not broken).
             var effects = new List<(string Source, RuleEffect Effect)>();
-            foreach (var pair in player.Equipment)
+            foreach (var pair in equipment)
             {
                 var stack = pair.Value;
                 var def = ItemCatalog.Find(stack?.ItemId);
@@ -605,7 +612,7 @@ namespace Realmkeeper.Domain.Rpg
                 foreach (var e in m.Effects) effects.Add((def.Name, e));
             }
 
-            return new Loadout(body?.ItemId, shield?.ItemId, body?.Condition ?? ItemCondition.Good, shield?.Condition ?? ItemCondition.Good, ItemWeights.CarriedGrams(player), effects);
+            return new Loadout(body?.ItemId, shield?.ItemId, body?.Condition ?? ItemCondition.Good, shield?.Condition ?? ItemCondition.Good, carriedGrams, effects);
         }
 
         /// <summary>The armour training the character has ("light", "medium", "heavy", "shields").</summary>

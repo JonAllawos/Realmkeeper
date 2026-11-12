@@ -329,6 +329,24 @@ namespace Realmkeeper.Application
                     v.Figures.Add(new FigureView { Name = npc.Name, NpcId = npc.NpcId, Room = e.Room, X = captiveFeature?.X ?? 0, Z = captiveFeature?.Z ?? 0, Role = "captive" });
             }
 
+            // Phase 15 (ADR-0073): the party. Followers are beside the player (they go where the player goes, by the same doors);
+            // a member told to wait stands in the room where they were left.
+            foreach (var m in w.Party.Members)
+            {
+                if (m.Role != PartyRole.Active) continue;
+                var npc = w.FindNpc(m.NpcId);
+                if (npc == null || npc.IsDeceased) continue;
+                var waitingHere = m.Mode == FollowMode.Wait && m.WaitPlaceId == p.PlaceId;
+                if (m.Mode == FollowMode.Wait && !waitingHere) continue;
+                var room = p.Layout.Room(waitingHere ? m.WaitRoom : w.Player.PlaceRoom);
+                if (room == null) continue;
+                v.Figures.Add(new FigureView
+                {
+                    Name = npc.Name, NpcId = npc.NpcId, Room = room.Id, X = room.Rect.CenterX, Z = room.Rect.CenterZ, Role = "follower",
+                    Waiting = waitingHere ? "waiting (as you asked)" : null,
+                });
+            }
+
             // Phase 14 (ADR-0070): people inside move between rooms on their own rhythm, along real passages.
             if (!p.LocationId.IsEmpty)
                 foreach (var presence in IndoorSchedule.Everyone(w, p, Simulation.Quests.QuestClock.Now(w)))

@@ -42,7 +42,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 16;
+        public const int CurrentSchemaVersion = 17;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -137,6 +137,18 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>The number the next crime record takes ("crime:{n}").</summary>
         public int NextCrimeNumber { get; set; } = 1;
+
+        /// <summary>Phase 15: the player's party (members are the world's own people).</summary>
+        public PartyData Party { get; set; } = new PartyData();
+
+        /// <summary>Phase 15: everyone who has ever been the player's companion, with their loyalty and history.</summary>
+        public List<CompanionRecordData> Companions { get; set; } = new List<CompanionRecordData>();
+
+        public CompanionRecordData FindCompanion(NpcId id)
+        {
+            foreach (var c in Companions) if (c.NpcId == id) return c;
+            return null;
+        }
 
         public CrimeRecordData FindCrime(string id)
         {
@@ -278,6 +290,8 @@ namespace Realmkeeper.Domain.World
             if (Escorts != null) foreach (var e in Escorts) copy.Escorts.Add(e?.Clone());
             if (Crimes != null) foreach (var c in Crimes) copy.Crimes.Add(c?.Clone());
             copy.NextCrimeNumber = NextCrimeNumber;
+            copy.Party = (Party ?? new PartyData()).Clone();
+            if (Companions != null) foreach (var c in Companions) copy.Companions.Add(c?.Clone());
             return copy;
         }
 

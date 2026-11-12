@@ -345,6 +345,10 @@ namespace Realmkeeper.Domain.Combat
         Spell = 17,
         Feature = 18,
         Effect = 19,
+
+        // Phase 15
+        /// <summary>Why a companion chose what it did (AI diagnostics, in words). Not an action: nothing happens by it.</summary>
+        Reason = 20,
     }
 
     /// <summary>One line of the encounter's log: structured enough to explain and replay, readable as text.</summary>

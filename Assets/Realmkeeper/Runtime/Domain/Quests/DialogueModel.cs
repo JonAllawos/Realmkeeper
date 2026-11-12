@@ -127,6 +127,12 @@ namespace Realmkeeper.Domain.Quests
 
         /// <summary>Phase 14 (ADR-0069): the player settles what the speaker knows of — goods given back, the rest paid.</summary>
         SettleCrime = 29,
+
+        /// <summary>Phase 15 (ADR-0073): asks the speaker to join the party (Value "temporary": for a few days). A refusal is said, not failed.</summary>
+        Recruit = 30,
+
+        /// <summary>Phase 15: sends the speaker home from the party.</summary>
+        Dismiss = 31,
     }
 
     public sealed class DialogueConsequence

@@ -30,3 +30,8 @@
 - **One world for both perspectives (binding, ADR-0009).** Exploration mode reads the same
   `WorldData` through the same session and changes it only with commands. It never keeps a
   parallel copy of settlements, NPCs or resources, not even a cache that outlives a snapshot.
+- **Companions are not copies (Phase 15, ADR-0073).** A party member is the world's own `NpcData`.
+  `PartyData` records only who travels together, and `CompanionRecordData` records only loyalty and
+  the history of the arrangement. A companion's items are item instances held once, like the
+  player's. The follower bodies in a settlement hold no state: they read the party from the session
+  and change it only through party commands.

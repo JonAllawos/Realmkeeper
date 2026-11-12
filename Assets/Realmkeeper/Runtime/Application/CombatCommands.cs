@@ -262,6 +262,7 @@ namespace Realmkeeper.Application
                 NpcSystem.RecordDeath(world, npc, world.FindSettlement(npc.HomeSettlementId), world.CurrentSimulationDate);
             }
 
+            if (!engine.Encounter.IsActive) Party.PartyAftermath.Apply(world, engine.Encounter, QuestRuntime.Reporter(context)); // Phase 15: what the fight meant to the party
             if (!engine.Encounter.IsActive) WorldEncounters.Resolve(context, world, engine.Encounter); // Phase 10: the aftermath, once
             engine.Chronicle.Clear();
             engine.ResidentDeaths.Clear();
@@ -294,6 +295,7 @@ namespace Realmkeeper.Application
         {
             if (!context.HasWorld) return CommandResult.InvalidState("There is no active world.");
             var world = context.Edit();
+            Party.PartyCombat.Join(world, setup); // Phase 15: the party fights beside the player
             var enc = CombatEngine.Create(world, setup, context.NextGuid, out var errors);
             if (enc == null) return CommandResult.Invalid("The encounter cannot start.", errors);
             world.Encounters.Add(enc);
@@ -361,9 +363,13 @@ namespace Realmkeeper.Application
                 var (engine, _) = Working(context, command.EncounterId);
                 var actor = engine.Encounter.Find(active.CombatantId);
                 var lines = new List<string>();
+                var companion = CombatAi.IsCompanion(engine, actor); // Phase 15: the companion layer, with its reasons
+                string said = null;
                 for (var guard = 0; guard < 30 && engine.Encounter.IsActive && engine.Encounter.Active == actor; guard++)
                 {
-                    var proposal = CombatAi.Next(engine, actor);
+                    string why = null;
+                    var proposal = companion ? CombatAi.ForCompanion(engine, actor, out why) : CombatAi.Next(engine, actor);
+                    if (why != null && why != said) { engine.Explain(actor, default, why); said = why; }
                     var outcome = engine.Act(actor.CombatantId, proposal);
                     if (outcome.Pending != null) { lines.Add(Describe(outcome)); break; } // Phase 10: the player is asked to react
                     if (!outcome.Ok) outcome = engine.Act(actor.CombatantId, new EndTurnAction()); // never stuck on a refused proposal

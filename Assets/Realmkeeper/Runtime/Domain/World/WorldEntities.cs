@@ -322,6 +322,11 @@ namespace Realmkeeper.Domain.World
         CreaturesWoke = 86,
         OutlawsDeparted = 87,
         HarmTaken = 88,
+
+        // Phase 15
+        CompanionJoined = 89,
+        CompanionLeft = 90,
+        CompanionLoyalty = 91,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

@@ -24,6 +24,8 @@ namespace Realmkeeper.Simulation.Places
             if (world.Escorts != null)
                 foreach (var e in world.Escorts)
                     if (e != null && e.NpcId == npc.NpcId && e.OverridesSchedule) return true;
+            // Phase 15: an active party member travels with the player; reserve members live their ordinary lives.
+            if (world.Party?.Find(npc.NpcId) is PartyMemberData member && member.Role == PartyRole.Active) return true;
             return PostedAt(world, npc.NpcId) != null;
         }
 

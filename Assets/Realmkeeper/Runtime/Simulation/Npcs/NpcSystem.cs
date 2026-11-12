@@ -96,6 +96,7 @@ namespace Realmkeeper.Simulation.Npcs
             if (sheet == null || sheet.State != Domain.Rpg.CreationState.Complete || sheet.IsDead || !today.IsValidDate) return;
             var fight = world.ActiveEncounter;
             if (fight != null) foreach (var c in fight.Combatants) if (c.SourceId == npc.NpcId.ToString()) return;
+            if (world.Party?.Find(npc.NpcId) is PartyMemberData member && member.Role == PartyRole.Active) return; // Phase 15: they rest when the party rests
             var rules = new Domain.Rpg.CharacterRules(sheet);
             var tired = sheet.CurrentHp < rules.MaxHp;
             foreach (var pair in rules.ResourceMaximums()) if (!sheet.Resources.TryGetValue(pair.Key, out var left) || left < pair.Value) tired = true;

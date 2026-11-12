@@ -1064,6 +1064,12 @@ namespace Realmkeeper.Domain.Combat
             else roll.Natural = roll.First;
         }
 
+        /// <summary>Phase 15: records why a computer-controlled combatant chose its action (shown in the log; changes nothing).</summary>
+        public void Explain(CombatantData actor, CombatantId target, string why)
+        {
+            if (actor != null && !string.IsNullOrEmpty(why)) Log(CombatLogKind.Reason, actor.CombatantId, target, actor.Name + ": " + why);
+        }
+
         private void Log(CombatLogKind kind, CombatantId actor, CombatantId target, string text, int value = 0, D20Roll roll = null)
         {
             var e = Encounter;

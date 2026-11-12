@@ -200,7 +200,8 @@ namespace Realmkeeper.Application
             v.Occupation = c.Occupation;
             v.Archetype = c.ArchetypeId;
             v.Purse = c.Purse;
-            foreach (var id in c.Gear.All()) v.Equipment.Add(ItemCatalog.Find(id)?.Name ?? id);
+            if (c.OwnsItems) foreach (var pair in c.Equipment) v.Equipment.Add(ItemCatalog.Find(pair.Value.ItemId)?.Name ?? pair.Value.ItemId); // Phase 15: a companion's own items
+            else foreach (var id in c.Gear.All()) v.Equipment.Add(ItemCatalog.Find(id)?.Name ?? id);
             if (!c.HasSheet)
             {
                 v.CombatProfile = Domain.Combat.CreatureCatalog.Find(Domain.Combat.CreatureCatalog.ProfileFor(n.Role))?.Name ?? "Commoner";
@@ -208,7 +209,7 @@ namespace Realmkeeper.Application
             }
 
             var s = c.Sheet;
-            var r = new CharacterRules(s, c.Gear.Loadout);
+            var r = new CharacterRules(s, CharacterRules.LoadoutOf(c));
             v.HasSheet = true;
             v.Species = r.Species?.Name;
             v.Background = r.Background?.Name;

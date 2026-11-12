@@ -48,6 +48,9 @@ namespace Realmkeeper.Application.Places
                 if (protectedNpc.IsEmpty) protectedNpc = npc.NpcId;
             }
 
+            // Phase 15: the party members with the player, in free squares of this room.
+            Party.PartyCombat.Join(w, setup, _ => { var at = Free(place, room, taken, px, pz); taken.Add((at.Item1, at.Item2)); return new GridPos(at.Item1, at.Item2); });
+
             // The inhabitants, each a lasting individual.
             var names = new List<string>();
             var groupIds = new List<string>();

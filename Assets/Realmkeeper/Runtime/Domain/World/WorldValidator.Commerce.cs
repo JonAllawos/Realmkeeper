@@ -43,6 +43,7 @@ namespace Realmkeeper.Domain.World
             if (world.Transactions.Count > TransactionData.MaxHistory)
                 result.AddError($"Transaction history holds {world.Transactions.Count} entries (limit {TransactionData.MaxHistory}).");
             ValidateItems(world, settlementIds, stackIds, result); // Phase 11
+            ValidateParty(world, npcIds, stackIds, result); // Phase 15
 
             var transactionIds = new HashSet<TransactionId>();
             foreach (var t in world.Transactions)

@@ -309,14 +309,15 @@ namespace Realmkeeper.Exploration.Presentation
                 var ring = view.transform.Find("Ring");
                 if (ring != null) ring.localScale = c.IsActive ? new Vector3(1.25f, 0.02f, 1.25f) : new Vector3(1.0f, 0.02f, 1.0f);
                 var figure = view.transform.Find("Figure");
-                if (figure != null)
+                if (_markerAnims.TryGetValue(key, out var anim) && anim != null) anim.SetDead(c.State != VitalState.Conscious && c.State != VitalState.Fled); // Phase 15: animated bodies fall by their death motion
+                else if (figure != null)
                 {
                     var down = c.State != VitalState.Conscious;
                     figure.localRotation = down ? Quaternion.Euler(90f, 0f, 0f) : Quaternion.identity;
                     figure.localPosition = down ? new Vector3(0f, 0.3f, 0f) : new Vector3(0f, 0.9f, 0f);
                 }
 
-                if (c.Kind == CombatantKind.Player && c.State == VitalState.Conscious) MovePlayerTo(pos); // Combat Overhaul: the body walks the route
+                if (c.Kind == CombatantKind.Player) { if (c.State == VitalState.Conscious) MovePlayerTo(pos); EnsurePlayerCombatAnimator()?.SetDead(c.State != VitalState.Conscious); } // Combat Overhaul: the body walks the route
             }
         }
 
@@ -332,9 +333,16 @@ namespace Realmkeeper.Exploration.Presentation
             ring.transform.localScale = new Vector3(1.0f, 0.02f, 1.0f);
             ring.transform.localPosition = new Vector3(0f, 0.03f, 0f);
             ring.GetComponent<Renderer>().sharedMaterial = _materials.Get(colour, 0.4f);
-            if (c.Kind != CombatantKind.Player)
+            var body = c.Kind != CombatantKind.Player && Catalog != null ? CombatantBodies.Create(c, Catalog, root.transform) : null; // Phase 15: a real body where the art has one
+            if (body != null)
             {
-                // A stand-in figure (no bandit or wolf models exist yet): a capsule in the side's colour.
+                body.Root.name = "Figure";
+                _markerAnims[c.Id.ToString()] = body.Animator;
+                _markerSources[c.Id.ToString()] = body.Source;
+            }
+            else if (c.Kind != CombatantKind.Player)
+            {
+                // The placeholder (no model for this creature, or its art is not installed): a capsule or box in the side's colour.
                 var figure = GameObject.CreatePrimitive(c.CreatureIsBeast ? PrimitiveType.Cube : PrimitiveType.Capsule);
                 figure.name = "Figure";
                 Object.Destroy(figure.GetComponent<Collider>());
@@ -359,15 +367,21 @@ namespace Realmkeeper.Exploration.Presentation
             if (_markers != null) Object.Destroy(_markers);
             _markers = null;
             _markerViews.Clear();
+            _markerAnims.Clear();
+            _markerSources.Clear();
+            RestorePlayerAnimator();
         }
     }
 
     /// <summary>Turns a label to face the main camera (marker names).</summary>
     public sealed class FaceCamera : MonoBehaviour
     {
+        /// <summary>Phase 15: the camera labels turn to (the exploration camera; it is not always tagged main inside places).</summary>
+        public static UnityEngine.Camera Target { get; set; }
+
         private void LateUpdate()
         {
-            var cam = UnityEngine.Camera.main;
+            var cam = Target != null && Target.isActiveAndEnabled ? Target : UnityEngine.Camera.main;
             if (cam != null) transform.rotation = Quaternion.LookRotation(transform.position - cam.transform.position);
         }
     }

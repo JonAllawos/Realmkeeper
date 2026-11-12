@@ -67,6 +67,13 @@ namespace Realmkeeper.Domain.Quests
                             new DialogueResponse { Id = "settle", Text = "Let me put it right. [Give back what I took and pay what is owed]", Kind = ResponseKind.Continue, Next = "start",
                                 Conditions = new[] { C(ConditionKind.KnowsCrime) }, Consequences = new[] { Do(DialogueConsequenceKind.SettleCrime) } }, // Phase 14 (ADR-0069)
                             new DialogueResponse { Id = "ask", Text = "I'd like to ask you something.", Kind = ResponseKind.Ask, Next = "topics" },
+                            // Phase 15 (ADR-0073): asking someone to travel with you, and parting ways. A refusal is said with its reason.
+                            new DialogueResponse { Id = "recruit", Text = "Travel with me. [Ask them to join your party]", Kind = ResponseKind.Continue, Next = "start",
+                                Conditions = new[] { C(ConditionKind.InParty, negate: true) }, Consequences = new[] { Do(DialogueConsequenceKind.Recruit) } },
+                            new DialogueResponse { Id = "recruit_short", Text = "Come with me for a few days. [Temporary]", Kind = ResponseKind.Continue, Next = "start",
+                                Conditions = new[] { C(ConditionKind.InParty, negate: true) }, Consequences = new[] { Do(DialogueConsequenceKind.Recruit, value: "temporary") } },
+                            new DialogueResponse { Id = "dismiss", Text = "It's time we parted ways. [Dismiss from your party]", Kind = ResponseKind.End, Next = "end",
+                                Conditions = new[] { C(ConditionKind.InParty) }, Consequences = new[] { Do(DialogueConsequenceKind.Dismiss) } },
                             new DialogueResponse { Id = "bye", Text = "Farewell.", Kind = ResponseKind.End, Next = "end" },
                         },
                     },
@@ -338,6 +345,7 @@ namespace Realmkeeper.Domain.Quests
             });
             AddPhase13(); // Phase 13: dialogue for places
             AddPhase14(); // Phase 14: givers of the new places' quests
+            AddPhase15(); // Phase 15: a companion's own quest
         }
 
         /// <summary>Checks every graph: a start node, unique node and response IDs, every Next pointing at a node, "end" or the hub.</summary>
