@@ -73,5 +73,6 @@
 | [0069](ADR-0069-crime-witnesses-local-consequences.md) | Crime is a record of what happened; who knows is a matter of who perceived it | Accepted (Phase 14) |
 | [0070](ADR-0070-indoor-movement-and-followers.md) | People move through rooms along real passages; followers keep a room of their own | Accepted (Phase 14) |
 | [0071](ADR-0071-archetype-placement-wake-bridges-fire.md) | New places reach every world once, chosen by context; creatures wake in sight; bridges and fire have state | Accepted (Phase 14) |
+| [0072](ADR-0072-combat-presentation-and-move-planning.md) | The combat interface shows and asks; one planner proposes moves; the engine decides | Accepted (Combat overhaul) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

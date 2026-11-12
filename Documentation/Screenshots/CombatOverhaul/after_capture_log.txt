@@ -1,0 +1,10 @@
+hover: 15 ft · 15 ft left after/Leaves the reach of Bandit: an opportunity attack.
+after_1920x1080_fight: 1920x1080; panel 1920x1080 px; combat interface covers 15.3% of the screen in 5 part(s); largest part 922x110 px (48.0% of the width, 10.2% of the height)
+after_2560x1440_fight: 2560x1440; panel 1920x1080 px; combat interface covers 15.0% of the screen in 5 part(s); largest part 921x109 px (48.0% of the width, 10.1% of the height)
+after_1366x768_fight: 1366x768; panel 1920x1080 px; combat interface covers 15.2% of the screen in 5 part(s); largest part 922x110 px (48.0% of the width, 10.2% of the height)
+after_1920x1080_attack_group: 1920x1080; panel 1920x1080 px; combat interface covers 27.4% of the screen in 6 part(s); largest part 768x346 px (40.0% of the width, 32.0% of the height)
+dash question: That is 35 ft away and you have 30 ft of movement left. Dash uses your action this turn and gives you 30 ft more. Dash and go there?
+after_1920x1080_dash_question: 1920x1080; panel 1920x1080 px; combat interface covers 18.3% of the screen in 6 part(s); largest part 922x110 px (48.0% of the width, 10.2% of the height)
+feedback: Miss, -8, Miss, -8, Dies
+after_1920x1080_attack_feedback: 1920x1080; panel 1920x1080 px; combat interface covers 14.5% of the screen in 4 part(s); largest part 922x110 px (48.0% of the width, 10.2% of the height)
+after_1920x1080_grid_and_log: 1920x1080; panel 1920x1080 px; combat interface covers 34.3% of the screen in 5 part(s); largest part 669x352 px (34.8% of the width, 32.6% of the height)

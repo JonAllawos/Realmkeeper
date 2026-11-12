@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.Combat;
 using Realmkeeper.Domain.Identifiers;
@@ -67,52 +68,270 @@ namespace Realmkeeper.Exploration.Presentation
             head.Add(_close);
             Root.Add(head);
 
-            var body = TradeWindow.Row("xk-combat-body");
-            var orderCol = TradeWindow.Column("xk-combat-col");
-            orderCol.AddToClassList("xk-combat-col--order");
-            orderCol.Add(TradeWindow.Text("Initiative", "xk-w-heading"));
-            _order = new ScrollView { name = "xk-combat-order" };
-            _order.AddToClassList("xk-w-list");
-            orderCol.Add(_order);
-            body.Add(orderCol);
+            // Combat Overhaul: the window is a set of compact pieces over a see-through layer, not one opaque panel. The
+            // top strip (round, turn, the initiative order); the bar at the bottom centre (action, bonus action, reaction,
+            // movement, the groups of choices, Dash, End turn) with a pop-up above it for the open group; the selected
+            // character's card at the lower left (details on demand); the log at the lower right, collapsed by default;
+            // and the tactical grid as an optional panel (Tab). The battlefield between them stays clear and clickable.
+            Root.AddToClassList("xk-cbt");
+            Root.pickingMode = PickingMode.Ignore;
+            head.name = "xk-cbt-head";
+            head.AddToClassList("xk-cbt-head");
 
-            var gridCol = TradeWindow.Column("xk-combat-col");
-            gridCol.AddToClassList("xk-combat-col--grid");
-            gridCol.Add(TradeWindow.Text("Field (5-ft squares; click to move)", "xk-w-heading"));
+            var top = new VisualElement { name = "xk-cbt-top" };
+            top.AddToClassList("xk-cbt-top");
+            top.Add(head);
+            _order = new ScrollView(ScrollViewMode.Horizontal) { name = "xk-combat-order" };
+            _order.AddToClassList("xk-cbt-order");
+            top.Add(_order);
+            Root.Add(top);
+
+            var gridCol = TradeWindow.Column("xk-cbt-grid-panel");
+            gridCol.name = "xk-cbt-grid-panel";
+            gridCol.AddToClassList("xk-hidden");
+            gridCol.Add(TradeWindow.Text("Tactical grid (5-ft squares; Tab hides it)", "xk-w-heading"));
             _grid = new VisualElement { name = "xk-combat-grid" };
             _grid.AddToClassList("xk-combat-grid");
             gridCol.Add(_grid);
-            body.Add(gridCol);
+            _gridPanel = gridCol;
+            Root.Add(gridCol);
 
-            var actCol = TradeWindow.Column("xk-combat-col");
-            actCol.AddToClassList("xk-combat-col--actions");
-            actCol.Add(TradeWindow.Text("Your turn", "xk-w-heading"));
+            var card = TradeWindow.Column("xk-cbt-card");
+            card.name = "xk-cbt-card";
+            _cardName = TradeWindow.Text("-", "xk-cbt-card-name");
+            _cardName.name = "xk-cbt-card-name";
+            card.Add(_cardName);
+            var hpBack = new VisualElement { name = "xk-cbt-hp" };
+            hpBack.AddToClassList("xk-cbt-hp");
+            _hpFill = new VisualElement();
+            _hpFill.AddToClassList("xk-cbt-hp-fill");
+            hpBack.Add(_hpFill);
+            card.Add(hpBack);
+            _cardLine = TradeWindow.Text("-", "xk-cbt-card-line");
+            _cardLine.name = "xk-cbt-card-line";
+            card.Add(_cardLine);
+            _result = TradeWindow.Text("Nothing yet.", "xk-combat-result");
+            _result.name = "xk-combat-result";
+            card.Add(_result);
+            var details = new Button(() => { _detailsOpen = !_detailsOpen; _inspector.EnableInClassList("xk-hidden", !_detailsOpen); }) { text = "Details", name = "xk-cbt-details" };
+            details.AddToClassList("xk-button");
+            details.AddToClassList("xk-cbt-small");
+            card.Add(details);
+            _inspector = new ScrollView { name = "xk-combat-inspector" };
+            _inspector.AddToClassList("xk-combat-inspector");
+            _inspector.AddToClassList("xk-hidden");
+            card.Add(_inspector);
+            Root.Add(card);
+
+            var actCol = TradeWindow.Column("xk-cbt-pop");
+            actCol.name = "xk-cbt-pop";
+            actCol.AddToClassList("xk-hidden");
             _actions = new ScrollView { name = "xk-combat-actions" };
             _actions.AddToClassList("xk-w-list");
             actCol.Add(_actions);
-            body.Add(actCol);
+            _pop = actCol;
+            Root.Add(actCol);
 
-            var infoCol = TradeWindow.Column("xk-combat-col");
-            infoCol.AddToClassList("xk-combat-col--info");
-            infoCol.Add(TradeWindow.Text("Result", "xk-w-heading"));
-            _result = TradeWindow.Text("Nothing yet.", "xk-combat-result");
-            _result.name = "xk-combat-result";
-            infoCol.Add(_result);
-            infoCol.Add(TradeWindow.Text("Inspect", "xk-w-heading"));
-            _inspector = new ScrollView { name = "xk-combat-inspector" };
-            _inspector.AddToClassList("xk-combat-inspector");
-            infoCol.Add(_inspector);
-            body.Add(infoCol);
+            _bar = new VisualElement { name = "xk-cbt-bar" };
+            _bar.AddToClassList("xk-cbt-bar");
+            Root.Add(_bar);
 
-            var logCol = TradeWindow.Column("xk-combat-col");
-            logCol.AddToClassList("xk-combat-col--log");
-            logCol.Add(TradeWindow.Text("Combat log", "xk-w-heading"));
+            var logCol = TradeWindow.Column("xk-cbt-log");
+            logCol.name = "xk-cbt-log";
+            var logHead = TradeWindow.Row("xk-cbt-log-head");
+            logHead.Add(TradeWindow.Text("Combat log", "xk-w-heading"));
+            _logToggle = new Button(() => { _logOpen = !_logOpen; logCol.EnableInClassList("xk-cbt-log--open", _logOpen); _logToggle.text = _logOpen ? "Less" : "More"; }) { text = "More", name = "xk-cbt-log-toggle" };
+            _logToggle.AddToClassList("xk-button");
+            _logToggle.AddToClassList("xk-cbt-small");
+            logHead.Add(_logToggle);
+            logCol.Add(logHead);
             _log = new ScrollView { name = "xk-combat-log" };
             _log.AddToClassList("xk-combat-log");
             logCol.Add(_log);
-            body.Add(logCol);
-            Root.Add(body);
+            Root.Add(logCol);
+
+            // Movement: the label beside the cursor, and the question before Dash is spent.
+            _hover = TradeWindow.Text(string.Empty, "xk-cbt-hover");
+            _hover.name = "xk-cbt-hover";
+            _hover.pickingMode = PickingMode.Ignore;
+            _hover.AddToClassList("xk-hidden");
+            Root.Add(_hover);
+            _confirm = TradeWindow.Column("xk-cbt-confirm");
+            _confirm.name = "xk-cbt-confirm";
+            _confirm.AddToClassList("xk-hidden");
+            _confirmText = TradeWindow.Text("-", "xk-cbt-confirm-text");
+            _confirm.Add(_confirmText);
+            var buttons = TradeWindow.Row("xk-cbt-confirm-buttons");
+            _confirmYes = new Button(() => { var a = _onConfirm; HideConfirm(); a?.Invoke(); }) { text = "Dash and move", name = "xk-cbt-confirm-yes" };
+            _confirmYes.AddToClassList("xk-button");
+            _confirmYes.AddToClassList("xk-button--primary");
+            var no = new Button(HideConfirm) { text = "Cancel (Esc)", name = "xk-cbt-confirm-no" };
+            no.AddToClassList("xk-button");
+            buttons.Add(_confirmYes);
+            buttons.Add(no);
+            _confirm.Add(buttons);
+            Root.Add(_confirm);
             hudRoot.Add(Root);
+        }
+
+        // ----- Combat Overhaul: the compact HUD's own state -------------------------------------------------
+
+        private readonly VisualElement _gridPanel;
+        private readonly VisualElement _pop;
+        private readonly VisualElement _bar;
+        private readonly Label _cardName;
+        private readonly Label _cardLine;
+        private readonly VisualElement _hpFill;
+        private readonly Button _logToggle;
+        private readonly Label _hover;
+        private readonly VisualElement _confirm;
+        private readonly Label _confirmText;
+        private readonly Button _confirmYes;
+        private Action _onConfirm;
+        private bool _detailsOpen;
+        private bool _logOpen;
+
+        /// <summary>The open group of choices in the pop-up above the bar (null: closed).</summary>
+        public string OpenGroup { get; private set; }
+
+        public bool GridVisible => !_gridPanel.ClassListContains("xk-hidden");
+        public bool ConfirmOpen => !_confirm.ClassListContains("xk-hidden");
+        public string ConfirmText => _confirmText.text;
+        public string HoverText => _hover.ClassListContains("xk-hidden") ? string.Empty : _hover.text;
+        public bool LogOpen => _logOpen;
+
+        /// <summary>Shows or hides the tactical grid (Tab). The world is where moving happens; the grid is for reading.</summary>
+        public void ToggleGrid() => _gridPanel.EnableInClassList("xk-hidden", GridVisible);
+
+        /// <summary>Opens a group of choices above the bar, or closes it when it is already open.</summary>
+        public void OpenGroupPopup(string group)
+        {
+            OpenGroup = OpenGroup == group ? null : group;
+            if (Snapshot != null) { FillActions(Snapshot); FillBar(Snapshot); }
+        }
+
+        public void CloseGroupPopup()
+        {
+            if (OpenGroup == null) return;
+            OpenGroup = null;
+            if (Snapshot != null) { FillActions(Snapshot); FillBar(Snapshot); }
+        }
+
+        /// <summary>The label beside the cursor while a destination is hovered (panel coordinates); null hides it.</summary>
+        public void ShowHover(string text, UnityEngine.Vector2 at, bool ok)
+        {
+            if (string.IsNullOrEmpty(text)) { _hover.AddToClassList("xk-hidden"); return; }
+            _hover.text = text;
+            _hover.RemoveFromClassList("xk-hidden");
+            _hover.EnableInClassList("xk-cbt-hover--bad", !ok);
+            var panel = Root.worldBound;
+            _hover.style.left = UnityEngine.Mathf.Clamp(at.x + 18f, 0f, UnityEngine.Mathf.Max(0f, panel.width - 300f));
+            _hover.style.top = UnityEngine.Mathf.Clamp(at.y + 18f, 0f, UnityEngine.Mathf.Max(0f, panel.height - 120f));
+        }
+
+        /// <summary>Asks before something costly (Dash): nothing is spent until the player says yes.</summary>
+        public void AskConfirm(string text, string yes, Action onYes)
+        {
+            _confirmText.text = text;
+            _confirmYes.text = yes;
+            _onConfirm = onYes;
+            _confirm.RemoveFromClassList("xk-hidden");
+        }
+
+        public void HideConfirm()
+        {
+            _onConfirm = null;
+            _confirm.AddToClassList("xk-hidden");
+        }
+
+        /// <summary>Presses the confirmation's yes (tests and the Enter key).</summary>
+        public void Confirm() => _confirmYes.SendEvent(new NavigationSubmitEvent { target = _confirmYes });
+
+        private static string GroupOf(CombatOption o) =>
+            o.Action is EndTurnAction ? "end" : o.Action is AttackAction ? "attacks" : o.Action is DashAction ? "move" : "actions";
+
+        /// <summary>The bar: the turn's economy as slots, the groups (with how many choices each holds), Dash and End turn.</summary>
+        private void FillBar(EncounterSnapshot s)
+        {
+            _bar.Clear();
+            var active = s.Status == EncounterStatus.Active;
+            _bar.EnableInClassList("xk-hidden", !active);
+            if (!active) return;
+            var p = s.Player;
+            var mine = s.IsPlayersTurn && s.Prompt == null && p != null;
+            var slots = TradeWindow.Row("xk-cbt-slots");
+            Slot(slots, "Action", p != null && (!p.ActionUsed || p.AttacksLeft > 0), p != null && p.ActionUsed && p.AttacksLeft > 0 ? $"{p.AttacksLeft} attack(s) left" : null, "xk-cbt-slot--action");
+            Slot(slots, "Bonus", p != null && !p.BonusActionUsed, null, "xk-cbt-slot--bonus");
+            Slot(slots, "Reaction", p != null && !p.ReactionUsed, null, "xk-cbt-slot--reaction");
+            var move = TradeWindow.Text(p == null ? "-" : $"{p.MovementLeft} ft", "xk-cbt-move");
+            move.name = "xk-cbt-move";
+            move.tooltip = p == null ? string.Empty : $"Movement left this turn (speed {p.Speed} ft). Click the ground to move; Dash adds your speed.";
+            slots.Add(move);
+            _bar.Add(slots);
+
+            var groups = TradeWindow.Row("xk-cbt-groups");
+            var counts = new Dictionary<string, int>();
+            foreach (var o in s.PlayerOptions) { var g = GroupOf(o); counts[g] = (counts.TryGetValue(g, out var n) ? n : 0) + (o.Unavailable == null ? 1 : 0); }
+            GroupButton(groups, "attacks", "1 Attack", counts, mine);
+            GroupButton(groups, "actions", "2 Actions", counts, mine);
+            if (s.PlayerSpells.Count > 0) GroupButton(groups, "spells", "3 Spells", new Dictionary<string, int> { ["spells"] = s.PlayerSpells.Count(x => x.Unavailable == null) }, mine);
+            if (s.PlayerFeatures.Count > 0) GroupButton(groups, "features", "4 Features", new Dictionary<string, int> { ["features"] = s.PlayerFeatures.Count(x => x.Unavailable == null) }, mine);
+            _bar.Add(groups);
+
+            var ends = TradeWindow.Row("xk-cbt-ends");
+            var dash = s.PlayerOptions.FirstOrDefault(o => o.Action is DashAction);
+            var dashButton = new Button(() => { if (dash != null) ActionRequested?.Invoke(dash.Action); }) { text = "Dash", name = "xk-cbt-dash" };
+            dashButton.AddToClassList("xk-button");
+            dashButton.SetEnabled(mine && dash != null && dash.Unavailable == null);
+            dashButton.tooltip = dash?.Unavailable ?? $"Use your action to gain {p?.Speed ?? 0} ft more movement this turn.";
+            ends.Add(dashButton);
+            var grid = new Button(ToggleGrid) { text = "Grid (Tab)", name = "xk-cbt-grid-toggle" };
+            grid.AddToClassList("xk-button");
+            ends.Add(grid);
+            var end = s.PlayerOptions.FirstOrDefault(o => o.Action is EndTurnAction);
+            var endButton = new Button(() => { if (end != null) ActionRequested?.Invoke(end.Action); }) { text = "End turn (Space)", name = "xk-cbt-end" };
+            endButton.AddToClassList("xk-button");
+            endButton.AddToClassList("xk-button--primary");
+            endButton.SetEnabled(mine && end != null && end.Unavailable == null);
+            ends.Add(endButton);
+            _bar.Add(ends);
+        }
+
+        private static void Slot(VisualElement row, string name, bool ready, string note, string cls)
+        {
+            var l = TradeWindow.Text(name, "xk-cbt-slot");
+            l.name = "xk-cbt-slot-" + name.ToLowerInvariant();
+            l.AddToClassList(cls);
+            l.EnableInClassList("xk-cbt-slot--used", !ready);
+            l.tooltip = ready ? $"{name}: ready" + (note != null ? $" ({note})" : string.Empty) : $"{name}: used this turn";
+            row.Add(l);
+        }
+
+        private void GroupButton(VisualElement row, string group, string label, Dictionary<string, int> counts, bool mine)
+        {
+            var n = counts.TryGetValue(group, out var c) ? c : 0;
+            var b = new Button(() => OpenGroupPopup(group)) { text = $"{label} ({n})", name = "xk-cbt-group-" + group };
+            b.AddToClassList("xk-button");
+            b.AddToClassList("xk-cbt-group");
+            b.EnableInClassList("xk-cbt-group--open", OpenGroup == group);
+            b.SetEnabled(mine);
+            b.tooltip = n == 0 ? "Nothing in this group can be used now: open it to see why." : $"{n} choice(s) you can use now.";
+            row.Add(b);
+        }
+
+        /// <summary>The selected combatant at a glance: name, hit points as a bar, AC, conditions, movement.</summary>
+        private void FillCard(EncounterSnapshot s)
+        {
+            var c = Find(s, Inspected) ?? s.Player;
+            if (c == null) return;
+            _cardName.text = c.Name + (c.IsActive ? " · acting" : string.Empty);
+            var share = c.MaxHp > 0 ? UnityEngine.Mathf.Clamp01((float)c.Hp / c.MaxHp) : 0f;
+            _hpFill.style.width = new Length(share * 100f, LengthUnit.Percent);
+            _hpFill.EnableInClassList("xk-cbt-hp-fill--low", share <= 0.34f);
+            var state = c.State == VitalState.Conscious ? string.Empty : " · " + c.State.ToString().ToLowerInvariant();
+            var cover = c.Kind == CombatantKind.Player || string.IsNullOrEmpty(c.CoverFromPlayer) ? string.Empty : " · from you: " + c.CoverFromPlayer;
+            _cardLine.text = $"{c.Hp}/{c.MaxHp} HP{(c.TempHp > 0 ? $" +{c.TempHp}" : string.Empty)} · AC {c.ArmorClass} · {c.Speed} ft{state}" +
+                             (c.Conditions.Count > 0 ? "\n" + string.Join(", ", c.Conditions) : string.Empty) + cover;
         }
 
         public VisualElement Root { get; }
@@ -162,7 +381,10 @@ namespace Realmkeeper.Exploration.Presentation
             FillPrompt(s); // Phase 10: a question waiting on the player comes first
             FillOrder(s);
             FillGrid(s);
+            if (!s.IsPlayersTurn) OpenGroup = null; // a new turn starts with the pop-up closed
             FillActions(s);
+            FillBar(s);
+            FillCard(s);
             FillInspector(s);
             FillLog(s);
         }
@@ -170,6 +392,9 @@ namespace Realmkeeper.Exploration.Presentation
         public void Hide()
         {
             Root.AddToClassList("xk-hidden");
+            HideConfirm();
+            ShowHover(null, default, true);
+            OpenGroup = null;
             Snapshot = null;
             Inspected = default;
             _result.text = "Nothing yet.";
@@ -182,6 +407,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (Snapshot != null)
             {
                 FillOrder(Snapshot);
+                FillCard(Snapshot);
                 FillInspector(Snapshot);
             }
         }
@@ -206,7 +432,9 @@ namespace Realmkeeper.Exploration.Presentation
                 var conditions = c.Conditions.Count > 0 ? " · " + string.Join(", ", c.Conditions) : string.Empty;
                 var magic = (c.Concentration != null ? " · concentrating on " + c.Concentration : string.Empty) + (c.Effects.Count > 0 ? " · " + string.Join(", ", c.Effects) : string.Empty);
                 var cover = string.IsNullOrEmpty(c.CoverFromPlayer) || c.CoverFromPlayer == "no cover" ? string.Empty : " · " + c.CoverFromPlayer; // Phase 14
-                row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Initiative,2}  {c.Name}\n     {hp} · AC {c.ArmorClass}{state}{conditions}{magic}{cover}";
+                // Combat Overhaul: a compact chip in the top strip; the rest of the line is its tooltip (and the card shows it all).
+                row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Name}\n{hp}{(c.Conditions.Count > 0 ? " · " + c.Conditions.Count + " cond." : string.Empty)}";
+                row.tooltip = $"Initiative {c.Initiative} · {hp} · AC {c.ArmorClass}{state}{conditions}{magic}{cover}";
                 _order.Add(row);
             }
         }
@@ -287,6 +515,8 @@ namespace Realmkeeper.Exploration.Presentation
         private void FillActions(EncounterSnapshot s)
         {
             _actions.Clear();
+            // The pop-up shows for the open group, while aiming a spell, and for a finished fight's summary and loot.
+            _pop.EnableInClassList("xk-hidden", s.Status == EncounterStatus.Active && !(s.IsPlayersTurn && s.Prompt == null && (OpenGroup != null || Composing)));
             if (s.Status != EncounterStatus.Active)
             {
                 _actions.Add(TradeWindow.Text(WorldSession.Summary(s), "xk-w-note"));
@@ -337,10 +567,14 @@ namespace Realmkeeper.Exploration.Presentation
                 b.tooltip = o.Unavailable ?? o.Action.Describe;
                 row.Add(b);
                 if (o.Unavailable != null) row.Add(TradeWindow.Text(o.Unavailable, "xk-combat-why"));
+                row.EnableInClassList("xk-hidden", GroupOf(o) != OpenGroup); // in the hierarchy, shown with its group
                 basics.Add(row);
             }
 
             FillMagic(s); // Phase 9: spells and class features
+            basics.EnableInClassList("xk-hidden", OpenGroup != "attacks" && OpenGroup != "actions"); // Combat Overhaul: one group at a time
+            _actions.Q<VisualElement>("xk-combat-fold-spells")?.EnableInClassList("xk-hidden", OpenGroup != "spells");
+            _actions.Q<VisualElement>("xk-combat-fold-features")?.EnableInClassList("xk-hidden", OpenGroup != "features");
         }
 
         private void FillInspector(EncounterSnapshot s)

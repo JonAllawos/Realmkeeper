@@ -361,3 +361,42 @@ The attacker uses whichever of its corners gives the least cover. Low obstacles 
 - Each foe's square and order row say what cover it has from the player.
 
 Performance: a cover check on a 40×40 grid with 15 % walls takes 20–24 µs; an area line, 0.5–1 µs.
+
+## The combat interface (combat overhaul, ADR-0072)
+
+**Moving.**
+- Point at the ground. The route the rules allow is drawn: green while the movement left covers it, amber where Dash would be needed. A label beside the cursor gives the cost, what is left, difficult terrain, and any opportunity attack the route invites.
+- Click to move. The body walks the route.
+- A move that needs Dash asks first ("Dash and move" or Cancel); nothing is spent until the player agrees.
+- A move too far even with Dash offers to go as far as possible.
+- A square that cannot be reached says why: wall or shut door, someone standing there, no way round, speed 0 and the condition causing it, or outside the fight.
+- Moving several times in a turn uses what is left each time.
+- The route comes from `CombatPaths.Plan` (Domain) through `WorldSession.PlanPlayerMove`. The engine still makes and checks every move.
+
+**The screen.**
+
+| Piece | Position | Contents |
+|---|---|---|
+| Top strip | top | The fight's name and round, whose turn, Withdraw or Call off; initiative chips (name and HP, the rest in the tooltip) |
+| Bar | bottom centre | The Action, Bonus and Reaction slots (dimmed when used), movement left, the groups (1 Attack, 2 Actions, 3 Spells, 4 Features, with how many can be used now), Dash, Grid, End turn |
+| Pop-up | above the bar | The open group's choices; unavailable ones keep their reason. Spells open the Phase 9 composer here. |
+| Card | lower left | The selected combatant: HP bar, AC, speed, conditions, cover from you, the last result; Details for the full stat block |
+| Log | lower right | Collapsed to the last lines; More expands it, with every roll |
+| Grid | optional (Tab) | The 5-ft grid with walls, doors, low cover and reach, for reading |
+
+**Keys:**
+
+| Key | Does |
+|---|---|
+| 1–4 | Open a group |
+| Space | End turn |
+| Tab | Show or hide the grid |
+| Z | Turn the camera to whoever acts |
+| Right-drag | Turn the camera |
+| Enter | Confirm |
+| Esc | Cancel, close the pop-up, or clear the preview |
+
+**In the world:**
+- Attackers lunge; ranged attacks and spells fly as projectiles.
+- Damage (marked resisted or immune), healing, misses, criticals, saves, conditions, downs and deaths float above the body.
+- Each is shown once, from the combat log; nothing here changes the fight.

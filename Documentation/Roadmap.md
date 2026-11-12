@@ -20,7 +20,8 @@
 | Phase 12: Quest, Dialogue, Reputation & World Interaction Engine | Done (`1e593ae`, pushed on the owner's instruction after review) | `Systems/Quests.md`, `Systems/Dialogue.md`, `Systems/Reputation.md`, `Phase12/PreFlight.md`, `Phase12/Testing.md`, `Phase12/Limitations.md`, `Reports/Phase12-Quest-Dialogue-Reputation.md`, ADR-0056…0061 |
 | Phase 13: Persistent Dungeons, Ruins, Interior Locations & Exploration Systems | Done (`cda9da0`, pushed on the owner's instruction after review) | `Systems/Locations.md`, `Systems/DungeonGeneration.md`, `Systems/Interiors.md`, `Systems/Interactions.md`, `Phase13/Testing.md`, `Phase13/Limitations.md`, `Reports/Phase13-Preflight-Integration-Audit.md`, `Reports/Phase13-Persistent-Locations-Exploration.md`, ADR-0062…0066 |
 | Phase 14: Exploration Integrity, Living Locations & World Reactivity | Done (this milestone); committed locally and not pushed | `Systems/Conditions.md`, `Systems/Crime.md`, `Systems/Combat.md` (sight and cover), `Systems/Locations.md`, `Systems/RestAndRecovery.md`, `Phase14/Testing.md`, `Phase14/Limitations.md`, `Reports/Phase14-Preflight-Integration-Audit.md`, `Reports/Phase14-Completion-Report.md`, ADR-0067…0071 |
-| Combat overhaul: tactical movement, combat UI, action selection and visual feedback | Next: a separate milestone on top of Phase 14's sight and cover | `Reports/Combat-Overhaul-Audit.md` (to come) |
+| Combat overhaul: tactical movement, combat UI, action selection and visual feedback | Done (this milestone, on top of Phase 14); committed locally and not pushed | `Reports/Combat-Overhaul-Audit.md`, `Reports/Combat-Overhaul-Completion-Report.md`, `Systems/Combat.md` (the combat interface), ADR-0072 |
+| Phase 15 | Not started. Recommended: Companions, Parties, Relationships & Party Progression (Phase 14 report, section Z) | — |
 
 ## Phase 2 completion: what it added
 

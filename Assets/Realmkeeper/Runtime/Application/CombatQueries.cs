@@ -321,6 +321,31 @@ namespace Realmkeeper.Application
             return engine.Unavailable(player, new MoveAction(path));
         }
 
+        /// <summary>
+        /// Combat Overhaul: the player's move to a square as the rules see it — the cheapest route round walls, shut doors
+        /// and enemies, its cost, what Dash would add, and the opportunity attacks it would invite. Reads a copy: nothing
+        /// changes. A route that can be walked now is also checked by the engine itself (fear, and anything else it refuses).
+        /// </summary>
+        public MovePlan PlanPlayerMove(GridPos to)
+        {
+            var e = _world?.ActiveEncounter;
+            if (e == null) return new MovePlan { Destination = to, Problem = "There is no fight going on." };
+            var world = _world.DeepClone();
+            EncounterData copy = null;
+            foreach (var x in world.Encounters) if (x.EncounterId == e.EncounterId) copy = x;
+            var engine = new CombatEngine(world, copy);
+            var player = copy.Active;
+            if (player == null || player.Control != CombatControl.Player) return new MovePlan { Destination = to, Problem = "It is not your turn." };
+            var plan = CombatPaths.Plan(engine, player, to);
+            if (plan.Reachable)
+            {
+                var refused = engine.Unavailable(player, new MoveAction(plan.Path.ToArray()));
+                if (refused != null) plan.Problem = refused;
+            }
+
+            return plan;
+        }
+
         /// <summary>A short, readable result for a finished encounter (for the HUD).</summary>
         public static string Summary(EncounterSnapshot s) =>
             s == null ? string.Empty :

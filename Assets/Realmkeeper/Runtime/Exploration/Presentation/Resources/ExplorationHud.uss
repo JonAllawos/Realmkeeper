@@ -1140,3 +1140,276 @@
 .xk-place-map-bridge--damaged { background-color: rgba(214, 160, 70, 0.95); border-width: 1px; border-color: rgb(196, 80, 50); }
 .xk-place-map-bridge--destroyed { background-color: rgba(60, 40, 30, 0.6); border-width: 1px; border-color: rgb(196, 60, 40); }
 .xk-place-map-fire { position: absolute; background-color: rgba(230, 110, 40, 0.55); }
+
+/* ----- Combat Overhaul: the compact combat HUD (pieces over a clear battlefield) ----- */
+.xk-combat.xk-cbt {
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.xk-cbt-top {
+    position: absolute;
+    top: 8px;
+    left: 30%;
+    right: 30%;
+    max-height: 132px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.82);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.4);
+}
+
+.xk-cbt-head {
+    margin-bottom: 4px;
+}
+
+.xk-cbt-head .xk-w-title {
+    font-size: 15px;
+}
+
+.xk-cbt-head .xk-w-subtitle {
+    font-size: 11px;
+}
+
+.xk-cbt-order {
+    max-height: 64px;
+}
+
+.xk-cbt-order .unity-scroll-view__content-container {
+    flex-direction: row;
+}
+
+.xk-cbt-order .xk-combat-row {
+    width: 118px;
+    min-width: 118px;
+    margin: 0 4px 0 0;
+    padding: 3px 6px;
+    font-size: 11px;
+    white-space: normal;
+}
+
+.xk-cbt-card {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    width: 300px;
+    max-height: 46%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.85);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.4);
+}
+
+.xk-cbt-card-name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(240, 214, 160);
+}
+
+.xk-cbt-hp {
+    height: 8px;
+    margin: 4px 0;
+    border-radius: 4px;
+    background-color: rgba(70, 30, 26, 0.9);
+}
+
+.xk-cbt-hp-fill {
+    height: 100%;
+    border-radius: 4px;
+    background-color: rgb(96, 168, 92);
+}
+
+.xk-cbt-hp-fill--low {
+    background-color: rgb(206, 92, 62);
+}
+
+.xk-cbt-card-line {
+    font-size: 12px;
+    white-space: normal;
+}
+
+.xk-cbt-card .xk-combat-result {
+    font-size: 11px;
+    max-height: 64px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.xk-cbt-card .xk-combat-inspector {
+    max-height: 180px;
+}
+
+.xk-cbt-small {
+    font-size: 11px;
+    padding: 1px 8px;
+    margin: 2px 0;
+    align-self: flex-start;
+}
+
+.xk-cbt-bar {
+    position: absolute;
+    bottom: 12px;
+    left: 26%;
+    right: 26%;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.85);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.45);
+}
+
+.xk-cbt-slots,
+.xk-cbt-groups,
+.xk-cbt-ends {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.xk-cbt-slot {
+    padding: 2px 10px;
+    margin: 2px 3px;
+    border-radius: 10px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgb(20, 18, 14);
+}
+
+.xk-cbt-slot--action { background-color: rgb(118, 186, 108); }
+.xk-cbt-slot--bonus { background-color: rgb(232, 168, 72); }
+.xk-cbt-slot--reaction { background-color: rgb(150, 140, 220); }
+
+.xk-cbt-slot--used {
+    background-color: rgba(90, 84, 74, 0.7);
+    color: rgb(170, 160, 140);
+}
+
+.xk-cbt-move {
+    margin-left: 10px;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: rgb(240, 214, 160);
+}
+
+.xk-cbt-group {
+    margin: 3px;
+    min-width: 92px;
+}
+
+.xk-cbt-group--open {
+    border-color: rgb(240, 200, 110);
+    background-color: rgba(96, 74, 38, 0.95);
+}
+
+.xk-cbt-pop {
+    position: absolute;
+    bottom: 128px;
+    left: 30%;
+    right: 30%;
+    max-height: 42%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.92);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.5);
+}
+
+.xk-cbt-log {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 340px;
+    height: 128px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.8);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.35);
+}
+
+.xk-cbt-log--open {
+    height: 46%;
+    width: 440px;
+}
+
+.xk-cbt-log-head {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.xk-cbt-log .xk-combat-log {
+    flex-grow: 1;
+}
+
+.xk-cbt-log .xk-combat-log-line {
+    font-size: 11px;
+}
+
+.xk-cbt-grid-panel {
+    position: absolute;
+    right: 12px;
+    top: 150px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.9);
+    border-width: 1px;
+    border-color: rgba(201, 164, 101, 0.45);
+}
+
+.xk-cbt-hover {
+    position: absolute;
+    max-width: 300px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: normal;
+    background-color: rgba(18, 16, 13, 0.9);
+    border-width: 1px;
+    border-color: rgba(118, 186, 108, 0.8);
+    color: rgb(232, 223, 204);
+}
+
+.xk-cbt-hover--bad {
+    border-color: rgba(206, 92, 62, 0.9);
+}
+
+.xk-cbt-confirm {
+    position: absolute;
+    left: 35%;
+    right: 35%;
+    top: 38%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background-color: rgba(18, 16, 13, 0.96);
+    border-width: 1px;
+    border-color: rgb(232, 168, 72);
+}
+
+.xk-cbt-confirm-text {
+    white-space: normal;
+    margin-bottom: 8px;
+}
+
+.xk-cbt-confirm-buttons {
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.xk-cbt .xk-combat-prompt {
+    position: absolute;
+    left: 30%;
+    right: 30%;
+    bottom: 140px;
+}

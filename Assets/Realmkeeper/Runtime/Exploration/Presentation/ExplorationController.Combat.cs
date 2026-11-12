@@ -138,6 +138,8 @@ namespace Realmkeeper.Exploration.Presentation
             var s = Combat?.Snapshot;
             if (_session == null || s == null || s.Player == null) return CommandResult.InvalidState("There is no fight going on.");
             var result = _session.Dispatch(new CombatActionCommand(s.Id, s.Player.Id, action, s.Sequence));
+            ClearPreview(); // Combat Overhaul: an action ends any hover
+            Combat?.HideConfirm();
             RefreshCombat(Explain(result), !result.IsSuccess);
             _aiTimer = AiTurnSeconds;
             return result;
@@ -158,6 +160,8 @@ namespace Realmkeeper.Exploration.Presentation
         public CommandResult CombatMove(GridPos to)
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            var plan = _session.PlanPlayerMove(to); // Combat Overhaul: the planner's route (round walls), walked
+            if (plan.Reachable) return WalkPlan(plan);
             var problem = _session.PlayerMoveProblem(to, out var path);
             if (problem != null)
             {
@@ -228,6 +232,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             Combat.Show(s, result, failed);
             UpdateMarkers(s);
+            ShowCombatFeedback(s); // Combat Overhaul: what happened, in the world, once
             SetWindowMode(true);
             RefreshPracticeButton();
         }
@@ -267,6 +272,8 @@ namespace Realmkeeper.Exploration.Presentation
                 if (_aiTimer <= 0f) RunAiTurn();
             }
 
+            UpdateCombatWorld(); // Combat Overhaul: hover, click to move, walking, keys
+
             var keys = Keyboard.current;
             if (keys != null && !WindowOpen && !Typing() && !InPlace && keys.fKey.wasPressedThisFrame) StartPracticeFight(); // Phase 13: not inside places
             if (keys != null && !WindowOpen && !Typing() && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
@@ -297,7 +304,7 @@ namespace Realmkeeper.Exploration.Presentation
                 }
 
                 var pos = SquareToWorld(c.Position);
-                view.transform.position = pos;
+                MoveMarkerTo(key, view, pos); // Combat Overhaul: they walk there
                 view.SetActive(c.State != VitalState.Fled);
                 var ring = view.transform.Find("Ring");
                 if (ring != null) ring.localScale = c.IsActive ? new Vector3(1.25f, 0.02f, 1.25f) : new Vector3(1.0f, 0.02f, 1.0f);
@@ -309,8 +316,7 @@ namespace Realmkeeper.Exploration.Presentation
                     figure.localPosition = down ? new Vector3(0f, 0.3f, 0f) : new Vector3(0f, 0.9f, 0f);
                 }
 
-                if (c.Kind == CombatantKind.Player && c.State == VitalState.Conscious && (Player.transform.position - pos).sqrMagnitude > 0.04f)
-                    Player.Teleport(new LocalPose(pos.x, pos.y, pos.z, Player.transform.eulerAngles.y));
+                if (c.Kind == CombatantKind.Player && c.State == VitalState.Conscious) MovePlayerTo(pos); // Combat Overhaul: the body walks the route
             }
         }
 
@@ -349,6 +355,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void ClearMarkers()
         {
+            DestroyPreview();
             if (_markers != null) Object.Destroy(_markers);
             _markers = null;
             _markerViews.Clear();

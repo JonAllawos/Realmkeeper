@@ -221,7 +221,7 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(controller.Combat.Snapshot.Player.Effects, Has.Some.Contains("Rage"));
             controller.Combat.Inspect(controller.Combat.Snapshot.Player.Id);
             Assert.That(controller.Combat.InspectorText, Does.Contain("Effects: Rage"), "The inspector names the effect.");
-            Assert.That(controller.Combat.Root.Q<VisualElement>("xk-combat-order").Query<Button>().ToList().Any(b => b.text.Contains("Rage")), Is.True, "So does the initiative row.");
+            Assert.That(controller.Combat.Root.Q<VisualElement>("xk-combat-order").Query<Button>().ToList().Any(b => b.text.Contains("Rage") || b.tooltip.Contains("Rage")), Is.True, "So does the initiative chip (its tooltip, since the combat overhaul made the chips compact).");
             Assert.That(controller.Combat.Snapshot.Log.Any(l => l.Kind == CombatLogKind.Feature && l.Text.Contains("rages")), Is.True);
             var again = MagicDriver.OptionIndex(controller, "Rage");
             Assert.That(controller.Combat.Snapshot.PlayerOptions[again].Unavailable, Is.Not.Null, "Shown unavailable, with the reason.");

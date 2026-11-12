@@ -434,7 +434,7 @@ namespace Realmkeeper.Exploration.Presentation
             {
                 SetCursorFree(true);
             }
-            else if (_cursorFree && mouse != null && mouse.leftButton.wasPressedThisFrame && Hud != null && !Hud.IsPointerOverUi(mouse.position.ReadValue()))
+            else if (_cursorFree && !InFight && mouse != null && mouse.leftButton.wasPressedThisFrame && Hud != null && !Hud.IsPointerOverUi(mouse.position.ReadValue())) // Combat Overhaul: in a fight a click on the ground is a move
             {
                 SetCursorFree(false);
             }
