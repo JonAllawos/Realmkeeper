@@ -6,7 +6,7 @@
 - Phase 19A research: `6c49d3a`;
 - Phase 19B implementation and documentation: see section 12.
 
-**Status.** A substantial first pass. The design system, the shared components, the entry screens and the atlas are complete. The strategic map, exploration HUD, hub, dialogue and combat are restyled on the shared system and given icons. Several items are partial or deferred (section 3). Not hand-played (section 9).
+**Status.** A substantial first pass. Full Unity suites: EditMode 833/834 (the one failure was a timing bound, raised at the owner's instruction and re-run green); PlayMode 121 passed, 0 failed. The design system, the shared components, the entry screens and the atlas are complete. The strategic map, exploration HUD, hub, dialogue and combat are restyled on the shared system and given icons. Several items are partial or deferred (section 3). Not hand-played (section 9).
 
 ## 1. What was done (Implemented)
 
@@ -87,27 +87,32 @@
 | Suite | When | Passed | Failed | Skipped | Inconclusive | Timed out |
 |---|---|---|---|---|---|---|
 | .NET (Release), all EditMode test sources | Final code | **834** | 0 | 0 | — | 0 |
-| Unity PlayMode, targeted: Phase 19 UI tests, capture, session restart | Before the last test move | 7 | **1** | 0 | 0 | 0 |
-| Unity EditMode, full | **Still running when this was committed and pushed** (started 15:57) | — | — | — | — | — |
-| Unity PlayMode, full | **Not yet run** (queued after EditMode) | — | — | — | — | — |
+| Unity EditMode, full | At `6f225d8` (41 min) | **833** | **1** | 0 | 0 | 0 |
+| Unity PlayMode, full | At `6f225d8` (8.3 min) | **121** | 0 | 31 | 2 | 0 |
+| Unity PlayMode, Phase 19 capture | At `6f225d8` | 1 | 0 | 0 | 0 | 0 |
+| After the bound change: `Phase18PerformanceTests`, Unity and .NET | Final code | 3 + 3 | 0 | 0 | 0 | 0 |
 
 **The .NET suite** is 834 tests: 830 from Phase 18, plus 3 save-list tests and 1 credits test.
 
-**The targeted Unity run:**
-- **Title:** founds a named world, rejects bad input, lists the world, and deletes it only after confirmation.
-- **Settings:** opened from the top bar; the interface scale changes the whole interface.
-- **Tooltips:** shown at run time.
-- **Modal:** Esc cancels, and the action runs once.
-- **Session restart, both tests:** the Load button now confirms first.
-- **Capture:** passed.
-- **The 1 failure** was the hub and combat icon test in the light test fixture. `HubWindow` is null without the full scene. The test was moved into `Phase19ScenePlayModeTests`, which loads the real scene (as the capture does, where the hub works). **That move has not been run yet.**
-- **Not yet run anywhere:**
-  - the new `EveryIconMeaning_LoadsItsTexture` test;
-  - the atlas-chip test.
+**The EditMode failure, and a bound raised at the owner's instruction.**
+- **What failed.** `Phase18PerformanceTests.ThePhase18Content_IsMeasured` measured "which findings a person cares about" at **1.88 ms per person** in Unity, against a **1 ms** bound.
+- **Why it had not shown before.** The test was added late in Phase 18 and had run only under .NET, where it measures 0.42 ms. This was its first run inside Unity (Mono).
+- **Not a Phase 19 regression.** Phase 19 changed none of the code it measures.
+- **The change.** At the owner's instruction, the bound was **raised from 1 ms to 3 ms**. The test says so in a comment, and the Phase 18 report's performance table notes it.
+- **The re-run.** The test file was re-run in Unity (3/3; it measured 1.87 ms) and in .NET (3/3).
+- **The full EditMode suite was not re-run** after this one-line change.
 
-  Both were added or changed after the targeted run.
+**Full PlayMode run:**
+- **0 failures.**
+- **Skipped:** the 31 capture sets, which need `RK_CAPTURE_DIR`.
+- **Inconclusive:** 2, the known dice-dependent guards in Phase 9 (spell composer) and Phase 11 (loot).
+- **All 9 Phase 19 tests passed**, including those not run earlier:
+  - `EveryIconMeaning_LoadsItsTexture`;
+  - the atlas-chip test;
+  - the scene-based hub and combat test `TheHubTabs_AndTheCombatBar_SpeakTheSameIconLanguage`.
+- **The two session-restart tests passed**, the Load button now confirming first.
 
-**Not claimed:** no full Unity regression result is reported here. At the owner's instruction, the work was committed and pushed while the full EditMode run was in progress. The full EditMode and PlayMode results will be added when the runs finish.
+**The earlier targeted run** (7 passed, 1 failed) had that hub test in the light fixture, where `HubWindow` is null. Moved to the real scene, it now passes.
 
 ## 7. Screenshots
 
@@ -177,7 +182,8 @@ Each was looked at. Findings that led to fixes during the phase:
 - **Branch:** `feature/phase-0-1-foundation`.
 - **Commits:**
   - Phase 19A research: `6c49d3a`;
-  - Phase 19B: one commit after it (the hash is in `git log`; a commit cannot contain its own hash).
+  - Phase 19B: `6f225d8`;
+  - the full test results and the raised bound: the commit after it (see `git log`).
 - **Pushed to `origin`** at the owner's explicit instruction ("commit and push all remaining changes"), together with the earlier local commits, including Phase 18 (`713b9a0`, `c3dcd7e`).
 - **Not committed, as before:**
   - `ProjectSettings/GraphicsSettings.asset` (unmodified);

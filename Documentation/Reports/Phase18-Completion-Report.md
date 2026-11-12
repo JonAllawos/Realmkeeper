@@ -324,7 +324,7 @@ Measured back to back on the same machine: the Phase 17 code (`git archive HEAD`
 |---|---|
 | Layout generation, finishing step included | 0.05–0.07 ms a place |
 | A town's overheard exchanges | 0.48 ms |
-| Which findings a person cares about | 0.42 ms per person (once per conversation) |
+| Which findings a person cares about | 0.42 ms per person under .NET; 1.87 ms in Unity (once per conversation). *Phase 19 note: the test bound was raised from 1 ms to 3 ms at the owner's instruction, after the first Unity run measured 1.88 ms.* |
 
 - **Day cost.** On the connected world, a day costs about 2–4 ms more (+15–20%), within run-to-run noise of about 25%. On the campaign fixture, it is unchanged.
 - **Load** varies widely between runs.

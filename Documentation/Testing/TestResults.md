@@ -765,6 +765,8 @@ At the owner's direction, the full Unity suites were not rerun after the last fi
 | Run | Passed | Failed | Skipped | Inconclusive | Timed out | Notes |
 |---|---|---|---|---|---|---|
 | .NET, Release, all tests (final) | 834 | 0 | 0 | — | 0 | Includes 3 save-list tests and 1 credits test |
-| Unity PlayMode, targeted (Phase 19 UI tests, capture, session restart) | 7 | 1 | 0 | 0 | 0 | The failure: the hub test needed the real scene; moved to `Phase19ScenePlayModeTests`, which has not been run since |
-| Unity EditMode, full | — | — | — | — | — | Running when the owner asked for commit and push; results to follow |
-| Unity PlayMode, full | — | — | — | — | — | Queued after EditMode |
+| Unity PlayMode, targeted (Phase 19 UI tests, capture, session restart) | 7 | 1 | 0 | 0 | 0 | The failure: the hub test needed the real scene; moved to `Phase19ScenePlayModeTests`, which passed in the full run below |
+| Unity EditMode, full (at `6f225d8`) | 833 | 1 | 0 | 0 | 0 | 41 min. The failure: `Phase18PerformanceTests.ThePhase18Content_IsMeasured`, findings per person 1.88 ms against a 1 ms bound (its first run in Unity; 0.42 ms under .NET) |
+| Unity PlayMode, full (at `6f225d8`) | 121 | 0 | 31 | 2 | 0 | 8.3 min. Skipped: the capture sets (no `RK_CAPTURE_DIR`). Inconclusive: the known dice guards in Phase 9 and Phase 11. All 9 Phase 19 tests passed. |
+| Unity PlayMode, Phase 19 capture | 1 | 0 | 0 | 0 | 0 | 34 files written |
+| Bound raised (owner's instruction): `offerMs < 3` (was 1); re-run in Unity and .NET | 3 + 3 | 0 | 0 | 0 | 0 | `Phase18PerformanceTests`: Unity measured 1.87 ms |

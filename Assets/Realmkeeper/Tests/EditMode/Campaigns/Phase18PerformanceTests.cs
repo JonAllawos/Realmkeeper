@@ -81,7 +81,10 @@ namespace Realmkeeper.Tests.EditMode.Campaigns
             Assert.That(layoutMs, Is.LessThan(200));
             Assert.That(storyMs, Is.LessThan(20));
             Assert.That(exchangeMs, Is.LessThan(5));
-            Assert.That(offerMs, Is.LessThan(1));
+            // Raised from 1 ms to 3 ms at the owner's instruction (2026-11-12, Phase 19): the first run of this test inside
+            // Unity measured 1.88 ms per person (Mono), against 0.42 ms under .NET. The bound still catches a pathological
+            // regression; it is evaluated once per conversation, not per frame.
+            Assert.That(offerMs, Is.LessThan(3));
             Assert.That(dayMs, Is.LessThan(200));
         }
 
