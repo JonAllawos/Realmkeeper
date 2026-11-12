@@ -6,7 +6,13 @@
 | `SettlementData`, `ResourceInventory` | `WorldData` | Simulation systems (on a working copy), generator | Yes | Save file |
 | `FactionData`, `NpcData` | `WorldData` | Generator (Phase 1) | Yes | Save file |
 | `HistoricalEvent` | `WorldData` | Appended by the scheduler; immutable | Yes | Save file |
-| `RegionMap` (elevation, terrain, rivers, roads) | `WorldSession.Map` | Generator; future `IRegionMapEditor` | **No**, rebuilt from seed + generator version | Seed |
+| `RegionMap` (elevation, terrain, rivers, roads) | `WorldSession` (one per region: `MapFor`; `Map` is the player's region, Phase 16) | Generator; future `IRegionMapEditor` | **No**, rebuilt from each region's own seed + generator version | Region seed |
+| `RegionData` atlas fields (atlas cell, seed, mountain side, kind, discovery, neighbours, landmarks) (Phase 16) | `WorldData` | Atlas genesis (once); travel (discovery) | Yes | Save file |
+| Route graph (`RouteSegmentData`: kind, length, terrain, condition, bridge, blockade) (Phase 16) | `WorldData` | Atlas genesis (once); world events (bridges, blockades) on a working copy | Yes | Save file (geometry still regenerated from the map) |
+| Journey (`JourneyData`) (Phase 16) | `WorldData` | Travel commands only | Yes | Save file |
+| Travelling groups (`TravelingGroupData`) (Phase 16) | `WorldData` | `realmkeeper.groups`, `realmkeeper.faction-activity`, world events (on a working copy) | Yes | Save file (cargo is the shipment's; strength of bandits is the population's) |
+| World events (`WorldEventData`), including what the player knows of them (Phase 16) | `WorldData` | `realmkeeper.world-events`, `realmkeeper.groups`; travel and arrival (the player's knowledge) | Yes | Save file |
+| Atlas view (`AtlasView`) and its selection and layers (Phase 16) | Presentation (queries) | Input | No | Transient, derived from the world |
 | Simulation rule constants (`FoodEconomyRules`) | Composition root | Configuration | No | Code / future ScriptableObject |
 | GameObjects, meshes, materials | Presentation | Presentation | Never | Derived from the two rows above |
 | UI selection state (selected `SettlementId`) | Presentation | Input | No | Transient |

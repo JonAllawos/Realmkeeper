@@ -42,8 +42,23 @@ namespace Realmkeeper.Tests.EditMode.Phase2
         /// Rebuilds the v16 layout (Phase 14): no party, no companion records, no party system, no items owned by people
         /// (their gear stays by name) and no AI reasons in fight logs.
         /// </summary>
+        /// <summary>Rebuilds the v17 layout (Phase 15): no route network, journey, groups, world events, atlas fields or Phase 16 systems.</summary>
+        public static void StripToV17(Newtonsoft.Json.Linq.JObject doc)
+        {
+            doc["schemaVersion"] = 17;
+            var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
+            foreach (var field in new[] { "routes", "journey", "groups", "worldEvents", "nextWorldEventNumber" }) w.Remove(field);
+            var systems = w["settings"]?["enabledSimulationSystems"] as Newtonsoft.Json.Linq.JArray;
+            foreach (var id in new[] { Realmkeeper.Simulation.Atlas.GroupSystem.Id, Realmkeeper.Simulation.Atlas.FactionActivitySystem.Id, Realmkeeper.Simulation.Atlas.WorldEventSystem.Id })
+                systems?.FirstOrDefault(t => (string)t == id)?.Remove();
+            foreach (Newtonsoft.Json.Linq.JObject r in (w["regions"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray())
+                foreach (var f in new[] { "atlasX", "atlasZ", "seed", "mountainDirection", "generatorVersion", "kind", "discovery", "neighbours", "landmarks" }) r.Remove(f);
+            foreach (Newtonsoft.Json.Linq.JObject t in (w["tradeRoutes"] as Newtonsoft.Json.Linq.JArray) ?? new Newtonsoft.Json.Linq.JArray()) t.Remove("blockedBy");
+        }
+
         public static void StripToV16(Newtonsoft.Json.Linq.JObject doc)
         {
+            StripToV17(doc); // Phase 16
             doc["schemaVersion"] = 16;
             var w = (Newtonsoft.Json.Linq.JObject)doc["world"];
             foreach (var field in new[] { "party", "companions" }) w.Remove(field);

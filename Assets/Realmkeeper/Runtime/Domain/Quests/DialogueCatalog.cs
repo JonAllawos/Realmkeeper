@@ -346,6 +346,7 @@ namespace Realmkeeper.Domain.Quests
             AddPhase13(); // Phase 13: dialogue for places
             AddPhase14(); // Phase 14: givers of the new places' quests
             AddPhase15(); // Phase 15: a companion's own quest
+            AddPhase16(); // Phase 16: quests world events call for
         }
 
         /// <summary>Checks every graph: a start node, unique node and response IDs, every Next pointing at a node, "end" or the hub.</summary>

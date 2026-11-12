@@ -169,7 +169,7 @@ namespace Realmkeeper.Presentation
             if (change.GeographyChanged) RebuildWorld(); // rebuilds the views, then the indicators
             else
             {
-                Indicators.Refresh(Session.GetSettlements()); // ratings, shortages and trade change daily
+                Indicators.Refresh(Session.GetSettlementsInView()); // ratings, shortages and trade change daily
                 PoliticalOverlay.Refresh(Session);
             }
         }
@@ -178,9 +178,9 @@ namespace Realmkeeper.Presentation
         {
             if (Session == null || !Session.HasWorld) return;
             var map = Session.Map;
-            WorldView.Rebuild(map, Session.GetSettlements(), id => Session.GetSettlementLayout(id));
+            WorldView.Rebuild(map, Session.GetSettlementsInView(), id => Session.GetSettlementLayout(id));
             Indicators.Clear();
-            Indicators.Refresh(Session.GetSettlements());
+            Indicators.Refresh(Session.GetSettlementsInView());
             PoliticalOverlay.Refresh(Session);
             CameraController.FrameRegion(WorldView.Bounds, map.WaterWorldHeight);
             Debug.Log($"Realmkeeper: built '{Session.GetOverview().WorldName}' (seed {Session.GetOverview().Seed}): " +

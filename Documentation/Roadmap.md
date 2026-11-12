@@ -23,7 +23,21 @@
 | Combat overhaul: tactical movement, combat UI, action selection and visual feedback | Done (`08c222e`, pushed on the owner's instruction) | `Reports/Combat-Overhaul-Audit.md`, `Reports/Combat-Overhaul-Completion-Report.md`, `Systems/Combat.md` (the combat interface), ADR-0072 |
 | Art assets: KayKit skeletons and character animations (CC0); Quaternius Bestiary local only | Done (`d975302`, report `4324084`, pushed) | `Reports/Art-Assets-KayKit-Bestiary-Report.md`, `Art/` credits |
 | Phase 15: Companions, Parties, Relationships & Party Progression (with the Phase 15 art and animation addendum) | Done (`9a48d27`, pushed on the owner's instruction) | `Systems/Party.md`, `Reports/Phase15-Preflight-Audit.md`, `Reports/Phase15-Art-Animation-Report.md`, `Reports/Phase15-Completion-Report.md`, ADR-0073…0075 |
-| Phase 16 | Not started (needs the owner's authorisation) | — |
+| Phase 16: World Events, Regional Travel, Dynamic Simulation & Persistent World Expansion | Done (committed locally; not pushed) | `Systems/Travel.md`, `Systems/WorldEvents.md`, `Systems/WorldGeneration.md` (the connected world), `Reports/Phase16-Preflight-Audit.md`, `Reports/Phase16-Completion-Report.md`, ADR-0076…0081 |
+| Phase 17 | Not started (needs the owner's authorisation) | — |
+
+## Phase 15 carry-forward (status after Phase 16)
+
+| Phase 15 limitation | Status |
+|---|---|
+| Party members are not drawn on the strategic map | **Done in Phase 16.** The atlas marks the player "You + n" and lists the party; the party travels and arrives together. |
+| A waiting member in town reappears behind the player's arrival point | **Done in Phase 16.** Their spot is saved (`waitPose`) and they are drawn there. |
+| No direct control of companions' turns | Open |
+| One personal quest template | Open |
+| No companion banter, and no companion-to-companion relationships | Open |
+| Followers in places stand with the player rather than walking room routes | Open |
+| Charged items do not recharge for companions on a long rest | Open |
+| The leader is presentation only | Open |
 
 ## Phase 2 completion: what it added
 
@@ -39,8 +53,8 @@
 
 ## Known limitations carried forward
 
-- One region per world; three settlements in the default world.
-- There are no births, deaths, migration of individuals, construction, crafting or caravans.
+- One region per world; three settlements in the default world. (Phase 16: a new game has six connected regions of three settlements each; an old world keeps one until the player discovers the lands beyond.)
+- There are no births, deaths, migration of individuals, construction, crafting or caravans. (Crafting arrived in Phase 11, caravans and refugees in Phase 16.)
   These were out of scope.
 - Performance was measured only at the default world size: a 30-day run takes 7–9 ms. No
   claim is made for larger worlds.

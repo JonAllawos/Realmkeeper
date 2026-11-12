@@ -82,7 +82,7 @@ namespace Realmkeeper.Tests.PlayMode
             var controller = Object.FindAnyObjectByType<ExplorationInstaller>().Controller;
             controller.ManageCursor = false;
             controller.SetInput(new ScriptedExplorationInput());
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
 
             // Morning, with the merchant open.
             for (var i = 0; i < 200 && !session.GetShops(town.SettlementId).First(s => s.Categories.Contains(ShopCategory.General)).IsOpen; i++)

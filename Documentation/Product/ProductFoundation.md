@@ -183,3 +183,19 @@ This note does not change any requirement.
   binding requirements still hold: a companion is the world's own persistent person, not a copy; every change is a
   validated command; the scene is rebuilt from the world; and v16 saves upgrade once (schema v17). Solo play stays
   complete: nothing in the world or its quests requires a party.
+- **Phase 16 (2026-11-12).** Phase 16 widens the world, which §1 and Addendum A already describe as a persistent
+  simulation, from one region to six connected ones. It adds:
+  - regions made by the one generator, with borders that agree with each other;
+  - a persistent route graph;
+  - journeys on the one clock that end in the town;
+  - caravans that carry the economy's own goods;
+  - outlaws, patrols and refugees on the roads;
+  - world events with causes, a lifecycle and consequences applied once;
+  - news that reaches the player through people;
+  - simulation tiers;
+  - a world atlas that shows only what the player knows.
+
+  It stays inside the established principles. One world model; every change a command; the scene and the atlas
+  rebuilt from the world; and v17 saves upgraded once (schema v18). An old world keeps its single region until the
+  player chooses to discover the lands beyond. The new regions use the generator's existing name and terrain rules,
+  so no campaign canon is written. War between kingdoms, weather, mounts and ships remain out of scope.

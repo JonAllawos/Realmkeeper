@@ -179,8 +179,9 @@ namespace Realmkeeper.Infrastructure.Generation
 
             // Settlements in a stable order; the first that suits and has a site in reach is the anchor.
             var anchors = new List<SettlementData>();
-            foreach (var s in world.Settlements) if (s != null && anchorOk(s)) anchors.Add(s);
-            if (anchors.Count == 0) anchors.AddRange(world.Settlements);
+            bool OnMap(SettlementData s) => map.RegionId.IsEmpty || s.RegionId == map.RegionId; // Phase 16: positions are cells of their own region
+            foreach (var s in world.Settlements) if (s != null && OnMap(s) && anchorOk(s)) anchors.Add(s);
+            if (anchors.Count == 0) foreach (var s in world.Settlements) if (s != null && OnMap(s)) anchors.Add(s);
             anchors.Sort((a, b) => a.SettlementId.CompareTo(b.SettlementId));
             var start = (int)(SeedMixer.Mix(seed) % (ulong)anchors.Count);
             for (var i = 0; i < anchors.Count; i++)
@@ -215,7 +216,7 @@ namespace Realmkeeper.Infrastructure.Generation
                     if (d < lo || d > hi) continue;
                     var clear = true;
                     foreach (var s in world.Settlements)
-                        if (Math.Max(Math.Abs(x - s.Position.X), Math.Abs(z - s.Position.Z)) < MinDistance - 1) clear = false;
+                        if ((map.RegionId.IsEmpty || s.RegionId == map.RegionId) && Math.Max(Math.Abs(x - s.Position.X), Math.Abs(z - s.Position.Z)) < MinDistance - 1) clear = false;
                     foreach (var p in made)
                         if (Math.Max(Math.Abs(x - p.Cell.X), Math.Abs(z - p.Cell.Z)) < MinDistance) clear = false;
                     if (!clear) continue;

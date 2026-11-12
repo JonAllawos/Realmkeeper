@@ -87,7 +87,7 @@ namespace Realmkeeper.Presentation
             var map = _worldView != null ? _worldView.Map : null;
             if (!IsOn || session == null || !session.HasWorld || map == null) return;
             var factions = session.GetFactions();
-            foreach (var s in session.GetSettlements())
+            foreach (var s in session.GetSettlementsInView())
             {
                 var view = _worldView.FindSettlementView(s.SettlementId);
                 var politics = session.GetSettlementPolitics(s.SettlementId);

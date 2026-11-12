@@ -70,7 +70,7 @@ namespace Realmkeeper.Tests.PlayMode
 
         private static IEnumerator EnterTown(RealmkeeperBootstrap bootstrap)
         {
-            var town = bootstrap.Session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = bootstrap.Session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             Assert.That(bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);
             yield return null;
@@ -99,7 +99,7 @@ namespace Realmkeeper.Tests.PlayMode
             var session = bootstrap.Session;
             var runtime = Object.FindAnyObjectByType<RealmkeeperRuntime>();
             var controller = Controller();
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             var summary = OpenGeneralShop(session, town);
             yield return EnterTown(bootstrap);
             runtime.Playback.Pause(); // hold the clock: the shop stays open for the test
@@ -283,7 +283,7 @@ namespace Realmkeeper.Tests.PlayMode
             var session = bootstrap.Session;
             var runtime = Object.FindAnyObjectByType<RealmkeeperRuntime>();
             var controller = Controller();
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             var minute = session.GetWorldTime().MinuteOfDay;
             session.Execute(new AdvanceTimeCommand(1440 - minute + 2 * 60)); // 02:00
             yield return EnterTown(bootstrap);

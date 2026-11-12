@@ -16,7 +16,7 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(Bootstrap.LastCreateResult.IsSuccess, Is.True, Bootstrap.LastCreateResult.Message);
             Assert.That(Bootstrap.Session.HasWorld, Is.True);
 
-            var settlements = Bootstrap.Session.GetSettlements();
+            var settlements = Bootstrap.Session.GetSettlementsInView();
             Assert.That(settlements.Count, Is.EqualTo(3));
 
             var expected = new HashSet<SettlementId>();

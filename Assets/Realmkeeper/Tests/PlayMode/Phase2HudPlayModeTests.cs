@@ -22,7 +22,7 @@ namespace Realmkeeper.Tests.PlayMode
         public IEnumerator Inspector_ExplainsRatings_AndShowsTheFoodTrend()
         {
             Bootstrap.Session.Execute(new AdvanceDaysCommand(20));
-            var s = Bootstrap.Session.GetSettlements().First();
+            var s = Bootstrap.Session.GetSettlementsInView().First();
             Bootstrap.Selection.Select(s.SettlementId);
             yield return null;
 
@@ -37,7 +37,7 @@ namespace Realmkeeper.Tests.PlayMode
         [UnityTest]
         public IEnumerator RouteToggle_SuspendsAndResumesThroughTheRegistry()
         {
-            var s = Bootstrap.Session.GetSettlements().First();
+            var s = Bootstrap.Session.GetSettlementsInView().First();
             Bootstrap.Selection.Select(s.SettlementId);
             yield return null;
             var route = Bootstrap.Session.GetTradeRoutes(s.SettlementId).First();
@@ -65,7 +65,7 @@ namespace Realmkeeper.Tests.PlayMode
                 Bootstrap.Session.Execute(new AdvanceDayCommand());
                 yield return null;
                 var expected = 0;
-                foreach (var s in Bootstrap.Session.GetSettlements())
+                foreach (var s in Bootstrap.Session.GetSettlementsInView())
                 {
                     Assert.That(Bootstrap.Indicators.ShownFor(s.SettlementId), Is.EqualTo(s.Indicators), $"Day {day + 1}, {s.Name}");
                     expected += Bits(s.Indicators);

@@ -41,6 +41,9 @@ namespace Realmkeeper.Exploration.Presentation
         public CommandResult PartyCommand(ICommand command)
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
+            // Phase 16: told to wait, a companion keeps the spot their body stands on (found there on return).
+            if (command is SetFollowModeCommand wait && wait.Mode == FollowMode.Wait && wait.At == null && _companions.TryGetValue(wait.NpcId, out var standing) && standing != null)
+                command = new SetFollowModeCommand(wait.NpcId, FollowMode.Wait, new LocalPose(standing.transform.position.x, standing.transform.position.y, standing.transform.position.z, standing.transform.eulerAngles.y));
             var r = DispatchParty(command);
             _partySignature = null;
             SyncParty();
@@ -103,6 +106,7 @@ namespace Realmkeeper.Exploration.Presentation
                     if (npc == null) continue;
                     var slot = CompanionFollower.SlotFor(Player.transform, m.Order, 2.5f + 1.2f * m.Order);
                     var at = slot;
+                    if (m.Mode == FollowMode.Wait && m.WaitPose is LocalPose kept) at = new Vector3(kept.X, kept.Y, kept.Z); // Phase 16: where they were left
                     if (_residents.TryGetValue(m.NpcId, out var resident))
                     {
                         // They step out of their resident body: where it stood if they just joined here; beside the player on arrival.

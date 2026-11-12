@@ -18,7 +18,7 @@ namespace Realmkeeper.Tests.PlayMode
     {
         private const string TestSlot = "playmode-economy-test";
 
-        private SettlementSummary Town => Bootstrap.Session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+        private SettlementSummary Town => Bootstrap.Session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
 
         private IEnumerator SelectTown()
         {
@@ -62,12 +62,13 @@ namespace Realmkeeper.Tests.PlayMode
             yield return SelectTown();
 
             var expected = Bootstrap.Session.GetTradeRoutes(Town.SettlementId).Count;
-            Assert.That(expected, Is.EqualTo(4), "The town has a route to and from each of the other two settlements.");
+            var crossings = Bootstrap.Session.GetTradeRoutes(Town.SettlementId).Count(r => Bootstrap.Session.FindSettlement(r.OriginId).RegionId != Bootstrap.Session.FindSettlement(r.DestinationId).RegionId);
+            Assert.That(expected - crossings, Is.EqualTo(4), "The town has a route to and from each of the other two settlements of its vale (and more across a border, Phase 16).");
             // Each route line sits in a row with its Suspend/Resume toggle, so look at every depth.
             var lines = Bootstrap.Hud.TradeList.Query<Label>(className: "rk-trade-line").ToList().Select(l => l.text).ToList();
             Assert.That(Bootstrap.Hud.TradeList.Query<Button>(className: "rk-route-toggle").ToList().Count, Is.EqualTo(expected), "One toggle per route.");
             Assert.That(lines.Count, Is.EqualTo(expected + 1), "One line per route plus the trade activity line.");
-            foreach (var other in Bootstrap.Session.GetSettlements().Where(s => s.SettlementId != Town.SettlementId))
+            foreach (var other in Bootstrap.Session.GetSettlementsInView().Where(s => s.SettlementId != Town.SettlementId))
                 Assert.That(lines.Any(l => l.Contains(other.Name)), Is.True, other.Name);
         }
 
@@ -91,7 +92,7 @@ namespace Realmkeeper.Tests.PlayMode
             Bootstrap.Session.Execute(new AdvanceDaysCommand(120));
             yield return null;
 
-            var short_ = Bootstrap.Session.GetSettlements().FirstOrDefault(s => s.Economy.Any(r => r.InShortage));
+            var short_ = Bootstrap.Session.GetSettlementsInView().FirstOrDefault(s => s.Economy.Any(r => r.InShortage));
             Assert.That(short_, Is.Not.Null, "Fixture: some settlement is short of something.");
             Bootstrap.Selection.Select(short_.SettlementId);
             yield return null;

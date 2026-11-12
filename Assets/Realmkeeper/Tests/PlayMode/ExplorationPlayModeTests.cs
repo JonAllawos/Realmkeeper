@@ -60,7 +60,7 @@ namespace Realmkeeper.Tests.PlayMode
             return false;
         }
 
-        private SettlementSummary FirstSettlement => Session.GetSettlements().OrderBy(s => s.SettlementId.ToString()).First();
+        private SettlementSummary FirstSettlement => Session.GetSettlementsInView().OrderBy(s => s.SettlementId.ToString()).First();
 
         private IEnumerator Enter(SettlementSummary settlement)
         {
@@ -135,7 +135,7 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(player.LocationKind, Is.EqualTo(CharacterLocationKind.WorldMap));
             Assert.That(player.LastSettlementId, Is.EqualTo(s.SettlementId));
             Assert.That(Session.GetOverview().Date, Is.EqualTo(dateBefore), "Same world, same day: nothing was regenerated.");
-            Assert.That(Session.GetSettlements().Count, Is.EqualTo(Bootstrap.WorldView.Settlements.Count));
+            Assert.That(Session.GetSettlementsInView().Count, Is.EqualTo(Bootstrap.WorldView.Settlements.Count));
         }
 
         [UnityTest]

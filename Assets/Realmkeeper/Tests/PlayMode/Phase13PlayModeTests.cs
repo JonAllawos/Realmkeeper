@@ -283,7 +283,7 @@ namespace Realmkeeper.Tests.PlayMode
             var placeId = bindings["place"];
 
             // The asking: in the giver's settlement, through the conversation window.
-            var home = s.GetSettlements().First(x => s.GetPresenceIn(x.SettlementId).Any(p => p.NpcId == giver) || x.SettlementId == s.FindNpc(giver).HomeSettlementId);
+            var home = s.GetSettlementsInView().First(x => s.GetPresenceIn(x.SettlementId).Any(p => p.NpcId == giver) || x.SettlementId == s.FindNpc(giver).HomeSettlementId);
             if (c.IsExploring) { c.ReturnToWorldMap(); yield return PlaceDriver.Frames(); }
             Bootstrap.Selection.Select(home.SettlementId);
             Assert.That(Bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);

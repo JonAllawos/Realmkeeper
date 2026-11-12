@@ -71,7 +71,7 @@ namespace Realmkeeper.Tests.PlayMode
             var controller = Object.FindAnyObjectByType<ExplorationInstaller>().Controller;
             controller.ManageCursor = false;
             controller.SetInput(new ScriptedExplorationInput());
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             Assert.That(bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);
             for (var i = 0; i < 10; i++) yield return null;

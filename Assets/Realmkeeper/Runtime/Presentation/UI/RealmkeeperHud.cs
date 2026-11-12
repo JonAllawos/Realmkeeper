@@ -224,6 +224,7 @@ namespace Realmkeeper.Presentation
             BindPolitics();
             BindPeople();
             BindPlaces(); // Phase 13
+            BindAtlas(); // Phase 16
 
             PlayPauseButton.clicked += () => { if (_playback != null) _playback.Toggle(); else ShowMessage(NoSession()); };
             AdvanceDayButton.clicked += () => Advance(1);
@@ -343,6 +344,7 @@ namespace Realmkeeper.Presentation
             RefreshPolitics();
             RefreshPeople();
             RefreshPlaces(); // Phase 13
+            RefreshAtlas(); // Phase 16
         }
 
         private void OnPlayStateChanged(bool playing)
@@ -371,6 +373,7 @@ namespace Realmkeeper.Presentation
             RefreshPolitics();
             RefreshPeople();
             RefreshPlaces(); // Phase 13
+            RefreshAtlas(); // Phase 16
         }
 
         private void RefreshTopBar()
@@ -396,7 +399,7 @@ namespace Realmkeeper.Presentation
             list.Clear();
             _settlementButtons.Clear();
             if (_session == null || !_session.HasWorld) return;
-            foreach (var s in _session.GetSettlements())
+            foreach (var s in _session.GetSettlementsInView())
             {
                 var id = s.SettlementId;
                 var item = new Button(() =>

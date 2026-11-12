@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 15, 2026-11-12)
+## Implementation status (updated at the end of Phase 16, 2026-11-12)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -35,8 +35,9 @@ present but visibly temporary; **Not started**.
 | 12 | Quests, dialogue, reputation and world interaction | Implemented (`1e593ae`) |
 | 13 | Persistent dungeons, ruins, interiors and exploration | Implemented (`cda9da0`) |
 | 14 | Exploration integrity, living locations, world reactivity (and the combat overhaul) | Implemented (`242fde2`, `08c222e`) |
-| 15 | Companions, parties, relationships and party progression | **Implemented** (`9a48d27`). See below. |
-| 16 | Onwards | Not started |
+| 15 | Companions, parties, relationships and party progression | Implemented (`9a48d27`) |
+| 16 | World events, regional travel, dynamic simulation and persistent world expansion | **Implemented** (committed locally, not pushed). See below. |
+| 17 | Onwards | Not started (needs the owner's authorisation) |
 
 ### §7 Character and RPG system
 
@@ -82,6 +83,11 @@ present but visibly temporary; **Not started**.
 | Location-based encounters | **Implemented** (Phase 13) | A place's inhabitants are lasting individuals (or persistent people) fought with the one engine among the room's walls (blocked squares; AI routes around them); defeated stays defeated; loot lies in the room (ADR-0064) |
 | Escort, rescue, protect | **Implemented** (Phase 13), one quest | The same persistent person held, freed, following through every transition and brought home; protect when they fight beside the player; garrisons posted at their fort (ADR-0066) |
 | Map markers and place discovery | **Implemented** (Phase 13) | Unknown → Rumored (name and direction) → Discovered (marker, ways in) → Visited → Explored → Cleared; the in-place map shows only rooms seen (ADR-0065) |
+| A connected world of regions | **Implemented** (Phase 16), 6 regions | Each region made by the one generator from a derived seed; coherent borders (ranges continue, crossings follow the terrain); identity, neighbours and landmarks from its own terrain; discovery (home visited, neighbours known by name, far lands uncharted); old worlds can discover the lands beyond once (ADR-0076) |
+| Regional travel | **Implemented** (Phase 16) | A persistent route graph with roads, trails, passes and bridges; up to three costed alternatives; journeys hour by hour on the one clock (night at half pace); halt, resume, turn, give up; closed roads stop the way, and the way back stays open; arrival enters the town with the party (ADR-0077, ADR-0078) |
+| Caravans and groups on the roads | **Implemented** (Phase 16) | Every shipment travels with a caravan led by one of the world's people; outlaws, patrols, faction patrols and refugees; attacks and losses through the economy's own accounting (ADR-0079) |
+| World events | **Implemented** (Phase 16), 10 kinds | Shortages, unrest, outlaws, patrols, bridges, blockades, conflicts, disruptions, lost caravans, refugees: from causes, with a lifecycle, consequences applied once, chronicled; known through people as news and rumours; two event quests (ADR-0080) |
+| Simulation tiers and the world atlas | **Implemented** (Phase 16) | Distant regions keep living at a lower cost; the atlas (A) with eight layers, inspectors, travel planning and the travel strip, showing only what the player knows (ADR-0081) |
 
 ### §19 Design principles: how Phases 6–7 respect them
 

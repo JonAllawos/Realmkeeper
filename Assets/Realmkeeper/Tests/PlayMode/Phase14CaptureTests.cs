@@ -181,7 +181,7 @@ namespace Realmkeeper.Tests.PlayMode
             if (c.InPlace) { yield return PlaceDriver.WalkTo(c, s, c.PlaceScene.Passages.First(p => p.Kind == ConnectionKind.Entrance).A); c.LeavePlace(); yield return Settle(); }
 
             // A household and a theft under a resident's eyes; the journal's Crimes tab.
-            var home = Bootstrap.Session.GetSettlements().FirstOrDefault();
+            var home = Bootstrap.Session.GetSettlementsInView().FirstOrDefault();
             if (!c.IsExploring && home != null)
             {
                 Bootstrap.Selection.Select(home.SettlementId);

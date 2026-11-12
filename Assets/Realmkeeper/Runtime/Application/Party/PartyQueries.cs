@@ -40,6 +40,9 @@ namespace Realmkeeper.Application.Party
         /// <summary>Where they wait, in words (empty when following).</summary>
         public string Where { get; set; }
 
+        /// <summary>Phase 16: where they stand while waiting in a settlement, if known.</summary>
+        public LocalPose? WaitPose { get; set; }
+
         public string ClassName { get; set; }
         public int Level { get; set; }
         public int Hp { get; set; }
@@ -98,6 +101,7 @@ namespace Realmkeeper.Application.Party
                     NpcId = m.NpcId, Name = npc.Name, Role = m.Role, Mode = m.Mode, Order = m.Order, IsLeader = w.Party.Leader == m.NpcId,
                     Present = m.Role == PartyRole.Active && (m.Mode == FollowMode.Follow || CompanionLoyalty.SameSpot(w, m)),
                     Where = m.Mode == FollowMode.Wait ? PartyCommandHandlers.WhereWaiting(w, m) : string.Empty,
+                    WaitPose = m.WaitPose,
                     ClassName = sheet?.ClassName, Level = sheet?.Level ?? 0, Hp = sheet?.Hp ?? 0, MaxHp = sheet?.MaxHp ?? 0, ArmorClass = sheet?.ArmorClass ?? 0,
                     State = sheet?.State ?? "unknown", Loyalty = record?.Loyalty ?? 50, Sheet = sheet,
                 };

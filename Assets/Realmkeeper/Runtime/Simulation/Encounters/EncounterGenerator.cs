@@ -36,6 +36,9 @@ namespace Realmkeeper.Simulation.Encounters
         /// it). Only a population actually within reach can be found; it is then much more likely to be met, never conjured.
         /// </summary>
         public string Seek { get; set; }
+
+        /// <summary>Phase 16: draw only from this population (the band that barred the road), wherever on its road it is.</summary>
+        public string Population { get; set; }
     }
 
     /// <summary>A generated encounter before it starts: the setup the engine builds, its origin, and the individuals it draws.</summary>
@@ -86,9 +89,10 @@ namespace Realmkeeper.Simulation.Encounters
             foreach (var p in world.CreaturePopulations)
             {
                 if (p.Count <= 0 || p.RegionId != s.RegionId) continue;
+                if (request.Population != null && p.PopulationId != request.Population) continue; // Phase 16: the band on the road
                 // How far the settlement is from the edge of the population's range (a road band works its whole road).
                 var distance = Math.Max(0, Math.Max(Math.Abs(p.Center.X - s.Position.X), Math.Abs(p.Center.Z - s.Position.Z)) - p.RangeCells);
-                if (distance > 16) continue;
+                if (distance > 16 && request.Population == null) continue;
                 var def = CreatureCatalog.Find(p.CreatureId);
                 if (def == null) continue;
                 var w = 1 + Math.Sqrt(p.Count);

@@ -15,17 +15,18 @@ namespace Realmkeeper.Tests.PlayMode
     {
         private WorldSession Session => Bootstrap.Session;
 
-        private SettlementSummary Of(SettlementType type) => Session.GetSettlements().Single(s => s.SettlementType == type);
+        private SettlementSummary Of(SettlementType type) => Session.GetSettlementsInView().Single(s => s.SettlementType == type);
 
-        private FactionSummary Kingdom => Session.GetFactions().Single(f => f.Type == FactionType.Kingdom);
+        // Phase 16: every region has its own kingdom; this is the one governing the vale on the map.
+        private FactionSummary Kingdom => Session.GetFactions().Single(f => f.Type == FactionType.Kingdom && Session.GetSettlementsInView().Any(s => s.FactionId == f.FactionId));
 
         [UnityTest]
         public IEnumerator FactionList_ListsEveryFaction_AndOpensItsInspector()
         {
             yield return null;
             var factions = Session.GetFactions();
-            Assert.That(factions.Count, Is.EqualTo(5));
-            Assert.That(Bootstrap.Hud.FactionList.Query<Button>(className: "rk-faction-item").ToList().Count, Is.EqualTo(5));
+            Assert.That(factions.Count, Is.EqualTo(5 * Session.GetAtlas().Regions.Count), "Five factions to each region (Phase 16).");
+            Assert.That(Bootstrap.Hud.FactionList.Query<Button>(className: "rk-faction-item").ToList().Count, Is.EqualTo(factions.Count));
             Assert.That(Bootstrap.Hud.FactionInspectorVisible, Is.False);
 
             var kingdom = Kingdom;
@@ -47,7 +48,7 @@ namespace Realmkeeper.Tests.PlayMode
             foreach (var p in kingdom.Presence) StringAssert.Contains(p.SettlementName, text);
             foreach (var r in kingdom.Relations) StringAssert.Contains(r.OtherName(kingdom.FactionId), text);
             Assert.That(body.Q<Label>("finsp-influence-why").text, Is.EqualTo(RealmkeeperHud.InfluenceWhy(kingdom.InfluenceContributions)));
-            StringAssert.StartsWith("Why: Holdings", body.Q<Label>("finsp-influence-why").text, "A kingdom rests on what it holds.");
+            StringAssert.Contains("Holdings", body.Q<Label>("finsp-influence-why").text, "A kingdom rests on what it holds (among more factions since Phase 16, authority can weigh more).");
 
             // Selecting a settlement switches back.
             Bootstrap.Selection.Select(Of(SettlementType.Village).SettlementId);
@@ -96,7 +97,7 @@ namespace Realmkeeper.Tests.PlayMode
             yield return null;
 
             Assert.That(Bootstrap.PoliticalOverlay.IsOn, Is.True);
-            foreach (var s in Session.GetSettlements())
+            foreach (var s in Session.GetSettlementsInView())
             {
                 Assert.That(Bootstrap.PoliticalOverlay.TryGetShown(s.SettlementId, out var shown), Is.True, s.Name);
                 Assert.That(shown.Governor, Is.EqualTo(Session.GetSettlementPolitics(s.SettlementId).GoverningFactionId), s.Name);
@@ -138,7 +139,7 @@ namespace Realmkeeper.Tests.PlayMode
         [UnityTest]
         public IEnumerator HudButtons_SendPoliticalCommands_ThroughTheRegistry()
         {
-            var guild = Session.GetFactions().Single(f => f.Type == FactionType.Guild);
+            var guild = Session.GetFactions().First(f => f.Type == FactionType.Guild && Session.GetSettlementsInView().Any(s => f.Presence.Any(p => p.SettlementName == s.Name))); // Phase 16: the vale's own guild
             var kingdom = Kingdom;
             Bootstrap.Hud.SelectFaction(guild.FactionId);
             yield return null;
@@ -185,6 +186,7 @@ namespace Realmkeeper.Tests.PlayMode
             Bootstrap.Hud.SelectFaction(Kingdom.FactionId);
             Click(Bootstrap.Hud.PoliticsToggle);
             yield return null;
+            var factions = Session.GetFactions().Count;
 
             Session.Execute(new AdvanceDaysCommand(70));
             yield return null;
@@ -196,7 +198,7 @@ namespace Realmkeeper.Tests.PlayMode
             Bootstrap.PoliticalOverlay.TryGetShown(hamlet.SettlementId, out var shown);
             Assert.That(shown.Claims, Is.EqualTo(Session.GetClaims(hamlet.SettlementId, true).Count));
             Assert.That(shown.Governor, Is.EqualTo(Session.GetSettlementPolitics(hamlet.SettlementId).GoverningFactionId));
-            Assert.That(Session.GetFactions().Count, Is.EqualTo(5), "No faction appeared or vanished.");
+            Assert.That(Session.GetFactions().Count, Is.EqualTo(factions), "No faction appeared or vanished.");
         }
     }
 }

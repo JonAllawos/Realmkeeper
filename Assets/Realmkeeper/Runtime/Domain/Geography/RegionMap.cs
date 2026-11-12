@@ -74,6 +74,12 @@ namespace Realmkeeper.Domain.Geography
         /// <summary>Normalized elevation of the water surface.</summary>
         public float WaterLevel { get; }
 
+        /// <summary>Phase 16: the region this map is the geography of (empty for a map not yet tied to a region).</summary>
+        public RegionId RegionId { get; set; }
+
+        /// <summary>Phase 16: the side its mountains lie on (the generator's direction index 0–7).</summary>
+        public int MountainDirection { get; set; } = -1;
+
         public IReadOnlyList<RoadPath> Roads => _roads;
 
         /// <summary>River centre lines, ordered from source to mouth.</summary>

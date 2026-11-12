@@ -32,9 +32,12 @@ namespace Realmkeeper.Application.Party
     /// <summary>Follow, or wait where the player stands now (Phase 15).</summary>
     public sealed class SetFollowModeCommand : ICommand
     {
-        public SetFollowModeCommand(NpcId npcId, FollowMode mode) { NpcId = npcId; Mode = mode; }
+        public SetFollowModeCommand(NpcId npcId, FollowMode mode, LocalPose? at = null) { NpcId = npcId; Mode = mode; At = at; }
         public NpcId NpcId { get; }
         public FollowMode Mode { get; }
+
+        /// <summary>Phase 16: where their body stands when told to wait in a settlement (kept, so they are there on return).</summary>
+        public LocalPose? At { get; }
     }
 
     /// <summary>Everyone waiting where the player is follows again (Phase 15).</summary>
@@ -295,6 +298,7 @@ namespace Realmkeeper.Application.Party
                 edit.WaitSettlement = c.Mode == FollowMode.Wait ? p.SettlementId : default;
                 edit.WaitPlaceId = c.Mode == FollowMode.Wait ? p.PlaceId : null;
                 edit.WaitRoom = c.Mode == FollowMode.Wait ? p.PlaceRoom : null;
+                edit.WaitPose = c.Mode == FollowMode.Wait && p.IsInSettlement ? c.At ?? p.Pose : (LocalPose?)null;
                 return CommandResult.Ok(c.Mode == FollowMode.Wait ? $"{npc.Name} waits here." : $"{npc.Name} follows you.");
             }
         }
@@ -330,6 +334,7 @@ namespace Realmkeeper.Application.Party
                     m.WaitSettlement = default;
                     m.WaitPlaceId = null;
                     m.WaitRoom = null;
+                    m.WaitPose = null;
                 }
 
                 var said = here.Count > 0 ? string.Join(", ", here.Select(id => w.FindNpc(id).Name)) + " fall in behind you." : string.Empty;

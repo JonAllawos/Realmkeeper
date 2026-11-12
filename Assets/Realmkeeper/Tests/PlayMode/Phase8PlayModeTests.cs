@@ -26,7 +26,7 @@ namespace Realmkeeper.Tests.PlayMode
             var session = bootstrap.Session;
             controller.ManageCursor = false;
             controller.SetInput(new ScriptedExplorationInput());
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             Assert.That(bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);
             for (var i = 0; i < 6; i++) yield return null;
@@ -286,7 +286,7 @@ namespace Realmkeeper.Tests.PlayMode
             var runtime = Object.FindAnyObjectByType<RealmkeeperRuntime>();
             var session = bootstrap.Session;
             var controller = Object.FindAnyObjectByType<ExplorationInstaller>().Controller;
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             yield return null;
             var box = bootstrap.Hud.SettlementStructures;

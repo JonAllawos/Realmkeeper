@@ -32,3 +32,14 @@
 | Reactions with several questions in one action | Covered by design (each answer replays); no test asks three questions in one action | Add an engine test with Shield, then Uncanny Dodge, in one attack sequence |
 | Walking into a riverbed | Water has no collider; harmless, but not tested in play | Decide whether rivers block, and test it |
 | Plans from very old saves (v1–v4) | Tested from v11 (and older documents migrate through v11) | Add a v5 document to the upgrade test |
+
+## Phase 16 (connected world, travel, groups, world events)
+
+| Area | Risk | How to cover it |
+|---|---|---|
+| "Discover the lands beyond" from the atlas button | The scene starts a six-region world, so the button (shown only in a one-region world) is not clicked in PlayMode; the command is tested in .NET from a v17 save | A PlayMode test that loads a one-region save and clicks it |
+| Long play (months) across six regions | Days are measured (about 17 ms each) and events bounded (60 closed kept), but no test runs a simulated year in PlayMode | A soak test of a simulated year with save/load every month |
+| A road fight played on the atlas ("Fight it out") | The AI chooses the player's actions there (no fight scene on the map); the outcome is tested, not a player's choices | A map fight scene, or start road fights in the nearest settlement's scene |
+| Groups outside the player's region | Simulated and validated, but not drawn; a drawing bug there would not show | Draw a neighbour's groups when that layer is on, and capture it |
+| Frame time of the atlas window in a player build | Measured as query time (0.13 ms) in .NET; painting not profiled | Profile the atlas in a development build |
+| Recordings of travel, caravans, disruptions and events | Only still captures were made | Record with the Unity Recorder in an editor session |

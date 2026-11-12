@@ -77,5 +77,11 @@
 | [0073](ADR-0073-companions-are-the-worlds-own-people.md) | Companions are the world's own people; the party is a record of who travels together | Accepted (Phase 15) |
 | [0074](ADR-0074-loyalty-from-real-events.md) | Loyalty moves only from real events, once per cause, with its reason | Accepted (Phase 15) |
 | [0075](ADR-0075-party-in-combat-and-companion-ai-layer.md) | The party fights through the one engine; companions think in a layer of the one AI, and say why | Accepted (Phase 15) |
+| [0076](ADR-0076-connected-world-one-generator-coherent-borders.md) | The connected world is made by the one region generator, region by region, with coherent borders | Accepted (Phase 16) |
+| [0077](ADR-0077-persistent-route-graph-and-travel-scale.md) | Travel follows a persistent route graph, measured on one stated scale | Accepted (Phase 16) |
+| [0078](ADR-0078-journeys-on-the-one-clock.md) | A journey is a world action on the one clock, hour by hour, and ends in the settlement | Accepted (Phase 16) |
+| [0079](ADR-0079-travelling-groups-carry-the-economys-own-goods.md) | Travelling groups are the world's own people and carry the economy's own goods | Accepted (Phase 16) |
+| [0080](ADR-0080-world-events-typed-once-and-known-through-people.md) | World events are typed records with a lifecycle; consequences apply once; the player knows them through people | Accepted (Phase 16) |
+| [0081](ADR-0081-simulation-tiers-and-the-world-atlas.md) | Distant regions are simulated in tiers; the world atlas is a view of queries, not of the world | Accepted (Phase 16) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

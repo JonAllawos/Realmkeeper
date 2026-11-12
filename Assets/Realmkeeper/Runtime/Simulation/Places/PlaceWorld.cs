@@ -26,6 +26,8 @@ namespace Realmkeeper.Simulation.Places
                     if (e != null && e.NpcId == npc.NpcId && e.OverridesSchedule) return true;
             // Phase 15: an active party member travels with the player; reserve members live their ordinary lives.
             if (world.Party?.Find(npc.NpcId) is PartyMemberData member && member.Role == PartyRole.Active) return true;
+            // Phase 16: a caravan's leader or a patrol's captain is on the road.
+            if (world.Groups != null) foreach (var g in world.Groups) if (g.IsActive && g.LeaderNpcId == npc.NpcId && g.State != TravelGroupState.Arrived) return true;
             return PostedAt(world, npc.NpcId) != null;
         }
 

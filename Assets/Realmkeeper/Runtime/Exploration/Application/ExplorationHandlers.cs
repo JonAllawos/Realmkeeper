@@ -19,6 +19,7 @@ namespace Realmkeeper.Exploration.Application
             if (session == null) throw new ArgumentNullException(nameof(session));
             var commands = session.Commands;
             commands.Register<EnterSettlementCommand>(new EnterSettlementHandler());
+            session.Arrived += id => session.Dispatch(new EnterSettlementCommand(id)); // Phase 16: a journey's end is the settlement itself
             commands.Register<EnterBuildingCommand>(new EnterBuildingHandler()); // Phase 13
             commands.Register<ExitSettlementCommand>(new ExitSettlementHandler());
             commands.Register<SetPlayerPoseCommand>(new SetPlayerPoseHandler());
@@ -103,6 +104,14 @@ namespace Realmkeeper.Exploration.Application
             if (world.FindRegion(settlement.RegionId) == null)
                 return CommandResult.NotFound($"'{settlement.Name}' references region {settlement.RegionId}, which does not exist.");
             if (player.IsInPlace) return CommandResult.InvalidState($"{player.Name} must leave {world.FindPlace(player.PlaceId)?.Name ?? "the place"} first."); // Phase 13
+            // Phase 16 (ADR-0078): a settlement in another region is reached by travelling there; during a journey, only where it has arrived.
+            var journey = world.Journey;
+            if (journey != null && journey.Status != JourneyStatus.Arrived && journey.Status != JourneyStatus.Abandoned && !player.IsInSettlement)
+                return CommandResult.InvalidState(player.Name + " is on the road to " + world.FindSettlement(journey.DestinationId)?.Name + ": travel on, or give up the journey first.");
+            if (journey != null && journey.Status == JourneyStatus.Abandoned && !player.IsInSettlement && journey.SegmentIndex < journey.Segments.Count && (journey.MetresIntoSegment > 0 || journey.Nodes[journey.SegmentIndex] != settlement.SettlementId))
+                return CommandResult.InvalidState(player.Name + " is out on the road: travel to " + settlement.Name + " first.");
+            if (world.Regions.Count > 1 && settlement.RegionId != Realmkeeper.Simulation.Atlas.SimulationTiers.PlayersRegion(world))
+                return CommandResult.InvalidState(settlement.Name + " lies in " + world.FindRegion(settlement.RegionId)?.Name + ": travel there first.");
             if (player.IsInSettlement)
             {
                 return player.SettlementId == settlement.SettlementId

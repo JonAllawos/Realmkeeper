@@ -33,6 +33,42 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// v16 → v17 (Phase 15: companions and the party). Structural: an empty party, no companion records, and the party
     /// system enabled after the quest system. People keep their gear by name (they own no item instances until they join).
     /// </summary>
+    /// <summary>
+    /// v17 → v18 (Phase 16: the connected world). Structural: no routes, no journey, no groups or world events (the next
+    /// number 1), and the groups and world-event systems enabled after the trade and gathering systems. The home region's atlas
+    /// fields read as absent (0,0; its geography from the world's seed). The route network is not written here: the session
+    /// builds it once from the regenerated geography on load. An existing world keeps its single region.
+    /// </summary>
+    public sealed class MigrationV17ToV18 : ISaveMigration
+    {
+        public int SourceVersion => 17;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            foreach (var list in new[] { "routes", "groups", "worldEvents" })
+                if (world[list] == null) world[list] = new JArray();
+            if (world["nextWorldEventNumber"] == null) world["nextWorldEventNumber"] = 1;
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            Insert(systems, Simulation.Systems.TradeSystem.Id, Simulation.Atlas.GroupSystem.Id);
+            Insert(systems, Simulation.Systems.PoliticalSystem.Id, Simulation.Atlas.FactionActivitySystem.Id);
+            Insert(systems, Simulation.Items.GatheringSystem.Id, Simulation.Atlas.WorldEventSystem.Id);
+        }
+
+        private static void Insert(JArray systems, string after, string id)
+        {
+            JToken anchor = null;
+            foreach (var t in systems)
+            {
+                if (t.Type != JTokenType.String) continue;
+                if ((string)t == id) return;
+                if ((string)t == after) anchor = t;
+            }
+
+            anchor?.AddAfterSelf(id);
+        }
+    }
+
     public sealed class MigrationV16ToV17 : ISaveMigration
     {
         public int SourceVersion => 16;

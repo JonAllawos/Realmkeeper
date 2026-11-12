@@ -62,6 +62,9 @@ namespace Realmkeeper.Domain.World
         public string WaitPlaceId { get; set; }
         public string WaitRoom { get; set; }
 
+        /// <summary>Phase 16: where in the settlement they stand while waiting (their body's place when told to wait); null when unknown.</summary>
+        public LocalPose? WaitPose { get; set; }
+
         public bool Temporary => Until >= 0;
 
         public PartyMemberData Clone() => (PartyMemberData)MemberwiseClone();

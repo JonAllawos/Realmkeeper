@@ -43,8 +43,8 @@ namespace Realmkeeper.Tests.EditMode.Phase2
             var ids = TestWorlds.Scheduler().Systems.Select(s => s.SystemId).ToArray();
             Assert.That(ids, Is.EqualTo(new[]
             {
-                LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, ConsumptionSystem.Id,
-                SettlementWellbeingSystem.Id, PopulationSystem.Id, Realmkeeper.Simulation.Npcs.NpcSystem.Id, Realmkeeper.Simulation.Commerce.ShopSystem.Id, PoliticalSystem.Id, Realmkeeper.Simulation.Fauna.FaunaSystem.Id, Realmkeeper.Simulation.Items.GatheringSystem.Id, Realmkeeper.Simulation.Quests.QuestSystem.Id, Realmkeeper.Simulation.Party.PartySystem.Id, ChronicleSystem.Id,
+                LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, Realmkeeper.Simulation.Atlas.GroupSystem.Id, ConsumptionSystem.Id,
+                SettlementWellbeingSystem.Id, PopulationSystem.Id, Realmkeeper.Simulation.Npcs.NpcSystem.Id, Realmkeeper.Simulation.Commerce.ShopSystem.Id, PoliticalSystem.Id, Realmkeeper.Simulation.Atlas.FactionActivitySystem.Id, Realmkeeper.Simulation.Fauna.FaunaSystem.Id, Realmkeeper.Simulation.Items.GatheringSystem.Id, Realmkeeper.Simulation.Atlas.WorldEventSystem.Id, Realmkeeper.Simulation.Quests.QuestSystem.Id, Realmkeeper.Simulation.Party.PartySystem.Id, ChronicleSystem.Id,
             }), "The order documented in Documentation/Systems/Economy.md (politics added in Phase 3, NPCs in Phase 4, shops in Phase 5, fauna in Phase 10, gathering in Phase 11, quests in Phase 12, the party in Phase 15).");
             var orders = TestWorlds.Scheduler().Systems.Select(s => s.ExecutionOrder).ToArray();
             Assert.That(orders, Is.Ordered.Ascending);

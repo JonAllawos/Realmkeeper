@@ -46,14 +46,22 @@ Unknown IDs are ignored, so a save from a build with an extra system still loads
 | 50 | `realmkeeper.labour` | None |
 | 100 | `realmkeeper.production` | None |
 | 150 | `realmkeeper.trade` | Only for new shipment IDs (the system's own stream) |
+| 160 | `realmkeeper.groups` | None (attacks are keyed hashes of the world seed, the caravan and the day; Phase 16) |
 | 200 | `realmkeeper.consumption` | None |
 | 300 | `realmkeeper.wellbeing` | None |
 | 400 | `realmkeeper.population` | None |
 | 425 | `realmkeeper.npcs` | None (choices are keyed hashes, not draws) |
 | 430 | `realmkeeper.shops` | None |
 | 450 | `realmkeeper.politics` | Only for new claim IDs (the system's own stream) |
+| 456 | `realmkeeper.faction-activity` | None (Phase 16) |
 | 460 | `realmkeeper.fauna` | None (Phase 10; weekly) |
+| 470 | `realmkeeper.gathering` | None (Phase 11; weekly) |
+| 477 | `realmkeeper.world-events` | None (keyed hashes; Phase 16) |
+| 480 | `realmkeeper.quests` | None (Phase 12) |
+| 485 | `realmkeeper.party` | None (Phase 15) |
 | 500 | `realmkeeper.chronicle` | None |
+
+Phase 16 adds **simulation tiers** (ADR-0081): every system runs in every region every day, but `realmkeeper.npcs` gives the people of a *distant* region (neither the player's nor a neighbour of it) their full daily update only on their weekly day.
 
 Rules and formulas: [Economy](Economy.md). Phase 1's `realmkeeper.food` and its coin-flip
 `realmkeeper.wellbeing` were replaced. A v1 save that lists them is migrated to the Phase 2

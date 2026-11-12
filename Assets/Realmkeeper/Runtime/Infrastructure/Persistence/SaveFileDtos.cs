@@ -89,6 +89,13 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v17 (Phase 15): the party and companions' histories.
         public PartyDto Party { get; set; }
         public List<CompanionRecordDto> Companions { get; set; }
+
+        // Schema v18 (Phase 16): the route network, the journey, groups on the roads and world events.
+        public List<RouteSegmentDto> Routes { get; set; }
+        public JourneyDto Journey { get; set; }
+        public List<TravelingGroupDto> Groups { get; set; }
+        public List<WorldEventDto> WorldEvents { get; set; }
+        public int NextWorldEventNumber { get; set; } = 1;
     }
 
     public sealed class WorldSettingsDto
@@ -399,6 +406,17 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int OriginZ { get; set; }
         public int Width { get; set; }
         public int Depth { get; set; }
+
+        // Schema v18 (Phase 16): the atlas (absent: the home region at 0,0 with its geography from the world's seed).
+        public int AtlasX { get; set; }
+        public int AtlasZ { get; set; }
+        public long Seed { get; set; }
+        public int MountainDirection { get; set; } = -1;
+        public int GeneratorVersion { get; set; }
+        public string Kind { get; set; }
+        public string Discovery { get; set; }
+        public List<string> Neighbours { get; set; }
+        public List<string> Landmarks { get; set; }
     }
 
     public sealed class PlayerDto
@@ -573,6 +591,7 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v4. Absent in older saves, which means "not suspended".</summary>
         public bool IsSuspended { get; set; }
+        public string BlockedBy { get; set; } // v18
 
         public long NextDepartureDay { get; set; }
         public int ShipmentsDelivered { get; set; }

@@ -73,7 +73,7 @@ namespace Realmkeeper.Tests.PlayMode
 
         private static IEnumerator EnterTown(RealmkeeperBootstrap bootstrap)
         {
-            var town = bootstrap.Session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = bootstrap.Session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             Assert.That(bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);
             yield return null;

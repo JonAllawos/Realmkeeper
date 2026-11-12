@@ -710,3 +710,15 @@ all were caught.
 | Phase 10 captures | Unity 6000.0.47f1, editor (not batch), `RK_CAPTURE_DIR` set | **4 passed**: 15 screenshots and the scene performance log |
 
 Mutants, new tests, the existing tests that changed (and why), and bugs found: `Documentation/Phase10/Testing.md`.
+
+## Phase 16 runs (2026-11-12)
+
+| Suite | Environment | Result |
+|---|---|---|
+| .NET | Windows 11 Pro, .NET 8 SDK, Release | **750 passed**, 0 failed, 0 skipped (36 of them Phase 16) |
+| Unity EditMode (full) | Unity 6000.0.47f1, batch mode | **749 passed, 1 failed** (a 180 s timeout in `Phase14CrimeTests.AHousehold_WarnsOnce_ThenShowsYouOut_AndThatIsTrespass`, which took 189 s; it was already 143–167 s under Mono in Phases 14 and 15) |
+| Unity EditMode (`Phase14CrimeTests` after giving that scan an explicit 10-minute timeout) | same | **8 passed**, 0 failed |
+| Unity PlayMode (full) | Unity 6000.0.47f1, batch mode | **111 passed**, 0 failed, 0 inconclusive, 28 skipped (capture sets without `RK_CAPTURE_DIR`) |
+| Phase 16 captures | Unity editor (not batch), `RK_CAPTURE_DIR` set | **1 passed**: 15 screenshots (`Screenshots/Phase16/`) |
+
+The full EditMode suite was not rerun after the one-line timeout change. The regressions found and fixed, and an intermittent .NET harness abort that did not reproduce, are described in `Reports/Phase16-Completion-Report.md` §7 and §17.

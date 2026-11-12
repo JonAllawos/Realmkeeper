@@ -26,6 +26,9 @@ namespace Realmkeeper.Application
 
         /// <summary>Only the clock (and the player's hunger) moved; no day was simulated (Phase 5).</summary>
         TimeAdvanced = 6,
+
+        /// <summary>Phase 16: the player is now in another region; the map shown is that region's geography.</summary>
+        RegionChanged = 7,
     }
 
     public sealed class WorldChange
@@ -44,7 +47,7 @@ namespace Realmkeeper.Application
         public Type CommandType { get; }
 
         /// <summary>True when geography was replaced and visuals must be rebuilt.</summary>
-        public bool GeographyChanged => Reason == WorldChangeReason.Created || Reason == WorldChangeReason.Loaded;
+        public bool GeographyChanged => Reason == WorldChangeReason.Created || Reason == WorldChangeReason.Loaded || Reason == WorldChangeReason.RegionChanged;
     }
 
     /// <summary>
@@ -89,6 +92,7 @@ namespace Realmkeeper.Application
             Places.RestCommandHandlers.Register(_commands); // Phase 14
             NpcCharacterCommandHandlers.Register(_commands); // Phase 10
             Party.PartyCommandHandlers.Register(_commands); // Phase 15
+            Atlas.TravelCommandHandlers.Register(_commands); // Phase 16
         }
 
         public EconomyRules Rules => _rules;
@@ -175,6 +179,62 @@ namespace Realmkeeper.Application
         /// <summary>Geography for rendering. Read-only by convention; edits go through IRegionMapEditor.</summary>
         public RegionMap Map { get; private set; }
 
+        private readonly Dictionary<RegionId, RegionMap> _maps = new Dictionary<RegionId, RegionMap>();
+
+        /// <summary>
+        /// Phase 16: a region's geography, regenerated from its own seed the first time it is asked for and kept for the
+        /// session (it is derived data, never saved). Null for an unknown region.
+        /// </summary>
+        public RegionMap MapFor(RegionId id)
+        {
+            if (!HasWorld) return null;
+            if (_maps.TryGetValue(id, out var m)) return m;
+            var region = _world.FindRegion(id);
+            if (region == null) return null;
+            m = _generator.RegenerateRegion(_world, region);
+            _maps[id] = m;
+            return m;
+        }
+
+        private RegionMap MapOfPlayersRegion()
+        {
+            var r = _world?.Player?.RegionId ?? default;
+            return r.IsEmpty || _world.FindRegion(r) == null ? null : MapFor(r);
+        }
+
+        /// <summary>Phase 16: after the player crosses into another region, the map shown becomes that region's.</summary>
+        internal void FollowPlayersRegion()
+        {
+            var m = MapOfPlayersRegion();
+            if (m == null || ReferenceEquals(m, Map)) return;
+            Map = m;
+            WorldChanged?.Invoke(new WorldChange(WorldChangeReason.RegionChanged, null));
+        }
+
+        /// <summary>
+        /// Phase 16: an older, single-region world discovers the lands beyond: the further regions, their people and the
+        /// route network are added once, deterministically from the seed. Nothing that exists is regenerated.
+        /// </summary>
+        public CommandResult DiscoverLandsBeyond(int regions = 6)
+        {
+            if (!HasWorld) return CommandResult.InvalidState("There is no active world.");
+            if (_world.ActiveEncounter != null) return CommandResult.InvalidState(EncounterBlocksTime);
+            if (_world.Regions.Count >= regions) return CommandResult.Ok("The world is already connected.");
+            var copy = _world.DeepClone();
+            var home = MapFor(copy.Regions[0].RegionId);
+            try { _generator.EnsureAtlas(copy, home, regions); }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is WorldGenerationException)
+            {
+                return CommandResult.Fail("The lands beyond could not be made.", new[] { ex.Message });
+            }
+
+            var check = WorldValidator.Validate(copy);
+            if (!check.IsValid) return CommandResult.Fail("The connected world is invalid.", check.Errors);
+            copy.WorldSettings.Regions = regions;
+            Replace(copy, home, WorldChangeReason.Loaded);
+            return CommandResult.Ok("The roads now lead beyond the vale: " + copy.Regions.Count + " regions.");
+        }
+
         // ----- Commands ------------------------------------------------------------------
 
         public CommandResult Execute(CreateWorldCommand command)
@@ -185,6 +245,13 @@ namespace Realmkeeper.Application
             try
             {
                 var generated = _generator.Generate(new WorldGenerationRequest(command.WorldName, command.Seed, settings));
+                if (generated.World.Regions.Count > 0) // Phase 16 (ADR-0076): the connected world (and the route network of a single vale)
+                {
+                    _generator.EnsureAtlas(generated.World, generated.Map, settings.Regions);
+                    var check = WorldValidator.Validate(generated.World);
+                    if (!check.IsValid) return CommandResult.Fail("World generation failed: the connected world is invalid.", check.Errors);
+                }
+
                 Replace(generated.World, generated.Map, WorldChangeReason.Created);
                 return CommandResult.Ok($"Created '{generated.World.WorldName}' from seed {command.Seed}.");
             }
@@ -240,7 +307,9 @@ namespace Realmkeeper.Application
                 return CommandResult.Fail("Load failed: geography could not be rebuilt.", new[] { ex.Message });
             }
 
-            var placement = RegionMapValidator.Validate(map, load.World.Settlements);
+            // Phase 16: the home map holds the home region's settlements (each other region is checked against its own map when it is built).
+            var homeRegion = load.World.Regions.Count > 0 ? load.World.Regions[0].RegionId : default;
+            var placement = RegionMapValidator.Validate(map, load.World.Settlements.FindAll(s => s.RegionId.IsEmpty || s.RegionId == homeRegion));
             if (!placement.IsValid) return CommandResult.Fail("Load failed: settlements do not match the regenerated region.", placement.Errors);
 
             // Saves from before the economy (schema v1) get their economy from the terrain now.
@@ -277,6 +346,20 @@ namespace Realmkeeper.Application
             {
                 var check = WorldValidator.Validate(world);
                 if (!check.IsValid) return CommandResult.Fail("Load failed: the upgraded world is invalid.", check.Errors);
+            }
+
+            // Phase 16: the route network and the home region's atlas record, once (an older world keeps its single region).
+            try
+            {
+                if (_generator.EnsureAtlas(world, map, Math.Max(1, world.Regions.Count)))
+                {
+                    var check = WorldValidator.Validate(world);
+                    if (!check.IsValid) return CommandResult.Fail("Load failed: the route network is invalid.", check.Errors);
+                }
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is WorldGenerationException)
+            {
+                return CommandResult.Fail("Load failed: the route network could not be built.", new[] { ex.Message });
             }
 
             Replace(world, map, WorldChangeReason.Loaded);
@@ -451,6 +534,14 @@ namespace Realmkeeper.Application
             return settings;
         }
 
+        /// <summary>Phase 16: the settings of a new game: the standard systems and a connected world of six regions.</summary>
+        public static WorldSettings NewGameSettings()
+        {
+            var settings = DefaultSettings();
+            settings.Regions = 6;
+            return settings;
+        }
+
         private AdvanceResult Advance(int days)
         {
             if (IsClosed || !HasWorld) return new AdvanceResult(false, "There is no active world.", null, 0, null);
@@ -473,7 +564,9 @@ namespace Realmkeeper.Application
         private void Replace(WorldData world, RegionMap map, WorldChangeReason reason)
         {
             _world = world;
-            Map = map;
+            _maps.Clear();
+            if (map != null && world?.Regions.Count > 0) { if (map.RegionId.IsEmpty) map.RegionId = world.Regions[0].RegionId; _maps[map.RegionId] = map; }
+            Map = MapOfPlayersRegion() ?? map;
             WorldChanged?.Invoke(new WorldChange(reason, null));
         }
 

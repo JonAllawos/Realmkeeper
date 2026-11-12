@@ -507,7 +507,7 @@ namespace Realmkeeper.Tests.EditMode.Party
             var before = WorldJson();
             H.Edit(_ => { });
             Assert.That(WorldJson(), Is.EqualTo(before), "Save and load are exact for the party, records and companion items.");
-            Assert.That(W.SchemaVersion, Is.EqualTo(17));
+            Assert.That(W.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
         }
 
         // 18 -----------------------------------------------------------------------------------------------------

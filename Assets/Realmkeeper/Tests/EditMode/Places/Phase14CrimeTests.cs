@@ -167,6 +167,7 @@ namespace Realmkeeper.Tests.EditMode.Places
         }
 
         [Test]
+        [Timeout(600000)] // a scan with a save and reload per half hour per house: ~8 s in .NET, 140–190 s under the Unity editor's Mono
         public void AHousehold_WarnsOnce_ThenShowsYouOut_AndThatIsTrespass()
         {
             H.Hero();

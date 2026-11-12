@@ -223,14 +223,17 @@ namespace Realmkeeper.Simulation.Systems
                 new Items.GatheringSystem(), // Phase 11
                 new Quests.QuestSystem(), // Phase 12
                 new Party.PartySystem(), // Phase 15
+                new Atlas.GroupSystem(), // Phase 16
+                new Atlas.FactionActivitySystem(), // Phase 16
+                new Atlas.WorldEventSystem(), // Phase 16
                 new ChronicleSystem(),
             };
         }
 
         public static IReadOnlyList<string> AllIds => new[]
         {
-            LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, ConsumptionSystem.Id,
-            SettlementWellbeingSystem.Id, PopulationSystem.Id, Npcs.NpcSystem.Id, Commerce.ShopSystem.Id, PoliticalSystem.Id, ChronicleSystem.Id, Fauna.FaunaSystem.Id, Items.GatheringSystem.Id, Quests.QuestSystem.Id, Party.PartySystem.Id,
+            LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, Atlas.GroupSystem.Id, ConsumptionSystem.Id,
+            SettlementWellbeingSystem.Id, PopulationSystem.Id, Npcs.NpcSystem.Id, Commerce.ShopSystem.Id, PoliticalSystem.Id, Atlas.FactionActivitySystem.Id, ChronicleSystem.Id, Fauna.FaunaSystem.Id, Items.GatheringSystem.Id, Atlas.WorldEventSystem.Id, Quests.QuestSystem.Id, Party.PartySystem.Id,
         };
 
         /// <summary>System IDs used by Phase 1 saves; a world listing these is upgraded to <see cref="AllIds"/>.</summary>

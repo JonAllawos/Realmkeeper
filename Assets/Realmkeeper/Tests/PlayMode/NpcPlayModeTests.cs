@@ -56,9 +56,9 @@ namespace Realmkeeper.Tests.PlayMode
             hud.ShowPeople(true);
             yield return null;
             Assert.That(hud.PeoplePanelVisible, Is.True);
-            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(24), "Every named person is listed."); // Phase 10: the captain, guard, priest and warden the places call for (15 → 19); Phase 13: the watch fort's garrison of five (19 → 24)
+            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.GreaterThan(24), "Every named person is listed, in every region (Phase 16): more than the home vale's 24."); // Phase 10: the captain, guard, priest and warden the places call for (15 → 19); Phase 13: the watch fort's garrison of five (19 → 24)
 
-            var town = bootstrap.Session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = bootstrap.Session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             hud.SetPeopleFilter(settlement: town.SettlementId);
             Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(9)); // Phase 10: the town gains its captain, a guard and a priest (6 → 9)
             hud.SetPeopleFilter(role: NpcRole.Elder);
@@ -112,7 +112,7 @@ namespace Realmkeeper.Tests.PlayMode
             controller.ManageCursor = false;
             controller.SetInput(new ScriptedExplorationInput());
             var session = bootstrap.Session;
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
 
             // The DM sends someone to the tavern today: exploration must show them inside it.
             var person = session.GetNpcs(new NpcFilter { Settlement = town.SettlementId }).First(n => n.Tier == NpcTier.Resident);

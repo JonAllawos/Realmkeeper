@@ -80,6 +80,28 @@ namespace Realmkeeper.Infrastructure.Generation
             return Generate(new WorldGenerationRequest(world.WorldName, world.Seed, world.WorldSettings, world.WorldId) { IncludeCommerce = false }).Map;
         }
 
+        /// <summary>Phase 16: one region's geography, from its own seed and mountain side (the home region: the world's seed).</summary>
+        public RegionMap RegenerateRegion(WorldData world, RegionData region)
+        {
+            if (world == null) throw new ArgumentNullException(nameof(world));
+            if (region == null || region.Seed == 0 || region.Seed == world.Seed && region.AtlasX == 0 && region.AtlasZ == 0)
+            {
+                var home = RegenerateRegion(world);
+                if (region != null) home.RegionId = region.RegionId;
+                return home;
+            }
+
+            var map = Generate(new WorldGenerationRequest(region.Name, region.Seed, world.WorldSettings, world.WorldId)
+            {
+                IncludeCommerce = false, IncludeLivingWorld = false, RegionOnly = true, MountainDirection = region.MountainDirection,
+            }).Map;
+            map.RegionId = region.RegionId;
+            return map;
+        }
+
+        /// <summary>Phase 16 (ADR-0076): the connected world, made once (see <see cref="WorldAtlasGenesis"/>).</summary>
+        public bool EnsureAtlas(WorldData world, RegionMap homeMap, int regions) => WorldAtlasGenesis.Ensure(world, homeMap, this, _randomFactory, regions);
+
         public GeneratedWorld Generate(WorldGenerationRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
@@ -90,7 +112,8 @@ namespace Realmkeeper.Infrastructure.Generation
             IRandomSource Stream(string stage) => _randomFactory.Create(SeedMixer.Combine(root, stage));
 
             var map = new RegionMap(_settings.Width, _settings.Depth, _settings.CellSize, _settings.MaxElevation, _settings.WaterLevel);
-            var layout = ChooseLayout(Stream("layout"));
+            var layout = ChooseLayout(Stream("layout"), request.MountainDirection, out var mountainSide);
+            map.MountainDirection = mountainSide;
             BuildElevation(map, root, layout);
             CarveLake(map, root, layout);
             var river = CarveRiver(map, Stream("river"), layout);
@@ -107,9 +130,10 @@ namespace Realmkeeper.Infrastructure.Generation
             var world = BuildWorldData(request, map, sites, Stream("ids"), Stream("names"), Stream("stats"));
             BuildRoads(map, world.Settlements);
             WorldPopulationInitializer.EnsureAll(world, map.Width, map.Depth, _randomFactory);
+            map.RegionId = world.Regions[0].RegionId; // Phase 16: the map knows whose geography it is
             _economy.Initialize(world, map, Stream("trade-routes"));
             if (request.IncludeCommerce) WorldPopulationInitializer.EnsureCommerce(world);
-            if (request.IncludeCommerce && request.IncludeLivingWorld) LivingWorldGenesis.Ensure(world, map, _randomFactory); // Phase 10: people, sheets, settlements, wildlife
+            if (request.IncludeCommerce && request.IncludeLivingWorld) LivingWorldGenesis.Ensure(world, map, _randomFactory, request.RegionOnly); // Phase 10: people, sheets, settlements, wildlife
 
             var worldValidation = WorldValidator.Validate(world);
             var mapValidation = RegionMapValidator.Validate(map, world.Settlements);
@@ -129,9 +153,11 @@ namespace Realmkeeper.Infrastructure.Generation
             public int SourceX, SourceZ;  // river source cell
         }
 
-        private Layout ChooseLayout(IRandomSource rng)
+        private Layout ChooseLayout(IRandomSource rng, int? forced, out int side)
         {
             var d = rng.NextInt(0, 8);
+            if (forced.HasValue && forced.Value >= 0 && forced.Value < 8) d = forced.Value; // Phase 16: a neighbour continues the range
+            side = d;
             var dx = Directions[d, 0];
             var dz = Directions[d, 1];
             var px = -dz; // perpendicular

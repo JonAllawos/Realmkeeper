@@ -198,10 +198,12 @@ namespace Realmkeeper.Tests.PlayMode
             controller.Player.Teleport(new LocalPose(resident.transform.position.x + 1.2f, 0.1f, resident.transform.position.z, 270f));
             var response = resident.Interact(bootstrap.Session, controller.Player.transform);
             Assert.That(response.Succeeded, Is.True, response.Text);
-            for (var i = 0; i < 5; i++) yield return null;
+            var settled = Time.realtimeSinceStartup + 0.5f; // they stop to talk; the walk eases out over a moment
+            while (Time.realtimeSinceStartup < settled) yield return null;
             Assert.That(resident.Animation.Talking, Is.True, "A conversation plays the talking animation.");
             Assert.That(resident.Animation.Animator.GetBool("Talking"), Is.True);
-            Assert.That(controller.ReturnToWorldMap().IsSuccess, Is.True);
+            var back = controller.ReturnToWorldMap();
+            Assert.That(back.IsSuccess, Is.True, back.Message);
         }
 
         private static (RealmkeeperBootstrap, ExplorationController) Setup()

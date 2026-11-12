@@ -123,6 +123,9 @@ namespace Realmkeeper.Application
                 case HistoricalEventType.CompanionJoined: return $"{e.Get("name")} joined {e.Get("player") ?? "the player"}'s party{(e.Get("terms") is string t && t.Length > 0 ? " (" + t + ")" : string.Empty)}.";
                 case HistoricalEventType.CompanionLeft: return $"{e.Get("name")} left {e.Get("player") ?? "the player"}'s party: {e.Get("why")}.";
                 case HistoricalEventType.CompanionLoyalty: return $"{e.Get("name")}: {e.Get("why")}.";
+                case HistoricalEventType.CaravanLost: return "Outlaws took the " + (e.Get("caravan") ?? "caravan") + " (" + e.Get("why") + "): " + e.Get("lost") + " " + e.Get("resource") + " lost.";
+                case HistoricalEventType.WorldEventChanged: return UpperFirst(e.Get("what") ?? "something") + ": " + e.Get("state") + (string.IsNullOrEmpty(e.Get("why")) ? "." : " (" + e.Get("why") + ").");
+                case HistoricalEventType.JourneyMilestone: return (e.Get("player") ?? "The player") + " " + e.Get("what") + ".";
                 case HistoricalEventType.EncounterResolved:
                     return $"The aftermath of {e.Get("name") ?? "a fight"} near {s}: {e.Get("summary") ?? "nothing further"}.";
                 case HistoricalEventType.LabourNoticePosted:
@@ -261,5 +264,7 @@ namespace Realmkeeper.Application
                 ? n.ToString("N0", CultureInfo.InvariantCulture)
                 : raw;
         }
+
+        private static string UpperFirst(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
     }
 }

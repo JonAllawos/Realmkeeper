@@ -25,12 +25,16 @@ namespace Realmkeeper.Domain.World
         /// <summary>Phase 12 (ADR-0061): how tagged quest and dialogue content is presented.</summary>
         public Realmkeeper.Domain.Quests.ContentSettingsData Content { get; set; } = new Realmkeeper.Domain.Quests.ContentSettingsData();
 
+        /// <summary>Phase 16: how many connected regions a new world has (1: the single vale of earlier phases).</summary>
+        public int Regions { get; set; } = 1;
+
         public WorldSettings Clone() => new WorldSettings
         {
             SimulationSpeed = SimulationSpeed,
             StartingDate = StartingDate,
             EnabledSimulationSystems = new List<string>(EnabledSimulationSystems ?? new List<string>()),
             Content = Content?.Clone() ?? new Realmkeeper.Domain.Quests.ContentSettingsData(),
+            Regions = Regions,
         };
     }
 
@@ -42,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 17;
+        public const int CurrentSchemaVersion = 18;
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -143,6 +147,39 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 15: everyone who has ever been the player's companion, with their loyalty and history.</summary>
         public List<CompanionRecordData> Companions { get; set; } = new List<CompanionRecordData>();
+
+        /// <summary>Phase 16 (ADR-0077): the persistent route network (segments between settlements, within and across regions).</summary>
+        public List<RouteSegmentData> Routes { get; set; } = new List<RouteSegmentData>();
+
+        /// <summary>Phase 16 (ADR-0078): the player's journey, if one is under way or stopped (null when none).</summary>
+        public JourneyData Journey { get; set; }
+
+        /// <summary>Phase 16 (ADR-0079): groups on the roads (caravans, patrols, bandits, refugees, pilgrims).</summary>
+        public List<TravelingGroupData> Groups { get; set; } = new List<TravelingGroupData>();
+
+        /// <summary>Phase 16 (ADR-0080): persistent world events and the number the next takes.</summary>
+        public List<WorldEventData> WorldEvents { get; set; } = new List<WorldEventData>();
+        public int NextWorldEventNumber { get; set; } = 1;
+
+        public RouteSegmentData FindRoute(string id)
+        {
+            if (Routes != null && id != null) foreach (var r in Routes) if (r.RouteId == id) return r;
+            return null;
+        }
+
+        public RouteSegmentData FindRoute(SettlementId a, SettlementId b) => FindRoute(RouteSegmentData.IdFor(a, b));
+
+        public TravelingGroupData FindGroup(string id)
+        {
+            if (Groups != null && id != null) foreach (var g in Groups) if (g.GroupId == id) return g;
+            return null;
+        }
+
+        public WorldEventData FindWorldEvent(string id)
+        {
+            if (WorldEvents != null && id != null) foreach (var e in WorldEvents) if (e.EventId == id) return e;
+            return null;
+        }
 
         public CompanionRecordData FindCompanion(NpcId id)
         {
@@ -292,6 +329,11 @@ namespace Realmkeeper.Domain.World
             copy.NextCrimeNumber = NextCrimeNumber;
             copy.Party = (Party ?? new PartyData()).Clone();
             if (Companions != null) foreach (var c in Companions) copy.Companions.Add(c?.Clone());
+            if (Routes != null) foreach (var r in Routes) copy.Routes.Add(r?.Clone());
+            copy.Journey = Journey?.Clone();
+            if (Groups != null) foreach (var g in Groups) copy.Groups.Add(g?.Clone());
+            if (WorldEvents != null) foreach (var e in WorldEvents) copy.WorldEvents.Add(e?.Clone());
+            copy.NextWorldEventNumber = NextWorldEventNumber;
             return copy;
         }
 

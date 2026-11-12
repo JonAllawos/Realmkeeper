@@ -65,6 +65,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                 dto.Regions.Add(new RegionDto
                 {
                     RegionId = r.RegionId.ToString(), Name = r.Name, OriginX = r.Origin.X, OriginZ = r.Origin.Z, Width = r.Width, Depth = r.Depth,
+                    AtlasX = r.AtlasX, AtlasZ = r.AtlasZ, Seed = r.Seed, MountainDirection = r.MountainDirection, GeneratorVersion = r.GeneratorVersion,
+                    Kind = r.Kind.ToString(), Discovery = r.Discovery.ToString(), Neighbours = r.Neighbours.ConvertAll(n => n.ToString()), Landmarks = new List<string>(r.Landmarks),
                 });
             }
 
@@ -226,7 +228,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     FrequencyDays = r.FrequencyDays,
                     EfficiencyPercent = r.EfficiencyPercent,
                     Status = r.Status.ToString(),
-                    IsSuspended = r.IsSuspended,
+                    IsSuspended = r.IsSuspended, BlockedBy = r.BlockedBy,
                     NextDepartureDay = r.NextDepartureDay,
                     ShipmentsDelivered = r.ShipmentsDelivered,
                     Delivered = Stacks(r.Delivered),
@@ -267,6 +269,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WritePlaces(w, dto); // Phase 13
             WriteCrimes(w, dto); // Phase 14
             WriteParty(w, dto); // Phase 15
+            WriteAtlas(w, dto); // Phase 16
             return dto;
         }
 
@@ -385,6 +388,11 @@ namespace Realmkeeper.Infrastructure.Persistence
                     Origin = new MapCoord(rd.OriginX, rd.OriginZ),
                     Width = rd.Width,
                     Depth = rd.Depth,
+                    AtlasX = rd.AtlasX, AtlasZ = rd.AtlasZ, Seed = rd.Seed, MountainDirection = rd.MountainDirection, GeneratorVersion = rd.GeneratorVersion,
+                    Kind = rd.Kind == null ? RegionKind.Vale : ParseEnum<RegionKind>(rd.Kind, "region kind"),
+                    Discovery = rd.Discovery == null ? RegionDiscovery.Unknown : ParseEnum<RegionDiscovery>(rd.Discovery, "region discovery"),
+                    Neighbours = (rd.Neighbours ?? new List<string>()).ConvertAll(n => new RegionId(RequiredGuid(n, "region neighbour"))),
+                    Landmarks = new List<string>(rd.Landmarks ?? new List<string>()),
                 });
             }
 
@@ -579,7 +587,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     FrequencyDays = rd.FrequencyDays,
                     EfficiencyPercent = rd.EfficiencyPercent,
                     Status = ParseEnum<TradeRouteStatus>(rd.Status, "route status"),
-                    IsSuspended = rd.IsSuspended,
+                    IsSuspended = rd.IsSuspended, BlockedBy = rd.BlockedBy,
                     NextDepartureDay = rd.NextDepartureDay,
                     ShipmentsDelivered = rd.ShipmentsDelivered,
                     Delivered = Inventory(rd.Delivered, "Trade route deliveries"),
@@ -621,6 +629,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadPlaces(dto, world); // Phase 13
             ReadCrimes(dto, world); // Phase 14
             ReadParty(dto, world); // Phase 15
+            ReadAtlas(dto, world); // Phase 16
             return world;
         }
 

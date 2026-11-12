@@ -496,9 +496,9 @@ namespace Realmkeeper.Tests.PlayMode
                 if (door == null) continue;
                 yield return Phase14Driver.Try(c, door);
                 if (!c.InPlace || c.PlaceScene.Rooms.Count < 2) continue;
-                for (var step = 0; step < 16 && !walked; step++)
+                for (var step = 0; step < 60 && !walked; step++)
                 {
-                    s.Execute(new AdvanceTimeCommand(30));
+                    s.Execute(new AdvanceTimeCommand(3)); // the move window (IndoorSchedule.MoveWindow): a move is seen for three minutes
                     yield return PlaceDriver.Frames(3);
                     if (c.PlaceScene.Figures.Any(f => f.Role == "resident" && f.Route.Count > 0))
                         walked = Object.FindObjectsByType<PlaceWalker>(FindObjectsSortMode.None).Length > 0 || c.PlaceScene.Figures.Any(f => f.FromRoom != null);

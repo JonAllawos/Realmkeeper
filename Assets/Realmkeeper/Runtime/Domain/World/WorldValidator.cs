@@ -153,6 +153,7 @@ namespace Realmkeeper.Domain.World
             ValidateLiving(world, settlementIds, npcIds, result); // Phase 10
             ValidateQuests(world, result); // Phase 12
             ValidatePlaces(world, result); // Phase 13
+            ValidateAtlas(world, settlementIds, result); // Phase 16
             if (world.Player != null) foreach (var e in Rpg.CharacterValidation.Check(world.Player)) result.AddError("Character: " + e);
             return result;
         }
@@ -400,9 +401,10 @@ namespace Realmkeeper.Domain.World
                 if (place != null && p.SettlementId != (place.Category == Realmkeeper.Domain.Places.PlaceCategory.Interior ? place.SettlementId : default))
                     result.AddError("Player character in a place names the wrong settlement.");
             }
-            else if (!p.SettlementId.IsEmpty || !p.RegionId.IsEmpty)
+            else if (!p.SettlementId.IsEmpty || !p.RegionId.IsEmpty && world.FindRegion(p.RegionId) == null)
             {
-                result.AddError("Player character on the world map must not reference a settlement or region.");
+                // Phase 16: on the map (on a journey) the player is in a region of the connected world, but never in a settlement.
+                result.AddError("Player character on the world map must not reference a settlement or an unknown region.");
             }
         }
 

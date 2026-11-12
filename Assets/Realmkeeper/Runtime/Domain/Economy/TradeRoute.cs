@@ -51,6 +51,9 @@ namespace Realmkeeper.Domain.Economy
         /// </summary>
         public bool IsSuspended { get; set; }
 
+        /// <summary>Phase 16: the world event holding the way closed (a broken bridge, a blockade); nothing departs while set.</summary>
+        public string BlockedBy { get; set; }
+
         /// <summary>Absolute day number (WorldDate.ToDayNumber) of the next departure check.</summary>
         public long NextDepartureDay { get; set; }
 
@@ -79,6 +82,7 @@ namespace Realmkeeper.Domain.Economy
             EfficiencyPercent = EfficiencyPercent,
             Status = Status,
             IsSuspended = IsSuspended,
+            BlockedBy = BlockedBy,
             NextDepartureDay = NextDepartureDay,
             ShipmentsDelivered = ShipmentsDelivered,
             Delivered = Delivered.Clone(),

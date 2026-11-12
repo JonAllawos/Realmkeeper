@@ -327,6 +327,11 @@ namespace Realmkeeper.Domain.World
         CompanionJoined = 89,
         CompanionLeft = 90,
         CompanionLoyalty = 91,
+
+        // Phase 16
+        CaravanLost = 92,
+        WorldEventChanged = 93,
+        JourneyMilestone = 94,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

@@ -24,6 +24,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string WaitSettlement { get; set; }
         public string WaitPlaceId { get; set; }
         public string WaitRoom { get; set; }
+        public float[] WaitPose { get; set; } // v18: x, y, z, yaw
     }
 
     /// <summary>Schema v17: a person's history as a companion (kept after they leave).</summary>
@@ -57,7 +58,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 dto.Party.Members.Add(new PartyMemberDto
                 {
                     NpcId = m.NpcId.ToString(), Role = m.Role.ToString(), Mode = m.Mode.ToString(), Order = m.Order, FollowDistance = m.FollowDistance, JoinedAt = m.JoinedAt,
-                    Until = m.Until, WaitSettlement = m.WaitSettlement.IsEmpty ? null : m.WaitSettlement.ToString(), WaitPlaceId = m.WaitPlaceId, WaitRoom = m.WaitRoom,
+                    Until = m.Until, WaitSettlement = m.WaitSettlement.IsEmpty ? null : m.WaitSettlement.ToString(), WaitPlaceId = m.WaitPlaceId, WaitRoom = m.WaitRoom, WaitPose = m.WaitPose is LocalPose wp ? new[] { wp.X, wp.Y, wp.Z, wp.Yaw } : null,
                 });
             dto.Companions = new List<CompanionRecordDto>();
             foreach (var c in w.Companions)
@@ -82,7 +83,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 {
                     NpcId = new NpcId(RequiredGuid(d.NpcId, "party member npcId")), Role = ParseEnum<PartyRole>(d.Role, "party role"), Mode = ParseEnum<FollowMode>(d.Mode, "follow mode"),
                     Order = d.Order, FollowDistance = d.FollowDistance, JoinedAt = d.JoinedAt, Until = d.Until,
-                    WaitSettlement = new SettlementId(OptionalGuid(d.WaitSettlement, "party waitSettlement")), WaitPlaceId = d.WaitPlaceId, WaitRoom = d.WaitRoom,
+                    WaitSettlement = new SettlementId(OptionalGuid(d.WaitSettlement, "party waitSettlement")), WaitPlaceId = d.WaitPlaceId, WaitRoom = d.WaitRoom, WaitPose = d.WaitPose != null && d.WaitPose.Length == 4 ? new LocalPose(d.WaitPose[0], d.WaitPose[1], d.WaitPose[2], d.WaitPose[3]) : (LocalPose?)null,
                 });
             }
 

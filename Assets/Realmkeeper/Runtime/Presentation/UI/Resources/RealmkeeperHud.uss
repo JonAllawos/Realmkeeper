@@ -875,3 +875,34 @@
 .rk-place-name { color: rgb(236, 222, 186); -unity-font-style: bold; font-size: 13px; }
 .rk-place-line { color: rgb(196, 182, 150); font-size: 11px; white-space: normal; }
 .rk-muted { color: rgb(160, 150, 128); font-size: 12px; white-space: normal; }
+
+/* ----- Phase 16: the world atlas ----- */
+.rk-atlas { position: absolute; left: 236px; right: 16px; top: 64px; bottom: 16px; padding: 8px; flex-direction: column; background-color: rgb(26, 23, 20); border-width: 1px; border-color: rgba(201, 164, 101, 0.35); border-radius: 6px; }
+.rk-atlas-head { flex-direction: row; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.rk-atlas-title { color: rgb(230, 206, 150); font-size: 16px; -unity-font-style: bold; margin-right: 10px; }
+.rk-atlas-layer { font-size: 11px; padding: 2px 6px; margin: 1px 2px; background-color: rgba(60, 54, 44, 0.8); color: rgb(150, 140, 120); border-width: 1px; border-color: rgba(201, 164, 101, 0.2); border-radius: 3px; }
+.rk-atlas-layer--on { color: rgb(240, 220, 170); border-color: rgba(201, 164, 101, 0.7); background-color: rgba(96, 80, 52, 0.9); }
+.rk-atlas-body { flex-direction: row; flex-grow: 1; }
+.rk-atlas-map { flex-grow: 1; background-color: rgb(14, 13, 12); border-radius: 4px; overflow: hidden; }
+.rk-atlas-marks { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+.rk-atlas-mark { position: absolute; translate: -50% -50%; font-size: 11px; padding: 1px 4px; margin: 0; border-width: 0; border-radius: 3px; background-color: rgba(20, 18, 16, 0.75); color: rgb(236, 226, 200); }
+.rk-atlas-mark--selected { background-color: rgb(150, 112, 50); color: rgb(255, 245, 220); }
+.rk-atlas-region { translate: 0 0; background-color: rgba(0, 0, 0, 0); color: rgb(220, 205, 160); font-size: 13px; -unity-font-style: bold; }
+.rk-atlas-settlement { border-width: 1px; border-color: rgba(230, 210, 160, 0.6); }
+.rk-atlas-settlement--short { border-color: rgb(210, 70, 50); color: rgb(255, 170, 150); }
+.rk-atlas-settlement--here { border-color: rgb(240, 200, 90); border-width: 2px; }
+.rk-atlas-group { width: 18px; -unity-text-align: middle-center; background-color: rgba(60, 80, 110, 0.9); }
+.rk-atlas-event { width: 16px; -unity-text-align: middle-center; background-color: rgba(170, 40, 30, 0.9); color: rgb(255, 230, 210); -unity-font-style: bold; }
+.rk-atlas-player { background-color: rgb(214, 170, 70); color: rgb(30, 22, 10); -unity-font-style: bold; }
+.rk-atlas-side { width: 360px; margin-left: 8px; }
+.rk-atlas-heading { color: rgb(236, 210, 150); font-size: 15px; -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.rk-atlas-subheading { color: rgb(220, 196, 140); font-size: 13px; margin-top: 6px; }
+.rk-atlas-line { color: rgb(220, 210, 188); font-size: 12px; white-space: normal; margin: 1px 0; }
+.rk-atlas-option { color: rgb(236, 226, 200); font-size: 12px; white-space: normal; margin-top: 4px; }
+.rk-atlas-econ, .rk-atlas-faction { color: rgb(200, 214, 180); font-size: 12px; white-space: normal; }
+.rk-atlas-warn { color: rgb(240, 140, 110); font-size: 12px; white-space: normal; }
+.rk-atlas-act { font-size: 12px; margin: 2px 0; -unity-text-align: middle-left; white-space: normal; height: auto; min-height: 26px; padding: 4px 10px; flex-shrink: 0; }
+.rk-atlas-travel { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.rk-atlas-travel-status { color: rgb(236, 220, 180); font-size: 13px; white-space: normal; flex-grow: 1; flex-shrink: 1; min-width: 300px; }
+.rk-atlas-legend { color: rgb(160, 150, 128); font-size: 11px; white-space: normal; margin-top: 4px; }
+.rk-atlas-act--over { opacity: 0.6; }

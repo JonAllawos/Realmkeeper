@@ -28,6 +28,8 @@ Exploration movement is the real-time `PlayerCharacter` controller. It has no gr
   - **Recovery** happens only when they are more than 35 m away, or have tried to move for 3 s without moving (held by a wall). It places them on clear ground behind the player and is counted and logged. Moving more slowly than the player is not being stuck.
   - **No double bodies.** A member's resident body is removed before their follower body appears, and comes back where they stood when they leave the party.
 - **Places.** The place scene draws followers beside the player and a waiting member in the room where they were left.
+- **Where a waiting member stands (Phase 16).** Told to wait in a settlement, a member keeps the spot their body stood on (`waitPose`, saved). They are drawn there when the player comes back, not beside the player as in Phase 15. Regroup clears it.
+- **On the roads (Phase 16).** Active members with the player travel with them on journeys (see `Systems/Travel.md`): the atlas shows "You + n", their numbers lower the chance that outlaws bar the road, they join road fights, and they arrive and walk with the player in the next town. Reserves stay at home.
 - **Fights.** The fight draws everyone; follower bodies are hidden meanwhile.
 
 ## Items

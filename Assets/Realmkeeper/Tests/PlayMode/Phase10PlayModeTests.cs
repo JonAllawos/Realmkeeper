@@ -189,7 +189,7 @@ namespace Realmkeeper.Tests.PlayMode
             c.ManageCursor = false;
             var input = new ScriptedExplorationInput();
             c.SetInput(input);
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             Bootstrap.Selection.Select(town.SettlementId);
             Assert.That(Bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);
             for (var i = 0; i < 6; i++) yield return null;

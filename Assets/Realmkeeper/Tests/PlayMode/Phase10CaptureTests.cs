@@ -146,7 +146,7 @@ namespace Realmkeeper.Tests.PlayMode
             c.SetInput(new ScriptedExplorationInput());
             foreach (var type in new[] { SettlementType.Village, SettlementType.Hamlet })
             {
-                var s = session.GetSettlements().First(x => x.SettlementType == type);
+                var s = session.GetSettlementsInView().First(x => x.SettlementType == type);
                 bootstrap.Selection.Select(s.SettlementId);
                 Assert.That(bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);
                 for (var i = 0; i < 8; i++) yield return null;
@@ -162,7 +162,7 @@ namespace Realmkeeper.Tests.PlayMode
                 for (var i = 0; i < 6; i++) yield return null;
             }
 
-            var town = session.GetSettlements().First(x => x.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(x => x.SettlementType == SettlementType.Town);
             var view = bootstrap.WorldView.FindSettlementView(town.SettlementId);
             bootstrap.Selection.Select(town.SettlementId);
             bootstrap.CameraController.FocusOn(view.Center);
@@ -244,7 +244,7 @@ namespace Realmkeeper.Tests.PlayMode
             var c = Controller;
             c.ManageCursor = false;
             c.SetInput(new ScriptedExplorationInput());
-            var town = session.GetSettlements().First(x => x.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(x => x.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             var watch = System.Diagnostics.Stopwatch.StartNew();
             Assert.That(bootstrap.Hud.EnterSelectedSettlement().IsSuccess, Is.True);

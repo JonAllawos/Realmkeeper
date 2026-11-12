@@ -20,7 +20,7 @@ namespace Realmkeeper.Tests.PlayMode
             var first = Bootstrap.Session;
             Assert.That(first, Is.Not.Null);
             var baseline = first.WorldChangedSubscriberCount;
-            Bootstrap.Selection.Select(first.GetSettlements().First().SettlementId);
+            Bootstrap.Selection.Select(first.GetSettlementsInView().First().SettlementId);
 
             for (var cycle = 0; cycle < 3; cycle++)
             {
@@ -51,7 +51,7 @@ namespace Realmkeeper.Tests.PlayMode
                 Assert.That(Bootstrap.Selection.BoundSession, Is.SameAs(session));
                 Assert.That(Bootstrap.Hud.BoundPlayback, Is.SameAs(Runtime.Playback));
                 Assert.That(session.WorldChangedSubscriberCount, Is.EqualTo(baseline), "Each listener subscribed exactly once.");
-                Assert.That(Bootstrap.WorldView.Settlements.Count, Is.EqualTo(session.GetSettlements().Count));
+                Assert.That(Bootstrap.WorldView.Settlements.Count, Is.EqualTo(session.GetSettlementsInView().Count));
                 Assert.That(Bootstrap.Hud.WorldNameLabel.text, Is.EqualTo(name));
 
                 var date = session.GetOverview().Date;

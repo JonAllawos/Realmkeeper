@@ -62,7 +62,11 @@ namespace Realmkeeper.Simulation.Npcs
             {
                 if (npc.IsDeceased || npc.Tier == NpcTier.Unassigned) continue;
                 RestOvernight(world, npc, today); // Phase 10: sheet-holders sleep and recover, every night
-                if (!IsDue(world, npc, today))
+                // Phase 16 (ADR-0081): people of distant regions get their full update once a week (their own day of it).
+                var tierSkip = world.Regions.Count > 1 && settlements.TryGetValue(npc.HomeSettlementId, out var tierHome) &&
+                               Atlas.SimulationTiers.TierOf(world, tierHome.RegionId) == Atlas.SimulationTier.Distant &&
+                               (dayNumber + (long)(NpcHash.Of(world.Seed, "tier", npc.NpcId.ToString()) % 7)) % 7 != 0;
+                if (tierSkip || !IsDue(world, npc, today))
                 {
                     // Not due for a full update, but everyone keeps to their routine every day (cheap).
                     Move(world, npc, null, today);

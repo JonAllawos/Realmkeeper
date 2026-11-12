@@ -80,7 +80,7 @@ namespace Realmkeeper.Hosting
         public CommandResult EnsureWorld(string worldName, long seed)
         {
             if (Host.IsActive) return CommandResult.Ok("A world session is already active.");
-            return Host.StartNew(new CreateWorldCommand(worldName, seed));
+            return Host.StartNew(new CreateWorldCommand(worldName, seed, WorldSession.NewGameSettings())); // Phase 16: a connected world
         }
 
         /// <summary>Registers a module; it configures the active session now and every later session.</summary>

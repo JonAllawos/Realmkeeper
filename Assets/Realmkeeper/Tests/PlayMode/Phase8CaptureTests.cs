@@ -70,7 +70,7 @@ namespace Realmkeeper.Tests.PlayMode
             var controller = Object.FindAnyObjectByType<ExplorationInstaller>().Controller;
 
             // 1. The strategic map: the town's inspector lists its structures.
-            var town = session.GetSettlements().First(s => s.SettlementType == SettlementType.Town);
+            var town = session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             bootstrap.Selection.Select(town.SettlementId);
             yield return Settle(6);
             var box = bootstrap.Hud.SettlementStructures;

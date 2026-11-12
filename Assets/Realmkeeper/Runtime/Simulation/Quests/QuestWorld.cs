@@ -840,6 +840,8 @@ namespace Realmkeeper.Simulation.Quests
                 case "predators":
                     if (parts.Length < 3 || !Guid.TryParse(parts[1], out var pg)) return false;
                     return PredatorsNear(w, new SettlementId(pg), parts[2]) > 0;
+                case "event": // Phase 16: a quest a world event called for holds while the event is open
+                    return w.FindWorldEvent(key.Substring(6)) is WorldEventData ev && ev.IsOpen || q.Objectives.Exists(o => o.Done && o.Id != "report"); // done by the player: the cause ended by their hand
                 case "supplies":
                     if (parts.Length < 3 || !Guid.TryParse(parts[1], out var shg)) return false;
                     var shop = w.FindShop(new ShopId(shg));

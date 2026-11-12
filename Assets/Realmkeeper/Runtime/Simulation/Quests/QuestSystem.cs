@@ -66,9 +66,14 @@ namespace Realmkeeper.Simulation.Quests
 
         public static SettlementData FirstTown(WorldData w)
         {
+            // Phase 16: the opening town is in the home region (the first), not whichever region's town sorts first.
+            var home = w.Regions.Count > 0 ? w.Regions[0].RegionId : default;
             SettlementData best = null;
             foreach (var s in w.Settlements)
-                if (s.SettlementType == SettlementType.Town && (best == null || s.SettlementId.CompareTo(best.SettlementId) < 0)) best = s;
+                if (s.SettlementType == SettlementType.Town && (w.Regions.Count == 0 || s.RegionId == home) && (best == null || s.SettlementId.CompareTo(best.SettlementId) < 0)) best = s;
+            if (best != null) return best;
+            foreach (var s in w.Settlements)
+                if ((w.Regions.Count == 0 || s.RegionId == home) && (best == null || s.Population > best.Population)) best = s;
             if (best != null) return best;
             foreach (var s in w.Settlements) if (best == null || s.Population > best.Population) best = s;
             return best;

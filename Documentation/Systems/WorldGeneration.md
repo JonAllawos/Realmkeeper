@@ -36,6 +36,38 @@ changing one stage does not disturb the others.
 Terrain (stages 1–8, 10) is unchanged since Phase 1, so the generator version is still 1 and
 existing seeds keep their geography.
 
+## The connected world (Phase 16, ADR-0076)
+
+A new game asks for six regions (`WorldSession.NewGameSettings()`; `WorldSettings.Regions`). The home region is
+generated exactly as above. `WorldAtlasGenesis` then adds the others on a 3 × 2 atlas grid, each by the **same
+generator**:
+
+- **Seed:** `SeedMixer.Combine(FromWorldSeed(seed), "region:" + i)`. A retry suffix is added only if validation
+  refuses a layout.
+- **`RegionOnly`:** the authored quests and places stay in the home region.
+- **`MountainDirection` (stage 1 forced):** the side is chosen from the region it borders. If the neighbour's range
+  runs to the shared edge, the new region's range continues from that edge. If the edge is lowland there, it stays
+  lowland. Otherwise the range runs parallel to the border.
+- **Merged into the one world:**
+  - road-band populations are re-keyed by region (`@road:<regionId>:`);
+  - settlement names are made unique;
+  - factions of bordering regions start wary of each other (trust 35, opinion −10, rivalry 25);
+  - the sub-world's player, chronicle and authored content are dropped.
+- **Description:** each region gets a kind (Vale, Highlands, Woodland, Lakeland, Lowlands) and landmarks, from its
+  own terrain (lake, river, wide forest, high ground) and name stem. No new canon is written.
+- **Route graph:** each region's map roads become route segments (terrain cost, and a bridge where a road crosses
+  water). Neighbouring regions are joined by a crossing between their nearest settlements: a **pass** (cost 200)
+  where mountains meet the edge, a **bridge** (110) over water, a **trail** (130) through forest, or a **road** (100).
+  Each crossing also carries cross-region trade routes.
+
+A region's map is never saved. It is rebuilt from that region's own seed, and the session keeps one per region. An
+old world keeps its single region. `DiscoverLandsBeyond` adds the rest once, the same for the same seed.
+
+Measured: a six-region world (18 settlements, about 120 people, 25 road segments) generates in about 0.6 s.
+
+**Two scales.** The 3D overview draws a region at 2 units per cell. Travel measures the same cell as 1.2 km of
+country, so a region is about 150 km across. Settlements are explored at their own local scale.
+
 ## Settlement economics
 
 - Starting food reserves: 45–75 days of consumption. Timber, stone and iron start from nearby

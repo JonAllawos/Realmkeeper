@@ -16,7 +16,7 @@ namespace Realmkeeper.Infrastructure.Generation
     public static class LivingWorldGenesis
     {
         /// <summary>Fills in whatever Phase 10 data the world lacks. True when anything was added.</summary>
-        public static bool Ensure(WorldData world, RegionMap map, IRandomSourceFactory random)
+        public static bool Ensure(WorldData world, RegionMap map, IRandomSourceFactory random, bool regionOnly = false)
         {
             if (world == null) throw new ArgumentNullException(nameof(world));
             if (map == null) throw new ArgumentNullException(nameof(map));
@@ -34,6 +34,7 @@ namespace Realmkeeper.Infrastructure.Generation
             if (Simulation.Fauna.FaunaGenesis.Ensure(world, map)) changed = true; // wildlife, road bands, vermin, herds
             if (EnsureLayouts(world, map)) changed = true;
             if (Simulation.Items.ItemGenesis.Ensure(world)) changed = true; // Phase 11: chests, caches, gathering sites
+            if (regionOnly) return changed; // Phase 16: a further region has no authored quests or places of its own
             if (Simulation.Quests.QuestGenesis.Ensure(world)) changed = true; // Phase 12: the authored quests and today's emergent ones
             if (PlaceGenesis.Ensure(world, map, random)) changed = true; // Phase 13: wilderness places, their contents, captive and garrison
             return changed;

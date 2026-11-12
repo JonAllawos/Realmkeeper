@@ -232,6 +232,25 @@ namespace Realmkeeper.Application
             return (roll, total, dc, roll == 20 || (roll != 1 && total >= dc));
         }
 
+        /// <summary>
+        /// Phase 16 (ADR-0080): what this person has heard of the wider world (world events they know of, by the people who
+        /// told them). The player now holds it as a rumour, as of today, from this person. The world itself is unchanged.
+        /// </summary>
+        private static string MentionWorldEvents(WorldData w, NpcData npc, string answer)
+        {
+            var told = new List<string>();
+            var now = QuestClock.Now(w);
+            foreach (var e in w.WorldEvents)
+            {
+                if (told.Count >= 2 || !e.IsOpen) continue;
+                if (Simulation.Npcs.NpcMind.Find(npc, KnowledgeTopic.RecentEvent, e.EventId) == null) continue;
+                Simulation.Atlas.WorldEvents.PlayerLearns(e, EventKnowledge.Rumored, now, npc.Name);
+                told.Add(Simulation.Atlas.WorldEvents.Telling(w, e));
+            }
+
+            return told.Count == 0 ? answer : answer + " They say " + string.Join("; and ", told) + ".";
+        }
+
         /// <summary>Applies one consequence (inside the choose command). Returns a failure, or null.</summary>
         public static CommandResult Apply(CommandContext context, WorldData w, ConversationData c, NpcData npc, DialogueConsequence x, string key, List<QuestEvent> events)
         {
@@ -247,6 +266,7 @@ namespace Realmkeeper.Application
                     var answer = NpcDialogue.Answer(w, npc, topic, default, p.Name);
                     if (topic == ConversationTopic.Rumours || topic == ConversationTopic.News) answer = MentionQuests(w, npc, answer, report);
                     if (topic == ConversationTopic.Rumours) answer = MentionPlaces(w, npc, answer, report, events); // Phase 13
+                    if (topic == ConversationTopic.Rumours || topic == ConversationTopic.News) answer = MentionWorldEvents(w, npc, answer); // Phase 16
                     c.Variables["answer"] = answer;
                     c.Variables["answered"] = "yes";
                     if (topic == ConversationTopic.Rumours && answer.StartsWith("Word is", StringComparison.Ordinal))

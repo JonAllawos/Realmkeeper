@@ -78,6 +78,7 @@ namespace Realmkeeper.Simulation.Systems
 
                 var route = context.World.FindTradeRoute(shipment.TradeRouteId)
                             ?? throw new InvalidOperationException($"Shipment {shipment.ShipmentId} has no route.");
+                if (!string.IsNullOrEmpty(route.BlockedBy) && !shipment.IsReturning) { shipment.ArrivalDay = day + 1; continue; } // Phase 16: the way is closed; the goods wait on the road
                 var destination = Lookup(settlements, shipment.DestinationId);
                 var origin = Lookup(settlements, shipment.OriginId);
                 var resource = shipment.ResourceTypeId;
@@ -217,6 +218,7 @@ namespace Realmkeeper.Simulation.Systems
                     continue;
                 }
 
+                if (!string.IsNullOrEmpty(route.BlockedBy)) { if (!onRoad.Contains(route.TradeRouteId)) route.Status = TradeRouteStatus.Blocked; continue; } // Phase 16: nothing sets out on a closed way
                 if (route.Status == TradeRouteStatus.Suspended) route.Status = TradeRouteStatus.Active; // resumed
                 if (day < route.NextDepartureDay) continue;
                 route.NextDepartureDay = day + route.FrequencyDays;

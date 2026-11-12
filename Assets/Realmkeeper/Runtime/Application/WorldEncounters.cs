@@ -54,6 +54,13 @@ namespace Realmkeeper.Application
             var plan = Preview(context.Committed, context.Map, command.Purpose, out var problem, command.Seek);
             if (plan == null) return CommandResult.InvalidState(problem);
             if (!plan.IsValid) return CommandResult.Invalid("Nothing comes of the outing: " + string.Join(" ", plan.Problems), plan.Problems);
+            return StartPlan(context, plan);
+        }
+
+        /// <summary>Phase 16: starts a planned encounter (an outing's, or one met on the road): its individuals drawn, then the fight.</summary>
+        internal static CommandResult StartPlan(CommandContext context, EncounterPlan plan)
+        {
+            if (plan == null || !plan.IsValid) return CommandResult.Invalid("Nothing comes of it.");
 
             // Draw the individuals: each is a new member of its population, with its own lasting record.
             var world = context.Edit();

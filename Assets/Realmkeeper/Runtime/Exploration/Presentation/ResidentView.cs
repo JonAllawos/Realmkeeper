@@ -213,6 +213,13 @@ namespace Realmkeeper.Exploration.Presentation
             if (IsHidden) return;
             if (_route.Count > 0)
             {
+                // Spoken to on the way: they stop and face the player while the conversation plays, then walk on.
+                if (Animation != null && Animation.Talking && _player != null)
+                {
+                    FaceTowards(_player.position);
+                    return;
+                }
+
                 Walk(dt);
                 return;
             }
