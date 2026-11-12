@@ -1,7 +1,7 @@
 {
     "name": "Realmkeeper.Tests.PlayMode",
     "rootNamespace": "Realmkeeper.Tests.PlayMode",
-    "references": ["UnityEngine.TestRunner", "Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure", "Realmkeeper.Presentation", "Realmkeeper.Hosting", "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Application", "Realmkeeper.Exploration.Interaction", "Realmkeeper.Exploration.WorldStreaming", "Realmkeeper.Exploration.Presentation", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+    "references": ["UnityEngine.TestRunner", "Realmkeeper.Domain", "Realmkeeper.Simulation", "Realmkeeper.Application", "Realmkeeper.Infrastructure", "Realmkeeper.Presentation", "Realmkeeper.Hosting", "Realmkeeper.Exploration.Domain", "Realmkeeper.Exploration.Application", "Realmkeeper.Exploration.Interaction", "Realmkeeper.Exploration.WorldStreaming", "Realmkeeper.Exploration.Presentation", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime", "Realmkeeper.UI"],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

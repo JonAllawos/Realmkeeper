@@ -20,7 +20,6 @@ namespace Realmkeeper.Exploration.Presentation
         public const float ResponseSeconds = 9f;
 
         private UIDocument _document;
-        private PanelSettings _ownedPanelSettings;
         private float _responseTimer;
 
         public VisualElement Root { get; private set; }
@@ -50,15 +49,8 @@ namespace Realmkeeper.Exploration.Presentation
             go.transform.SetParent(parent, false);
             var hud = go.AddComponent<ExplorationHud>();
             hud._document = go.AddComponent<UIDocument>();
-            var panelSettings = Resources.Load<PanelSettings>(PanelSettingsResource);
-            if (panelSettings == null)
-            {
-                panelSettings = hud._ownedPanelSettings = ScriptableObject.CreateInstance<PanelSettings>();
-                panelSettings.themeStyleSheet = Resources.Load<ThemeStyleSheet>("RealmkeeperTheme");
-                panelSettings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-                panelSettings.referenceResolution = new Vector2Int(1920, 1080);
-                panelSettings.match = 0.5f;
-            }
+            // Phase 19: one shared runtime panel (theme, tokens, the player's interface scale) for every document.
+            var panelSettings = Realmkeeper.UI.RkSettings.Panel;
 
             hud._document.panelSettings = panelSettings;
             hud._document.sortingOrder = 10;
@@ -97,6 +89,14 @@ namespace Realmkeeper.Exploration.Presentation
             ResponseTitle = Root.Q<Label>("xk-response-title");
             ResponseText = Root.Q<Label>("xk-response-text");
             MessageLabel = Root.Q<Label>("xk-message");
+
+            // Phase 19: tooltips at run time, icons on the two standing actions, the serif place name.
+            Realmkeeper.UI.RkTooltips.Attach(documentRoot);
+            Realmkeeper.UI.RkIcons.Lead(SaveButton, "save", "s");
+            Realmkeeper.UI.RkIcons.Lead(ReturnButton, "map", "s");
+            SaveButton.tooltip = "Save the world (F5).";
+            ReturnButton.tooltip = "Leave for the world map (M). Time keeps running.";
+            SettlementLabel.AddToClassList("rk-serif");
 
             ReturnButton.clicked += () => ReturnRequested?.Invoke();
             SaveButton.clicked += () => SaveRequested?.Invoke();
@@ -205,7 +205,6 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void OnDestroy()
         {
-            if (_ownedPanelSettings != null) Destroy(_ownedPanelSettings);
         }
     }
 }

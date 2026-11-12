@@ -88,7 +88,11 @@ namespace Realmkeeper.Tests.PlayMode
                 Assert.That(Bootstrap.Session.GetOverview().Date, Is.EqualTo(dayA));
                 Assert.That(Runtime.ActiveSlot.Name, Is.EqualTo("playmode-slot-a"), "Loading selects the slot.");
 
-                Click(Bootstrap.Hud.LoadButton); // loads the active slot (a)
+                Bootstrap.Session.Execute(new AdvanceDaysCommand(3)); // progress that the reload throws away
+                Click(Bootstrap.Hud.LoadButton); // Phase 19: asks first (everything since the save is lost)
+                Assert.That(Bootstrap.Hud.LoadConfirm != null && Bootstrap.Hud.LoadConfirm.IsOpen, Is.True, "Load asks for confirmation.");
+                Assert.That(Bootstrap.Session.GetOverview().Date, Is.Not.EqualTo(dayA), "Nothing is reloaded before the player confirms.");
+                Click(Bootstrap.Hud.LoadConfirm.ConfirmButton); // loads the active slot (a)
                 Assert.That(Bootstrap.Session.GetOverview().Date, Is.EqualTo(dayA));
                 Assert.That(Runtime.Load("playmode-slot-b").IsSuccess, Is.True);
                 Assert.That(Bootstrap.Session.GetOverview().Date, Is.EqualTo(dayB));

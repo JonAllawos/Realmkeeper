@@ -99,5 +99,7 @@
 | [0095](ADR-0095-companions-react-to-more-and-have-more-stories.md) | Companions react to more of what happens, keep quiet in between, and have more stories | Accepted (Phase 18) |
 | [0096](ADR-0096-save-schema-v20.md) | Save schema v20 | Accepted (Phase 18) |
 | [0097](ADR-0097-third-party-creatures-and-scenery-through-one-pipeline.md) | Third-party creatures and scenery come in through one pipeline, licence first | Accepted (Phase 18) |
+| [0098](ADR-0098-one-design-system-and-a-shared-ui-assembly.md) | One design system (tokens, shared components) and a shared UI assembly | Accepted (Phase 19) |
+| [0099](ADR-0099-interface-assets-and-fonts.md) | Interface assets and fonts: CC BY icons, CC0 kits, OFL fonts | Accepted (Phase 19) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -5,7 +5,7 @@
   - `RealmkeeperHud.uss` (909 lines);
   - `ExplorationHud.uss` (1,433 lines).
 
-  There is one theme (`RealmkeeperTheme.tss`) and one `PanelSettings`: Scale With Screen Size, 1920×1080 reference, match width.
+  There is one theme (`RealmkeeperTheme.tss`) and one `PanelSettings`: Scale With Screen Size, 1920×1080 reference, match width-or-height 0.5.
 - **Look.**
   - Dark translucent panels (`rgba(22,20,17,.84)`), thin gold borders (`rgba(201,164,101,.28)`), and parchment text (`rgb(232,223,204)`).
   - There are no icons, textures or custom fonts: everything uses Unity's default runtime font.

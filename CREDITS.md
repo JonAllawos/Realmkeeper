@@ -96,4 +96,29 @@ Licence record: `Assets/Realmkeeper/Art/ThirdParty/PolyByGoogle/License.txt`.
 places with their clues, documents and mechanisms, and every line of their dialogue are Realmkeeper's own, written for
 this project. No campaign canon is established; The Waystone Count remains provisional.
 
+## Interface art, icons and fonts (Phase 19)
+
+### Icons (Creative Commons Attribution 3.0, credit required)
+
+Icons made by Lorc, Delapouite, sbed, Skoll, Guard13007, Carl Olsen, Willdabeast, DarkZaitzev, Faithtoken, Lucas and
+Zeromancer. Available on https://game-icons.net. Licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/).
+142 icons. Changes: rendered as white silhouettes on transparent (game-icons.net's own PNG export) and tinted in the
+interface; the shapes are unchanged. Licence record and per-author counts:
+`Assets/Realmkeeper/Art/ThirdParty/GameIcons/License.txt`. The original SVGs are kept in `…/GameIcons/Source/`.
+
+### Interface art (CC0 1.0 Universal: no credit required, credited anyway)
+
+| Work | Author | Licence | Licence file |
+|---|---|---|---|
+| Fantasy UI Borders 1.0: window corner frames and dividers (44 of 140 files) | Kenney (www.kenney.nl) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Kenney/FantasyUIBorders/License.txt` |
+| Cartography Pack: map symbols, compass rose and parchment (31 of 85 files) | Kenney (www.kenney.nl) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Kenney/Cartography/License.txt` |
+
+### Fonts (SIL Open Font License 1.1, approved by the owner on 2026-11-12; not CC0 or CC BY)
+
+- EB Garamond: Copyright 2017 The EB Garamond Project Authors (https://github.com/octaviopardo/EBGaramond12).
+- Alegreya Sans: Copyright 2013 The Alegreya Sans Project Authors (https://github.com/huertatipografica/Alegreya-Sans).
+
+Both are licensed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org). The licence texts ship with
+the fonts in `Assets/Realmkeeper/Art/ThirdParty/Fonts/`. The fonts are used unmodified and are not sold on their own.
+
 CC0 text: https://creativecommons.org/publicdomain/zero/1.0/

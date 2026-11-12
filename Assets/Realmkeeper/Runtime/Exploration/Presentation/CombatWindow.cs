@@ -307,6 +307,8 @@ namespace Realmkeeper.Exploration.Presentation
             l.name = "xk-cbt-slot-" + name.ToLowerInvariant();
             l.AddToClassList(cls);
             l.EnableInClassList("xk-cbt-slot--used", !ready);
+            // Phase 19: each resource has its own icon, so the three are not told apart by colour alone (a used one is dimmed and italic).
+            Realmkeeper.UI.RkIcons.Lead(l, name == "Action" ? "action" : name == "Bonus" ? "bonus" : "reaction", "s", "ink");
             l.tooltip = ready ? $"{name}: ready" + (note != null ? $" ({note})" : string.Empty) : $"{name}: used this turn";
             row.Add(l);
         }

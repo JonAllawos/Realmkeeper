@@ -1,0 +1,436 @@
+/*
+ * Realmkeeper shared components (Phase 19). One version of each control, used by every screen.
+ * Built from the tokens in RealmkeeperTokens.uss. The Unity built-in controls are restyled here too, so
+ * no screen shows Unity's light default fields.
+ */
+
+/* ----- Typography ----------------------------------------------------------------------------- */
+
+.rk-serif {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+    -unity-font-style: normal;
+}
+
+.rk-serif-regular {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Regular.ttf");
+}
+
+.rk-serif-italic {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Italic.ttf");
+}
+
+.rk-sans-medium {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Medium.ttf");
+}
+
+.rk-sans-bold {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Bold.ttf");
+    -unity-font-style: normal;
+}
+
+.rk-title {
+    font-size: var(--rk-size-title);
+    color: var(--rk-heading);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+    -unity-font-style: normal;
+}
+
+.rk-h1 {
+    font-size: var(--rk-size-h1);
+    color: var(--rk-heading);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+    -unity-font-style: normal;
+}
+
+.rk-h2 {
+    font-size: var(--rk-size-h2);
+    color: var(--rk-heading);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+    -unity-font-style: normal;
+}
+
+.rk-eyebrow {
+    font-size: var(--rk-size-micro);
+    letter-spacing: 2px;
+    color: var(--rk-text-3);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Medium.ttf");
+}
+
+.rk-muted { color: var(--rk-text-3); }
+.rk-secondary { color: var(--rk-text-2); }
+.rk-small { font-size: var(--rk-size-small); }
+.rk-wrap { white-space: normal; }
+
+/* ----- Icons ---------------------------------------------------------------------------------- */
+/* An icon is a VisualElement with a white game-icons.net texture, tinted by state (RkIcons.Make). */
+
+.rk-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: var(--rk-text-2);
+}
+
+.rk-icon--s { width: 14px; height: 14px; }
+.rk-icon--m { width: 22px; height: 22px; }
+.rk-icon--l { width: 30px; height: 30px; }
+.rk-icon--xl { width: 44px; height: 44px; }
+.rk-icon--accent { -unity-background-image-tint-color: var(--rk-bronze-hi); }
+.rk-icon--good { -unity-background-image-tint-color: var(--rk-good); }
+.rk-icon--warn { -unity-background-image-tint-color: var(--rk-warn); }
+.rk-icon--bad { -unity-background-image-tint-color: var(--rk-bad); }
+.rk-icon--info { -unity-background-image-tint-color: var(--rk-info); }
+.rk-icon--paper { -unity-background-image-tint-color: var(--rk-paper-ink); }
+
+/* ----- Frames (Kenney Fantasy UI Borders, CC0) ------------------------------------------------ */
+/* A 9-sliced engraved frame drawn over a window's edge. Ornament only on windows and modals. */
+
+.rk-frame {
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    right: -3px;
+    bottom: -3px;
+    background-image: resource("RkFrames/panel-border-010");
+    -unity-slice-left: 30;
+    -unity-slice-top: 30;
+    -unity-slice-right: 30;
+    -unity-slice-bottom: 30;
+    -unity-slice-scale: 0.6px;
+    -unity-background-image-tint-color: var(--rk-line-strong);
+}
+
+.rk-rule {
+    height: 10px;
+    margin: 6px 0;
+    background-image: resource("RkFrames/divider-fade-001");
+    -unity-background-scale-mode: stretch-to-fill;
+    -unity-slice-left: 40;
+    -unity-slice-right: 40;
+    -unity-background-image-tint-color: var(--rk-line-strong);
+}
+
+/* ----- Buttons -------------------------------------------------------------------------------- */
+
+.rk-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: var(--rk-control-height);
+    min-width: 64px;
+    margin: 0 3px;
+    padding: 0 12px;
+    border-width: 1px;
+    border-radius: var(--rk-radius);
+    border-color: var(--rk-line);
+    background-color: var(--rk-control);
+    color: var(--rk-text);
+    transition-property: background-color, border-color;
+    transition-duration: var(--rk-fast);
+}
+
+.rk-btn:hover { background-color: var(--rk-control-hover); border-color: var(--rk-line-strong); }
+.rk-btn:active { background-color: var(--rk-control-active); }
+.rk-btn:focus { border-color: var(--rk-bronze-hi); }
+.rk-btn:disabled { opacity: 0.45; }
+
+.rk-btn--primary {
+    height: 36px;
+    background-color: var(--rk-bronze-deep);
+    border-color: var(--rk-bronze);
+    color: rgb(250, 238, 214);
+}
+
+.rk-btn--primary:hover { background-color: var(--rk-bronze-deep-hi); border-color: var(--rk-bronze-hi); }
+
+.rk-btn--quiet {
+    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(0, 0, 0, 0);
+    color: var(--rk-text-2);
+}
+
+.rk-btn--quiet:hover { background-color: var(--rk-control); color: var(--rk-text); }
+
+.rk-btn--danger { border-color: var(--rk-bad); color: var(--rk-bad); }
+.rk-btn--danger:hover { background-color: var(--rk-bad-bg); color: var(--rk-text); }
+
+.rk-btn--icon {
+    min-width: 32px;
+    width: 32px;
+    padding: 0;
+}
+
+/* The large entry buttons on the title screen. */
+.rk-btn--menu {
+    -unity-text-align: middle-left;
+    height: 46px;
+    min-width: 280px;
+    margin: 4px 0;
+    justify-content: flex-start;
+    padding: 0 18px;
+    font-size: 18px;
+    background-color: rgba(28, 23, 18, 0.75);
+    border-color: var(--rk-line-soft);
+}
+
+.rk-btn--menu:hover { background-color: var(--rk-control-hover); border-color: var(--rk-bronze); }
+
+/* ----- Tabs ----------------------------------------------------------------------------------- */
+
+.rk-tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-bottom-width: 1px;
+    border-color: var(--rk-line);
+    margin-bottom: var(--rk-space-3);
+}
+
+.rk-tab {
+    flex-direction: row;
+    align-items: center;
+    height: 32px;
+    margin: 0 2px -1px 0;
+    padding: 0 12px;
+    border-width: 0 0 2px 0;
+    border-radius: 0;
+    border-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--rk-text-2);
+    transition-property: color, border-color;
+    transition-duration: var(--rk-fast);
+}
+
+.rk-tab:hover { color: var(--rk-text); border-color: var(--rk-line-strong); }
+.rk-tab--active { color: var(--rk-heading); border-color: var(--rk-bronze-hi); }
+
+/* ----- Cards, chips, badges, meters ------------------------------------------------------------ */
+
+.rk-card {
+    padding: var(--rk-space-3);
+    margin-bottom: var(--rk-space-2);
+    background-color: var(--rk-card);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: var(--rk-radius);
+}
+
+.rk-card--selected { border-color: var(--rk-bronze-hi); }
+
+.rk-chip {
+    flex-direction: row;
+    align-items: center;
+    height: 26px;
+    margin: 0 4px 4px 0;
+    padding: 0 9px;
+    border-width: 1px;
+    border-radius: 13px;
+    border-color: var(--rk-line);
+    background-color: var(--rk-control);
+    color: var(--rk-text-2);
+    font-size: var(--rk-size-small);
+}
+
+.rk-chip:hover { border-color: var(--rk-line-strong); color: var(--rk-text); }
+.rk-chip--on { border-color: var(--rk-bronze); background-color: var(--rk-bronze-deep); color: rgb(250, 238, 214); }
+
+.rk-badge {
+    flex-direction: row;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: var(--rk-radius);
+    font-size: var(--rk-size-small);
+    background-color: var(--rk-ink-600);
+    color: var(--rk-text-2);
+}
+
+.rk-badge--good { background-color: var(--rk-good-bg); color: var(--rk-good); }
+.rk-badge--warn { background-color: var(--rk-warn-bg); color: var(--rk-warn); }
+.rk-badge--bad { background-color: var(--rk-bad-bg); color: var(--rk-bad); }
+.rk-badge--info { background-color: var(--rk-info-bg); color: var(--rk-info); }
+
+.rk-meter {
+    height: 8px;
+    border-radius: 4px;
+    background-color: var(--rk-ink-950);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    overflow: hidden;
+}
+
+.rk-meter-fill {
+    height: 100%;
+    background-color: var(--rk-bronze);
+}
+
+.rk-meter-fill--good { background-color: var(--rk-good); }
+.rk-meter-fill--warn { background-color: var(--rk-warn); }
+.rk-meter-fill--bad { background-color: var(--rk-bad); }
+
+/* A label-and-value statistic with its icon (settlement inspector, character sheet). */
+.rk-stat {
+    flex-direction: row;
+    align-items: center;
+    min-height: 26px;
+}
+
+.rk-stat > .rk-icon { margin-right: 8px; }
+.rk-stat-key { flex-grow: 1; color: var(--rk-text-2); }
+.rk-stat-value { color: var(--rk-text); -unity-text-align: middle-right; }
+
+/* ----- Windows, modals, tooltips, empty states ------------------------------------------------- */
+
+.rk-window {
+    background-color: var(--rk-window);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: 4px;
+}
+
+.rk-scrim {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--rk-scrim);
+    align-items: center;
+    justify-content: center;
+}
+
+.rk-modal {
+    min-width: 420px;
+    max-width: 640px;
+    padding: var(--rk-space-5);
+    background-color: var(--rk-window);
+    border-width: 1px;
+    border-color: var(--rk-line-strong);
+    border-radius: 4px;
+}
+
+.rk-modal-buttons {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: var(--rk-space-4);
+}
+
+.rk-empty {
+    padding: var(--rk-space-5) var(--rk-space-4);
+    color: var(--rk-text-3);
+    -unity-text-align: middle-center;
+    white-space: normal;
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Italic.ttf");
+    font-size: 16px;
+}
+
+.rk-field-label {
+    font-size: var(--rk-size-small);
+    color: var(--rk-text-2);
+    margin: 10px 0 4px 0;
+}
+
+.rk-hint {
+    font-size: var(--rk-size-small);
+    color: var(--rk-text-3);
+    white-space: normal;
+}
+
+/* ----- Unity built-in controls, restyled to the ink palette ------------------------------------ */
+
+.unity-base-text-field__input,
+.unity-base-popup-field__input {
+    background-color: var(--rk-ink-900);
+    border-color: var(--rk-line);
+    border-radius: var(--rk-radius);
+    color: var(--rk-text);
+    padding: 4px 8px;
+    min-height: 28px;
+}
+
+.unity-base-text-field__input:hover,
+.unity-base-popup-field__input:hover {
+    border-color: var(--rk-line-strong);
+}
+
+.unity-base-text-field:focus > .unity-base-text-field__input {
+    border-color: var(--rk-bronze-hi);
+}
+
+.unity-base-field__label {
+    color: var(--rk-text-2);
+}
+
+.unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--rk-text-2);
+}
+
+.unity-base-dropdown__container-inner {
+    background-color: var(--rk-ink-800);
+    border-color: var(--rk-line-strong);
+}
+
+.unity-base-dropdown__item {
+    color: var(--rk-text);
+}
+
+.unity-base-dropdown__item:hover {
+    background-color: var(--rk-ink-600);
+}
+
+.unity-base-dropdown__item:checked {
+    background-color: var(--rk-bronze-deep);
+}
+
+.unity-scroller--vertical {
+    width: 10px;
+}
+
+.unity-scroller .unity-base-slider__tracker {
+    background-color: var(--rk-ink-900);
+    border-width: 0;
+}
+
+.unity-scroller .unity-base-slider__dragger {
+    background-color: var(--rk-ink-500);
+    border-width: 0;
+    border-radius: 4px;
+}
+
+.unity-scroller .unity-base-slider__dragger:hover {
+    background-color: var(--rk-line-strong);
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+.unity-toggle__checkmark {
+    background-color: var(--rk-ink-900);
+    border-color: var(--rk-line-strong);
+    -unity-background-image-tint-color: var(--rk-bronze-hi);
+}
+
+.unity-base-slider--horizontal .unity-base-slider__tracker {
+    background-color: var(--rk-ink-900);
+    border-color: var(--rk-line);
+}
+
+.unity-base-slider--horizontal .unity-base-slider__dragger {
+    background-color: var(--rk-bronze);
+    border-color: var(--rk-bronze-hi);
+}
+
+/* Tooltips (UI Toolkit runtime has none built in; RkTooltip draws this element). */
+.rk-tooltip {
+    position: absolute;
+    max-width: 360px;
+    padding: 8px 10px;
+    background-color: rgba(18, 15, 11, 0.98);
+    border-width: 1px;
+    border-color: var(--rk-line-strong);
+    border-radius: var(--rk-radius);
+    color: var(--rk-text);
+    font-size: var(--rk-size-small);
+    white-space: normal;
+}

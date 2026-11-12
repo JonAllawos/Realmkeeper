@@ -57,12 +57,15 @@ namespace Realmkeeper.Presentation
             head.AddToClassList("rk-atlas-head");
             var title = new Label("World atlas") { name = "rk-atlas-title" };
             title.AddToClassList("rk-atlas-title");
+            title.AddToClassList("rk-serif");
             head.Add(title);
             foreach (var layer in AtlasLayers)
             {
                 var name = layer;
                 var toggle = new Button(() => { if (!_layersOn.Remove(name)) _layersOn.Add(name); RefreshAtlas(); }) { name = "rk-atlas-layer-" + name, text = name };
                 toggle.AddToClassList("rk-atlas-layer");
+                Realmkeeper.UI.RkIcons.Lead(toggle, LayerIcon(name), "s"); // Phase 19
+                toggle.tooltip = "Show or hide " + name.ToLowerInvariant() + " on the atlas.";
                 head.Add(toggle);
             }
 
@@ -133,8 +136,8 @@ namespace Realmkeeper.Presentation
             FillSide();
             FillTravel();
             _atlasLegend.text = "Gold: you and your party" + (_atlasView.Party.Count > 0 ? " (" + string.Join(", ", _atlasView.Party) + ")" : string.Empty) +
-                                ". Roads: pale (open), ochre (crossing), dark red (closed). Groups: C caravan, P patrol, B outlaws, R refugees. ! a matter you know of (? rumoured, ~ your news is old). " +
-                                "Blank lands: not yet heard of.";
+                                ". Roads: ink line (open), thick ochre (a crossing between regions), red and crossed through (closed). Groups: C caravan, P patrol, B outlaws, R refugees (? reported, not seen). " +
+                                "! a matter you know of (? rumoured, ~ your news is old). Hatched parchment: lands not yet heard of.";
         }
 
         // ----- Geometry -----------------------------------------------------------------------------
@@ -175,6 +178,25 @@ namespace Realmkeeper.Presentation
             return Color.HSVToRGB(h, 0.55f, 0.85f);
         }
 
+        // Phase 19: ink colours for drawing on the parchment atlas.
+        private static readonly Color InkSoft = new Color(0.17f, 0.12f, 0.08f, 0.45f);
+        private static readonly Color InkFaint = new Color(0.17f, 0.12f, 0.08f, 0.14f);
+        private static readonly Color RoadOpen = new Color(0.36f, 0.25f, 0.15f);
+        private static readonly Color RoadCrossing = new Color(0.72f, 0.48f, 0.16f);
+        private static readonly Color RoadClosed = new Color(0.62f, 0.12f, 0.08f);
+
+        private static string LayerIcon(string layer) => layer switch
+        {
+            "Terrain" => "terrain", "Settlements" => "settlement", "Roads" => "road", "Factions" => "faction",
+            "Economy" => "trade", "Threats" => "threats", "Events" => "events", "Travel" => "travel", _ => "map",
+        };
+
+        /// <summary>
+        /// Phase 19: the atlas as a drawn map on parchment. Known regions carry a light wash of their kind and an ink
+        /// border; unknown land is left as blank, hatched parchment (no colour, no detail: nothing the player has not
+        /// learned is drawn). Roads are ink lines; a closed road is red and crossed through, a crossing ochre and
+        /// thicker, so the three differ by more than colour. Data and knowledge rules are the atlas query's, unchanged.
+        /// </summary>
         private void DrawAtlas(MeshGenerationContext ctx)
         {
             var v = _atlasView;
@@ -184,19 +206,47 @@ namespace Realmkeeper.Presentation
             {
                 var a = ToScreen(r.AtlasX * AtlasQueries.RegionCells, (r.AtlasZ + 1) * AtlasQueries.RegionCells);
                 var b = ToScreen((r.AtlasX + 1) * AtlasQueries.RegionCells, r.AtlasZ * AtlasQueries.RegionCells);
-                var fill = r.Discovery == RegionDiscovery.Unknown ? new Color(0.10f, 0.10f, 0.09f) : On("Terrain") ? KindColour(r.Kind) : new Color(0.22f, 0.22f, 0.20f);
-                if (r.Discovery == RegionDiscovery.Rumored || r.Discovery == RegionDiscovery.Discovered) fill *= 0.8f;
-                fill.a = 1f;
-                p.fillColor = fill;
+                if (r.Discovery == RegionDiscovery.Unknown)
+                {
+                    // Uncharted: diagonal hatching in faint ink.
+                    p.strokeColor = InkFaint;
+                    p.lineWidth = 1f;
+                    var w = b.x - a.x;
+                    var h = b.y - a.y;
+                    for (var t = -h; t < w; t += 14f)
+                    {
+                        var x0 = a.x + Mathf.Max(t, 0f);
+                        var y0 = a.y + Mathf.Max(-t, 0f);
+                        var len = Mathf.Min(w - Mathf.Max(t, 0f), h - Mathf.Max(-t, 0f));
+                        if (len <= 0) continue;
+                        p.BeginPath();
+                        p.MoveTo(new Vector2(x0, y0));
+                        p.LineTo(new Vector2(x0 + len, y0 + len));
+                        p.Stroke();
+                    }
+                }
+                else
+                {
+                    var fill = On("Terrain") ? KindColour(r.Kind) : new Color(0.45f, 0.40f, 0.30f);
+                    fill.a = r.Discovery == RegionDiscovery.Rumored || r.Discovery == RegionDiscovery.Discovered ? 0.14f : 0.24f;
+                    p.fillColor = fill;
+                    p.BeginPath();
+                    p.MoveTo(a);
+                    p.LineTo(new Vector2(b.x, a.y));
+                    p.LineTo(b);
+                    p.LineTo(new Vector2(a.x, b.y));
+                    p.ClosePath();
+                    p.Fill();
+                }
+
+                p.strokeColor = r.RegionId == v.PlayerRegion ? new Color(0.62f, 0.42f, 0.14f) : InkSoft;
+                p.lineWidth = r.RegionId == v.PlayerRegion ? 3f : 1.5f;
                 p.BeginPath();
                 p.MoveTo(a);
                 p.LineTo(new Vector2(b.x, a.y));
                 p.LineTo(b);
                 p.LineTo(new Vector2(a.x, b.y));
                 p.ClosePath();
-                p.Fill();
-                p.strokeColor = r.RegionId == v.PlayerRegion ? new Color(0.86f, 0.72f, 0.40f) : new Color(0.05f, 0.05f, 0.05f);
-                p.lineWidth = r.RegionId == v.PlayerRegion ? 3f : 1.5f;
                 p.Stroke();
             }
 
@@ -205,37 +255,60 @@ namespace Realmkeeper.Presentation
                 {
                     if (s.FactionId.IsEmpty) continue;
                     var c = FactionColour(s.FactionId);
-                    c.a = 0.28f;
+                    c.a = 0.30f;
                     p.fillColor = c;
                     p.BeginPath();
-                    p.Arc(ToScreen(s.X, s.Z), 34f, 0f, 360f);
+                    p.Arc(ToScreen(s.X, s.Z), 38f, 0f, 360f);
                     p.Fill();
+                    c.a = 0.7f;
+                    p.strokeColor = c;
+                    p.lineWidth = 1.5f;
+                    p.Stroke();
                 }
 
             if (On("Roads"))
                 foreach (var r in v.Routes)
                 {
-                    p.strokeColor = !r.Passable ? new Color(0.55f, 0.10f, 0.08f) : r.Crossing ? new Color(0.80f, 0.62f, 0.30f) : new Color(0.82f, 0.78f, 0.66f);
-                    p.lineWidth = r.Crossing ? 3f : 2f;
+                    var from = ToScreen(r.AX, r.AZ);
+                    var to = ToScreen(r.BX, r.BZ);
+                    p.strokeColor = !r.Passable ? RoadClosed : r.Crossing ? RoadCrossing : RoadOpen;
+                    p.lineWidth = r.Crossing ? 3.5f : 2f;
                     p.BeginPath();
-                    p.MoveTo(ToScreen(r.AX, r.AZ));
-                    p.LineTo(ToScreen(r.BX, r.BZ));
+                    p.MoveTo(from);
+                    p.LineTo(to);
                     p.Stroke();
+                    if (!r.Passable)
+                    {
+                        // A closed road is crossed through at its middle.
+                        var mid = (from + to) / 2f;
+                        p.lineWidth = 3f;
+                        p.BeginPath();
+                        p.MoveTo(mid + new Vector2(-7, -7));
+                        p.LineTo(mid + new Vector2(7, 7));
+                        p.Stroke();
+                        p.BeginPath();
+                        p.MoveTo(mid + new Vector2(-7, 7));
+                        p.LineTo(mid + new Vector2(7, -7));
+                        p.Stroke();
+                    }
                 }
 
             if (On("Threats"))
                 foreach (var e in v.Events)
                 {
                     if (e.Type != WorldEventType.BanditActivity && e.Type != WorldEventType.RoadBlocked && e.Type != WorldEventType.FactionConflict) continue;
-                    p.fillColor = new Color(0.75f, 0.16f, 0.10f, 0.35f);
+                    p.fillColor = new Color(0.62f, 0.12f, 0.08f, 0.22f);
+                    p.strokeColor = new Color(0.62f, 0.12f, 0.08f, 0.6f);
+                    p.lineWidth = 1.5f;
                     p.BeginPath();
-                    p.Arc(ToScreen(e.X, e.Z), 22f, 0f, 360f);
+                    p.Arc(ToScreen(e.X, e.Z), 24f, 0f, 360f);
                     p.Fill();
+                    p.Stroke();
                 }
 
             if (On("Travel") && v.Journey != null && _session != null)
             {
-                p.strokeColor = new Color(0.95f, 0.80f, 0.35f);
+                p.strokeColor = new Color(0.66f, 0.40f, 0.10f);
                 p.lineWidth = 4f;
                 var stops = v.Journey.Stops.Select(name => v.Settlements.FirstOrDefault(s => s.Name == name)).Where(s => s != null).ToList();
                 if (stops.Count >= 2)
@@ -248,21 +321,80 @@ namespace Realmkeeper.Presentation
             }
         }
 
+        /// <summary>Phase 19: the drawn symbol for a settlement on the atlas (Kenney Cartography Pack, CC0).</summary>
+        private static string SettlementSymbol(SettlementType t) => t switch
+        {
+            SettlementType.City => "castleWide", SettlementType.Town => "castle", SettlementType.Fortress => "towerWatch", SettlementType.Village => "houses", _ => "houseSmall",
+        };
+
+        /// <summary>Phase 19: terrain stamps for a known region of each kind.</summary>
+        private static string[] TerrainStamps(RegionKind k) => k switch
+        {
+            RegionKind.Highlands => new[] { "rocksMountain", "rocksTall", "rocksMountain" },
+            RegionKind.Woodland => new[] { "treePines", "treePine", "treePinesSmall" },
+            RegionKind.Lakeland => new[] { "lake", "treePinesSmall", "lake" },
+            RegionKind.Lowlands => new[] { "treePinesSmall", "rocks", "treePinesSmall" },
+            _ => new[] { "treePinesSmall", "rocks", "treePine" },
+        };
+
+        private static readonly Dictionary<string, Texture2D> MapSymbols = new Dictionary<string, Texture2D>();
+
+        private static Texture2D MapSymbol(string name)
+        {
+            if (!MapSymbols.TryGetValue(name, out var t) || t == null) MapSymbols[name] = t = Resources.Load<Texture2D>("RkMap/" + name);
+            return t;
+        }
+
+        private void Stamp(string symbol, Vector2 at, float size, float opacity)
+        {
+            var tex = MapSymbol(symbol);
+            if (tex == null) return;
+            var e = new VisualElement { pickingMode = PickingMode.Ignore };
+            e.AddToClassList("rk-atlas-stamp");
+            e.style.backgroundImage = new StyleBackground(tex);
+            e.style.width = size;
+            e.style.height = size;
+            e.style.left = at.x - size / 2f;
+            e.style.top = at.y - size / 2f;
+            e.style.opacity = opacity;
+            _atlasMarks.Add(e);
+        }
+
         private void PlaceMarks()
         {
             if (_atlasMarks == null || _atlasView == null) return;
             _atlasMarks.Clear();
             var v = _atlasView;
+            var cell = Mathf.Abs(ToScreen(AtlasQueries.RegionCells, 0).x - ToScreen(0, 0).x);
             foreach (var r in v.Regions)
             {
+                // Phase 19: drawn terrain on known regions, always in the same places (from the region's place on the atlas).
+                if (On("Terrain") && r.Discovery != RegionDiscovery.Unknown && cell > 60)
+                {
+                    var stamps = TerrainStamps(r.Kind);
+                    var spots = new[] { new Vector2(0.78f, 0.22f), new Vector2(0.22f, 0.80f), new Vector2(0.80f, 0.78f) };
+                    for (var i = 0; i < stamps.Length; i++)
+                    {
+                        var spot = ToScreen((r.AtlasX + spots[i].x) * AtlasQueries.RegionCells, (r.AtlasZ + 1 - spots[i].y) * AtlasQueries.RegionCells);
+                        Stamp(stamps[i], spot, Mathf.Clamp(cell * 0.16f, 28f, 64f), 0.55f);
+                    }
+                }
+
                 var at = ToScreen(r.AtlasX * AtlasQueries.RegionCells + 6, (r.AtlasZ + 1) * AtlasQueries.RegionCells - 6);
-                Mark("region:" + r.RegionId, r.Name, at, "rk-atlas-region");
+                var label = Mark("region:" + r.RegionId, r.Discovery == RegionDiscovery.Unknown ? "Uncharted" : r.Name, at, "rk-atlas-region");
+                label.EnableInClassList("rk-atlas-region--unknown", r.Discovery == RegionDiscovery.Unknown);
             }
+
+            // A compass rose in the map's north-east corner.
+            var rect = _atlasMap.contentRect;
+            if (rect.width > 200) Stamp("compass", new Vector2(rect.width - 54, 54), 72, 0.7f);
 
             if (On("Settlements"))
                 foreach (var s in v.Settlements)
                 {
-                    var b = Mark("settlement:" + s.SettlementId, s.Name, ToScreen(s.X, s.Z), "rk-atlas-settlement");
+                    Stamp(SettlementSymbol(s.Type), ToScreen(s.X, s.Z) + new Vector2(0, -20), s.Type == SettlementType.City || s.Type == SettlementType.Town ? 40 : 32, 0.9f);
+                    var b = Mark("settlement:" + s.SettlementId, s.Name, ToScreen(s.X, s.Z) + new Vector2(0, 10), "rk-atlas-settlement");
+                    b.tooltip = s.Name + " - " + s.Type + (string.IsNullOrEmpty(s.Faction) ? string.Empty : ", " + s.Faction) + (s.Shortage ? ". Short of food." : ".");
                     b.EnableInClassList("rk-atlas-settlement--short", On("Economy") && s.Shortage);
                     b.EnableInClassList("rk-atlas-settlement--here", s.IsHere);
                 }

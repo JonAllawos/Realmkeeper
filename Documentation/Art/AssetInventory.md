@@ -47,3 +47,20 @@ The setup (`Realmkeeper ▸ Set Up Art`) produces:
 The Standard tiers are the free subsets. Each pack has a paid "Source" tier with more outfits,
 hairstyles, animations (including turn-in-place) and kit pieces. They are recommend-only
 (ADR-0010): nothing here depends on them, and buying one needs the owner's decision.
+
+## Phase 19: interface assets (downloaded 2026-11-12)
+
+| Pack | Author | Source | Licence (file in repo) | Used for | Taken |
+|---|---|---|---|---|---|
+| game-icons.net | Lorc, Delapouite and 9 others | game-icons.net (PNG export, white on transparent); SVGs from github.com/game-icons/icons | **CC BY 3.0**, `Art/ThirdParty/GameIcons/License.txt` | The one icon family | 142 icons (`Resources/RkIcons`, 512 px PNG imported at ≤256) and their SVGs (`Source/`); list in `Tools/UI/icon-manifest.tsv` |
+| Fantasy UI Borders 1.0 | Kenney | kenney.nl/assets/fantasy-ui-borders | CC0 1.0, `Art/ThirdParty/Kenney/FantasyUIBorders/License.txt` | Window corner frame (9-slice), dividers | "Double" (96 px): 32 hollow borders, 6 dividers, 6 fading dividers |
+| Cartography Pack | Kenney | kenney.nl/assets/cartography-pack | CC0 1.0, `Art/ThirdParty/Kenney/Cartography/License.txt` | Atlas symbols, compass, parchment | 29 "Retina" (128 px) symbols, parchmentBasic and parchmentAncient (1024 px) |
+| EB Garamond | The EB Garamond Project Authors | github.com/octaviopardo/EBGaramond12 | **SIL OFL 1.1** (owner-approved), `Art/ThirdParty/Fonts/EBGaramond/OFL.txt` | Headings, dialogue, the atlas | Regular, SemiBold, Italic (TTF) |
+| Alegreya Sans | The Alegreya Sans Project Authors | github.com/google/fonts/tree/main/ofl/alegreyasans | **SIL OFL 1.1** (owner-approved), `Art/ThirdParty/Fonts/AlegreyaSans/OFL.txt` | Body text, controls, numbers | Regular, Medium, Bold, Italic (TTF) |
+
+Import rules (`ArtImportPostprocessor`, version 8):
+- interface textures under `Resources/RkIcons`, `RkFrames` and `RkMap` have no mipmaps and clamped edges;
+- they use high-quality compression;
+- icons are capped at 256 px, frames and symbols at 128, and parchment at 1024.
+
+About 4 MB in all. The full research and the rejected candidates are in `Documentation/Research/Phase19-Asset-License-Register.md`.

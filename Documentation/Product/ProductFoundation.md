@@ -50,6 +50,15 @@ These come from Phases 0–2 and remain in force.
 - Animated NPCs and creatures.
 - First-person and third-person character perspectives.
 
+### Interface (Phase 19, direction A "Cartographer's Ledger", owner-approved)
+
+- **Look.** Dark umber ink for the working interface, and parchment for maps and documents. Bronze is the single accent. The engraved corner ornament appears on windows only.
+- **Type and icons.** A serif (EB Garamond) for headings and spoken lines, a humanist sans (Alegreya Sans) for text, and one silhouette icon family (game-icons.net).
+- **Meaning is never carried by colour alone.** Every state also has an icon, a shape or words.
+- **Explanations surface.** Every control explains itself in a tooltip, and destructive actions say what they destroy before they do it.
+- **Entry screens.** The game opens on a title screen (world selection and creation, campaigns, settings, credits) over the living map.
+- **Where it is defined.** `Documentation/Design/Phase19-UI-Design-System.md` (the tokens) and `Phase19-UI-Architecture.md`.
+
 ---
 
 ## Addendum A: dual-perspective persistent world (binding)

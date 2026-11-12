@@ -211,6 +211,15 @@ namespace Realmkeeper.Exploration.Presentation
             var b = new Button(act) { text = text, name = name };
             b.AddToClassList("xk-button");
             b.AddToClassList("xk-time-button");
+            // Phase 19: an icon for each action; the practice and outing tools are quieter than the everyday controls.
+            var icon = name switch
+            {
+                "xk-time-pause" => "time", "xk-time-speed" => "fast", "xk-time-wait" => "sleep", "xk-open-hub" => "character",
+                "xk-open-party" => "party", "xk-open-creator" => "character", "xk-open-levelup" => "bonus",
+                "xk-open-practice" => "weapons", "xk-open-practice-caster" => "spell", "xk-open-outing" => "travel", _ => null,
+            };
+            if (icon != null) Realmkeeper.UI.RkIcons.Lead(b, icon, "s");
+            if (name.StartsWith("xk-open-practice", StringComparison.Ordinal) || name == "xk-open-outing") b.AddToClassList("xk-button--quiet");
             row.Add(b);
             return b;
         }

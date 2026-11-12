@@ -58,3 +58,14 @@
 | Creature models in every fight setting (narrow rooms, night, many foes) | Low. Size, facing and materials were checked in one line-up capture and one place fight | Fight each creature kind once |
 | Frame time with many animated creatures | Not profiled | Run the performance probe in a development build |
 | Very long games with lasting faction conflicts | Low. Weekly keys are now bounded per period (tested); event history notes are bounded as before | A 5-year soak test |
+
+## Phase 19 (interface overhaul)
+
+| Area | Risk | How to close |
+|---|---|---|
+| Hand use of the new interface | Medium. Driven by PlayMode tests and inspected in captures, but no person has used it. Legibility and taste are unjudged. | `Testing/Phase19-Owner-Playtest-Checklist.md` |
+| Display mode and resolution changes | Low to medium. Batch mode has no real display, so `Screen.SetResolution` was traced in code only. | Owner checklist B6, in a built player |
+| Keyboard-only navigation (Tab focus) through the title and settings | Low. Esc and Enter are handled; focus order is untested. | Try the title and settings without the mouse |
+| Tooltip placement at screen edges | Low. The clamping was checked in code only. | Hover controls in the screen corners |
+| Interface frame time | Not profiled. Batch captures have no meaningful timing. | The performance probe in a development build |
+| Screens restyled but not redesigned (inspector charts, event-feed filters, inventory grid, per-item icons, contextual HUD) | — | Later passes; see the completion report, section 3 |

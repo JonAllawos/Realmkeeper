@@ -1,0 +1,25 @@
+game-icons.net icons used by Realmkeeper (Phase 19)
+
+Source:   https://game-icons.net  (repository: https://github.com/game-icons/icons)
+Licence:  Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+          https://creativecommons.org/licenses/by/3.0/
+Evidence: https://game-icons.net/about.html - "They are provided under the terms of the Creative Commons
+          3.0 BY license." The repository's license.txt: CC BY 3.0 or CC0 depending on the contributor,
+          one folder per contributor. Read 2026-11-12.
+
+Required credit (shown in the game: Player Hub > Info, and in CREDITS.md):
+  Icons made by Lorc, Delapouite, sbed, Skoll, Guard13007, Carl Olsen, Willdabeast, DarkZaitzev,
+  Faithtoken, Lucas and Zeromancer. Available on https://game-icons.net. Licensed under CC BY 3.0.
+
+Icons per author (142 icons):
+  Lorc 70, Delapouite 54, sbed 4, Skoll 4, Guard13007 2, Carl Olsen 2, Willdabeast 2,
+  DarkZaitzev 1, Faithtoken 1, Lucas (lucasms) 1, Zeromancer 1.
+
+Files:
+  Source/<author>/<icon>.svg  - the original SVG, unmodified.
+  Resources/RkIcons/<icon>.png - 512 x 512 PNG rendered by game-icons.net as white on transparent
+                                 (https://game-icons.net/icons/ffffff/transparent/1x1/<author>/<icon>.png).
+                                 They are tinted at run time.
+
+Changes: colour (white on transparent), and tinting in the interface. Shapes are unchanged.
+The key-to-icon list is Tools/UI/icon-manifest.tsv.

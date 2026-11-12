@@ -28,8 +28,6 @@ namespace Realmkeeper.Presentation
         /// <summary>Rows that fit the bottom panel at the reference resolution.</summary>
         public const int EventCount = 7;
 
-        private static readonly string[] ComingLater = { "Characters", "Adventures", "Chronicle", "World Editor" };
-
         private static readonly (SimulationSpeed speed, string label)[] Speeds =
         {
             (SimulationSpeed.Slow, "Slow"),
@@ -46,7 +44,6 @@ namespace Realmkeeper.Presentation
         private IsometricCameraController _camera;
         private WorldView _worldView;
         private UIDocument _document;
-        private PanelSettings _ownedPanelSettings;
         private WorldDate _startDate;
         private bool _updatingSpeed;
 
@@ -108,18 +105,8 @@ namespace Realmkeeper.Presentation
             go.transform.SetParent(parent, false);
             var hud = go.AddComponent<RealmkeeperHud>();
             hud._document = go.AddComponent<UIDocument>();
-            var panelSettings = Resources.Load<PanelSettings>(PanelSettingsResource);
-            if (panelSettings == null)
-            {
-                // Fallback (Unity warns about the missing theme until it is assigned below).
-                panelSettings = hud._ownedPanelSettings = ScriptableObject.CreateInstance<PanelSettings>();
-                panelSettings.name = "Realmkeeper Runtime Panel";
-                panelSettings.themeStyleSheet = Resources.Load<ThemeStyleSheet>(ThemeResource);
-                panelSettings.scaleMode = PanelScaleMode.ScaleWithScreenSize;
-                panelSettings.referenceResolution = new Vector2Int(1920, 1080);
-                panelSettings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
-                panelSettings.match = 0.5f;
-            }
+            // Phase 19: one shared runtime panel (theme, tokens, the player's interface scale) for every document.
+            var panelSettings = Realmkeeper.UI.RkSettings.Panel;
 
             hud._document.panelSettings = panelSettings;
             hud._document.visualTreeAsset = Resources.Load<VisualTreeAsset>(HudResource);
@@ -247,17 +234,10 @@ namespace Realmkeeper.Presentation
             };
             Root.Q<Button>("nav-settlements").clicked += () => list.ToggleInClassList("rk-hidden");
 
-            var later = Root.Q<VisualElement>("nav-later");
-            foreach (var name in ComingLater)
-            {
-                var item = new Button { text = name };
-                item.AddToClassList("rk-nav-item");
-                var tag = new Label("Coming later");
-                tag.AddToClassList("rk-tag");
-                item.Add(tag);
-                item.SetEnabled(false);
-                later.Add(item);
-            }
+            // Phase 19: the "Coming later" placeholders (Characters, Adventures, Chronicle, World Editor) are gone: no
+            // control may suggest a feature that does not exist. The roadmap lists them.
+            Root.Q<VisualElement>("nav-later")?.RemoveFromHierarchy();
+            DressPhase19();
         }
 
         // ----- Commands --------------------------------------------------------------------
@@ -287,7 +267,22 @@ namespace Realmkeeper.Presentation
             return result;
         }
 
+        /// <summary>
+        /// Phase 19: Load reloads the slot's last save, so everything since is lost. The player confirms first, in a
+        /// dialog that says so; <see cref="LoadNow"/> is the confirmed action.
+        /// </summary>
         private void Load()
+        {
+            if (_session == null && LoadHandler == null) { ShowMessage(NoSession()); return; }
+            LoadConfirm = Realmkeeper.UI.RkModal.Confirm(_document.rootVisualElement, "Reload the last save?",
+                "The world returns to how it was when it was last saved. Everything that has happened since will be lost.",
+                "Reload", LoadNow);
+        }
+
+        /// <summary>The open reload confirmation, or null.</summary>
+        public Realmkeeper.UI.RkModal LoadConfirm { get; private set; }
+
+        private void LoadNow()
         {
             if (LoadHandler != null)
             {
@@ -383,6 +378,7 @@ namespace Realmkeeper.Presentation
             WorldNameLabel.text = overview?.WorldName ?? "No world";
             DateLabel.text = overview != null ? overview.Date.ToString() : "-";
             PlayPauseButton.text = _playback != null && _playback.IsPlaying ? "Pause" : "Play";
+            RefreshPlayIcon(); // Phase 19
 
             if (overview != null)
             {
@@ -754,7 +750,6 @@ namespace Realmkeeper.Presentation
             _binding?.Dispose();
             if (_playback != null) _playback.PlayStateChanged -= OnPlayStateChanged;
             if (_selection != null) _selection.SelectionChanged -= OnSelectionChanged;
-            if (_ownedPanelSettings != null) PresentationMaterials.DestroyObject(_ownedPanelSettings);
             if (_placeMarkers != null) Destroy(_placeMarkers); // Phase 13
             if (_markerMaterial != null) Destroy(_markerMaterial);
             if (_markerDoneMaterial != null) Destroy(_markerDoneMaterial);

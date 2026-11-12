@@ -1,0 +1,85 @@
+/*
+ * Realmkeeper design tokens (Phase 19, direction A "Cartographer's Ledger").
+ * The one place colours, type and spacing are defined. Screens use var(--rk-*) and the shared classes in
+ * RealmkeeperComponents.uss; see Documentation/Design/Phase19-UI-Design-System.md.
+ * Imported by RealmkeeperTheme.tss, so every panel (strategic and exploration) inherits it.
+ */
+
+:root {
+    /* Ink: the working interface, darkest to lightest. */
+    --rk-ink-950: rgb(16, 13, 10);
+    --rk-ink-900: rgb(22, 18, 14);
+    --rk-ink-800: rgb(30, 25, 19);
+    --rk-ink-700: rgb(40, 33, 26);
+    --rk-ink-600: rgb(52, 43, 33);
+    --rk-ink-500: rgb(70, 58, 44);
+
+    /* Surfaces with their opacity (over the 3D world). */
+    --rk-scrim: rgba(12, 10, 8, 0.72);
+    --rk-window: rgba(22, 18, 14, 0.97);
+    --rk-panel: rgba(28, 23, 18, 0.93);
+    --rk-card: rgba(40, 33, 26, 0.92);
+    --rk-control: rgba(46, 38, 30, 0.95);
+    --rk-control-hover: rgba(62, 51, 39, 0.98);
+    --rk-control-active: rgba(84, 68, 50, 1);
+
+    /* Lines. */
+    --rk-line: rgb(75, 62, 47);
+    --rk-line-soft: rgba(107, 88, 67, 0.45);
+    --rk-line-strong: rgb(107, 88, 67);
+
+    /* Text. Primary 14:1, secondary 8:1, muted 4.7:1 on ink-800. */
+    --rk-text: rgb(236, 226, 204);
+    --rk-text-2: rgb(194, 181, 156);
+    --rk-text-3: rgb(150, 138, 118);
+    --rk-heading: rgb(232, 206, 156);
+
+    /* The single accent: bronze. */
+    --rk-bronze: rgb(184, 138, 74);
+    --rk-bronze-hi: rgb(221, 176, 108);
+    --rk-bronze-deep: rgb(110, 82, 44);
+    --rk-bronze-deep-hi: rgb(136, 102, 54);
+
+    /* Paper (maps and documents). */
+    --rk-paper: rgb(228, 213, 180);
+    --rk-paper-ink: rgb(42, 32, 23);
+    --rk-paper-ink-2: rgb(96, 78, 58);
+
+    /* States. Always paired with an icon or text, never colour alone. */
+    --rk-good: rgb(140, 182, 112);
+    --rk-good-bg: rgba(70, 96, 58, 0.55);
+    --rk-warn: rgb(222, 163, 70);
+    --rk-warn-bg: rgba(110, 76, 26, 0.6);
+    --rk-bad: rgb(226, 122, 100);
+    --rk-bad-bg: rgba(130, 46, 34, 0.75);
+    --rk-info: rgb(140, 170, 222);
+    --rk-info-bg: rgba(64, 86, 120, 0.6);
+    --rk-rare: rgb(170, 140, 214);
+
+    /* Type scale (px at the 1920x1080 reference). */
+    --rk-size-title: 28px;
+    --rk-size-h1: 22px;
+    --rk-size-h2: 18px;
+    --rk-size-h3: 16px;
+    --rk-size-body: 15px;
+    --rk-size-small: 13px;
+    --rk-size-micro: 12px;
+
+    /* Spacing (4 px grid) and shape. */
+    --rk-space-1: 4px;
+    --rk-space-2: 8px;
+    --rk-space-3: 12px;
+    --rk-space-4: 16px;
+    --rk-space-5: 24px;
+    --rk-radius: 3px;
+    --rk-control-height: 32px;
+
+    /* Motion. */
+    --rk-fast: 0.12s;
+    --rk-slow: 0.18s;
+
+    /* Base type: Alegreya Sans for body and controls (OFL 1.1, owner-approved). */
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Regular.ttf");
+    font-size: 15px;
+    color: var(--rk-text);
+}

@@ -18,7 +18,11 @@ namespace Realmkeeper.Editor
         public override int GetPostprocessOrder() => 10;
 
         /// <summary>Bumped when the settings change, so Unity reimports the art.</summary>
-        public override uint GetVersion() => 7; // Phase 18: the new kits and creatures; leaf cut-outs; extracted creature textures
+        public override uint GetVersion() => 8; // Phase 19: interface art (icons, frames, map symbols, parchment)
+
+        /// <summary>Phase 19: the interface textures loaded from Resources (RkIcons, RkFrames, RkMap).</summary>
+        public static bool IsInterfaceArt(string path) =>
+            path.Contains("/Resources/RkIcons/") || path.Contains("/Resources/RkFrames/") || path.Contains("/Resources/RkMap/");
 
         private void OnPreprocessModel()
         {
@@ -171,6 +175,21 @@ namespace Realmkeeper.Editor
             importer.maxTextureSize = assetPath.Contains("/ModularCharacterOutfitsFantasy/") && !isNormal ? 2048 : 1024;
             importer.textureCompression = TextureImporterCompression.Compressed;
             importer.alphaIsTransparency = name == "T_VineLeaf";
+            if (IsInterfaceArt(assetPath))
+            {
+                // Phase 19: interface art (icons, frames, map symbols, parchment), drawn by UI Toolkit at screen size.
+                // No mipmaps (the UI never minifies far), clamped edges for 9-slices, transparency kept clean.
+                var parchment = name.StartsWith("parchment", System.StringComparison.Ordinal);
+                importer.mipmapEnabled = false;
+                importer.wrapMode = TextureWrapMode.Clamp;
+                importer.anisoLevel = 0;
+                importer.alphaIsTransparency = !parchment;
+                importer.maxTextureSize = parchment ? 1024 : assetPath.Contains("/RkIcons/") ? 256 : 128;
+                importer.textureCompression = parchment ? TextureImporterCompression.Compressed : TextureImporterCompression.CompressedHQ;
+                importer.npotScale = TextureImporterNPOTScale.None;
+                return;
+            }
+
             if (name.EndsWith("_Texture", System.StringComparison.Ordinal) && (IsAnimal(assetPath) || assetPath.Contains("/PolyByGoogle/")))
             {
                 // Phase 18: the extracted creature textures; the small ones are colour palettes, which mipmaps would blur together.

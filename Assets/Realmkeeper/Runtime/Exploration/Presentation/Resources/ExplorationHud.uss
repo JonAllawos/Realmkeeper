@@ -5,13 +5,13 @@
     flex-direction: column;
     padding: 12px;
     font-size: 14px;
-    color: rgb(232, 223, 204);
+    color: var(--rk-text);
 }
 
 .xk-panel {
-    background-color: rgba(22, 20, 17, 0.84);
+    background-color: var(--rk-panel);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.28);
+    border-color: var(--rk-line);
     border-radius: 6px;
 }
 
@@ -36,16 +36,16 @@
 .xk-settlement {
     font-size: 19px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-region {
-    color: rgb(190, 181, 163);
+    color: var(--rk-text-2);
 }
 
 .xk-date {
     font-size: 12px;
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
 }
 
 .xk-actions {
@@ -57,7 +57,7 @@
 
 .xk-perspective {
     -unity-font-style: bold;
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
     margin: 0 4px;
 }
 
@@ -65,7 +65,7 @@
     width: 1px;
     height: 22px;
     margin: 0 10px;
-    background-color: rgba(201, 164, 101, 0.3);
+    background-color: var(--rk-line);
 }
 
 .xk-button {
@@ -74,22 +74,22 @@
     padding: 0 12px;
     border-width: 1px;
     border-radius: 4px;
-    border-color: rgba(201, 164, 101, 0.35);
-    background-color: rgba(60, 54, 45, 0.9);
-    color: rgb(232, 223, 204);
+    border-color: var(--rk-line);
+    background-color: var(--rk-control);
+    color: var(--rk-text);
 }
 
 .xk-button:hover {
-    background-color: rgba(84, 75, 60, 0.95);
+    background-color: var(--rk-control-hover);
 }
 
 .xk-button--primary {
-    background-color: rgba(120, 92, 48, 0.95);
-    border-color: rgba(214, 180, 116, 0.6);
+    background-color: var(--rk-bronze-deep);
+    border-color: var(--rk-bronze);
 }
 
 .xk-button--primary:hover {
-    background-color: rgba(142, 110, 58, 1);
+    background-color: var(--rk-bronze-deep-hi);
 }
 
 .xk-crosshair {
@@ -127,7 +127,7 @@
     flex-grow: 1;
     font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-response-text {
@@ -135,7 +135,7 @@
 }
 
 .xk-response--failed .xk-response-text {
-    color: rgb(236, 120, 96);
+    color: var(--rk-bad);
 }
 
 .xk-prompt {
@@ -154,7 +154,7 @@
     border-color: rgba(214, 180, 116, 0.7);
     -unity-text-align: middle-center;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-prompt-text {
@@ -166,7 +166,7 @@
     padding: 1px 6px;
     font-size: 10px;
     border-radius: 3px;
-    background-color: rgba(96, 128, 140, 0.85);
+    background-color: var(--rk-info-bg);
     color: rgb(236, 240, 242);
 }
 
@@ -175,12 +175,12 @@
 }
 
 .xk-message {
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
     margin-bottom: 4px;
 }
 
 .xk-message--error {
-    color: rgb(236, 120, 96);
+    color: var(--rk-bad);
 }
 
 .xk-help {
@@ -214,7 +214,7 @@
 .xk-clock {
     font-size: 17px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
     margin-right: 8px;
     min-width: 150px;
 }
@@ -233,7 +233,7 @@
     border-color: rgba(201, 164, 101, 0.55);
     border-radius: 8px;
     padding: 14px 18px;
-    color: rgb(232, 223, 204);
+    color: var(--rk-text);
 }
 
 .xk-trade {
@@ -254,7 +254,7 @@
     flex-direction: row;
     align-items: center;
     border-bottom-width: 1px;
-    border-color: rgba(201, 164, 101, 0.3);
+    border-color: var(--rk-line);
     padding-bottom: 8px;
     margin-bottom: 8px;
 }
@@ -262,17 +262,17 @@
 .xk-w-title {
     font-size: 24px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-w-subtitle {
-    color: rgb(190, 181, 163);
+    color: var(--rk-text-2);
 }
 
 .xk-w-purse {
     font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(226, 196, 120);
+    color: var(--rk-heading);
     margin: 0 14px;
 }
 
@@ -301,13 +301,13 @@
 .xk-w-heading {
     font-size: 14px;
     -unity-font-style: bold;
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
     margin: 6px 0 4px 0;
 }
 
 .xk-w-list {
     flex-grow: 1;
-    background-color: rgba(34, 31, 26, 0.7);
+    background-color: var(--rk-card);
     border-radius: 4px;
 }
 
@@ -316,7 +316,7 @@
     align-items: center;
     padding: 3px 6px;
     border-bottom-width: 1px;
-    border-color: rgba(201, 164, 101, 0.12);
+    border-color: var(--rk-line-soft);
 }
 
 .xk-w-row:hover {
@@ -328,7 +328,7 @@
 }
 
 .xk-w-row--refused .xk-w-name {
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
 }
 
 .xk-w-row--worn {
@@ -340,25 +340,25 @@
 }
 
 .xk-w-faint {
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
 }
 
 .xk-w-qty {
     width: 44px;
-    color: rgb(190, 181, 163);
+    color: var(--rk-text-2);
 }
 
 .xk-w-price {
     width: 120px;
     -unity-text-align: middle-right;
-    color: rgb(226, 196, 120);
+    color: var(--rk-heading);
     margin-right: 8px;
 }
 
 .xk-w-slot {
     width: 110px;
     -unity-font-style: bold;
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
 }
 
 .xk-w-act {
@@ -371,37 +371,37 @@
     white-space: normal;
     margin-top: 8px;
     padding: 6px 8px;
-    background-color: rgba(34, 31, 26, 0.7);
+    background-color: var(--rk-card);
     border-radius: 4px;
     min-height: 40px;
 }
 
 .xk-w-message {
     margin-top: 6px;
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
 }
 
 .xk-w-ledger-line {
     font-size: 12px;
-    color: rgb(190, 181, 163);
+    color: var(--rk-text-2);
 }
 
 .xk-w-empty {
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
     padding: 6px;
 }
 
 .xk-w-note {
     white-space: normal;
     font-size: 12px;
-    color: rgb(190, 181, 163);
+    color: var(--rk-text-2);
     margin: 6px 0;
 }
 
 .xk-w-desc {
     white-space: normal;
     font-size: 11px;
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
     margin: 0 6px 4px 6px;
 }
 
@@ -414,7 +414,7 @@
 .xk-w-key {
     width: 170px;
     -unity-font-style: bold;
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
 }
 
 .xk-w-value {
@@ -427,7 +427,7 @@
 }
 
 .xk-w-choice--on {
-    background-color: rgba(142, 110, 58, 1);
+    background-color: var(--rk-bronze-deep-hi);
     border-color: rgba(240, 214, 160, 0.9);
 }
 
@@ -441,7 +441,7 @@
 }
 
 .xk-w-swatch--on {
-    border-color: rgb(240, 214, 160);
+    border-color: var(--rk-heading);
 }
 
 .xk-hub-body {
@@ -462,26 +462,26 @@
     font-size: 14px;
     border-width: 1px;
     border-radius: 4px;
-    border-color: rgba(201, 164, 101, 0.2);
-    background-color: rgba(44, 40, 33, 0.9);
+    border-color: var(--rk-line-soft);
+    background-color: var(--rk-card);
     color: rgb(222, 212, 192);
 }
 
 .xk-hub-tab:hover {
-    background-color: rgba(84, 75, 60, 0.95);
+    background-color: var(--rk-control-hover);
 }
 
 .xk-hub-tab--active {
-    background-color: rgba(120, 92, 48, 0.95);
+    background-color: var(--rk-bronze-deep);
     border-color: rgba(240, 214, 160, 0.7);
-    color: rgb(250, 236, 206);
+    color: var(--rk-text);
     -unity-font-style: bold;
 }
 
 .xk-hub-content {
     flex-grow: 1;
     flex-basis: 0;
-    background-color: rgba(34, 31, 26, 0.7);
+    background-color: var(--rk-card);
     border-radius: 4px;
     padding: 8px 12px;
 }
@@ -491,7 +491,7 @@
     margin-left: 12px;
     border-width: 1px;
     border-radius: 6px;
-    border-color: rgba(201, 164, 101, 0.35);
+    border-color: var(--rk-line);
     background-color: rgb(28, 25, 22);
     -unity-background-scale-mode: scale-and-crop;
     justify-content: flex-end;
@@ -529,20 +529,20 @@
     font-size: 13px;
     border-width: 1px;
     border-radius: 4px;
-    border-color: rgba(201, 164, 101, 0.2);
-    background-color: rgba(44, 40, 33, 0.9);
-    color: rgb(190, 181, 163);
+    border-color: var(--rk-line-soft);
+    background-color: var(--rk-card);
+    color: var(--rk-text-2);
 }
 
 .xk-cc-step--done {
-    color: rgb(170, 210, 150);
+    color: var(--rk-good);
     border-color: rgba(150, 190, 120, 0.45);
 }
 
 .xk-cc-step--active {
-    background-color: rgba(120, 92, 48, 0.95);
-    border-color: rgba(240, 214, 160, 0.8);
-    color: rgb(250, 236, 206);
+    background-color: var(--rk-bronze-deep);
+    border-color: var(--rk-heading);
+    color: var(--rk-text);
     -unity-font-style: bold;
 }
 
@@ -573,7 +573,7 @@
     white-space: normal;
     background-color: rgba(34, 31, 26, 0.85);
     border-radius: 4px;
-    color: rgb(226, 214, 190);
+    color: var(--rk-text);
 }
 
 .xk-cc-foot {
@@ -582,12 +582,12 @@
     margin-top: 10px;
     padding-top: 8px;
     border-top-width: 1px;
-    border-color: rgba(201, 164, 101, 0.3);
+    border-color: var(--rk-line);
 }
 
 .xk-cc-problems {
     white-space: normal;
-    color: rgb(170, 210, 150);
+    color: var(--rk-good);
     margin-right: 10px;
 }
 
@@ -608,8 +608,8 @@
 }
 
 .xk-cc-pick--on {
-    background-color: rgba(120, 92, 48, 0.95);
-    border-color: rgba(240, 214, 160, 0.8);
+    background-color: var(--rk-bronze-deep);
+    border-color: var(--rk-heading);
     -unity-font-style: bold;
 }
 
@@ -621,13 +621,13 @@
 .xk-cc-name {
     font-size: 22px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
     white-space: normal;
 }
 
 .xk-cc-source {
     font-size: 11px;
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
     margin-bottom: 4px;
 }
 
@@ -638,7 +638,7 @@
     margin: 4px 0;
     border-radius: 3px;
     background-color: rgba(120, 90, 40, 0.45);
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-cc-col {
@@ -672,18 +672,18 @@
     border-radius: 6px;
     background-color: rgba(44, 40, 33, 0.95);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.35);
+    border-color: var(--rk-line);
 }
 
 .xk-cc-card-value {
     font-size: 20px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-cc-card-label {
     font-size: 11px;
-    color: rgb(190, 181, 163);
+    color: var(--rk-text-2);
 }
 
 /* Phase 7: experience bar */
@@ -693,12 +693,12 @@
     background-color: rgba(255, 255, 255, 0.08);
     border-radius: 5px;
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.45);
+    border-color: var(--rk-line-strong);
 }
 
 .xk-xp-fill {
     height: 100%;
-    background-color: rgb(201, 164, 101);
+    background-color: var(--rk-bronze);
     border-radius: 4px;
 }
 
@@ -728,11 +728,11 @@
     font-size: 16px;
     -unity-font-style: bold;
     margin: 0 12px;
-    color: rgb(214, 205, 186);
+    color: var(--rk-text);
 }
 
 .xk-combat-turn--yours {
-    color: rgb(240, 200, 110);
+    color: var(--rk-bronze-hi);
 }
 
 .xk-combat-head-button {
@@ -778,15 +778,15 @@
     font-size: 12px;
     margin: 1px 0;
     padding: 3px 6px;
-    background-color: rgba(40, 36, 30, 0.9);
+    background-color: var(--rk-card);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.15);
+    border-color: var(--rk-line-soft);
     border-radius: 4px;
-    color: rgb(232, 223, 204);
+    color: var(--rk-text);
 }
 
 .xk-combat-row--active {
-    border-color: rgb(240, 200, 110);
+    border-color: var(--rk-bronze-hi);
     background-color: rgba(70, 58, 34, 0.95);
 }
 
@@ -795,7 +795,7 @@
 }
 
 .xk-combat-row--down {
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
 }
 
 .xk-combat-grid-row {
@@ -812,7 +812,7 @@
     -unity-text-align: middle-center;
     border-width: 1px;
     border-radius: 0;
-    border-color: rgba(201, 164, 101, 0.12);
+    border-color: var(--rk-line-soft);
     background-color: rgba(48, 44, 36, 0.85);
     color: rgb(240, 236, 226);
 }
@@ -842,7 +842,7 @@
 }
 
 .xk-combat-cell--active {
-    border-color: rgb(240, 200, 110);
+    border-color: var(--rk-bronze-hi);
     border-width: 2px;
 }
 
@@ -852,7 +852,7 @@
 
 .xk-combat-economy {
     font-size: 12px;
-    color: rgb(214, 205, 186);
+    color: var(--rk-text);
     margin-bottom: 4px;
     white-space: normal;
 }
@@ -878,8 +878,8 @@
 .xk-combat-result {
     font-size: 12px;
     white-space: normal;
-    color: rgb(240, 230, 205);
-    background-color: rgba(40, 36, 30, 0.9);
+    color: var(--rk-text);
+    background-color: var(--rk-card);
     padding: 6px;
     border-radius: 4px;
     margin-bottom: 6px;
@@ -892,7 +892,7 @@
 .xk-combat-inspect-line {
     font-size: 11px;
     white-space: normal;
-    color: rgb(214, 205, 186);
+    color: var(--rk-text);
     margin-bottom: 2px;
 }
 
@@ -903,7 +903,7 @@
 .xk-combat-log-line {
     font-size: 11px;
     white-space: normal;
-    color: rgb(214, 205, 186);
+    color: var(--rk-text);
     margin-bottom: 1px;
 }
 
@@ -926,7 +926,7 @@
 }
 
 .xk-combat-log--ended {
-    color: rgb(240, 200, 110);
+    color: var(--rk-bronze-hi);
     -unity-font-style: bold;
 }
 
@@ -937,7 +937,7 @@
 }
 
 .xk-combat-fold > .unity-foldout__toggle {
-    color: rgb(240, 200, 110);
+    color: var(--rk-bronze-hi);
     -unity-font-style: bold;
     font-size: 12px;
     margin: 2px 0;
@@ -971,7 +971,7 @@
 .xk-sp-slot {
     font-size: 13px;
     margin-right: 18px;
-    color: rgb(240, 220, 170);
+    color: var(--rk-heading);
 }
 
 .xk-sp-search {
@@ -989,11 +989,11 @@
     font-size: 12px;
     margin: 1px 0;
     padding: 3px 6px;
-    background-color: rgba(40, 36, 30, 0.9);
+    background-color: var(--rk-card);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.15);
+    border-color: var(--rk-line-soft);
     border-radius: 4px;
-    color: rgb(232, 223, 204);
+    color: var(--rk-text);
 }
 
 .xk-sp-row:hover {
@@ -1001,11 +1001,11 @@
 }
 
 .xk-sp-row--selected {
-    border-color: rgb(240, 200, 110);
+    border-color: var(--rk-bronze-hi);
 }
 
 .xk-sp-row--inactive {
-    color: rgb(150, 142, 126);
+    color: var(--rk-text-3);
 }
 
 .xk-sp-detail {
@@ -1013,7 +1013,7 @@
     padding: 8px;
     background-color: rgba(30, 27, 22, 0.95);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.35);
+    border-color: var(--rk-line);
     border-radius: 6px;
 }
 
@@ -1040,7 +1040,7 @@
 
 .xk-combat-aim-hint {
     white-space: normal;
-    color: rgb(214, 180, 116);
+    color: var(--rk-bronze-hi);
     -unity-font-style: bold;
 }
 
@@ -1052,7 +1052,7 @@
     padding: 8px 10px;
     background-color: rgba(92, 64, 24, 0.97);
     border-width: 2px;
-    border-color: rgb(240, 200, 110);
+    border-color: var(--rk-bronze-hi);
     border-radius: 4px;
 }
 
@@ -1065,7 +1065,7 @@
 .xk-combat-prompt-body {
     font-size: 12px;
     white-space: normal;
-    color: rgb(240, 230, 205);
+    color: var(--rk-text);
 }
 
 .xk-combat-prompt .xk-button {
@@ -1082,33 +1082,33 @@
 .xk-inv-search { width: 180px; margin-right: 4px; }
 .xk-inv-groups { flex-wrap: wrap; margin-bottom: 6px; }
 .xk-inv-item { margin-bottom: 2px; }
-.xk-inv-magic { color: rgb(150, 182, 236); }
+.xk-inv-magic { color: var(--rk-info); }
 .xk-inv-details { padding: 8px; margin: 4px 0 8px 0; background-color: rgba(0, 0, 0, 0.30); border-width: 1px; border-color: rgba(196, 168, 102, 0.45); border-radius: 4px; }
 .xk-inv-warning { color: rgb(232, 128, 96); white-space: normal; margin: 2px 0; }
 .xk-inv-compare { margin-top: 6px; padding-top: 4px; border-top-width: 1px; border-color: rgba(255, 255, 255, 0.12); }
 .xk-inv-delta { width: 56px; -unity-text-align: middle-right; color: rgb(170, 170, 160); }
-.xk-inv-delta--up { color: rgb(126, 196, 112); }
+.xk-inv-delta--up { color: var(--rk-good); }
 .xk-inv-delta--down { color: rgb(220, 110, 90); }
 .xk-store { padding: 6px; margin-bottom: 8px; background-color: rgba(0, 0, 0, 0.22); border-radius: 4px; }
 
 /* ----- Phase 12: dialogue and journal ----- */
 .xk-dialogue { position: absolute; left: 22%; right: 22%; bottom: 7%; max-height: 62%; padding: 14px 18px; }
-.xk-dialogue-quest { color: rgb(214, 188, 120); margin: 2px 0 6px 0; }
+.xk-dialogue-quest { color: var(--rk-heading); margin: 2px 0 6px 0; }
 .xk-dialogue-transcript { max-height: 160px; margin-bottom: 6px; }
 .xk-dialogue-said { color: rgb(170, 164, 150); white-space: normal; margin: 1px 0; }
-.xk-dialogue-check { color: rgb(150, 182, 236); font-size: 12px; margin: 1px 0 3px 0; }
+.xk-dialogue-check { color: var(--rk-info); font-size: 12px; margin: 1px 0 3px 0; }
 .xk-dialogue-line { color: rgb(240, 232, 212); font-size: 17px; white-space: normal; margin: 6px 0 10px 0; }
 .xk-dialogue-responses { margin-bottom: 4px; }
 .xk-dialogue-response { -unity-text-align: middle-left; white-space: normal; margin: 2px 0; padding: 5px 10px; }
-.xk-dialogue-response--quest { border-left-width: 3px; border-color: rgb(214, 188, 120); }
+.xk-dialogue-response--quest { border-left-width: 3px; border-color: var(--rk-heading); }
 .xk-dialogue-response--social { color: rgb(170, 200, 240); }
 .xk-dialogue-response--decision { color: rgb(240, 210, 140); border-left-width: 3px; border-left-color: rgb(200, 160, 80); }
 .xk-dialogue-response:disabled { opacity: 0.55; }
 .xk-dialogue-why { font-size: 12px; color: rgb(190, 170, 150); -unity-font-style: italic; margin-bottom: 4px; white-space: normal; }
 .xk-journal-objective { white-space: normal; margin: 2px 0 2px 6px; }
-.xk-journal-objective--done { color: rgb(126, 196, 112); }
+.xk-journal-objective--done { color: var(--rk-good); }
 .xk-journal-objective--locked { color: rgb(130, 126, 116); }
-.xk-tracked { position: absolute; right: 18px; top: 74px; max-width: 420px; padding: 8px 12px; background-color: rgba(18, 16, 12, 0.72); border-radius: 4px; color: rgb(236, 222, 186); white-space: normal; -unity-text-align: upper-left; }
+.xk-tracked { position: absolute; right: 18px; top: 74px; max-width: 420px; padding: 8px 12px; background-color: var(--rk-panel); border-radius: 4px; color: var(--rk-text); white-space: normal; -unity-text-align: upper-left; }
 
 /* ----- Phase 13: places ----- */
 .xk-combat-cell--wall { background-color: rgba(24, 22, 20, 0.95); }
@@ -1116,25 +1116,25 @@
 .xk-combat-cell--door-open { background-color: rgba(96, 62, 30, 0.35); border-color: rgb(150, 105, 55); }
 .xk-combat-cell--cover { background-color: rgba(120, 110, 80, 0.55); border-bottom-width: 3px; border-bottom-color: rgb(170, 150, 100); }
 .xk-combat-cell--hidden { opacity: 0.45; }
-.xk-place { position: absolute; left: 18px; bottom: 120px; max-width: 460px; padding: 8px 12px; background-color: rgba(18, 16, 12, 0.72); border-radius: 4px; }
-.xk-place-name { color: rgb(236, 222, 186); font-size: 18px; -unity-font-style: bold; }
+.xk-place { position: absolute; left: 18px; bottom: 120px; max-width: 460px; padding: 8px 12px; background-color: var(--rk-panel); border-radius: 4px; }
+.xk-place-name { color: var(--rk-text); font-size: 18px; -unity-font-style: bold; }
 .xk-place-where { color: rgb(214, 200, 168); font-size: 14px; }
 .xk-place-status { color: rgb(226, 170, 110); font-size: 13px; white-space: normal; }
-.xk-place-hint { color: rgb(170, 160, 136); font-size: 12px; }
+.xk-place-hint { color: var(--rk-text-2); font-size: 12px; }
 .xk-place-map { position: absolute; right: 24px; top: 120px; width: 420px; padding: 10px; background-color: rgba(14, 12, 10, 0.9); border-radius: 6px; border-width: 1px; border-color: rgb(110, 92, 60); }
-.xk-place-map-title { color: rgb(236, 222, 186); font-size: 16px; -unity-font-style: bold; margin-bottom: 6px; }
+.xk-place-map-title { color: var(--rk-text); font-size: 16px; -unity-font-style: bold; margin-bottom: 6px; }
 .xk-place-map-floor { color: rgb(200, 186, 150); font-size: 13px; margin-top: 4px; }
 .xk-place-map-canvas { position: relative; height: 260px; margin-top: 4px; background-color: rgba(30, 26, 20, 0.9); }
 .xk-place-map-room { position: absolute; background-color: rgba(150, 128, 92, 0.85); border-width: 1px; border-color: rgb(60, 48, 32); }
 .xk-place-map-room--here { background-color: rgba(214, 170, 92, 0.95); }
 .xk-place-map-room--secret { background-color: rgba(120, 96, 150, 0.85); }
 .xk-place-map-passage { position: absolute; background-color: rgba(110, 96, 70, 0.85); }
-.xk-place-map-legend { color: rgb(170, 160, 136); font-size: 11px; margin-top: 6px; white-space: normal; }
+.xk-place-map-legend { color: var(--rk-text-2); font-size: 11px; margin-top: 6px; white-space: normal; }
 
 /* Phase 14 (ADR-0068 … ADR-0070): lasting conditions, followers, where you can rest. */
 .xk-conditions { position: absolute; left: 18px; top: 176px; max-width: 360px; padding: 6px 10px; background-color: rgba(30, 14, 12, 0.78); border-radius: 4px; border-left-width: 3px; border-left-color: rgb(196, 92, 60); }
 .xk-condition-name { color: rgb(246, 196, 150); font-size: 14px; -unity-font-style: bold; }
-.xk-condition-effect { color: rgb(226, 214, 190); font-size: 12px; white-space: normal; }
+.xk-condition-effect { color: var(--rk-text); font-size: 12px; white-space: normal; }
 .xk-condition-end { color: rgb(184, 172, 150); font-size: 11px; white-space: normal; -unity-font-style: italic; margin-bottom: 4px; }
 .xk-condition-button { font-size: 12px; margin: 2px 0 4px 0; padding: 2px 8px; background-color: rgb(92, 52, 38); color: rgb(246, 226, 196); border-width: 0; border-radius: 3px; align-self: flex-start; }
 .xk-followers { color: rgb(196, 214, 170); font-size: 12px; white-space: normal; margin-top: 4px; }
@@ -1166,7 +1166,7 @@
     border-radius: 8px;
     background-color: rgba(18, 16, 13, 0.82);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.4);
+    border-color: var(--rk-line-strong);
 }
 
 .xk-cbt-head {
@@ -1206,15 +1206,15 @@
     max-height: 46%;
     padding: 8px 10px;
     border-radius: 8px;
-    background-color: rgba(18, 16, 13, 0.85);
+    background-color: var(--rk-panel);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.4);
+    border-color: var(--rk-line-strong);
 }
 
 .xk-cbt-card-name {
     font-size: 14px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-cbt-hp {
@@ -1266,9 +1266,9 @@
     align-items: center;
     padding: 6px 10px;
     border-radius: 8px;
-    background-color: rgba(18, 16, 13, 0.85);
+    background-color: var(--rk-panel);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.45);
+    border-color: var(--rk-line-strong);
 }
 
 .xk-cbt-slots,
@@ -1290,19 +1290,19 @@
 }
 
 .xk-cbt-slot--action { background-color: rgb(118, 186, 108); }
-.xk-cbt-slot--bonus { background-color: rgb(232, 168, 72); }
+.xk-cbt-slot--bonus { background-color: var(--rk-warn); }
 .xk-cbt-slot--reaction { background-color: rgb(150, 140, 220); }
 
 .xk-cbt-slot--used {
     background-color: rgba(90, 84, 74, 0.7);
-    color: rgb(170, 160, 140);
+    color: var(--rk-text-2);
 }
 
 .xk-cbt-move {
     margin-left: 10px;
     font-size: 13px;
     -unity-font-style: bold;
-    color: rgb(240, 214, 160);
+    color: var(--rk-heading);
 }
 
 .xk-cbt-group {
@@ -1311,7 +1311,7 @@
 }
 
 .xk-cbt-group--open {
-    border-color: rgb(240, 200, 110);
+    border-color: var(--rk-bronze-hi);
     background-color: rgba(96, 74, 38, 0.95);
 }
 
@@ -1338,7 +1338,7 @@
     border-radius: 8px;
     background-color: rgba(18, 16, 13, 0.8);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.35);
+    border-color: var(--rk-line);
 }
 
 .xk-cbt-log--open {
@@ -1366,9 +1366,9 @@
     top: 150px;
     padding: 8px 10px;
     border-radius: 8px;
-    background-color: rgba(18, 16, 13, 0.9);
+    background-color: var(--rk-window);
     border-width: 1px;
-    border-color: rgba(201, 164, 101, 0.45);
+    border-color: var(--rk-line-strong);
 }
 
 .xk-cbt-hover {
@@ -1378,10 +1378,10 @@
     border-radius: 6px;
     font-size: 12px;
     white-space: normal;
-    background-color: rgba(18, 16, 13, 0.9);
+    background-color: var(--rk-window);
     border-width: 1px;
     border-color: rgba(118, 186, 108, 0.8);
-    color: rgb(232, 223, 204);
+    color: var(--rk-text);
 }
 
 .xk-cbt-hover--bad {
@@ -1397,7 +1397,7 @@
     border-radius: 8px;
     background-color: rgba(18, 16, 13, 0.96);
     border-width: 1px;
-    border-color: rgb(232, 168, 72);
+    border-color: var(--rk-warn);
 }
 
 .xk-cbt-confirm-text {
@@ -1431,3 +1431,75 @@
 .xk-party-card--selected { border-left-color: rgb(214, 186, 112); background-color: rgba(255, 240, 200, 0.07); }
 .xk-party-detail { margin-top: 10px; padding: 8px; background-color: rgba(0, 0, 0, 0.18); border-radius: 4px; }
 .xk-combat-log--reason { color: rgb(160, 204, 150); -unity-font-style: italic; font-size: 11px; }
+
+/* ----- Phase 19: the shared visual language (tokens in RealmkeeperTokens.uss) ------------- */
+
+.xk-panel {
+    background-color: rgba(26, 21, 16, 0.95);
+    border-radius: 4px;
+}
+
+.xk-window {
+    background-color: var(--rk-window);
+    border-color: var(--rk-line-strong);
+    border-radius: 4px;
+}
+
+/* Window titles (hub, dialogue speaker, trade, creator, advancement) and the place name: the serif face. */
+.xk-w-title,
+.xk-settlement {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+    -unity-font-style: normal;
+    color: var(--rk-heading);
+}
+
+.xk-w-title {
+    font-size: 26px;
+}
+
+.xk-settlement {
+    font-size: 23px;
+}
+
+.xk-w-heading {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Medium.ttf");
+    -unity-font-style: normal;
+    letter-spacing: 1px;
+    color: var(--rk-heading);
+}
+
+/* Developer-style tools (practice fights, outings) stay available but recede. */
+.xk-button--quiet {
+    background-color: rgba(0, 0, 0, 0);
+    border-color: var(--rk-line-soft);
+    color: var(--rk-text-2);
+}
+
+.xk-button--quiet:hover {
+    background-color: var(--rk-control);
+    color: var(--rk-text);
+}
+
+.xk-hub-tab--active {
+    background-color: var(--rk-bronze-deep);
+    border-color: var(--rk-bronze);
+    color: rgb(250, 238, 214);
+}
+
+/* A used action resource is dimmed and set in italics, and its tooltip says "used this turn" (not colour alone). */
+.xk-cbt-slot--used {
+    opacity: 0.5;
+    -unity-font-style: italic;
+}
+
+.xk-dialogue-line {
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Italic.ttf");
+    font-size: 21px;
+}
+
+/* Controls with an icon keep their full width; the panels grow to fit them. */
+.xk-actions > Button,
+.xk-clock-row > Button,
+.xk-cbt-slots > Label {
+    flex-shrink: 0;
+}

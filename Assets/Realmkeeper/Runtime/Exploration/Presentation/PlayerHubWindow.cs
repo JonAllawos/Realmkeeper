@@ -43,6 +43,7 @@ namespace Realmkeeper.Exploration.Presentation
             var head = Row("xk-w-head");
             var title = Text("Character", "xk-w-title");
             title.name = "xk-hub-title";
+            title.AddToClassList("rk-serif");
             title.style.flexGrow = 1;
             head.Add(title);
             _summary = Text("-", "xk-w-purse");
@@ -60,6 +61,7 @@ namespace Realmkeeper.Exploration.Presentation
                 var section = s;
                 var tab = new Button(() => Select(section)) { text = section, name = "xk-hub-tab-" + section };
                 tab.AddToClassList("xk-hub-tab");
+                Realmkeeper.UI.RkIcons.Lead(tab, HubIcon(section), "m"); // Phase 19
                 _tabs[s] = tab;
                 nav.Add(tab);
             }
@@ -102,6 +104,15 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         public VisualElement Root { get; }
+
+        /// <summary>Phase 19: the icon for each hub section.</summary>
+        public static string HubIcon(string section) => section switch
+        {
+            "Character" => "character", "Party" => "party", "Spells & rest" => "spells", "Appearance" => "appearance",
+            "Inventory" => "inventory", "Equipment" => "equipment", "Weapons" => "weapons", "Clothing & armour" => "clothing",
+            "Crafting & work" => "crafting", "Storage" => "storage", "Journal" => "journal", "Currency & possessions" => "currency",
+            _ => "info",
+        };
         public bool IsOpen => !Root.ClassListContains("xk-hidden");
         public string Section { get; private set; }
         public PlayerHub Hub { get; private set; }

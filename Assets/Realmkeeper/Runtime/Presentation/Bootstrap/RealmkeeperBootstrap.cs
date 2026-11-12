@@ -19,6 +19,9 @@ namespace Realmkeeper.Presentation
         [SerializeField] private string _worldName = "Realmkeeper";
         [SerializeField] private long _seed = 123456789;
         [SerializeField] private bool _playOnStart;
+
+        [Tooltip("Phase 19: show the title screen when the game starts with this scene (not when a test loads it).")]
+        [SerializeField] private bool _showTitleOnLaunch = true;
         [SerializeField] private Shader _vertexColorShader;
         [SerializeField] private Shader _waterShader;
 
@@ -51,6 +54,9 @@ namespace Realmkeeper.Presentation
         public PoliticalOverlayLayer PoliticalOverlay { get; private set; }
 
         public RealmkeeperHud Hud { get; private set; }
+
+        /// <summary>Phase 19: the title, world selection, campaigns, settings and credits overlay.</summary>
+        public TitleScreen Title { get; private set; }
 
         public CommandResult LastCreateResult { get; private set; }
 
@@ -93,6 +99,9 @@ namespace Realmkeeper.Presentation
             Hud.LoadHandler = () => Runtime.Load();
             Hud.PoliticalOverlayChanged += on => PoliticalOverlay.SetOn(on, Session);
             Selection.IsPointerOverUi = Hud.IsPointerOverUi;
+            Realmkeeper.UI.RkSettings.ApplyStored();
+            Title = TitleScreen.Create(this);
+            Hud.MenuRequested += () => Title.Open(false);
             CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
 
             // Follow every session the runtime starts, not just the first (restart, start from a save).
@@ -112,7 +121,8 @@ namespace Realmkeeper.Presentation
             BindSession(Runtime.Session); // no-op when SessionStarted already bound it
             ApplyMode(Runtime.Mode);
 
-            if (_playOnStart) Playback.Play();
+            if (_showTitleOnLaunch && TitleScreen.IsLaunchScene(gameObject.scene)) Title.Open(true);
+            else if (_playOnStart) Playback.Play();
         }
 
         /// <summary>

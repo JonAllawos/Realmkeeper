@@ -18,7 +18,7 @@
 |---|---|
 | UI framework | UI Toolkit (ADR-0001), Unity 6000.0.47f1, URP 17.0.4. There is no Vector Graphics package and no TextMeshPro asset; fonts are Unity's runtime default. |
 | Stylesheets | `RealmkeeperHud.uss` (909 lines, strategic layer) and `ExplorationHud.uss` (1,433 lines, exploration and hub). Colours are literal values with no USS variables. One theme, `RealmkeeperTheme.tss`. |
-| Panel settings | Scale With Screen Size, reference 1920×1080, match width (0). At 1366×768, everything scales to 71 %, so 14 px text renders at about 10 px. That is a legibility risk to fix in 19B, e.g. match 0.5 and a minimum text size. |
+| Panel settings | Scale With Screen Size, reference 1920×1080, match width-or-height 0.5 (corrected in Phase 19B: 19A said match width). At 1366×768, everything scales to 71 %, so 14 px text renders at about 10 px. That is a legibility risk; Phase 19B adds an Auto interface scale. |
 | Map | The 3D strategic map (`WorldView`, vertex-colour shader) plus a 2D atlas drawn in `Painter2D` (`RealmkeeperHud.Atlas.cs`) |
 | Existing third-party assets | All 3D: Quaternius, KayKit, Poly by Google (CC BY 3.0), ambientCG. **No UI assets, icons or fonts.** |
 | Credits | `CREDITS.md` and the in-game Hub ▸ Info (`Credits.cs`), with a CC BY section already in place, so CC BY icons fit the established pattern |
@@ -82,7 +82,7 @@
 - **Interaction states.** All proposed assets are single-state and tinted. States come from USS pseudo-classes (`:hover`, `:active`, `:checked`, `:disabled`, `:focus`).
 
 ## 5. Major technical concerns
-1. **Legibility at 1366×768**, caused by the current width-matched scaling. Fix this before any art.
+1. **Legibility at 1366×768**, caused by scaling to the 1080p reference (0.71). Fix this before any art.
 2. **Hard-coded colours** throughout the two stylesheets and the C# (`style.color = new Color(...)` in windows). Tokens must come first, or the restyle will be inconsistent.
 3. **Default Unity controls** (white text fields and dropdowns) need theme overrides in the `.tss`.
 4. **Atlas rendering** needs texture support added to the Painter2D path.

@@ -1,0 +1,33 @@
+p19_01_title: 1920x1080, interface scale 1.00. Title screen at launch: Continue (newest save), New world, Load world, Campaigns, Settings, Credits, Exit.
+p19_01_title_768: 1366x768, interface scale 1.25. Title screen at launch: Continue (newest save), New world, Load world, Campaigns, Settings, Credits, Exit. (1366×768)
+p19_02_world_selection: 1920x1080, interface scale 1.00. Saved worlds: world name, in-game date, seed, last saved, size, slot; Load and Delete (confirmed).
+p19_02_world_selection_768: 1366x768, interface scale 1.25. Saved worlds: world name, in-game date, seed, last saved, size, slot; Load and Delete (confirmed). (1366×768)
+p19_03_world_creation: 1920x1080, interface scale 1.00. Found a new world: name, seed (with New seed), starting speed; the fixed facts stated.
+p19_03_world_creation_768: 1366x768, interface scale 1.25. Found a new world: name, seed (with New seed), starting speed; the fixed facts stated. (1366×768)
+p19_04_campaigns: 1920x1080, interface scale 1.00. Campaigns in this world, with Begin (or why not).
+p19_05_credits: 1920x1080, interface scale 1.00. Credits: SRD notices, art, icons and fonts with their licences.
+p19_06_settings: 1920x1080, interface scale 1.00. Settings: display mode, resolution, quality, vertical sync, interface scale, the controls, and what is not available yet.
+p19_06_settings_768: 1366x768, interface scale 1.25. Settings: display mode, resolution, quality, vertical sync, interface scale, the controls, and what is not available yet. (1366×768)
+p19_07_strategic_map: 1920x1080, interface scale 1.00. Strategic map, 'Bramhaven' selected: top bar with icons, Settings and Menu; navigation; the settlement inspector.
+p19_07_strategic_map_768: 1366x768, interface scale 1.25. Strategic map, 'Bramhaven' selected: top bar with icons, Settings and Menu; navigation; the settlement inspector. (1366×768)
+p19_08_world_atlas: 1920x1080, interface scale 1.00. World atlas on parchment: drawn settlements and terrain, layers as chips, uncharted land as blank map.
+p19_08_world_atlas_768: 1366x768, interface scale 1.25. World atlas on parchment: drawn settlements and terrain, layers as chips, uncharted land as blank map. (1366×768)
+p19_08_world_atlas_1440: 2560x1440, interface scale 1.00. World atlas at 2560×1440.
+p19_09_exploration_hud: 1920x1080, interface scale 1.00. Settlement exploration HUD.
+p19_09_exploration_hud_768: 1366x768, interface scale 1.25. Settlement exploration HUD. (1366×768)
+p19_10_character: 1920x1080, interface scale 1.00. Character sheet (Sheet panel) with the 3D preview.
+p19_10_character_768: 1366x768, interface scale 1.25. Character sheet (Sheet panel) with the 3D preview. (1366×768)
+p19_11_character_skills: 1920x1080, interface scale 1.00. Character: skills and proficiencies.
+p19_12_inventory: 1920x1080, interface scale 1.00. Inventory: groups, search, weight.
+p19_12_inventory_768: 1366x768, interface scale 1.25. Inventory: groups, search, weight. (1366×768)
+p19_13_equipment: 1920x1080, interface scale 1.00. Equipment slots.
+p19_14_crafting: 1920x1080, interface scale 1.00. Crafting and work.
+p19_15_spells: 1920x1080, interface scale 1.00. Spells and rest.
+p19_16_journal: 1920x1080, interface scale 1.00. Quest journal.
+p19_16_journal_768: 1366x768, interface scale 1.25. Quest journal. (1366×768)
+p19_17_party: 1920x1080, interface scale 1.00. Party.
+p19_18_dialogue: 1920x1080, interface scale 1.00. Dialogue with a resident.
+p19_18_dialogue_768: 1366x768, interface scale 1.25. Dialogue with a resident. (1366×768)
+p19_19_combat: 1920x1080, interface scale 1.00. Combat HUD (practice fight).
+p19_19_combat_768: 1366x768, interface scale 1.25. Combat HUD (practice fight). (1366×768)
+p19_19_combat_1440: 2560x1440, interface scale 1.00. Combat HUD at 2560×1440.

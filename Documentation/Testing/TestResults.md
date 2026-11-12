@@ -759,3 +759,12 @@ Notes on the full PlayMode run:
 - **The inconclusive tests** are dice-dependent `Assume` guards in Phase 9 and Phase 11.
 
 At the owner's direction, the full Unity suites were not rerun after the last fixes.
+
+## Phase 19 runs (2026-11-12)
+
+| Run | Passed | Failed | Skipped | Inconclusive | Timed out | Notes |
+|---|---|---|---|---|---|---|
+| .NET, Release, all tests (final) | 834 | 0 | 0 | — | 0 | Includes 3 save-list tests and 1 credits test |
+| Unity PlayMode, targeted (Phase 19 UI tests, capture, session restart) | 7 | 1 | 0 | 0 | 0 | The failure: the hub test needed the real scene; moved to `Phase19ScenePlayModeTests`, which has not been run since |
+| Unity EditMode, full | — | — | — | — | — | Running when the owner asked for commit and push; results to follow |
+| Unity PlayMode, full | — | — | — | — | — | Queued after EditMode |
