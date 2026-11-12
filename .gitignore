@@ -53,3 +53,7 @@ Thumbs.db
 /Tools/DotNet/**/bin/
 /Tools/DotNet/**/obj/
 /Tools/DotNet/TestResults/
+
+# Quaternius Bestiary (QAL licence: the asset files may not be redistributed). Installed locally only, never committed.
+/Assets/Realmkeeper/Art/ThirdParty/QuaterniusBestiary/
+/Assets/Realmkeeper/Art/ThirdParty/QuaterniusBestiary.meta

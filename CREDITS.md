@@ -64,5 +64,8 @@ content comes from which SRD is listed per definition (`ContentSource`) and in
 | Modular Character Outfits – Fantasy (free version): clothing and armour | Quaternius | CC0 1.0 | `…/Quaternius/ModularCharacterOutfitsFantasy/License.txt` |
 | Universal Animation Library: character animation | Quaternius | CC0 1.0 | `…/Quaternius/UniversalAnimationLibrary/License.txt` |
 | Grass004, Ground037, Ground054, PavingStones070, Planks021, Wood049: ground and wood materials | ambientCG (ambientcg.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/AmbientCG/License.txt` |
+| KayKit Character Pack: Skeletons 1.1 (free version): Skeleton Mage, Minion, Rogue and Warrior, with weapons and accessories | Kay Lousberg (kaylousberg.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/KayKit/Skeletons/License.txt` |
+| KayKit Character Animations 1.1 (free version): Rig_Medium General, MovementBasic, CombatMelee, CombatRanged and Special sets | Kay Lousberg (kaylousberg.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/KayKit/CharacterAnimations/License.txt` |
+| Bestiary – Dungeon Monsters Kit (free Standard version): Imp and Puglin, with textures. **Local only: not in the repository** (git-ignored, because the licence forbids redistributing the asset files); each machine downloads it from quaternius.itch.io/bestiary-dungeon-monsters-kit | Quaternius (quaternius.com) | Quaternius Asset License (QAL) 1.0: use in products allowed, no credit required, no redistribution of the assets themselves | `Assets/Realmkeeper/Art/ThirdParty/QuaterniusBestiary/License.txt` (local) |
 
 CC0 text: https://creativecommons.org/publicdomain/zero/1.0/

@@ -7,7 +7,8 @@ namespace Realmkeeper.Editor
     /// Import settings for the third-party art in <c>Assets/Realmkeeper/Art/ThirdParty</c>, so every
     /// machine imports it identically (the settings also live in the .meta files):
     /// axis conversion baked (the packs' documented Unity setup), no imported cameras or lights,
-    /// humanoid rigs for bodies and the animation library, no rig for kit modules, normal maps
+    /// humanoid rigs for bodies and the animation libraries (Quaternius, KayKit), no rig for kit modules
+    /// and held props (KayKit accessories), normal maps
     /// flagged as such, and texture sizes capped to keep memory within budget.
     /// </summary>
     public sealed class ArtImportPostprocessor : AssetPostprocessor
@@ -17,7 +18,7 @@ namespace Realmkeeper.Editor
         public override int GetPostprocessOrder() => 10;
 
         /// <summary>Bumped when the settings change, so Unity reimports the art.</summary>
-        public override uint GetVersion() => 2;
+        public override uint GetVersion() => 3;
 
         private void OnPreprocessModel()
         {
@@ -41,6 +42,22 @@ namespace Realmkeeper.Editor
             }
             else if (assetPath.Contains("/UniversalAnimationLibrary/"))
             {
+                importer.animationType = ModelImporterAnimationType.Human;
+                importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+                importer.importAnimation = true;
+                importer.materialImportMode = ModelImporterMaterialImportMode.None;
+                importer.optimizeGameObjects = false;
+            }
+            else if (assetPath.Contains("/KayKit/") && assetPath.Contains("/Accessories/"))
+            {
+                // KayKit weapons and shields: static props held in a hand (no rig).
+                importer.animationType = ModelImporterAnimationType.None;
+                importer.importAnimation = false;
+                importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
+            }
+            else if (assetPath.Contains("/KayKit/CharacterAnimations/"))
+            {
+                // KayKit animation sets: humanoid, so they drive KayKit characters and retarget to other humanoid bodies.
                 importer.animationType = ModelImporterAnimationType.Human;
                 importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
                 importer.importAnimation = true;
