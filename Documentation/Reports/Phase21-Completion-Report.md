@@ -239,7 +239,7 @@ These are covered by tests where they are rules. The owner checklist asks for th
 
 ## 21. Git status and local commit hash
 
-COMMIT-HASH
+`68b3063` on `feature/phase-0-1-foundation` (local only). After it, the working tree is clean apart from Unity's test scene `Assets/InitTestScene*`, which is never committed.
 
 ## 22. Push
 
