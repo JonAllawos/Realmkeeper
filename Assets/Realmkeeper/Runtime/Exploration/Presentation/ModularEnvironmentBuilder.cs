@@ -471,9 +471,28 @@ namespace Realmkeeper.Exploration.Presentation
             return go;
         }
 
+        /// <summary>The nature kit's tree for a region's country, by the place's hash (deterministic).</summary>
+        public static string TreeFor(Realmkeeper.Domain.World.RegionKind kind, int hash)
+        {
+            var h = hash < 0 ? -(hash + 1) : hash;
+            var n = 1 + h % 5;
+            var pick = h / 5 % 10; // a tenth of the trees are the country's second kind
+            switch (kind)
+            {
+                case Realmkeeper.Domain.World.RegionKind.Highlands: return pick < 6 ? "Pine_" + n : "GiantPine_" + n;
+                case Realmkeeper.Domain.World.RegionKind.Lakeland: return pick < 6 ? "Birch_" + n : "CommonTree_" + n;
+                case Realmkeeper.Domain.World.RegionKind.Woodland: return pick < 5 ? "TallThick_" + n : pick < 8 ? "CommonTree_" + n : "Birch_" + n;
+                case Realmkeeper.Domain.World.RegionKind.Lowlands: return pick < 8 ? "CommonTree_" + n : "CherryBlossom_" + n;
+                default: return pick < 7 ? "CommonTree_" + n : pick < 9 ? "Birch_" + n : "CherryBlossom_" + n; // vale
+            }
+        }
+
         private static void Tree(Context ctx, Transform t, int hash)
         {
             // Phase 18: a modelled tree from the nature kit when installed (one of five, by the place's hash), sized a little apart.
+            // With the Stylized Nature MegaKit (Source, purchased by the owner) the species follow the country: pines in the
+            // highlands, birch by the lakes, tall broadleaves in woodland, a few cherry trees in the warm vales and lowlands.
+            if (Scenery(ctx, t, TreeFor(ctx.Layout.RegionKind, hash), Vector3.zero, hash % 360, 0.85f + hash % 7 * 0.05f) != null) return;
             if (Scenery(ctx, t, "CommonTree_" + (1 + hash % 5), Vector3.zero, hash % 360, 0.85f + hash % 7 * 0.05f) != null) return;
             Mesh(ctx, t, "Trunk", MetreMeshes.Lathe(new[] { new Vector2(0.32f, 0f), new Vector2(0.22f, 0.5f), new Vector2(0.16f, 3.2f), new Vector2(0.08f, 4.2f) }, 9, ctx.Assets),
                 ctx.Mat("Bark"), Vector3.zero);

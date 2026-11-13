@@ -490,7 +490,37 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         /// <summary>A door panel (closed: solid and blocking; open: swung aside; broken: in pieces on the floor).</summary>
-        public static GameObject Door(Transform parent, PlaceSceneView v, PassageView p, ExplorationMaterials materials)
+        public static GameObject Door(Transform parent, PlaceSceneView v, PassageView p, ExplorationMaterials materials, ArtCatalog catalog = null)
+        {
+            var built = BuiltDoor(parent, v, p, materials);
+            // Medieval Village MegaKit Pro: a modelled plank door in place of the slab (the slab stays as the door's collider,
+            // so a closed, locked or barred door blocks exactly as before). A secret door keeps the wall's look; a broken one
+            // keeps its fallen planks.
+            if (catalog == null || p.Kind == ConnectionKind.Secret || p.Door == DoorState.Broken) return built;
+            var panel = built.transform.Find("Panel");
+            if (panel == null) return built;
+            var width = panel.localScale.x;
+            var height = panel.localScale.y;
+            var open = p.Door == DoorState.Open;
+            // A pivot on the door's own axes (swung aside when open), scaled across so the door fills its doorway exactly.
+            var pivot = new GameObject("Door model").transform;
+            pivot.SetParent(built.transform, false);
+            pivot.localPosition = open ? panel.localPosition - new Vector3(0f, height / 2f, 0f) : Vector3.zero;
+            pivot.localRotation = open ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity;
+            var model = KitProps.Place(pivot, catalog, "village_Door_3_Flat", Vector3.zero, 0f, height, false);
+            if (model == null)
+            {
+                Object.Destroy(pivot.gameObject);
+                return built;
+            }
+
+            if (KitProps.Measure(pivot, model, out var b) && b.size.x > 0.01f && b.size.y > 0.01f)
+                pivot.localScale = new Vector3(width / b.size.x, height / b.size.y, 1f);
+            panel.GetComponent<Renderer>().enabled = false;
+            return built;
+        }
+
+        private static GameObject BuiltDoor(Transform parent, PlaceSceneView v, PassageView p, ExplorationMaterials materials)
         {
             var (centre, yaw, width) = DoorFrame(v, p);
             var go = new GameObject("Door " + p.Id);

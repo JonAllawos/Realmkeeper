@@ -93,6 +93,26 @@ namespace Realmkeeper.Exploration.Presentation
 
         public GameObject SceneryModel(string id) => Lookup(ref _scenery, Scenery, id);
 
+        [Serializable]
+        public sealed class TextureEntry
+        {
+            public string Id;
+            public Texture2D Texture;
+        }
+
+        /// <summary>
+        /// Phase 21 assets: the nature kit's white leaf textures ("Leaves_NormalTree"), the shapes of its green-painted ones
+        /// ("Leaves_NormalTree_C"), for colouring by season.
+        /// </summary>
+        public List<TextureEntry> LeafMasks = new List<TextureEntry>();
+
+        public Texture2D LeafMask(string id)
+        {
+            if (string.IsNullOrEmpty(id) || LeafMasks == null) return null;
+            foreach (var e in LeafMasks) if (e != null && e.Id == id) return e.Texture;
+            return null;
+        }
+
         private Dictionary<string, GameObject> _animals;
 
         public GameObject Animal(string id) => Lookup(ref _animals, Animals, id);

@@ -179,6 +179,8 @@ namespace Realmkeeper.Exploration.Presentation
                     Prop("Barrel", fe + new Vector3(-0.2f, 0f, 1.1f), 0f, 0.9f);          // the quench
                     Prop("Whetstone", cw, 0f, 0.7f);
                     Prop("Bucket_Metal", new Vector3(-W + 0.45f, 0f, -D + 2.0f), 0f, 0.4f, false);
+                    Prop("Bellows", new Vector3(-W + 0.35f, 0f, -D + 1.75f), 90f, 0.8f);                // Pro kit: the forge's bellows
+                    Prop("Hammer_Rack", new Vector3(W - 0.12f, 1.35f, -D + 2.4f), -90f, 0.9f, false);  // Pro kit: hammers on the wall
                     break;
                 case ShopFit.Leatherworks:
                     Prop("Workbench", fw, 90f, 1.7f);                                     // the cutting and stitching bench
@@ -213,10 +215,13 @@ namespace Realmkeeper.Exploration.Presentation
                     Glow("Oven fire", fw + new Vector3(0f, 0.6f, -0.65f), new Color(1f, 0.55f, 0.28f), 3.0f, 1.6f);
                     Prop("Barrel_Apples", fe, 0f, 0.95f);
                     Prop("FarmCrate_Carrot", fe + new Vector3(-0.1f, 0f, 1.0f), 15f, 0.6f);
+                    Prop("FarmCrate_Leek", fe + new Vector3(-0.85f, 0f, 0.15f), -10f, 0.6f);          // Pro kit
+                    Prop("FarmCrate_GreenApples", fe + new Vector3(-0.8f, 0f, 1.05f), 5f, 0.6f);      // Pro kit
                     Prop("Table_Large", cw + new Vector3(-0.3f, 0f, -1.5f), 0f, 1.4f);
                     break;
                 case ShopFit.Carpentry:
-                    Prop("Workbench_Drawers", fw, 90f, 1.7f);
+                    Prop("Workbench_Vice", fw, 90f, 1.7f);                                 // Pro kit: the vice bench
+                    Prop("Workbench_Drawers", fw + new Vector3(0f, 0f, 1.9f), 90f, 1.6f);
                     Prop("Workbench", fe, -90f, 1.6f);
                     Prop("Stool", fw + new Vector3(0.9f, 0f, 0.1f), 15f, 0.5f);
                     break;
@@ -224,11 +229,18 @@ namespace Realmkeeper.Exploration.Presentation
                     Prop("Barrel", fw, 0f, 0.9f);
                     Prop("Crate_Wooden", fw + new Vector3(0.9f, 0f, 0f), 12f, 0.6f);
                     Prop("Chest_Wood", fe, -90f, 0.9f);
+                    Prop("Rug_1", new Vector3(0f, 0.005f, -D + 1.6f), 0f, 2.0f, false);                 // Pro kit: a rug by the door
                     break;
             }
 
             // A wall lantern by the door for every shop.
             Prop("Lantern_Wall", new Vector3(-W + 0.1f, 2.1f, -D + 0.6f), 90f, 0.45f, false);
+
+            // Fantasy Props Pro: the trade's sign hung outside, beside the doorway, square to the front so it reads from the
+            // street either way. Only trades the kit has a sign for.
+            var sign = _building.Fit == ShopFit.Smithy ? "Sign_Blacksmith" : _building.Fit == ShopFit.Provisions ? "Sign_Food"
+                : _building.Fit == ShopFit.Apothecary ? "Sign_Potions" : _building.Fit == ShopFit.Bowyer ? "Sign_Armory" : null;
+            if (sign != null) Prop(sign, new Vector3(_plan.DoorwayX + 1.45f, 2.35f, -D - 0.45f), 90f, 1.1f, false);
         }
 
         /// <summary>

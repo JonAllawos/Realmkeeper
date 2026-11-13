@@ -1119,10 +1119,38 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 260c4baf7d5a4d44fb5e9c6e7a92068b, type: 3}
   - Id: PostLantern
     Prefab: {fileID: 919132149155446097, guid: e5744fd5313a09645961610261e71a54, type: 3}
+  - Id: Birch_1
+    Prefab: {fileID: 919132149155446097, guid: fc3fcbb63593dfa46a103eac6ac407d7, type: 3}
+  - Id: Birch_2
+    Prefab: {fileID: 919132149155446097, guid: 8c9a81663965de34283c810068b0e806, type: 3}
+  - Id: Birch_3
+    Prefab: {fileID: 919132149155446097, guid: 024c4ddef8a10724ba7c61387dab8437, type: 3}
+  - Id: Birch_4
+    Prefab: {fileID: 919132149155446097, guid: 80afcc235ad9109469735bc59cf422d1, type: 3}
+  - Id: Birch_5
+    Prefab: {fileID: 919132149155446097, guid: 97c1f08122063524589e3d989118c34b, type: 3}
   - Id: Bush_Common
     Prefab: {fileID: 919132149155446097, guid: fbcea6e971049a94eb2c4c193ef4f062, type: 3}
   - Id: Bush_Common_Flowers
     Prefab: {fileID: 919132149155446097, guid: f3dc25fa132dec14abf88047ec122c0c, type: 3}
+  - Id: Bush_Large
+    Prefab: {fileID: 919132149155446097, guid: 5a0a795b8ffe91545bb1a665ce08a7ce, type: 3}
+  - Id: Bush_Large_Flowers
+    Prefab: {fileID: 919132149155446097, guid: f9071413b92640548887d19707fb8e71, type: 3}
+  - Id: Bush_Long_1
+    Prefab: {fileID: 919132149155446097, guid: a63132227174bd34ca5e219db08e092d, type: 3}
+  - Id: Bush_Long_2
+    Prefab: {fileID: 919132149155446097, guid: f2926d83a09bedb4ea51587026ef9901, type: 3}
+  - Id: CherryBlossom_1
+    Prefab: {fileID: 919132149155446097, guid: 761bd9dae491db7438e2bba8477db500, type: 3}
+  - Id: CherryBlossom_2
+    Prefab: {fileID: 919132149155446097, guid: 9533893572258b44b86447e0c43e96dd, type: 3}
+  - Id: CherryBlossom_3
+    Prefab: {fileID: 919132149155446097, guid: 4332c5b0758447146ad4f6520fdc118c, type: 3}
+  - Id: CherryBlossom_4
+    Prefab: {fileID: 919132149155446097, guid: 39b6f8c24bae4c048b03279c5a044177, type: 3}
+  - Id: CherryBlossom_5
+    Prefab: {fileID: 919132149155446097, guid: 25563322c7afe1e48ab95d30293bc873, type: 3}
   - Id: Clover_1
     Prefab: {fileID: 919132149155446097, guid: a9bb4888659854142a2ba2324d913d0b, type: 3}
   - Id: Clover_2
@@ -1149,6 +1177,16 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: faa4ed2779bff5a4b9cb83215c09b44a, type: 3}
   - Id: Fern_1
     Prefab: {fileID: 919132149155446097, guid: 86c0f9ffd04f9d04ca3242faeece7a7a, type: 3}
+  - Id: Fern_2
+    Prefab: {fileID: 919132149155446097, guid: 7aa92054d1e0ad14a86d041fde0e8fe6, type: 3}
+  - Id: Flower_1_Group
+    Prefab: {fileID: 919132149155446097, guid: b8b54ea35454fe24bbef75973a8d3981, type: 3}
+  - Id: Flower_1_Single
+    Prefab: {fileID: 919132149155446097, guid: 9762e5d1d48465d4092269b17fc49cdb, type: 3}
+  - Id: Flower_2_Group
+    Prefab: {fileID: 919132149155446097, guid: 0e2961d4f3d89584599b1f36305d53ee, type: 3}
+  - Id: Flower_2_Single
+    Prefab: {fileID: 919132149155446097, guid: cff05151e76c4d74192df6053653d2cd, type: 3}
   - Id: Flower_3_Group
     Prefab: {fileID: 919132149155446097, guid: 6b62394785a441746aca2173673628b3, type: 3}
   - Id: Flower_3_Single
@@ -1157,10 +1195,34 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 9a2f5f686d8a66f47923b49d443282ee, type: 3}
   - Id: Flower_4_Single
     Prefab: {fileID: 919132149155446097, guid: 22c2c18eea3fc7644a5b46f1bc626e60, type: 3}
+  - Id: Flower_6
+    Prefab: {fileID: 919132149155446097, guid: 833e3a229cdc66f47b27c0d1fd09e7b1, type: 3}
+  - Id: Flower_6_2
+    Prefab: {fileID: 919132149155446097, guid: 1325eb5acaf347d42a86c1e890906812, type: 3}
+  - Id: Flower_7_Group
+    Prefab: {fileID: 919132149155446097, guid: bb3a44dc5f322384984d0dafa4133f44, type: 3}
+  - Id: Flower_7_Single
+    Prefab: {fileID: 919132149155446097, guid: 95837674cd62e384783a64758e75291a, type: 3}
+  - Id: GiantPine_1
+    Prefab: {fileID: 919132149155446097, guid: 6a51152933549ac4bb0fd13496e2a099, type: 3}
+  - Id: GiantPine_2
+    Prefab: {fileID: 919132149155446097, guid: df7ba47d7ace2a547866f5bc163d90e9, type: 3}
+  - Id: GiantPine_3
+    Prefab: {fileID: 919132149155446097, guid: 16e086785c6a0ec42bff5f9bd20e4042, type: 3}
+  - Id: GiantPine_4
+    Prefab: {fileID: 919132149155446097, guid: 29ac0fd65d2c9fa4b9e951a7c8770aa4, type: 3}
+  - Id: GiantPine_5
+    Prefab: {fileID: 919132149155446097, guid: 4eca00794132e244ba87e273874d3473, type: 3}
   - Id: Grass_Common_Short
     Prefab: {fileID: 919132149155446097, guid: 1ddf33dc15bd14b4f94dd1bd248fb901, type: 3}
   - Id: Grass_Common_Tall
     Prefab: {fileID: 919132149155446097, guid: 097c02c68c699544a872fea4ff278412, type: 3}
+  - Id: Grass_Wheat
+    Prefab: {fileID: 919132149155446097, guid: 6f3adde93a2deda41aeef89db50a7423, type: 3}
+  - Id: Grass_Wide_Short
+    Prefab: {fileID: 919132149155446097, guid: 2a43cc3ca9cdcb249b6cda430d456f24, type: 3}
+  - Id: Grass_Wide_Tall
+    Prefab: {fileID: 919132149155446097, guid: 6c7fd5e4a0550ba4ab8c825f099dbc05, type: 3}
   - Id: Grass_Wispy_Short
     Prefab: {fileID: 919132149155446097, guid: 9c6a288f381a05e479331096e43d5e50, type: 3}
   - Id: Grass_Wispy_Tall
@@ -1169,6 +1231,10 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 706950b4312419b4f8064159d8a5eecc, type: 3}
   - Id: Mushroom_Laetiporus
     Prefab: {fileID: 919132149155446097, guid: 872a56aeb81cdce43a23c5368a13cc02, type: 3}
+  - Id: Mushroom_Oyster
+    Prefab: {fileID: 919132149155446097, guid: eae7741c38eb51440bb0778215a7697b, type: 3}
+  - Id: Mushroom_RedCap
+    Prefab: {fileID: 919132149155446097, guid: f453397872e9df44ea1acef5b77c0e10, type: 3}
   - Id: Pebble_Round_1
     Prefab: {fileID: 919132149155446097, guid: b93af7fff59b3bb4c82d5bf450497b15, type: 3}
   - Id: Pebble_Round_2
@@ -1201,6 +1267,8 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: dfd274dbc02086c4abf02cd487a3f9ad, type: 3}
   - Id: Petal_5
     Prefab: {fileID: 919132149155446097, guid: d9a6a580163300b45aaa2f07df0b3092, type: 3}
+  - Id: Petal_6
+    Prefab: {fileID: 919132149155446097, guid: 466ad0ee2adbfee4ab10492a8b12eaff, type: 3}
   - Id: Pine_1
     Prefab: {fileID: 919132149155446097, guid: b7ed8312d4f0d51438b02607f180cfec, type: 3}
   - Id: Pine_2
@@ -1215,6 +1283,18 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: e5e43d5eb5c3f00448fcb114ad75eb5f, type: 3}
   - Id: Plant_1_Big
     Prefab: {fileID: 919132149155446097, guid: 9b8bb5dd030db3340b7b6fb8f76f5d8a, type: 3}
+  - Id: Plant_2
+    Prefab: {fileID: 919132149155446097, guid: 86c315a9e560be64395a7fa014ddc876, type: 3}
+  - Id: Plant_2_Big
+    Prefab: {fileID: 919132149155446097, guid: c48bd978b03a7054b8cebde55bb9bfa7, type: 3}
+  - Id: Plant_3
+    Prefab: {fileID: 919132149155446097, guid: 44c70f52f71da594f85393615d834631, type: 3}
+  - Id: Plant_4
+    Prefab: {fileID: 919132149155446097, guid: 9c3018eb3018d9c429dda580b850c768, type: 3}
+  - Id: Plant_5
+    Prefab: {fileID: 919132149155446097, guid: 68bd08485cec3984faf804db8f3e910d, type: 3}
+  - Id: Plant_6
+    Prefab: {fileID: 919132149155446097, guid: 3ec24e9abc708e842b0846131dde9ee2, type: 3}
   - Id: Plant_7
     Prefab: {fileID: 919132149155446097, guid: ab98a8eb03b074247a5fe76bc31c2306, type: 3}
   - Id: Plant_7_Big
@@ -1239,12 +1319,28 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: ab07b19759961384882eafa98750ce1c, type: 3}
   - Id: RockPath_Square_Wide
     Prefab: {fileID: 919132149155446097, guid: 7448e9993765e9f4b952e4a1294ce2b1, type: 3}
+  - Id: Rock_Big_1
+    Prefab: {fileID: 919132149155446097, guid: 1e51addcd7a6a5049a071d37f310d5dc, type: 3}
+  - Id: Rock_Big_2
+    Prefab: {fileID: 919132149155446097, guid: 31b121e31d55519419b1c165e80ff489, type: 3}
   - Id: Rock_Medium_1
     Prefab: {fileID: 919132149155446097, guid: fc8a559a6cbbeea40b75e358dba22871, type: 3}
   - Id: Rock_Medium_2
     Prefab: {fileID: 919132149155446097, guid: f3366c4c8129aff489b946350125ad43, type: 3}
   - Id: Rock_Medium_3
     Prefab: {fileID: 919132149155446097, guid: 7c3b9fff8bd19d34c84be4eea038d167, type: 3}
+  - Id: Rock_Medium_4
+    Prefab: {fileID: 919132149155446097, guid: 70e4c88ac4f392d4d8070bb60bad9ca7, type: 3}
+  - Id: TallThick_1
+    Prefab: {fileID: 919132149155446097, guid: 682215772389d41469c610c694cc58b5, type: 3}
+  - Id: TallThick_2
+    Prefab: {fileID: 919132149155446097, guid: 36b471240e5d64146b7c0bb8883fb955, type: 3}
+  - Id: TallThick_3
+    Prefab: {fileID: 919132149155446097, guid: bbcf2f4311490824f99f5f162a97c341, type: 3}
+  - Id: TallThick_4
+    Prefab: {fileID: 919132149155446097, guid: b1055a3f609770a499c88634776aaa6c, type: 3}
+  - Id: TallThick_5
+    Prefab: {fileID: 919132149155446097, guid: 216de1a7400f06e468d7ca3844247e5a, type: 3}
   - Id: TwistedTree_1
     Prefab: {fileID: 919132149155446097, guid: 414f84fe4d37c7b40b766d24ae735259, type: 3}
   - Id: TwistedTree_2
@@ -1261,8 +1357,16 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 9ce2ab1f3e46cb144a92044ddb6ef736, type: 3}
   - Id: Axe_Bronze
     Prefab: {fileID: 919132149155446097, guid: 81be23e5ff0b50441bc32b4c70006af6, type: 3}
+  - Id: Axe_Double_Bronze
+    Prefab: {fileID: 919132149155446097, guid: 1c3cbcb7fd907734c82c8a5f2b4e7db2, type: 3}
+  - Id: Axe_Double_Steel
+    Prefab: {fileID: 919132149155446097, guid: c6ab2b20f55271d4f994adae036dda71, type: 3}
+  - Id: Axe_Steel
+    Prefab: {fileID: 919132149155446097, guid: 52160590392347244a09d9356cf06691, type: 3}
   - Id: Bag
     Prefab: {fileID: 919132149155446097, guid: 7d6d3d826fb80e1479228f3747b9871e, type: 3}
+  - Id: Bag_2
+    Prefab: {fileID: 919132149155446097, guid: dc4132fe308513d449759805cef7e610, type: 3}
   - Id: Banner_1
     Prefab: {fileID: 919132149155446097, guid: 6cbebd2e6fe07a84e87258d1170203b3, type: 3}
   - Id: Banner_1_Cloth
@@ -1271,18 +1375,50 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: af827ab2c3ba84144afd111ee5e8ab81, type: 3}
   - Id: Banner_2_Cloth
     Prefab: {fileID: 919132149155446097, guid: 153347b72df96c84fa3c558e6831810b, type: 3}
+  - Id: Banner_SmallTriangles_Long
+    Prefab: {fileID: 919132149155446097, guid: eb85a11275f64bd4aa8e909d1038473e, type: 3}
+  - Id: Banner_SmallTriangles_Medium
+    Prefab: {fileID: 919132149155446097, guid: 462404905ead8624fb6bc4f65dc91036, type: 3}
+  - Id: Banner_SmallTriangles_Short
+    Prefab: {fileID: 919132149155446097, guid: acd61c8bc6b571843875c342ebe18a67, type: 3}
+  - Id: Banner_Vertical_1
+    Prefab: {fileID: 919132149155446097, guid: 2084058d47c4594449437eed43760438, type: 3}
+  - Id: Banner_Vertical_2
+    Prefab: {fileID: 919132149155446097, guid: 3234fbb5cf0d4164e98814171e391133, type: 3}
   - Id: Barrel
     Prefab: {fileID: 919132149155446097, guid: 68f18f236f385ce47abba469592cdbb9, type: 3}
   - Id: Barrel_Apples
     Prefab: {fileID: 919132149155446097, guid: 824c60a1885bc644e95af684e8d03a8b, type: 3}
+  - Id: Barrel_Dark
+    Prefab: {fileID: 919132149155446097, guid: 44b1d472b6a3ff942bacdef280d469fa, type: 3}
   - Id: Barrel_Holder
     Prefab: {fileID: 919132149155446097, guid: db5b8739ee0ca21418f40e71e446a05e, type: 3}
+  - Id: Bed_Bunk
+    Prefab: {fileID: 919132149155446097, guid: c4328695226400c42894a6613dd72265, type: 3}
+  - Id: Bed_Bunk2
+    Prefab: {fileID: 919132149155446097, guid: 45c34fa66fdaf3f44868ed23e49a60d7, type: 3}
+  - Id: Bed_Double
+    Prefab: {fileID: 919132149155446097, guid: 685c13a091e88364d87c5d97b30510a1, type: 3}
+  - Id: Bed_Double2
+    Prefab: {fileID: 919132149155446097, guid: d0db88aa3fbaf854eaca02ed3b397178, type: 3}
   - Id: Bed_Twin1
     Prefab: {fileID: 919132149155446097, guid: 4a5e3439cee722c43867aaf8516bc9e1, type: 3}
   - Id: Bed_Twin2
     Prefab: {fileID: 919132149155446097, guid: d0a5059c033bddf42a784dd858564e2e, type: 3}
+  - Id: Bed_Twin3
+    Prefab: {fileID: 919132149155446097, guid: 58c92a3bc7a7fe64b860becb1baa9959, type: 3}
+  - Id: Bellows
+    Prefab: {fileID: 919132149155446097, guid: 1d67c798f97f2784aa8e56542ca4b2a0, type: 3}
   - Id: Bench
     Prefab: {fileID: 919132149155446097, guid: e05b24ffa5c79fa4faf253733eaa7ff6, type: 3}
+  - Id: Bench_MetalSides
+    Prefab: {fileID: 919132149155446097, guid: 46eb3112a2b72054a882399a13ddc9e1, type: 3}
+  - Id: BookGroup_Large_1
+    Prefab: {fileID: 919132149155446097, guid: 3c5ee38fdd27a3a4d9b0779734e7730e, type: 3}
+  - Id: BookGroup_Large_2
+    Prefab: {fileID: 919132149155446097, guid: bbb1df9070b4d0a48a744bfd78a89616, type: 3}
+  - Id: BookGroup_Large_3
+    Prefab: {fileID: 919132149155446097, guid: 0a2ff00b1b070f34bb468b6282178080, type: 3}
   - Id: BookGroup_Medium_1
     Prefab: {fileID: 919132149155446097, guid: d86291ead176b46409b44906af9f0bcc, type: 3}
   - Id: BookGroup_Medium_2
@@ -1297,28 +1433,54 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 31e3c394dda158b43a5bcebf9ddab547, type: 3}
   - Id: BookStand
     Prefab: {fileID: 919132149155446097, guid: a4492e4529ea9ed4ba232b67f0fc4da2, type: 3}
+  - Id: Book_1
+    Prefab: {fileID: 919132149155446097, guid: 5d56508ba9c2fd94aaae0e3168d2bf5a, type: 3}
+  - Id: Book_2
+    Prefab: {fileID: 919132149155446097, guid: 0e957f3dc7e1bd8439d5c4f6d7c9e9c8, type: 3}
+  - Id: Book_3
+    Prefab: {fileID: 919132149155446097, guid: 5a07dc7688a23dc4cad9f82828ae4927, type: 3}
+  - Id: Book_4
+    Prefab: {fileID: 919132149155446097, guid: 9546bba8479608240bcdacf596d43e52, type: 3}
   - Id: Book_5
     Prefab: {fileID: 919132149155446097, guid: cded34598342df346837d2e51cacf42d, type: 3}
+  - Id: Book_6
+    Prefab: {fileID: 919132149155446097, guid: 24f967b02306c0340b3128cd5d7d2b70, type: 3}
   - Id: Book_7
     Prefab: {fileID: 919132149155446097, guid: 37bfe868ba7e5c14ea84e57eb9c3d5b1, type: 3}
+  - Id: Book_Open
+    Prefab: {fileID: 919132149155446097, guid: 6622b8d1c1fec1642b052068ac9978fb, type: 3}
   - Id: Book_Simplified_Single
     Prefab: {fileID: 919132149155446097, guid: 699e31f7a88c62b46b47e7d87878076d, type: 3}
   - Id: Book_Stack_1
     Prefab: {fileID: 919132149155446097, guid: 8f6236399a1b14d4292001f8a67e910c, type: 3}
   - Id: Book_Stack_2
     Prefab: {fileID: 919132149155446097, guid: 5d9108cd7f775194494667b13e8f0f1b, type: 3}
+  - Id: Book_Stack_3
+    Prefab: {fileID: 919132149155446097, guid: c4a1cf1d8edab434dbf89e49e81c42f3, type: 3}
+  - Id: Book_Stack_4
+    Prefab: {fileID: 919132149155446097, guid: 72a4bbb39c3e7ad44b42985c0a0dcddf, type: 3}
+  - Id: Bookcase_1
+    Prefab: {fileID: 919132149155446097, guid: c9f8e111ea107af4ab0f05ee66307c6e, type: 3}
   - Id: Bookcase_2
     Prefab: {fileID: 919132149155446097, guid: 13179f86ba7c2314287db7e12abdc45a, type: 3}
   - Id: Bottle_1
     Prefab: {fileID: 919132149155446097, guid: 4082170bb3af42d4782da54f99329bdc, type: 3}
+  - Id: Bottle_2
+    Prefab: {fileID: 919132149155446097, guid: 5079999608ad9474fa56eb9399f6846e, type: 3}
   - Id: Bucket_Metal
     Prefab: {fileID: 919132149155446097, guid: 2d4bcb6c36fd259418c98991e4b3665e, type: 3}
   - Id: Bucket_Wooden_1
     Prefab: {fileID: 919132149155446097, guid: 9ab802b6a6368ec4b9e380e2c942a004, type: 3}
+  - Id: Bucket_Wooden_2
+    Prefab: {fileID: 919132149155446097, guid: d551149f9c0bf89429e8090f2f3d56ad, type: 3}
   - Id: Cabinet
     Prefab: {fileID: 919132149155446097, guid: 18780f55bedb382478a3b6038203a016, type: 3}
+  - Id: Cage_Large
+    Prefab: {fileID: 919132149155446097, guid: 37c197c74eb9fc147b7a09b5a9497be8, type: 3}
   - Id: Cage_Small
     Prefab: {fileID: 919132149155446097, guid: 4e566695dcfd4504f8fed5b9f4aeb015, type: 3}
+  - Id: CampfireTripod
+    Prefab: {fileID: 919132149155446097, guid: 5012795f72bd1284baf2779fd10a066b, type: 3}
   - Id: CandleStick
     Prefab: {fileID: 919132149155446097, guid: f8cdc5ede8ea51642b7ad9befa9fcab4, type: 3}
   - Id: CandleStick_Stand
@@ -1329,6 +1491,8 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: fad52d246988e3c4d8e5c126212b5fa1, type: 3}
   - Id: Candle_2
     Prefab: {fileID: 919132149155446097, guid: 32076acaee1d2b7408c7a82494f26942, type: 3}
+  - Id: Candle_3
+    Prefab: {fileID: 919132149155446097, guid: e2a0c471bbb03204b9c2722f81f4ccdd, type: 3}
   - Id: Carrot
     Prefab: {fileID: 919132149155446097, guid: 72517dd5428360148a4d3e40999f0b6d, type: 3}
   - Id: Cauldron
@@ -1337,14 +1501,26 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 0582043098ed7c64693fadb444781726, type: 3}
   - Id: Chair_1
     Prefab: {fileID: 919132149155446097, guid: 90c49fe4b58103c43ac19153808dbd4f, type: 3}
+  - Id: Chair_2
+    Prefab: {fileID: 919132149155446097, guid: 2613834ea512d414abf5ebb00d3626e8, type: 3}
+  - Id: Chair_3
+    Prefab: {fileID: 919132149155446097, guid: f4a201b5aaabf294282110b6e0e82231, type: 3}
   - Id: Chalice
     Prefab: {fileID: 919132149155446097, guid: 3b4d8ecc7b868764281f396ede880871, type: 3}
+  - Id: Chalice_Golden
+    Prefab: {fileID: 919132149155446097, guid: 8f304778348b3d94f855da055299b7ab, type: 3}
   - Id: Chandelier
     Prefab: {fileID: 919132149155446097, guid: b2cf38898fa009c488e686ef8251fbdc, type: 3}
+  - Id: Chandelier_Large
+    Prefab: {fileID: 919132149155446097, guid: 99eacf92797fab846a5f00f01590d68a, type: 3}
+  - Id: Chest_Legendary
+    Prefab: {fileID: 919132149155446097, guid: a0c59b18a2f64a045947bb208949fed5, type: 3}
   - Id: Chest_Wood
     Prefab: {fileID: 919132149155446097, guid: 432c386609c9d8342b8f7ce9e5bd9f03, type: 3}
   - Id: Coin
     Prefab: {fileID: 919132149155446097, guid: c582c68fa4a16844c8f35afda47d9d60, type: 3}
+  - Id: Coin_Low
+    Prefab: {fileID: 919132149155446097, guid: 4bf9e86c722ed82408d81632408d05e7, type: 3}
   - Id: Coin_Pile
     Prefab: {fileID: 919132149155446097, guid: 724944b832fdf5a4b9c81d2cbdc8e932, type: 3}
   - Id: Coin_Pile_2
@@ -1353,6 +1529,14 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 837293e4838792e449132d11a6a08ea5, type: 3}
   - Id: Crate_Wooden
     Prefab: {fileID: 919132149155446097, guid: 78c5dd2f42cf9954b90a20989b2496c8, type: 3}
+  - Id: Dagger_Bronze
+    Prefab: {fileID: 919132149155446097, guid: ed38d2b7b99702043a2c87624559aa57, type: 3}
+  - Id: Dagger_Steel_Steel
+    Prefab: {fileID: 919132149155446097, guid: ad51fc335bc0db042829cc408e01b6a9, type: 3}
+  - Id: Desk
+    Prefab: {fileID: 919132149155446097, guid: dbbc498c8e100924eaea9a34676c363e, type: 3}
+  - Id: Dresser_1
+    Prefab: {fileID: 919132149155446097, guid: 7a99dfd8cfd92274491cc410b55dd476, type: 3}
   - Id: Dummy
     Prefab: {fileID: 919132149155446097, guid: c7f87bd8d5d317c45828944a14a8fe58, type: 3}
   - Id: FarmCrate_Apple
@@ -1361,38 +1545,136 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: ddf3abaebc7a7e241a53a9dded173737, type: 3}
   - Id: FarmCrate_Empty
     Prefab: {fileID: 919132149155446097, guid: bcc5ed689070ea94ebab9d376554b397, type: 3}
+  - Id: FarmCrate_GreenApples
+    Prefab: {fileID: 919132149155446097, guid: aa5be0f021e574f4db567242451c0a58, type: 3}
+  - Id: FarmCrate_Leek
+    Prefab: {fileID: 919132149155446097, guid: c516e409cc93ba14c814094e86f49e9b, type: 3}
+  - Id: FarmCrate_Oranges
+    Prefab: {fileID: 919132149155446097, guid: bb00618d20926af4bb8afb821ae47b61, type: 3}
+  - Id: FarmCrate_Radish
+    Prefab: {fileID: 919132149155446097, guid: 57b33a3aa910af349ba3c82741511245, type: 3}
+  - Id: FirePit
+    Prefab: {fileID: 919132149155446097, guid: 7f29368a473929c42b155e4ac258f10d, type: 3}
+  - Id: Hammer_Large_Bronze
+    Prefab: {fileID: 919132149155446097, guid: a39e0a63c762f6f4c949265d3b0332ca, type: 3}
+  - Id: Hammer_Large_Steel
+    Prefab: {fileID: 919132149155446097, guid: 665b334e5625d1746af8725e714841de, type: 3}
+  - Id: Hammer_Medium_Bronze
+    Prefab: {fileID: 919132149155446097, guid: e52b97d327b644c478c72c8d990d9648, type: 3}
+  - Id: Hammer_Medium_Steel
+    Prefab: {fileID: 919132149155446097, guid: 53c57d35e59967e40aef5069c2868380, type: 3}
+  - Id: Hammer_Rack
+    Prefab: {fileID: 919132149155446097, guid: 9490ddc11e9b9c245aa840a3a42efebc, type: 3}
+  - Id: Hammer_Small_Bronze
+    Prefab: {fileID: 919132149155446097, guid: 1cf8ba16fd509b84996d39740c1526ba, type: 3}
+  - Id: Hammer_Small_Steel_Steel
+    Prefab: {fileID: 919132149155446097, guid: 272f6d5b2eed545429fad6dd2cf47416, type: 3}
+  - Id: Hoe_Bronze
+    Prefab: {fileID: 919132149155446097, guid: 11a397da181e26942a34a9de87b29b7e, type: 3}
+  - Id: Hoe_Steel
+    Prefab: {fileID: 919132149155446097, guid: 2a43b94eba0ade4499e8e6f2224cdc5a, type: 3}
   - Id: Key_Gold
     Prefab: {fileID: 919132149155446097, guid: 5e742e8032cbd234fba5109c28fa9795, type: 3}
   - Id: Key_Metal
     Prefab: {fileID: 919132149155446097, guid: bd6bb85c212868c479f4c037c12271ba, type: 3}
+  - Id: Ladder
+    Prefab: {fileID: 919132149155446097, guid: 3b33494210951354fa7dfa57da4ebd42, type: 3}
   - Id: Lantern_Wall
     Prefab: {fileID: 919132149155446097, guid: 6a13e941e615fab4e8ae032ec48774b5, type: 3}
+  - Id: Leek
+    Prefab: {fileID: 919132149155446097, guid: 1dbef2efe5b884e4397499f716765892, type: 3}
   - Id: Mug
     Prefab: {fileID: 919132149155446097, guid: cb2a5a3477433e046b5cc0d6bd85115a, type: 3}
+  - Id: Nightstand_Drawer
+    Prefab: {fileID: 919132149155446097, guid: 63912a11b42dd694aa32c2135d9ed30d, type: 3}
   - Id: Nightstand_Shelf
     Prefab: {fileID: 919132149155446097, guid: b2aa6b57a87016c4489881160afe478a, type: 3}
+  - Id: Page_Single
+    Prefab: {fileID: 919132149155446097, guid: 9d3f2f36fc11c5147be88e561dea37d9, type: 3}
+  - Id: Page_Stack_Large
+    Prefab: {fileID: 919132149155446097, guid: 391484804a339f14a987ea17d95ff4a5, type: 3}
+  - Id: Page_Stack_Small
+    Prefab: {fileID: 919132149155446097, guid: 89541b9bfa752a94296a1df4f875898c, type: 3}
+  - Id: Pan_1
+    Prefab: {fileID: 919132149155446097, guid: 4be94a872f8c18544908578c5a512aac, type: 3}
+  - Id: Pan_2
+    Prefab: {fileID: 919132149155446097, guid: 486df00ee5e91d34fb1aeb2f48313507, type: 3}
+  - Id: Parchment
+    Prefab: {fileID: 919132149155446097, guid: 35dfbaf0efedebe46b4646099316f1e6, type: 3}
+  - Id: Parts_Chain_Straight
+    Prefab: {fileID: 919132149155446097, guid: 9cd11d10ac200bf4da45899d0ca93986, type: 3}
+  - Id: Parts_Corner_90
+    Prefab: {fileID: 919132149155446097, guid: be27b54271f145845a686747e147af2d, type: 3}
+  - Id: Parts_Handle_Corner
+    Prefab: {fileID: 919132149155446097, guid: 27507068762cfd34284642c67b638b3c, type: 3}
+  - Id: Parts_Handle_Curved
+    Prefab: {fileID: 919132149155446097, guid: 2fb14f53e0e78e545aeb5c5517a51561, type: 3}
+  - Id: Parts_Handle_KeyHole
+    Prefab: {fileID: 919132149155446097, guid: b1bac5df6fdf6b148aa0ac4ac4320a3f, type: 3}
+  - Id: Parts_Handle_NailHead
+    Prefab: {fileID: 919132149155446097, guid: 0a2b593e1b93a314d8d7e939c287077c, type: 3}
+  - Id: Parts_Handle_Round
+    Prefab: {fileID: 919132149155446097, guid: 96805ffe7c92e9a48b34b34c4d2948ba, type: 3}
+  - Id: Parts_Handle_Straight
+    Prefab: {fileID: 919132149155446097, guid: 22934a7f3634d8a4e974d20baafecbc4, type: 3}
+  - Id: Parts_Handle_Triangle
+    Prefab: {fileID: 919132149155446097, guid: cb112ac937d0d0442a99f92adfa92369, type: 3}
+  - Id: Parts_Hinge_Connector
+    Prefab: {fileID: 919132149155446097, guid: fbf7ff9d65605134eb1454b7647d437f, type: 3}
+  - Id: Parts_Hinge_Long
+    Prefab: {fileID: 919132149155446097, guid: 038160792484b844fba55afdd96eef35, type: 3}
+  - Id: Parts_Hinge_Medium
+    Prefab: {fileID: 919132149155446097, guid: 2a81b1961857dbc44adc519b9a46ef87, type: 3}
+  - Id: Parts_Hinge_Short
+    Prefab: {fileID: 919132149155446097, guid: f823c4f54de3ff140be47e64e0063ebf, type: 3}
   - Id: Peg_Rack
     Prefab: {fileID: 919132149155446097, guid: 934c87c88eac9014582f8c862c6dfa0c, type: 3}
   - Id: Pickaxe_Bronze
     Prefab: {fileID: 919132149155446097, guid: a0a15eb7d3c1d8440904a509488017a9, type: 3}
+  - Id: Pickaxe_Steel
+    Prefab: {fileID: 919132149155446097, guid: d4312d1e14e3bb5468f804e4d9e1dfa3, type: 3}
   - Id: Pot_1
     Prefab: {fileID: 919132149155446097, guid: eb1dccd429f17ea44bcb8bb81a58b02d, type: 3}
   - Id: Pot_1_Lid
     Prefab: {fileID: 919132149155446097, guid: bdbada1c64b7c684f866abd64eb5b386, type: 3}
+  - Id: Pot_2
+    Prefab: {fileID: 919132149155446097, guid: 1433dd452a53f724b809f5c0d07fd354, type: 3}
+  - Id: Pot_2_Lid
+    Prefab: {fileID: 919132149155446097, guid: 359003d9f81d1b442907fd697389a618, type: 3}
   - Id: Potion_1
     Prefab: {fileID: 919132149155446097, guid: 1f9d15cc1bcda8849b35fa9e0396aabe, type: 3}
   - Id: Potion_2
     Prefab: {fileID: 919132149155446097, guid: 2466985ee8224634d912816692646530, type: 3}
+  - Id: Potion_3
+    Prefab: {fileID: 919132149155446097, guid: 93e70b9430cbd3b49b3811969749f793, type: 3}
   - Id: Potion_4
     Prefab: {fileID: 919132149155446097, guid: ad9550b739d96964d94a39c0cf744a54, type: 3}
+  - Id: Potion_5
+    Prefab: {fileID: 919132149155446097, guid: c9b1fb2035b6fdb46830387bc0f4f1e3, type: 3}
+  - Id: Potion_6
+    Prefab: {fileID: 919132149155446097, guid: f15f8a26ae2ac7a49adfba7be1587ba7, type: 3}
+  - Id: Potion_7
+    Prefab: {fileID: 919132149155446097, guid: bce11408c30bb50409dcd0fbf51ae9c6, type: 3}
+  - Id: Potion_8
+    Prefab: {fileID: 919132149155446097, guid: 6508e9697127a664cbe18cd5b20e325a, type: 3}
   - Id: Pouch_Large
     Prefab: {fileID: 919132149155446097, guid: 12e87df114749c34e9a723f0d0798917, type: 3}
+  - Id: Pouch_Small
+    Prefab: {fileID: 919132149155446097, guid: 3fed6390075ba3f4ca71961d24fe3f1d, type: 3}
+  - Id: Radish
+    Prefab: {fileID: 919132149155446097, guid: 8237feb65834ee241926ee1905192338, type: 3}
   - Id: Rope_1
     Prefab: {fileID: 919132149155446097, guid: 5ad6125124933334486cef251e51297e, type: 3}
   - Id: Rope_2
     Prefab: {fileID: 919132149155446097, guid: 94d26d22b40cf8646b6ffed35ec634bf, type: 3}
   - Id: Rope_3
     Prefab: {fileID: 919132149155446097, guid: 544c2fc290e95844ea41e710a42ca85a, type: 3}
+  - Id: Rug_1
+    Prefab: {fileID: 919132149155446097, guid: 9c03dfa78cf79e3488ddb9b835a437cc, type: 3}
+  - Id: Rug_Round
+    Prefab: {fileID: 919132149155446097, guid: 4130456ed9314d64ca212c43f73e9787, type: 3}
+  - Id: Runes
+    Prefab: {fileID: 919132149155446097, guid: fbbe5d5c118e5724db201702e486c24f, type: 3}
   - Id: Scroll_1
     Prefab: {fileID: 919132149155446097, guid: e13856c82c14e3b40b6889e5c8fc3494, type: 3}
   - Id: Scroll_2
@@ -1401,22 +1683,58 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: f063dcd847460464a8611412997082be, type: 3}
   - Id: Shelf_Simple
     Prefab: {fileID: 919132149155446097, guid: ce0dd1d8770e64442b5ed056635c6e8c, type: 3}
+  - Id: Shelf_Small
+    Prefab: {fileID: 919132149155446097, guid: 4f62a2a98e9e8c24c8db59d1fa59eefc, type: 3}
   - Id: Shelf_Small_Bottles
     Prefab: {fileID: 919132149155446097, guid: b9018517150e88145b40daf6f440691b, type: 3}
+  - Id: Shelf_Sword
+    Prefab: {fileID: 919132149155446097, guid: c01bdb3e9b4c911488313abc5218865d, type: 3}
+  - Id: Shield_Metal
+    Prefab: {fileID: 919132149155446097, guid: 2469db93f3d2a924eb967cdca0334018, type: 3}
   - Id: Shield_Wooden
     Prefab: {fileID: 919132149155446097, guid: 697df177d6e624246beb906c6bc2a50a, type: 3}
+  - Id: Shovel_Bronze
+    Prefab: {fileID: 919132149155446097, guid: 8d1f9e94f9c6c344e9d2d4f3e8c2cd58, type: 3}
+  - Id: Shovel_Steel
+    Prefab: {fileID: 919132149155446097, guid: 02dcd6d3ec040f140a919a13a2d26071, type: 3}
+  - Id: Sign_Armory
+    Prefab: {fileID: 919132149155446097, guid: cecd87ca66e9e5f40a9ce7acc4c951c2, type: 3}
+  - Id: Sign_Armory_2
+    Prefab: {fileID: 919132149155446097, guid: c3f08317ba0efed4999dc095180bb052, type: 3}
+  - Id: Sign_Blacksmith
+    Prefab: {fileID: 919132149155446097, guid: d5fed84f46b39bb4bb69d0a0ad089cc7, type: 3}
+  - Id: Sign_Food
+    Prefab: {fileID: 919132149155446097, guid: b741ac37c13daf94fb094e2c881cb357, type: 3}
+  - Id: Sign_Potions
+    Prefab: {fileID: 919132149155446097, guid: bd04fbac58f213d4d9af449fcb25f010, type: 3}
+  - Id: Sign_Pub
+    Prefab: {fileID: 919132149155446097, guid: 0561cef6715e6bf4aa4d617b89d57860, type: 3}
+  - Id: Skull
+    Prefab: {fileID: 919132149155446097, guid: 03f2155e03c41214d9c75da214939b5d, type: 3}
+  - Id: Skull_Top
+    Prefab: {fileID: 919132149155446097, guid: 4a045cca7635e8d4b9b8289ed32287ab, type: 3}
   - Id: SmallBottle
     Prefab: {fileID: 919132149155446097, guid: dfed168c896f63b48962606c2a808ed0, type: 3}
   - Id: SmallBottles_1
     Prefab: {fileID: 919132149155446097, guid: d55f8cefbf2725949832add8162280d5, type: 3}
+  - Id: SmallBottles_2
+    Prefab: {fileID: 919132149155446097, guid: eae0f29ad77cce9429955ffbabaace8f, type: 3}
+  - Id: Stall_Blacksmith
+    Prefab: {fileID: 919132149155446097, guid: e2bb92deb07d05944bdc81c92c6f59fa, type: 3}
   - Id: Stall_Cart_Empty
     Prefab: {fileID: 919132149155446097, guid: b1513bad2c0f03f48ba580592dd9c57b, type: 3}
   - Id: Stall_Empty
     Prefab: {fileID: 919132149155446097, guid: b9b6609ef95081b4d9c9f7b11bbeb7f4, type: 3}
+  - Id: Stall_Potions
+    Prefab: {fileID: 919132149155446097, guid: 9e83b526e1150534991651cca2d825a1, type: 3}
+  - Id: Stall_Vegetables_Full
+    Prefab: {fileID: 919132149155446097, guid: 955c0facf82f9ae4db4aa9b06e0b8b5b, type: 3}
   - Id: Stool
     Prefab: {fileID: 919132149155446097, guid: bf8e799643c7b0844933e8ea9c2dc8ff, type: 3}
   - Id: Sword_Bronze
     Prefab: {fileID: 919132149155446097, guid: 442ebeec3caefbb4485682f10cc73fc2, type: 3}
+  - Id: Sword_Steel
+    Prefab: {fileID: 919132149155446097, guid: 9432fa8052cc45146b8699500b08d184, type: 3}
   - Id: Table_Fork
     Prefab: {fileID: 919132149155446097, guid: fa08527c8cb2f354e974ed1572c6d94b, type: 3}
   - Id: Table_Knife
@@ -1429,12 +1747,22 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 39063ecab73f579418b7cb6d12c92431, type: 3}
   - Id: Torch_Metal
     Prefab: {fileID: 919132149155446097, guid: 2ace861dfc76c334e8019765d50ab395, type: 3}
+  - Id: Vase_1
+    Prefab: {fileID: 919132149155446097, guid: 196d06774e179e645999a25ebed77860, type: 3}
   - Id: Vase_2
     Prefab: {fileID: 919132149155446097, guid: 33c457ad3ef251241aec5b0a21917dcc, type: 3}
+  - Id: Vase_3
+    Prefab: {fileID: 919132149155446097, guid: b351aa83bfe867c48942c90fa08556e9, type: 3}
   - Id: Vase_4
     Prefab: {fileID: 919132149155446097, guid: c57c7cc44de15d145913f0c164d7f9f7, type: 3}
+  - Id: Vase_Rubble_Large
+    Prefab: {fileID: 919132149155446097, guid: e1679c7419e47564ea554dbf576518db, type: 3}
   - Id: Vase_Rubble_Medium
     Prefab: {fileID: 919132149155446097, guid: e1f96b1db1b05314a8dbb948b0155c5e, type: 3}
+  - Id: Vase_Rubble_Small
+    Prefab: {fileID: 919132149155446097, guid: 70a39f65c6ed20a49a4a768217b7f4ed, type: 3}
+  - Id: Wagon
+    Prefab: {fileID: 919132149155446097, guid: 793c9929a81afcc4591e1ccc814ecc13, type: 3}
   - Id: WeaponStand
     Prefab: {fileID: 919132149155446097, guid: 329633ffb6c930e47a0969c0734c072d, type: 3}
   - Id: Whetstone
@@ -1443,6 +1771,8 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: 74afd494adac1634abbda76f6c11a0e5, type: 3}
   - Id: Workbench_Drawers
     Prefab: {fileID: 919132149155446097, guid: cecbbd50f8f4bfc49bdaa8591a4f6ece, type: 3}
+  - Id: Workbench_Vice
+    Prefab: {fileID: 919132149155446097, guid: 114b3dedac959bb46a5b34ca5806faf9, type: 3}
   - Id: banner_blue
     Prefab: {fileID: 919132149155446097, guid: 8f8c5dc5895291b449dcef309975c1d0, type: 3}
   - Id: banner_brown
@@ -2255,3 +2585,630 @@ MonoBehaviour:
     Prefab: {fileID: 919132149155446097, guid: d354d29b399f2de4fa9aaa14a1bac4ca, type: 3}
   - Id: town_windmill
     Prefab: {fileID: 919132149155446097, guid: 04a5c0de15f32a8468b5af1086e2a03c, type: 3}
+  - Id: village_Balcony_Cross_Corner
+    Prefab: {fileID: 919132149155446097, guid: 54c78f8dec89b414faa93b11c9f3821b, type: 3}
+  - Id: village_Balcony_Cross_Straight
+    Prefab: {fileID: 919132149155446097, guid: cfb82ebea4620cc479e11b7878290847, type: 3}
+  - Id: village_Balcony_Simple_Corner
+    Prefab: {fileID: 919132149155446097, guid: 32dced9c15cb0464aa845d88f9c339d2, type: 3}
+  - Id: village_Balcony_Simple_Straight
+    Prefab: {fileID: 919132149155446097, guid: 98f69a374d51ae04e8b6f66e925b19f0, type: 3}
+  - Id: village_Corner_ExteriorWide_Brick
+    Prefab: {fileID: 919132149155446097, guid: dba4b3050314cf64f8ac7ed766706671, type: 3}
+  - Id: village_Corner_ExteriorWide_Wood
+    Prefab: {fileID: 919132149155446097, guid: 4c6121cfccd84854cbbfa1dea43414aa, type: 3}
+  - Id: village_Corner_Exterior_Brick
+    Prefab: {fileID: 919132149155446097, guid: d2f49b1572195774db2eba69c5638071, type: 3}
+  - Id: village_Corner_Exterior_TopDown
+    Prefab: {fileID: 919132149155446097, guid: 1271bf734dfbf9943ac5b6cad35f6c45, type: 3}
+  - Id: village_Corner_Exterior_TopOnly
+    Prefab: {fileID: 919132149155446097, guid: 0a0e9f3d347515d44a726d01d632404b, type: 3}
+  - Id: village_Corner_Exterior_Wood
+    Prefab: {fileID: 919132149155446097, guid: ad856574a283ca940a08dc2f3eabd1f3, type: 3}
+  - Id: village_Corner_Interior_Big
+    Prefab: {fileID: 919132149155446097, guid: d5719106e6d6a9c408c495133226e9ac, type: 3}
+  - Id: village_Corner_Interior_Small
+    Prefab: {fileID: 919132149155446097, guid: d273fd4e7d3a7014d8cab2db21adff6c, type: 3}
+  - Id: village_DoorFrame_Flat_Brick
+    Prefab: {fileID: 919132149155446097, guid: 27e7cf9ac81dad743b0bd0cdd00e9672, type: 3}
+  - Id: village_DoorFrame_Flat_WoodDark
+    Prefab: {fileID: 919132149155446097, guid: 7f5bf0f1d042ec4449deaf466a42fc3e, type: 3}
+  - Id: village_DoorFrame_Flat_WoodLight
+    Prefab: {fileID: 919132149155446097, guid: b6936d5e4594f5341ad06b78809598da, type: 3}
+  - Id: village_DoorFrame_Round_Brick
+    Prefab: {fileID: 919132149155446097, guid: d622e0e62503111499b625595010cd93, type: 3}
+  - Id: village_DoorFrame_Round_WoodDark
+    Prefab: {fileID: 919132149155446097, guid: 87d2e7007950061498af719b27aadbe0, type: 3}
+  - Id: village_DoorFrame_Round_WoodLight
+    Prefab: {fileID: 919132149155446097, guid: 6fcf8a8567a239843a00dc38d9b3797e, type: 3}
+  - Id: village_Door_1_Flat
+    Prefab: {fileID: 919132149155446097, guid: 1d0e422e51e8ee040bf7ed6647660f4f, type: 3}
+  - Id: village_Door_1_Round
+    Prefab: {fileID: 919132149155446097, guid: 680ac44ac11049b4fa79efc601b84461, type: 3}
+  - Id: village_Door_2_Flat
+    Prefab: {fileID: 919132149155446097, guid: 4dc9862efa64dcf41b75ae672959e5cf, type: 3}
+  - Id: village_Door_2_Round
+    Prefab: {fileID: 919132149155446097, guid: 724d90b2cb23ada42a844a2d5fbe20eb, type: 3}
+  - Id: village_Door_3_Flat
+    Prefab: {fileID: 919132149155446097, guid: fc426e6c5c741cb4ebf0d41044c645bb, type: 3}
+  - Id: village_Door_3_Round
+    Prefab: {fileID: 919132149155446097, guid: 4541427a266e3aa438439064d0ad2055, type: 3}
+  - Id: village_Door_4_Flat
+    Prefab: {fileID: 919132149155446097, guid: 06a21cdae11c7db438ac33a6361e7e15, type: 3}
+  - Id: village_Door_4_Round
+    Prefab: {fileID: 919132149155446097, guid: 9a90a97dbeadfa643bf17e394ef004a8, type: 3}
+  - Id: village_Door_5_Flat
+    Prefab: {fileID: 919132149155446097, guid: aa8c4799ed436974ea8a1a5808e774e7, type: 3}
+  - Id: village_Door_5_Round
+    Prefab: {fileID: 919132149155446097, guid: 161796643043c304c9997ecad2b10fcc, type: 3}
+  - Id: village_Door_6_Flat
+    Prefab: {fileID: 919132149155446097, guid: f6179004a172f514387911e5ce89fd3e, type: 3}
+  - Id: village_Door_6_Round
+    Prefab: {fileID: 919132149155446097, guid: c124079dee87180408e9aa7fa417232e, type: 3}
+  - Id: village_Door_7_Flat
+    Prefab: {fileID: 919132149155446097, guid: 362477c864b38124288cf9f00d40efda, type: 3}
+  - Id: village_Door_7_Round
+    Prefab: {fileID: 919132149155446097, guid: 2859557ff656926418ccacf94ead1193, type: 3}
+  - Id: village_Door_8_Flat
+    Prefab: {fileID: 919132149155446097, guid: 390f57d4013b15540a103edaf19f8e1e, type: 3}
+  - Id: village_Door_8_Round
+    Prefab: {fileID: 919132149155446097, guid: 9323458085759df4a8f6e49db36a0837, type: 3}
+  - Id: village_Floor_Brick
+    Prefab: {fileID: 919132149155446097, guid: 000ebf04a40a33d45a61bed84d5c9580, type: 3}
+  - Id: village_Floor_RedBrick
+    Prefab: {fileID: 919132149155446097, guid: fa71efa0638e487498138221777130b7, type: 3}
+  - Id: village_Floor_RoundRocks
+    Prefab: {fileID: 919132149155446097, guid: 7e9f92bf0034377479c5e40f0e685a19, type: 3}
+  - Id: village_Floor_UnevenBrick
+    Prefab: {fileID: 919132149155446097, guid: d740f5a67def2c245b00d5d854ba2bb2, type: 3}
+  - Id: village_Floor_WoodDark
+    Prefab: {fileID: 919132149155446097, guid: 8506260646d9a9347bfec05aff0d6160, type: 3}
+  - Id: village_Floor_WoodDark_Half1
+    Prefab: {fileID: 919132149155446097, guid: dd7f0ab99129b75469d1336914b7b034, type: 3}
+  - Id: village_Floor_WoodDark_Half2
+    Prefab: {fileID: 919132149155446097, guid: 0679aa090edb79f448c7f38ebf1ae171, type: 3}
+  - Id: village_Floor_WoodDark_Half3
+    Prefab: {fileID: 919132149155446097, guid: df6b53d201a329d48a058bf661a69513, type: 3}
+  - Id: village_Floor_WoodDark_OverhangCorner
+    Prefab: {fileID: 919132149155446097, guid: 6cf8a1cf73c4fb943a45018945237572, type: 3}
+  - Id: village_Floor_WoodDark_OverhangCorner2
+    Prefab: {fileID: 919132149155446097, guid: b592e8f98fb9b12448ac53b2e343b8b9, type: 3}
+  - Id: village_Floor_WoodLight
+    Prefab: {fileID: 919132149155446097, guid: 7a361737bc3281543856cd86fe912aba, type: 3}
+  - Id: village_Floor_WoodLight_OverhangCorner
+    Prefab: {fileID: 919132149155446097, guid: d3e4986d7b85c8e49b86553631b1721d, type: 3}
+  - Id: village_Floor_WoodLight_OverhangCorner2
+    Prefab: {fileID: 919132149155446097, guid: d56a0fa21d41e3740b1b6c0dfab4e091, type: 3}
+  - Id: village_HoleCover_90Angle
+    Prefab: {fileID: 919132149155446097, guid: 0d55d360234d5d64887da9ed47f782f0, type: 3}
+  - Id: village_HoleCover_90Half
+    Prefab: {fileID: 919132149155446097, guid: 350a5f28f21fff84c9fa3cc3a2aaaf38, type: 3}
+  - Id: village_HoleCover_90Stairs
+    Prefab: {fileID: 919132149155446097, guid: 2ec8b2251ae8e654b81ea4682e9666be, type: 3}
+  - Id: village_HoleCover_Straight
+    Prefab: {fileID: 919132149155446097, guid: df8e1099b8975044fbe3a010a5b77367, type: 3}
+  - Id: village_HoleCover_StraightHalf
+    Prefab: {fileID: 919132149155446097, guid: ea3f1476700dc9b46bdce67429757480, type: 3}
+  - Id: village_Overhang_Plaster_Corner
+    Prefab: {fileID: 919132149155446097, guid: 176b7534815aa30419c2d15be72c031f, type: 3}
+  - Id: village_Overhang_Plaster_Corner_Front
+    Prefab: {fileID: 919132149155446097, guid: a7e2fb91ee2feeb41917fe0af63247f3, type: 3}
+  - Id: village_Overhang_Plaster_Long
+    Prefab: {fileID: 919132149155446097, guid: 1ad8eaa6581ccc84191c380dde0c7c1d, type: 3}
+  - Id: village_Overhang_Plaster_Short
+    Prefab: {fileID: 919132149155446097, guid: f6a95996999408648bd00450ee08b8c1, type: 3}
+  - Id: village_Overhang_RoofIncline_Plaster
+    Prefab: {fileID: 919132149155446097, guid: c96599c508501974bab7a21f783ee6f9, type: 3}
+  - Id: village_Overhang_RoofIncline_UnevenBricks
+    Prefab: {fileID: 919132149155446097, guid: 32fcbd325fb1ba1499d1f9ee6b6f441e, type: 3}
+  - Id: village_Overhang_RoofIncline_Wood
+    Prefab: {fileID: 919132149155446097, guid: 6382a196c307ecd46b9b6baa9e859ce5, type: 3}
+  - Id: village_Overhang_Roof_Plaster
+    Prefab: {fileID: 919132149155446097, guid: 9b9ac2550a253314e88aa50ab96b3b62, type: 3}
+  - Id: village_Overhang_Roof_UnevenBricks
+    Prefab: {fileID: 919132149155446097, guid: 1f28a025708a4374c8f0b50e6f844c4c, type: 3}
+  - Id: village_Overhang_Roof_Wood
+    Prefab: {fileID: 919132149155446097, guid: f7d05beacc647224e95f1d4c07569125, type: 3}
+  - Id: village_Overhang_Side_Plaster_Long_L
+    Prefab: {fileID: 919132149155446097, guid: 3edaba62dfc8210448e65f6bc7092911, type: 3}
+  - Id: village_Overhang_Side_Plaster_Long_R
+    Prefab: {fileID: 919132149155446097, guid: d7351fc3efa254d4fa965ad29a636f59, type: 3}
+  - Id: village_Overhang_Side_Plaster_Short_L
+    Prefab: {fileID: 919132149155446097, guid: d04c3907fd39dc148ad29f5dabf9b229, type: 3}
+  - Id: village_Overhang_Side_Plaster_Short_R
+    Prefab: {fileID: 919132149155446097, guid: 0c2b223dc2125d6448b281ea5ab43a97, type: 3}
+  - Id: village_Overhang_Side_UnevenBrick_Long_L
+    Prefab: {fileID: 919132149155446097, guid: 07f46cf50891e534684d79cf5e92a574, type: 3}
+  - Id: village_Overhang_Side_UnevenBrick_Long_R
+    Prefab: {fileID: 919132149155446097, guid: e29eb9c17364e1141ad04f3696b04d44, type: 3}
+  - Id: village_Overhang_Side_UnevenBrick_Short_L
+    Prefab: {fileID: 919132149155446097, guid: 5d9471eaaa579a247815a9ce06581628, type: 3}
+  - Id: village_Overhang_Side_UnevenBrick_Short_R
+    Prefab: {fileID: 919132149155446097, guid: ece142add18264640b035e8693c119c4, type: 3}
+  - Id: village_Overhang_Side_WoodBrick_Long_L
+    Prefab: {fileID: 919132149155446097, guid: d5e26832a4548fa41ab81456bbf01f9d, type: 3}
+  - Id: village_Overhang_Side_WoodBrick_Long_R
+    Prefab: {fileID: 919132149155446097, guid: e40f2ec0baacd9c46a53cfaee79b9818, type: 3}
+  - Id: village_Overhang_Side_WoodBrick_Short_L
+    Prefab: {fileID: 919132149155446097, guid: f00402a0fd9ecde4eb48c96c7ccaef5c, type: 3}
+  - Id: village_Overhang_Side_WoodBrick_Short_R
+    Prefab: {fileID: 919132149155446097, guid: c76a1f32f8edbad4fa208a0a997b8f6f, type: 3}
+  - Id: village_Overhang_Side_WoodWear_Long_L
+    Prefab: {fileID: 919132149155446097, guid: 4bf2adafd45247446b452a91a426b580, type: 3}
+  - Id: village_Overhang_Side_WoodWear_Long_R
+    Prefab: {fileID: 919132149155446097, guid: 88e0edb851aaaba41a8a48fc54e050e5, type: 3}
+  - Id: village_Overhang_Side_WoodWear_Short_L
+    Prefab: {fileID: 919132149155446097, guid: b8e059de9e8fcb9458848c5d5f236338, type: 3}
+  - Id: village_Overhang_Side_WoodWear_Short_R
+    Prefab: {fileID: 919132149155446097, guid: d0c5fe7495ad7414fb210e60114128cd, type: 3}
+  - Id: village_Overhang_UnevenBrick_Corner
+    Prefab: {fileID: 919132149155446097, guid: 7a6881e37692ba340be927be70e4fad7, type: 3}
+  - Id: village_Overhang_UnevenBrick_Corner_Front
+    Prefab: {fileID: 919132149155446097, guid: 7a4fc7709bcb2a9409bf4c7cbf75a660, type: 3}
+  - Id: village_Overhang_UnevenBrick_Long
+    Prefab: {fileID: 919132149155446097, guid: 894f13c2d1665f440b5e969865ca506d, type: 3}
+  - Id: village_Overhang_UnevenBrick_Short
+    Prefab: {fileID: 919132149155446097, guid: ace8b7a84cedbdb4b86fc669c02eefba, type: 3}
+  - Id: village_Overhang_WoodBrick_Corner
+    Prefab: {fileID: 919132149155446097, guid: 21d287512eafbb849a5b344028f6ad97, type: 3}
+  - Id: village_Overhang_WoodBrick_Corner_Front
+    Prefab: {fileID: 919132149155446097, guid: e3b524e0e446ae249a4becec83ca3a45, type: 3}
+  - Id: village_Overhang_WoodBrick_Long
+    Prefab: {fileID: 919132149155446097, guid: 0bbf267ed76ee3143a378629f054efc1, type: 3}
+  - Id: village_Overhang_WoodBrick_Short
+    Prefab: {fileID: 919132149155446097, guid: 2898e33c4eb251e4f9fb72ba12efefe1, type: 3}
+  - Id: village_Overhang_WoodWear_Corner
+    Prefab: {fileID: 919132149155446097, guid: 6353287cbaa74454aa8ac7106863eab8, type: 3}
+  - Id: village_Overhang_WoodWear_Corner_Front
+    Prefab: {fileID: 919132149155446097, guid: 1bcd032be1d8726478483f942dcc600a, type: 3}
+  - Id: village_Overhang_WoodenWear_Long
+    Prefab: {fileID: 919132149155446097, guid: b03bda6ddfb41084baef667a0fa9b145, type: 3}
+  - Id: village_Overhang_WoodenWear_Short
+    Prefab: {fileID: 919132149155446097, guid: 81f29e92c9320ac408c296acc65b2340, type: 3}
+  - Id: village_Prop_Brick1
+    Prefab: {fileID: 919132149155446097, guid: 80081d70721b0ef488fd01b117b49a71, type: 3}
+  - Id: village_Prop_Brick2
+    Prefab: {fileID: 919132149155446097, guid: c6def77fe1fd52247b81df51a876d400, type: 3}
+  - Id: village_Prop_Brick3
+    Prefab: {fileID: 919132149155446097, guid: 39efe79de93cfd449ab34f0fdc669699, type: 3}
+  - Id: village_Prop_Brick4
+    Prefab: {fileID: 919132149155446097, guid: 43877dea3ab3bab4fb13de7ac0d367eb, type: 3}
+  - Id: village_Prop_Chimney
+    Prefab: {fileID: 919132149155446097, guid: e6d895778b2cd7648ad8246ea1178f18, type: 3}
+  - Id: village_Prop_Chimney2
+    Prefab: {fileID: 919132149155446097, guid: a5790af624523fe41a38df284e107536, type: 3}
+  - Id: village_Prop_Crate
+    Prefab: {fileID: 919132149155446097, guid: 3289ba883b0f14041a7c5b935b857ef6, type: 3}
+  - Id: village_Prop_ExteriorBorder_Corner
+    Prefab: {fileID: 919132149155446097, guid: 8e8a5c1192c019f4d8e746002bec2258, type: 3}
+  - Id: village_Prop_ExteriorBorder_Straight1
+    Prefab: {fileID: 919132149155446097, guid: c150dc454cb713f4d95b1e8482b3672b, type: 3}
+  - Id: village_Prop_ExteriorBorder_Straight2
+    Prefab: {fileID: 919132149155446097, guid: 8289a41b7acea08429989a064e1b74b0, type: 3}
+  - Id: village_Prop_MetalFence_Ornament
+    Prefab: {fileID: 919132149155446097, guid: b79ddad46fb444e42ba4d6365756e399, type: 3}
+  - Id: village_Prop_MetalFence_Simple
+    Prefab: {fileID: 919132149155446097, guid: 71a538efd84d00e41841f86d13101ee6, type: 3}
+  - Id: village_Prop_Support
+    Prefab: {fileID: 919132149155446097, guid: ca7e336ac33531f4caaeaf46ea47a6ca, type: 3}
+  - Id: village_Prop_Vine1
+    Prefab: {fileID: 919132149155446097, guid: d3dbf3dda1a2ffa4c9b1f91950c06b17, type: 3}
+  - Id: village_Prop_Vine2
+    Prefab: {fileID: 919132149155446097, guid: af18fd77910bd234e890cffbf6386736, type: 3}
+  - Id: village_Prop_Vine3
+    Prefab: {fileID: 919132149155446097, guid: d9a53baef7790684385e30c7c45c7a10, type: 3}
+  - Id: village_Prop_Vine4
+    Prefab: {fileID: 919132149155446097, guid: ac8db9aad89c87b42ab154e29f28b16b, type: 3}
+  - Id: village_Prop_Vine5
+    Prefab: {fileID: 919132149155446097, guid: 5ba63b79e86d460478cc2a114bdfd866, type: 3}
+  - Id: village_Prop_Vine6
+    Prefab: {fileID: 919132149155446097, guid: 530801bd1d8b0d24593c174562c84dc5, type: 3}
+  - Id: village_Prop_Vine7
+    Prefab: {fileID: 919132149155446097, guid: 19b1699d63638c440a1faf6ed59789f3, type: 3}
+  - Id: village_Prop_Vine8
+    Prefab: {fileID: 919132149155446097, guid: b1f9a595e241f9941a3d0d6ac1397a17, type: 3}
+  - Id: village_Prop_Vine9
+    Prefab: {fileID: 919132149155446097, guid: be228e7ac56201c4e9e6cfa5009e1855, type: 3}
+  - Id: village_Prop_Wagon
+    Prefab: {fileID: 919132149155446097, guid: a10e1fea38277974a8941315e0e4c45f, type: 3}
+  - Id: village_Prop_WoodenFence_Extension1
+    Prefab: {fileID: 919132149155446097, guid: 9fa80ebb27a846f489b95017cad2134a, type: 3}
+  - Id: village_Prop_WoodenFence_Extension2
+    Prefab: {fileID: 919132149155446097, guid: 389aacaad88702b47b6d59bd8e8b4b2d, type: 3}
+  - Id: village_Prop_WoodenFence_Single
+    Prefab: {fileID: 919132149155446097, guid: 5406bab126c2343408afdec0148113e1, type: 3}
+  - Id: village_Roof_2x4_FlatTile
+    Prefab: {fileID: 919132149155446097, guid: ed885c8a64cee2c4ab035973a3c20d2a, type: 3}
+  - Id: village_Roof_2x4_RoundTile
+    Prefab: {fileID: 919132149155446097, guid: 5214a899abf13a04a900421ce0a0f1a9, type: 3}
+  - Id: village_Roof_Dormer_FlatTile
+    Prefab: {fileID: 919132149155446097, guid: 29f7070e6e73a7041ac56130c6a57af5, type: 3}
+  - Id: village_Roof_Dormer_RoundTile
+    Prefab: {fileID: 919132149155446097, guid: fc1a36eefa706d748a12812e4a7a06f6, type: 3}
+  - Id: village_Roof_FlatTile_2x1
+    Prefab: {fileID: 919132149155446097, guid: ca3a069eac6d3a54884d936a13a1706c, type: 3}
+  - Id: village_Roof_FlatTile_2x1_Long
+    Prefab: {fileID: 919132149155446097, guid: c7e1f3266c3a9704e9ade997f91bdde2, type: 3}
+  - Id: village_Roof_FlatTiles_4x4
+    Prefab: {fileID: 919132149155446097, guid: c87eff36fd6855747a0560dd2a423d1a, type: 3}
+  - Id: village_Roof_FlatTiles_4x6
+    Prefab: {fileID: 919132149155446097, guid: 09e969ea83d9786429a1c56841ddc09b, type: 3}
+  - Id: village_Roof_FlatTiles_4x8
+    Prefab: {fileID: 919132149155446097, guid: 72b22032f1afe19438325cbf97555a6c, type: 3}
+  - Id: village_Roof_FlatTiles_6x10
+    Prefab: {fileID: 919132149155446097, guid: 02b35634132c85f47b56d8d09cfc59ed, type: 3}
+  - Id: village_Roof_FlatTiles_6x12
+    Prefab: {fileID: 919132149155446097, guid: 1d0366c27c4dae64da906aafdc0da940, type: 3}
+  - Id: village_Roof_FlatTiles_6x14
+    Prefab: {fileID: 919132149155446097, guid: e62c4973a3f74684292c66642e951509, type: 3}
+  - Id: village_Roof_FlatTiles_6x4
+    Prefab: {fileID: 919132149155446097, guid: 728eb997d1f32e6458c837026e9fd879, type: 3}
+  - Id: village_Roof_FlatTiles_6x6
+    Prefab: {fileID: 919132149155446097, guid: 8cd1d2d2cb2bf7346bb1a1b663fb2b86, type: 3}
+  - Id: village_Roof_FlatTiles_6x8
+    Prefab: {fileID: 919132149155446097, guid: 5734090c2a931e64aa63a72bf4abec85, type: 3}
+  - Id: village_Roof_FlatTiles_8x10
+    Prefab: {fileID: 919132149155446097, guid: 122e927577fb23c4fb783fcd3c551a33, type: 3}
+  - Id: village_Roof_FlatTiles_8x12
+    Prefab: {fileID: 919132149155446097, guid: 4af561e06deb7cb4b9fab0e67659d55f, type: 3}
+  - Id: village_Roof_FlatTiles_8x14
+    Prefab: {fileID: 919132149155446097, guid: 0f84682f70e3b4341b6befd42ccd22f6, type: 3}
+  - Id: village_Roof_FlatTiles_8x8
+    Prefab: {fileID: 919132149155446097, guid: 636d88ea681df024f8b550e2f14a999a, type: 3}
+  - Id: village_Roof_FrontSupports
+    Prefab: {fileID: 919132149155446097, guid: ac4d587c22160d04cae381541aea7066, type: 3}
+  - Id: village_Roof_Front_Brick2
+    Prefab: {fileID: 919132149155446097, guid: 7f87d492ba5f11a45977cabb3c5c055a, type: 3}
+  - Id: village_Roof_Front_Brick4
+    Prefab: {fileID: 919132149155446097, guid: 7e53f6d936444fc4e8e8f4efcf7104f2, type: 3}
+  - Id: village_Roof_Front_Brick4_Half_L
+    Prefab: {fileID: 919132149155446097, guid: ac589f4ab5f447e4dbe26db6734aa7af, type: 3}
+  - Id: village_Roof_Front_Brick4_Half_R
+    Prefab: {fileID: 919132149155446097, guid: dfb2f326b77dbc94ba72fad6c86d3c92, type: 3}
+  - Id: village_Roof_Front_Brick6
+    Prefab: {fileID: 919132149155446097, guid: 3b516ce2ccf998343a30b20236cbd71d, type: 3}
+  - Id: village_Roof_Front_Brick6_Half_L
+    Prefab: {fileID: 919132149155446097, guid: 66e22160ed634c746a45bb9c5df7615a, type: 3}
+  - Id: village_Roof_Front_Brick6_Half_R
+    Prefab: {fileID: 919132149155446097, guid: 35d8659af15277d4ab94664fab1fa3e2, type: 3}
+  - Id: village_Roof_Front_Brick8
+    Prefab: {fileID: 919132149155446097, guid: 88a199fe41def3348b1576cc1b3d1c3f, type: 3}
+  - Id: village_Roof_Front_Brick8_Half_L
+    Prefab: {fileID: 919132149155446097, guid: 7c5e47ef6489ce64d8ec493fef3cec3b, type: 3}
+  - Id: village_Roof_Front_Brick8_Half_R
+    Prefab: {fileID: 919132149155446097, guid: c4611432e737e1f4899b94b26a9e68cc, type: 3}
+  - Id: village_Roof_Front_Wood2
+    Prefab: {fileID: 919132149155446097, guid: 744a5f8c1ae97fd48b812129205698a0, type: 3}
+  - Id: village_Roof_Front_Wood4
+    Prefab: {fileID: 919132149155446097, guid: cd8007c07a21b434fab7445045ee55c7, type: 3}
+  - Id: village_Roof_Front_Wood6
+    Prefab: {fileID: 919132149155446097, guid: 4613b1733aa4bd8468c5eb3d724f0f61, type: 3}
+  - Id: village_Roof_Front_Wood8
+    Prefab: {fileID: 919132149155446097, guid: a4811c61e2efa4f4c945c5b79ac6b968, type: 3}
+  - Id: village_Roof_Log
+    Prefab: {fileID: 919132149155446097, guid: f94d9f65b3c5b164c928ded7c8d19d99, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_Dormer
+    Prefab: {fileID: 919132149155446097, guid: d1acf7b23c9f61b4bbb8db7b8d664b39, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_L
+    Prefab: {fileID: 919132149155446097, guid: 847812d906aa57443b2f3acb590b46b8, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_L_Half
+    Prefab: {fileID: 919132149155446097, guid: 5895e30fbebfdb84b9d039a96c389204, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_Mid
+    Prefab: {fileID: 919132149155446097, guid: 7746610b46619ce4a95d36171e7ecff9, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_Mid_Half
+    Prefab: {fileID: 919132149155446097, guid: 0242c6bd395ae2349950883816503074, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_R
+    Prefab: {fileID: 919132149155446097, guid: 3d84782e7346bce439488287dc061580, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_4_R_Half
+    Prefab: {fileID: 919132149155446097, guid: a5897ad2b96d6b245a66800ce73e9af1, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_Dormer
+    Prefab: {fileID: 919132149155446097, guid: 8273ee90cef234c459966c343a7dd664, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_L
+    Prefab: {fileID: 919132149155446097, guid: b5c4cb3208bdde84fab3d68c40c960d8, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_L_Half
+    Prefab: {fileID: 919132149155446097, guid: b14e61f201213c845ab5a8e76a85f026, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_Mid
+    Prefab: {fileID: 919132149155446097, guid: 2af1ff628d795c34ea7e0710c2fdc4b1, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_Mid_Half
+    Prefab: {fileID: 919132149155446097, guid: f99c1ae32781f15498000b4e2caa3509, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_R
+    Prefab: {fileID: 919132149155446097, guid: 89cce09ba1fbbe34aab3134db2e093eb, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_6_R_Half
+    Prefab: {fileID: 919132149155446097, guid: 50b3afd846933fd4e9aaef329602fd97, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_Dormer
+    Prefab: {fileID: 919132149155446097, guid: 60013b1af57561648b5084d73b4381fd, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_L
+    Prefab: {fileID: 919132149155446097, guid: 5c3df08590c442943b6ff0e01988bb3c, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_L_Half
+    Prefab: {fileID: 919132149155446097, guid: 7bc4044c9c9940a46b4d152c91681398, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_Mid
+    Prefab: {fileID: 919132149155446097, guid: 34a0f11ee945e8941bdcf1740c8477a0, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_Mid_Half
+    Prefab: {fileID: 919132149155446097, guid: b4b2f2f71079126438e29b1da204ae9c, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_R
+    Prefab: {fileID: 919132149155446097, guid: a67543e0cea532a45befd502e4f6ee1e, type: 3}
+  - Id: village_Roof_Modular_FlatTiles_8_R_Half
+    Prefab: {fileID: 919132149155446097, guid: cbd0fadf66ee41943841b541a095c989, type: 3}
+  - Id: village_Roof_Modular_RoundTiles
+    Prefab: {fileID: 919132149155446097, guid: c4ef70b2ff60d574e8068ed187ff4d7b, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_Dormer
+    Prefab: {fileID: 919132149155446097, guid: 4c30b75290421764d9b5b4700a49d22d, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_L
+    Prefab: {fileID: 919132149155446097, guid: 4e657840fdbbdfa4eba29da679352f7b, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_L_Half
+    Prefab: {fileID: 919132149155446097, guid: 3f002b4dadae1bc4dbee5a4b8791ecdc, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_Mid
+    Prefab: {fileID: 919132149155446097, guid: ceb6f49b108bd584dbb6e4f02c8825ab, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_Mid_Half
+    Prefab: {fileID: 919132149155446097, guid: 118800d07ab28984f90e14e08c362719, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_R
+    Prefab: {fileID: 919132149155446097, guid: 10cd9c020adac424481fe7838c0213db, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_4_R_Half
+    Prefab: {fileID: 919132149155446097, guid: 6d252f62364be4645a2ea39fb4c5a679, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_Dormer
+    Prefab: {fileID: 919132149155446097, guid: 500d06b6b8d19004e991520976b26ef6, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_L
+    Prefab: {fileID: 919132149155446097, guid: dc1cabb0d1d54c442b5bd6bf2b423dc4, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_L_Half
+    Prefab: {fileID: 919132149155446097, guid: 9899ac60f2f8edc47aec89a70954d641, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_Mid
+    Prefab: {fileID: 919132149155446097, guid: 262087d35c795674c8c798fbc54ef9c1, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_Mid_Half
+    Prefab: {fileID: 919132149155446097, guid: 8ec7465c1e5d32447bb36259d0b52021, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_R
+    Prefab: {fileID: 919132149155446097, guid: 0c9aee71398065a419c4adab41cc70cb, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_6_R_Half
+    Prefab: {fileID: 919132149155446097, guid: 30c264f540c3d3b4c9c2b91c0e89b36d, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_Dormer
+    Prefab: {fileID: 919132149155446097, guid: a939c1859ecc8a944986395c7336d2d1, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_K_Half
+    Prefab: {fileID: 919132149155446097, guid: cb1540a570c4e2349bf37f5e4eba9982, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_L
+    Prefab: {fileID: 919132149155446097, guid: 235acaf0e2af42846bd2d5076b15a9d7, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_Mid
+    Prefab: {fileID: 919132149155446097, guid: c63a6070099f6e54c968e9e7a6fed7ed, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_Mid_Half
+    Prefab: {fileID: 919132149155446097, guid: 5018c638813ca31498ffffa853eb9850, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_R
+    Prefab: {fileID: 919132149155446097, guid: 59bda0cf24e782a4ab74bac15d7d1d5d, type: 3}
+  - Id: village_Roof_Modular_RoundTiles_8_R_Half
+    Prefab: {fileID: 919132149155446097, guid: 7f485e11ea4fdd14db57390cbb84bbfb, type: 3}
+  - Id: village_Roof_RoundTile_2x1
+    Prefab: {fileID: 919132149155446097, guid: 7b9d629a145eec743a28c9f92c1eecd7, type: 3}
+  - Id: village_Roof_RoundTile_2x1_Long
+    Prefab: {fileID: 919132149155446097, guid: d1c66b1d2999df34aa15c1dab6ee9c7c, type: 3}
+  - Id: village_Roof_RoundTiles_4x4
+    Prefab: {fileID: 919132149155446097, guid: 70f7e02944c67344a875468399e3b921, type: 3}
+  - Id: village_Roof_RoundTiles_4x6
+    Prefab: {fileID: 919132149155446097, guid: 37449e14c2e3d0c4e939b43680ed3fb0, type: 3}
+  - Id: village_Roof_RoundTiles_4x8
+    Prefab: {fileID: 919132149155446097, guid: 23323efea8410f047b90e7373e232057, type: 3}
+  - Id: village_Roof_RoundTiles_6x10
+    Prefab: {fileID: 919132149155446097, guid: 5bd3c4be0a024e04b9e2e88732a912f2, type: 3}
+  - Id: village_Roof_RoundTiles_6x12
+    Prefab: {fileID: 919132149155446097, guid: 737dfcc8bca5d3a4e864d37d6d9bb2ff, type: 3}
+  - Id: village_Roof_RoundTiles_6x14
+    Prefab: {fileID: 919132149155446097, guid: 5b88960ecfbe5c142a443c4ca02c83b3, type: 3}
+  - Id: village_Roof_RoundTiles_6x4
+    Prefab: {fileID: 919132149155446097, guid: e1a9d115c04b177469146a064b4766e9, type: 3}
+  - Id: village_Roof_RoundTiles_6x6
+    Prefab: {fileID: 919132149155446097, guid: 3a5d26f28941f394e85de3dd52a4128d, type: 3}
+  - Id: village_Roof_RoundTiles_6x8
+    Prefab: {fileID: 919132149155446097, guid: 1f0a06899d16b504fa2db7800dfc3dc3, type: 3}
+  - Id: village_Roof_RoundTiles_8x10
+    Prefab: {fileID: 919132149155446097, guid: d3ab02cf42700474c8a104f58365951e, type: 3}
+  - Id: village_Roof_RoundTiles_8x12
+    Prefab: {fileID: 919132149155446097, guid: 245006c16d7761b4aa3589afcc499911, type: 3}
+  - Id: village_Roof_RoundTiles_8x14
+    Prefab: {fileID: 919132149155446097, guid: 43b6f4b2727e15c4cacb7d3ca0c83ac6, type: 3}
+  - Id: village_Roof_RoundTiles_8x8
+    Prefab: {fileID: 919132149155446097, guid: 5c29ed030f283c74486d5ca37f70e6f9, type: 3}
+  - Id: village_Roof_Spike
+    Prefab: {fileID: 919132149155446097, guid: 0864485adc1f80542afacb0bb01363e1, type: 3}
+  - Id: village_Roof_Spikes10
+    Prefab: {fileID: 919132149155446097, guid: fff548661f2afac43a201cabe34410fc, type: 3}
+  - Id: village_Roof_Spikes5
+    Prefab: {fileID: 919132149155446097, guid: 8273b422a01c7af47978705b10e1a01c, type: 3}
+  - Id: village_Roof_Spikes_Mid1
+    Prefab: {fileID: 919132149155446097, guid: 203264ada18d3554aa2171b33ec012a7, type: 3}
+  - Id: village_Roof_Spikes_Mid2
+    Prefab: {fileID: 919132149155446097, guid: 77bb87c7d7a2cbb42b02c50073271667, type: 3}
+  - Id: village_Roof_Spikes_Start
+    Prefab: {fileID: 919132149155446097, guid: 5d6a3189866a306408daefb2d163a4fc, type: 3}
+  - Id: village_Roof_Support2
+    Prefab: {fileID: 919132149155446097, guid: e587a6e24276dcf4ea4b1babcef27a63, type: 3}
+  - Id: village_Roof_Tower_FlatTiles
+    Prefab: {fileID: 919132149155446097, guid: b5fcd5abf061e5e44b2ede7ba8d9f3c7, type: 3}
+  - Id: village_Roof_Tower_RoundTiles
+    Prefab: {fileID: 919132149155446097, guid: 80687492f3488e54188585892314c026, type: 3}
+  - Id: village_Roof_Wooden_2x1
+    Prefab: {fileID: 919132149155446097, guid: 415f664cbcef7d4458f8e2702f41d4de, type: 3}
+  - Id: village_Roof_Wooden_2x1_Center
+    Prefab: {fileID: 919132149155446097, guid: ef35b02d4b0f2714e9c602e896c4dbb2, type: 3}
+  - Id: village_Roof_Wooden_2x1_Center_Mirror
+    Prefab: {fileID: 919132149155446097, guid: 495287a5fa612b246a501ec11b5d108e, type: 3}
+  - Id: village_Roof_Wooden_2x1_Corner
+    Prefab: {fileID: 919132149155446097, guid: 7609bc10465e9ec4b8720683f30e6a48, type: 3}
+  - Id: village_Roof_Wooden_2x1_L
+    Prefab: {fileID: 919132149155446097, guid: 7785ca905e7b34949a768141a608a545, type: 3}
+  - Id: village_Roof_Wooden_2x1_Middle
+    Prefab: {fileID: 919132149155446097, guid: 1c6a835538d1c26409bce0407e387731, type: 3}
+  - Id: village_Roof_Wooden_2x1_R
+    Prefab: {fileID: 919132149155446097, guid: 694a15fe6204e284dba1b54eded8ce52, type: 3}
+  - Id: village_Stair_Interior_Rails
+    Prefab: {fileID: 919132149155446097, guid: ae6b32d011444204d97afdcbe27d5551, type: 3}
+  - Id: village_Stair_Interior_Rails_Corner
+    Prefab: {fileID: 919132149155446097, guid: 1e5e4375c39083f4cb62cbcf6ff90b73, type: 3}
+  - Id: village_Stair_Interior_Simple
+    Prefab: {fileID: 919132149155446097, guid: f2ae97fd996aef1428545469075f1ddc, type: 3}
+  - Id: village_Stair_Interior_Solid
+    Prefab: {fileID: 919132149155446097, guid: 45de9bbeffd3fbb41a0e7529b4c5f4ae, type: 3}
+  - Id: village_Stair_Interior_SolidCorner
+    Prefab: {fileID: 919132149155446097, guid: caa91285a2735b842ac1791f00820961, type: 3}
+  - Id: village_Stair_Interior_SolidExtended
+    Prefab: {fileID: 919132149155446097, guid: bd3d0b55109038242bd2b09bad61920b, type: 3}
+  - Id: village_Stairs_Exterior_NoFirstStep
+    Prefab: {fileID: 919132149155446097, guid: ad4418fe6b595934d95ea66ecf1102f4, type: 3}
+  - Id: village_Stairs_Exterior_Platform
+    Prefab: {fileID: 919132149155446097, guid: c9bb73a193ee52049ae11ed107538a30, type: 3}
+  - Id: village_Stairs_Exterior_Platform45
+    Prefab: {fileID: 919132149155446097, guid: 07ceeac9ee0dc8147b5583babd3c3805, type: 3}
+  - Id: village_Stairs_Exterior_Platform45Clean
+    Prefab: {fileID: 919132149155446097, guid: d07d4062a18be6141aaa5bfb9e8b937e, type: 3}
+  - Id: village_Stairs_Exterior_PlatformU
+    Prefab: {fileID: 919132149155446097, guid: 0c367ef615d1b8e42a0ea2328ef62879, type: 3}
+  - Id: village_Stairs_Exterior_SidePlatform
+    Prefab: {fileID: 919132149155446097, guid: 01a20b197ebec9c4a9e7b54143f951b7, type: 3}
+  - Id: village_Stairs_Exterior_Sides
+    Prefab: {fileID: 919132149155446097, guid: fedc01611bb8e754e8450b14a10783fb, type: 3}
+  - Id: village_Stairs_Exterior_Sides45
+    Prefab: {fileID: 919132149155446097, guid: 8175d95a48301ef448d2cb4e20000f72, type: 3}
+  - Id: village_Stairs_Exterior_SidesU
+    Prefab: {fileID: 919132149155446097, guid: ac8eef4e22f112240b25c6d1366b2470, type: 3}
+  - Id: village_Stairs_Exterior_SingleSide
+    Prefab: {fileID: 919132149155446097, guid: aed1a568b1186484683acf95c580ead7, type: 3}
+  - Id: village_Stairs_Exterior_SingleSideThick
+    Prefab: {fileID: 919132149155446097, guid: 60cbb636f820a1044835b7d96db02079, type: 3}
+  - Id: village_Stairs_Exterior_Straight
+    Prefab: {fileID: 919132149155446097, guid: 7f6da361a0db62940b599a958da910a3, type: 3}
+  - Id: village_Stairs_Exterior_Straight_Center
+    Prefab: {fileID: 919132149155446097, guid: 0af05f7987aeaa44688765c9d032d3ae, type: 3}
+  - Id: village_Stairs_Exterior_Straight_L
+    Prefab: {fileID: 919132149155446097, guid: 46fb96352e55535449e37ab2d220f28f, type: 3}
+  - Id: village_Stairs_Exterior_Straight_R
+    Prefab: {fileID: 919132149155446097, guid: 542e97cda35576346ae62a64969c346a, type: 3}
+  - Id: village_Wall_Arch
+    Prefab: {fileID: 919132149155446097, guid: 339443099e574eb45928b33727fafdec, type: 3}
+  - Id: village_Wall_BottomCover
+    Prefab: {fileID: 919132149155446097, guid: 2283d2965e35ad647abe27bdfb3195b2, type: 3}
+  - Id: village_Wall_Plaster_Door_Flat
+    Prefab: {fileID: 919132149155446097, guid: 002dd59413c5e724aa57a9e74976f94e, type: 3}
+  - Id: village_Wall_Plaster_Door_Round
+    Prefab: {fileID: 919132149155446097, guid: 5bd3a1b3e91d80a4faf39df420033ced, type: 3}
+  - Id: village_Wall_Plaster_Door_RoundInset
+    Prefab: {fileID: 919132149155446097, guid: f9660eb965be8d64ab48c388771da43a, type: 3}
+  - Id: village_Wall_Plaster_Straight
+    Prefab: {fileID: 919132149155446097, guid: 43a07f23a69c27641a1edc9af08ecde7, type: 3}
+  - Id: village_Wall_Plaster_Straight_Base
+    Prefab: {fileID: 919132149155446097, guid: 7195ee2c7673ac9459e79a8ad8d892b9, type: 3}
+  - Id: village_Wall_Plaster_Straight_L
+    Prefab: {fileID: 919132149155446097, guid: dd4dac1aa764bb34ca11e213da8cc907, type: 3}
+  - Id: village_Wall_Plaster_Straight_R
+    Prefab: {fileID: 919132149155446097, guid: 8c609cadec4e14841ac1c70be3882721, type: 3}
+  - Id: village_Wall_Plaster_Window_Thin_Round
+    Prefab: {fileID: 919132149155446097, guid: 6b827088c5a2c3146893199f19a13497, type: 3}
+  - Id: village_Wall_Plaster_Window_Wide_Flat
+    Prefab: {fileID: 919132149155446097, guid: 491fc279cb1061d48bbbfdf4b2308a9d, type: 3}
+  - Id: village_Wall_Plaster_Window_Wide_Flat2
+    Prefab: {fileID: 919132149155446097, guid: e18da1f46bf6c304c91e4aaf720ca52b, type: 3}
+  - Id: village_Wall_Plaster_Window_Wide_Round
+    Prefab: {fileID: 919132149155446097, guid: 84e4a51d65ede5c4eaa5f7d214b966bc, type: 3}
+  - Id: village_Wall_Plaster_WoodGrid
+    Prefab: {fileID: 919132149155446097, guid: 28c50adf7c264a342a6a1e3ff76bd73a, type: 3}
+  - Id: village_Wall_UnevenBrick_Door_Flat
+    Prefab: {fileID: 919132149155446097, guid: a454fa641a0eb4f4c880aff4500e6f65, type: 3}
+  - Id: village_Wall_UnevenBrick_Door_Round
+    Prefab: {fileID: 919132149155446097, guid: 60feebc9ae25321479d3fadfda4c1fc2, type: 3}
+  - Id: village_Wall_UnevenBrick_Straight
+    Prefab: {fileID: 919132149155446097, guid: 35cdffc260d9037438f0ec97097c6555, type: 3}
+  - Id: village_Wall_UnevenBrick_Window_Thin_Round
+    Prefab: {fileID: 919132149155446097, guid: 7e75adffe6ab09e4f822d059464cb31f, type: 3}
+  - Id: village_Wall_UnevenBrick_Window_Wide_Flat
+    Prefab: {fileID: 919132149155446097, guid: 058f276ef2e2266488ef1e756f9ba003, type: 3}
+  - Id: village_Wall_UnevenBrick_Window_Wide_Round
+    Prefab: {fileID: 919132149155446097, guid: cbc005dec026d4541be09952830087fa, type: 3}
+  - Id: village_Wall_WoodBrick_Door_Flat
+    Prefab: {fileID: 919132149155446097, guid: 71813691d2a16574da353403401d175d, type: 3}
+  - Id: village_Wall_WoodBrick_Door_Round
+    Prefab: {fileID: 919132149155446097, guid: c63134a15b685814abd4d5eccaf943f4, type: 3}
+  - Id: village_Wall_WoodBrick_Straight
+    Prefab: {fileID: 919132149155446097, guid: d24eb7dbab3639b4bb01399e150c6bcd, type: 3}
+  - Id: village_Wall_WoodBrick_Window_Thin_Round
+    Prefab: {fileID: 919132149155446097, guid: bc79b0ccb424cec4e82d605ed8170115, type: 3}
+  - Id: village_Wall_WoodBrick_Window_Wide_Flat
+    Prefab: {fileID: 919132149155446097, guid: 991bab9838ed3d14482983b620507b5e, type: 3}
+  - Id: village_Wall_WoodBrick_Window_Wide_Round
+    Prefab: {fileID: 919132149155446097, guid: 04c14785e3d5c0b4ea1904b701c4377b, type: 3}
+  - Id: village_Wall_WoodWear_Door_Flat
+    Prefab: {fileID: 919132149155446097, guid: fadec79edd10b384e82ff55c6e4ba7a0, type: 3}
+  - Id: village_Wall_WoodWear_Door_Round
+    Prefab: {fileID: 919132149155446097, guid: 0d631716dd73d924b82d7165b616c154, type: 3}
+  - Id: village_Wall_WoodWear_Straight
+    Prefab: {fileID: 919132149155446097, guid: cee0ee868b8611e41b0d7a07993e5f9a, type: 3}
+  - Id: village_Wall_WoodWear_Window_Thin_Round
+    Prefab: {fileID: 919132149155446097, guid: bc945062a57034a458e9aacc8fb4357d, type: 3}
+  - Id: village_Wall_WoodWear_Window_Wide_Flat
+    Prefab: {fileID: 919132149155446097, guid: dd7240c3fc7533543b3df4cdf1ed10be, type: 3}
+  - Id: village_Wall_WoodWear_Window_Wide_Round
+    Prefab: {fileID: 919132149155446097, guid: 786f4717c85fab6489a9ac4b1d575d75, type: 3}
+  - Id: village_WindowShutters_Thin_Flat_Closed
+    Prefab: {fileID: 919132149155446097, guid: ae09563a7bfdd5345ac677af912d901b, type: 3}
+  - Id: village_WindowShutters_Thin_Flat_Open
+    Prefab: {fileID: 919132149155446097, guid: a597eaa1b5195884f8d2b6e3ef9dfded, type: 3}
+  - Id: village_WindowShutters_Thin_Round_Closed
+    Prefab: {fileID: 919132149155446097, guid: 5eeab4b73d6734f47b8b5e5b689d2af2, type: 3}
+  - Id: village_WindowShutters_Thin_Round_Open
+    Prefab: {fileID: 919132149155446097, guid: 5f9ca2d72f239e04f98ccc7998831b91, type: 3}
+  - Id: village_WindowShutters_Wide_Flat_Closed
+    Prefab: {fileID: 919132149155446097, guid: a7f1b67dd02cfd945b206b7973b86e50, type: 3}
+  - Id: village_WindowShutters_Wide_Flat_Open
+    Prefab: {fileID: 919132149155446097, guid: b37dfe09ab0fbf645a32f88e8995f2fa, type: 3}
+  - Id: village_WindowShutters_Wide_Round_Closed
+    Prefab: {fileID: 919132149155446097, guid: 5f5e1e236aa40c044bb27b4a6b01e8db, type: 3}
+  - Id: village_WindowShutters_Wide_Round_Open
+    Prefab: {fileID: 919132149155446097, guid: 053cbc0916aa3cc4db61aaef5bb7d5e5, type: 3}
+  - Id: village_Window_Roof_Thin
+    Prefab: {fileID: 919132149155446097, guid: 6dd710c71fa186a489d1b9b7ac5d5310, type: 3}
+  - Id: village_Window_Roof_Wide
+    Prefab: {fileID: 919132149155446097, guid: 6c2b44c437e53f343b4ed57cd6b25eec, type: 3}
+  - Id: village_Window_Thin_Flat1
+    Prefab: {fileID: 919132149155446097, guid: 7fdc102fd20c7b846b0731542e2717cb, type: 3}
+  - Id: village_Window_Thin_Flat2
+    Prefab: {fileID: 919132149155446097, guid: 4cb9516747d3c88428f6507f14ab24d0, type: 3}
+  - Id: village_Window_Thin_Flat3
+    Prefab: {fileID: 919132149155446097, guid: 77617aa95a11e4c4898b83ab3d5ae8b4, type: 3}
+  - Id: village_Window_Thin_Flat_Rocks
+    Prefab: {fileID: 919132149155446097, guid: 145e943463b41264d8f7b6a98584781e, type: 3}
+  - Id: village_Window_Thin_Round1
+    Prefab: {fileID: 919132149155446097, guid: b921e13c427a56b49a616d50f3f300ec, type: 3}
+  - Id: village_Window_Thin_Round2
+    Prefab: {fileID: 919132149155446097, guid: 5d360a9a214e9e84eb5eb3ab949546ec, type: 3}
+  - Id: village_Window_Thin_Round3
+    Prefab: {fileID: 919132149155446097, guid: de3f3fe1f39b2f74290a60e0e76dd401, type: 3}
+  - Id: village_Window_Thin_Round_Rocks
+    Prefab: {fileID: 919132149155446097, guid: df8749d8fbaf0c945a96a291b9af0310, type: 3}
+  - Id: village_Window_Wide_Flat1
+    Prefab: {fileID: 919132149155446097, guid: 54a056f8f3f6b944882a9680265eba8c, type: 3}
+  - Id: village_Window_Wide_Flat2
+    Prefab: {fileID: 919132149155446097, guid: 808847293ca43284da97a89aaa1c6a9f, type: 3}
+  - Id: village_Window_Wide_Flat3
+    Prefab: {fileID: 919132149155446097, guid: b203d961ad2932d46b3fa3b6b1d94925, type: 3}
+  - Id: village_Window_Wide_Flat_Rocks
+    Prefab: {fileID: 919132149155446097, guid: b7d5804e34b438d44bf0c6b9789423f4, type: 3}
+  - Id: village_Window_Wide_Round1
+    Prefab: {fileID: 919132149155446097, guid: d547e3a2a85ca4c4f8718d687c5de060, type: 3}
+  - Id: village_Window_Wide_Round2
+    Prefab: {fileID: 919132149155446097, guid: 51ef5aa9f1f7ab24482749f0c495343a, type: 3}
+  - Id: village_Window_Wide_Round3
+    Prefab: {fileID: 919132149155446097, guid: 03d2e50cfc67c5a4f8cca464f30a400b, type: 3}
+  - Id: village_Window_Wide_Round_Rocks
+    Prefab: {fileID: 919132149155446097, guid: 54c6ce58a5fd1f242988e821db5cabb2, type: 3}
+  LeafMasks:
+  - Id: Leaf_Pine
+    Texture: {fileID: 2800000, guid: acf3ad5ea3a5e304e94b651a8509e0ea, type: 3}
+  - Id: Leaves
+    Texture: {fileID: 2800000, guid: 9e5a1b6d626cb4c47a034bf1f917e8bb, type: 3}
+  - Id: Leaves_Birch
+    Texture: {fileID: 2800000, guid: 7c752ebcc53047342844ce2e02b39a07, type: 3}
+  - Id: Leaves_CherryBlossom
+    Texture: {fileID: 2800000, guid: e6e9f7b89e86f41478f5e27dee0c5b69, type: 3}
+  - Id: Leaves_GiantPine
+    Texture: {fileID: 2800000, guid: c5cc08012be672d448404c435e282b17, type: 3}
+  - Id: Leaves_NormalTree
+    Texture: {fileID: 2800000, guid: 3856f11ab11842d449ea496e480cfeef, type: 3}
+  - Id: Leaves_Square
+    Texture: {fileID: 2800000, guid: 7fb0ff9c8b13af44f95b167ceb2dd352, type: 3}
+  - Id: Leaves_TallThick
+    Texture: {fileID: 2800000, guid: 9eb8b9e8bbeea2942924039bb637c9b3, type: 3}
+  - Id: Leaves_TwistedTree
+    Texture: {fileID: 2800000, guid: 0cbe1cbc6c37dc94ca091b4e155f0bee, type: 3}

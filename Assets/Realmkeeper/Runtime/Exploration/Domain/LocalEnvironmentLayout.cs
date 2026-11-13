@@ -158,6 +158,9 @@ namespace Realmkeeper.Exploration.Domain
         public SettlementId SettlementId { get; set; }
         public RegionId RegionId { get; set; }
 
+        /// <summary>The kind of country the settlement stands in (it chooses the trees around it).</summary>
+        public Realmkeeper.Domain.World.RegionKind RegionKind { get; set; }
+
         /// <summary>Half the side length of the walkable square, in metres.</summary>
         /// <summary>The settlement's type, which selects its visual profile (building styles and sizes).</summary>
         public SettlementType Type { get; set; }

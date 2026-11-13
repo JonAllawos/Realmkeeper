@@ -64,7 +64,7 @@ namespace Realmkeeper.Tests.PlayMode
             {
                 Kind = kind, Name = WeatherWords.Name(kind), Intensity = intensity, Cloud = cloud, TemperatureC = temp, WindKph = wind, GroundWetness = wet, SnowCover = snow,
                 Sunrise = SeasonRules.Sunrise(new WorldDate(412, month, 15)), Sunset = SeasonRules.Sunset(new WorldDate(412, month, 15)),
-                NoonElevation = SeasonRules.NoonElevation(new WorldDate(412, month, 15)), SeasonName = SeasonRules.Of(new WorldDate(412, month, 15)).ToString(),
+                NoonElevation = SeasonRules.NoonElevation(new WorldDate(412, month, 15)), Season = SeasonRules.Of(new WorldDate(412, month, 15)), SeasonName = SeasonRules.Of(new WorldDate(412, month, 15)).ToString(),
             };
 
         [UnityTest]
@@ -78,7 +78,6 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(a.Weather, Is.Not.Null, "the street has a weather view");
             Assert.That(c.Weather, Is.Not.Null, "the controller reads the simulated weather");
             _log.Add($"Simulated weather here now: {c.Weather.Line}; {string.Join(" ", c.Weather.Effects)}");
-
             // Seasons move the sun: a midsummer day is longer than a midwinter one.
             a.SetWeather(Make(WeatherKind.Clear, 0, 5, 20, month: 6));
             var summer = a.SunsetMinute - a.SunriseMinute;
@@ -95,11 +94,12 @@ namespace Realmkeeper.Tests.PlayMode
                 ("05_light_rain", Make(WeatherKind.LightRain, 35, 85, 11, 15, wet: 40), 11 * 60, "Light rain, wet ground."),
                 ("06_heavy_rain", Make(WeatherKind.HeavyRain, 80, 95, 10, 30, wet: 80), 15 * 60, "Heavy rain, haze, darker wet ground."),
                 ("07_thunderstorm", Make(WeatherKind.Thunderstorm, 90, 100, 18, 45, wet: 90, month: 7), 16 * 60, "Thunderstorm: dark, lamps on early."),
-                ("08_fog_morning", Make(WeatherKind.Fog, 75, 60, 6, 3, wet: 30, month: 10), 7 * 60 + 30, "Autumn morning fog."),
+                ("08_fog_morning", Make(WeatherKind.Fog, 75, 60, 6, 3, wet: 30, month: 10), 9 * 60 + 30, "Autumn morning fog (after an October sunrise of about 07:40)."),
                 ("09_light_snow", Make(WeatherKind.LightSnow, 35, 85, -2, 8, snow: 30, month: 1), 11 * 60, "Light snow, a thin cover."),
                 ("10_heavy_snow", Make(WeatherKind.HeavySnow, 80, 95, -5, 25, snow: 70, month: 1), 13 * 60, "Heavy snow lying on ground and roofs."),
                 ("11_winter_dusk", Make(WeatherKind.Clear, 0, 10, -1, 5, snow: 50, month: 12), 16 * 60 + 30, "Midwinter: the sun is down by half past four."),
                 ("12_summer_evening", Make(WeatherKind.Clear, 0, 10, 24, 5, month: 6), 19 * 60 + 30, "Midsummer: still light at half past seven."),
+                ("12b_autumn_afternoon", Make(WeatherKind.PartlyCloudy, 0, 30, 13, 8, month: 10), 14 * 60, "Autumn: the broadleaf trees turned (pines keep their green)."),
                 ("13_clear_night", Make(WeatherKind.Clear, 0, 5, 8, 4), 23 * 60, "A clear night: stars and the moon."),
                 ("14_rainy_night", Make(WeatherKind.HeavyRain, 75, 95, 9, 25, wet: 80), 23 * 60, "A rainy night: no stars, lamps in the wet."),
             };
@@ -112,8 +112,7 @@ namespace Realmkeeper.Tests.PlayMode
                 a.SetTime(minute);
                 yield return new WaitForSeconds(w.Kind == WeatherKind.HeavySnow || w.Kind == WeatherKind.LightSnow ? 4f : 1.5f);
                 a.SetTime(minute);
-                var look = a.CurrentLook;
-                _log.Add($"{name}: {note} {a.Weather.Describe()}; sun {a.Sun.intensity:0.00}, fog {RenderSettings.fogDensity:0.0000}.");
+                var look = a.CurrentLook;                _log.Add($"{name}: {note} {a.Weather.Describe()}; sun {a.Sun.intensity:0.00}, fog {RenderSettings.fogDensity:0.0000}.");
                 if (WeatherWords.IsRain(w.Kind) && a.Weather.RainParticles <= 100) problems.Add(name + ": no rain falls");
                 if (WeatherWords.IsSnow(w.Kind) && a.Weather.SnowParticles <= 100) problems.Add(name + ": no snow falls");
                 if (!string.IsNullOrEmpty(_dir)) yield return Shot(name);

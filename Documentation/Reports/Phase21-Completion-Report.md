@@ -244,3 +244,31 @@ These are covered by tests where they are rules. The owner checklist asks for th
 ## 22. Push
 
 No push was made. Phase 21 is committed locally only, as the brief requires. Phase 22 has not been started.
+
+## 23. Closeout: the purchased kits (2026-11-13, after this report)
+
+The owner bought the full versions of three Quaternius kits, and they were integrated as Phase 21's closeout, in their own local commit.
+- **Medieval Village MegaKit Pro.**
+  - **Doors:** every working door now has the kit's door model, scaled to the doorway, so there is no gap.
+  - **Signs:** shop signs hang outside the smithy, provisions, apothecary and bowyer.
+- **Fantasy Props MegaKit Pro.** Homes get real beds (double, twin and bunk), nightstands, dressers, desks and rugs; the planner's validation is unchanged. Shops get bellows and a hammer rack in the smithy, farm crates in provisions, and a vice bench in carpentry.
+- **Stylized Nature MegaKit Source.**
+  - **Trees by region:** pines in the highlands, birches by the lakes, tall broadleaves in woodland, cherry trees in the vales and lowlands.
+  - **Seasonal leaves:** summer as made, spring fresher, autumn orange and gold, winter dull and dusted with snow. Pines and cherry trees keep their colour.
+  - **How the leaves are coloured:** the kit paints its leaves green into the texture, so a tint alone could not turn them. Outside summer, the kit's white leaf textures are used and coloured outright.
+- **The weather capture test** now sets the season on its made-up weather. Before, every shot was drawn as spring. The game's own weather always set it.
+- **§5 and §20 are partly superseded:** seasonal foliage is now done.
+- **Checks made:**
+  - every one of the art catalog's 1,158 references resolves;
+  - the git-ignored local packs (Bestiary, Fantasy Races) are not in the tree;
+  - the licences were read: all three kits are CC0 1.0 (`CREDITS.md`, `Art/AssetInventory.md`).
+- **Tests:**
+
+  | Suite | Result |
+  |---|---|
+  | .NET | 898 of 898 passed |
+  | The weather capture test, in Unity PlayMode | passed, with its captures inspected |
+  | Full Unity EditMode | stopped part-way at the owner's instruction (2026-11-13); not run to completion |
+  | Full Unity PlayMode | not run, at the owner's instruction (2026-11-13) |
+
+- **Screenshots:** `../Screenshots/Phase21/kits/` (11).

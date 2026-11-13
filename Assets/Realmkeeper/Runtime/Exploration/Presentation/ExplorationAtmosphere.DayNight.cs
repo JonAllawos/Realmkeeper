@@ -91,7 +91,7 @@ namespace Realmkeeper.Exploration.Presentation
                 RenderSettings.skybox = _sky;
             }
 
-            PrepareWeather(environmentRoot); // Phase 21: before the lamps, so lamp glass is never mistaken for a surface
+            PrepareWeather(environmentRoot, catalog); // Phase 21: before the lamps, so lamp glass is never mistaken for a surface
 
             var lamps = new GameObject("Night lamps").transform;
             lamps.SetParent(environmentRoot, false);

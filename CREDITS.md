@@ -141,3 +141,14 @@ CC0 text: https://creativecommons.org/publicdomain/zero/1.0/
 | Fantasy Town Kit 2.0: 167 town pieces | Kenney (www.kenney.nl) | CC0 1.0 | `…/Kenney/FantasyTownKit/License.txt` |
 | RPG Audio: 50 sounds (footsteps, doors, coins, pages, cloth, metal) | Kenney (www.kenney.nl) | CC0 1.0 | `…/Kenney/RpgAudio/License.txt` |
 | Characters – Fantasy Races (free Standard version): Elf and Orc bodies, male and female. **Local only: not in the repository** (git-ignored, because the licence forbids redistributing the asset files); each machine downloads it from quaternius.itch.io/characters-fantasy-races | Quaternius | Quaternius Asset License (QAL) 1.0: use in products allowed, no credit required, no redistribution of the assets themselves | `Assets/Realmkeeper/Art/ThirdParty/QuaterniusFantasyRaces/License.txt` (local) |
+
+## Purchased by the owner (2026-11-13)
+
+The full versions of three Quaternius kits, bought by the project owner. Like the free versions they replace, they are
+CC0 1.0: the purchase gives the files; the licence asks nothing of the game.
+
+| Work | Author | Licence | Licence file |
+|---|---|---|---|
+| Medieval Village MegaKit (Pro version): all 304 models and 20 textures (doors, windows, signs, furniture, the building modules) | Quaternius (quaternius.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Quaternius/MedievalVillageMegaKit/License.txt` |
+| Fantasy Props MegaKit (Pro version): all 211 models and 23 textures (beds, desks, bellows, racks, farm crates, rugs, shop signs) | Quaternius | CC0 1.0 | `…/Quaternius/FantasyPropsMegaKit/License.txt` |
+| Stylized Nature MegaKit (Source version): all 116 models and 33 textures (pines, birches, tall broadleaves, cherry trees, the white leaf textures used for the seasons). The Source version's engine projects and shaders were not imported | Quaternius | CC0 1.0 | `…/Quaternius/StylizedNatureMegaKit/License.txt` |

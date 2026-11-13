@@ -1,7 +1,9 @@
-This is the standard FREE version of the Medieval Village MegaKit, which only contains 
-a portion of the models . You can buy the PRO version which has all the models,
-or the SOURCE version which has all the models and also includes Unity(URP), Unreal Engine and Godot projects
-with custom shaders already set up.
+Thanks for buying the PRO version of the Medieval Village MegaKit!
+All textures can be found inside the Textures folder.
+
+This version contains all of the models from the pack. You can buy the SOURCE version 
+which has all the models and also includes Unity(URP), Unreal Engine and Godot projects
+with the custom shaders already setup.
 
 You can get the other versions from the website https://quaternius.com
 

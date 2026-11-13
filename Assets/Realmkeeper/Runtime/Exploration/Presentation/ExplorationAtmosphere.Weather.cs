@@ -25,6 +25,9 @@ namespace Realmkeeper.Exploration.Presentation
         private WeatherLook _look = WeatherLook.Fair;
         private float _groundWet;
         private float _snowCover;
+        private Season _season = Season.Summer; // Phase 21 assets: the season the leaves show
+        private static readonly string[] LeafWords = { "leaves", "leaf" };
+        private static readonly string[] EvergreenWords = { "pine", "cherry" };
         private readonly List<Surface> _surfaces = new List<Surface>();
 
         private Texture2D _snowTexture;
@@ -35,7 +38,45 @@ namespace Realmkeeper.Exploration.Presentation
             public Color Base;
             public float Smoothness;
             public bool Roof;
+            public bool Foliage;
             public Texture Texture;
+            public Color LeafColour; // foliage: the colour the leaves show in summer (texture × tint), measured once
+            public Texture LeafMask; // foliage: the kit's white texture of the same leaves, coloured outright by season
+        }
+
+        /// <summary>The kit's white texture for green-painted leaves ("Leaves_Birch_C" → "Leaves_Birch"), or null.</summary>
+        private Texture LeafMaskFor(Texture painted)
+        {
+            if (painted == null || _catalog == null || !painted.name.EndsWith("_C", System.StringComparison.Ordinal)) return null;
+            return _catalog.LeafMask(painted.name.Substring(0, painted.name.Length - 2));
+        }
+
+        /// <summary>
+        /// The mean colour of a texture where it is opaque (gamma space), read back from the GPU so the texture need not be
+        /// readable. The kits paint their leaves green into the texture, so a season's colour is reached by dividing by this.
+        /// </summary>
+        private static Color MeanColour(Texture t)
+        {
+            if (t == null) return Color.white;
+            const int n = 32;
+            var rt = RenderTexture.GetTemporary(n, n, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            var active = RenderTexture.active;
+            Graphics.Blit(t, rt);
+            RenderTexture.active = rt;
+            var read = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            read.ReadPixels(new Rect(0, 0, n, n), 0, 0);
+            read.Apply();
+            RenderTexture.active = active;
+            RenderTexture.ReleaseTemporary(rt);
+            float r = 0f, g = 0f, b = 0f, w = 0f;
+            foreach (var p in read.GetPixels())
+            {
+                if (p.a < 0.5f) continue;
+                r += p.r; g += p.g; b += p.b; w += 1f;
+            }
+
+            Object.Destroy(read);
+            return w < 1f ? Color.white : new Color(r / w, g / w, b / w, 1f);
         }
 
         /// <summary>A soft white with faint blue-grey drifts, tiling (snow lying on a textured surface replaces its texture).</summary>
@@ -106,18 +147,40 @@ namespace Realmkeeper.Exploration.Presentation
             _look = LookFor(s);
             _groundWet = s == null ? 0f : Mathf.Clamp01(s.GroundWetness / 70f);
             _snowCover = s == null ? 0f : Mathf.Clamp01(s.SnowCover / 60f);
+            _season = s == null ? Season.Summer : s.Season;
             if (s != null) SetSeason(s.Sunrise, s.Sunset, s.NoonElevation);
+            AdoptScene(); // what was streamed in since (the countryside's trees) takes the weather and the season too
             ApplySurfaces();
             if (AppliedMinute >= 0) SetTime(AppliedMinute);
         }
 
+        private Transform _weatherRoot;
+        private ArtCatalog _catalog;
+        private readonly Dictionary<Material, Material> _copies = new Dictionary<Material, Material>();
+        private readonly HashSet<Material> _copySet = new HashSet<Material>();
+
         /// <summary>After the environment is built: the weather view and per-visit copies of the ground and roof materials.</summary>
-        private void PrepareWeather(Transform environmentRoot)
+        private void PrepareWeather(Transform environmentRoot, ArtCatalog catalog)
         {
+            _catalog = catalog;
             _weather = WeatherView.Create(environmentRoot);
             _weather.MoonLight = Moon;
-            var copies = new Dictionary<Material, Material>();
-            foreach (var r in environmentRoot.GetComponentsInChildren<Renderer>(true))
+            _weatherRoot = environmentRoot;
+            Adopt(environmentRoot);
+        }
+
+        /// <summary>Every renderer in the exploration scene (the town and what was streamed in around it).</summary>
+        private void AdoptScene()
+        {
+            if (_weatherRoot == null) return;
+            foreach (var go in _weatherRoot.gameObject.scene.GetRootGameObjects()) Adopt(go.transform);
+        }
+
+        /// <summary>Gives the renderers under <paramref name="root"/> the per-visit copies of their ground, roof and leaf materials.</summary>
+        private void Adopt(Transform root)
+        {
+            var copies = _copies;
+            foreach (var r in root.GetComponentsInChildren<Renderer>(true))
             {
                 if (r is ParticleSystemRenderer) continue;
                 var roof = Matches(r.gameObject.name, RoofWords);
@@ -127,18 +190,23 @@ namespace Realmkeeper.Exploration.Presentation
                 for (var i = 0; i < mats.Length; i++)
                 {
                     var m = mats[i];
-                    if (m == null || !m.HasProperty("_BaseColor")) continue;
+                    if (m == null || _copySet.Contains(m) || !m.HasProperty("_BaseColor")) continue;
                     var isRoof = roof || Matches(m.name, RoofWords);
                     var isGround = ground || (!isRoof && Matches(m.name, GroundWords));
-                    if (!isRoof && !isGround) continue;
+                    var isFoliage = !isRoof && Matches(m.name, LeafWords) && !Matches(m.name, EvergreenWords);
+                    if (isFoliage) isGround = false;
+                    if (!isRoof && !isGround && !isFoliage) continue;
                     if (!copies.TryGetValue(m, out var copy))
                     {
                         copy = Clone(m);
                         copies[m] = copy;
+                        _copySet.Add(copy);
                         _surfaces.Add(new Surface
                         {
                             Material = copy, Base = m.GetColor("_BaseColor"), Smoothness = m.HasProperty("_Smoothness") ? m.GetFloat("_Smoothness") : 0.15f, Roof = isRoof,
-                            Texture = m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null,
+                            Texture = m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null, Foliage = isFoliage,
+                            LeafColour = isFoliage ? Mul(m.GetColor("_BaseColor"), MeanColour(m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null)) : Color.white,
+                            LeafMask = isFoliage ? LeafMaskFor(m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null) : null,
                         });
                     }
 
@@ -158,12 +226,53 @@ namespace Realmkeeper.Exploration.Presentation
             return false;
         }
 
+        /// <summary>
+        /// The season in the broadleaf trees' leaves (the leaves' texture is kept; its tint moves): fresh in spring, as made in
+        /// summer, gold and russet in autumn, dull and dusted with snow in winter. Pines and cherry blossom keep their colour.
+        /// </summary>
+        private void Leaves(Surface s)
+        {
+            // The colour the leaves should show, then the tint that makes the (green-painted) texture show it.
+            var leaf = s.LeafColour;
+            var want = leaf;
+            switch (_season)
+            {
+                case Season.Spring: want = new Color(leaf.r * 0.92f, leaf.g * 1.08f, leaf.b * 0.9f); break;
+                case Season.Autumn: want = Color.Lerp(leaf, new Color(0.86f, 0.42f, 0.1f), 0.8f); break;
+                case Season.Winter: want = Color.Lerp(Color.Lerp(leaf, new Color(0.45f, 0.4f, 0.3f), 0.65f), SnowWhite, _snowCover * 0.5f); break;
+            }
+
+            if (_season == Season.Summer)
+            {
+                // As made.
+                if (s.LeafMask != null) s.Material.SetTexture("_BaseMap", s.Texture);
+                s.Material.SetColor("_BaseColor", s.Base);
+                return;
+            }
+
+            if (s.LeafMask != null)
+            {
+                // The kit's white leaves, coloured outright (a green-painted texture cannot be tinted grey or white).
+                s.Material.SetTexture("_BaseMap", s.LeafMask);
+                s.Material.SetColor("_BaseColor", new Color(want.r, want.g, want.b, s.Base.a));
+                return;
+            }
+
+            var c = new Color(s.Base.r * Ratio(want.r, leaf.r), s.Base.g * Ratio(want.g, leaf.g), s.Base.b * Ratio(want.b, leaf.b), s.Base.a);
+            s.Material.SetColor("_BaseColor", c);
+        }
+
+        private static float Ratio(float want, float have) => Mathf.Clamp(want / Mathf.Max(have, 0.04f), 0f, 12f);
+
+        private static Color Mul(Color a, Color b) => new Color(a.r * b.r, a.g * b.g, a.b * b.b, 1f);
+
         /// <summary>Wet ground is darker and glossier; lying snow whitens the ground and, more, the roofs.</summary>
         private void ApplySurfaces()
         {
             foreach (var s in _surfaces)
             {
                 if (s.Material == null) continue;
+                if (s.Foliage) { Leaves(s); continue; }
                 var wet = s.Roof ? _groundWet * 0.6f : _groundWet;
                 var snow = _snowCover * (s.Roof ? 1f : 0.85f);
                 Color c;
@@ -261,6 +370,9 @@ namespace Realmkeeper.Exploration.Presentation
 
             _weather = null;
             _surfaces.Clear(); // the copies are in _clones and destroyed with them
+            _copies.Clear();
+            _copySet.Clear();
+            _weatherRoot = null;
             if (_snowTexture != null)
             {
                 if (UnityEngine.Application.isPlaying) Object.Destroy(_snowTexture);

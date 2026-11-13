@@ -414,10 +414,14 @@ namespace Realmkeeper.Application
             Width = r.Width;
             Depth = r.Depth;
             SettlementCount = settlementCount;
+            Kind = r.Kind; // Phase 21 assets: trees by region
         }
 
         public RegionId RegionId { get; }
         public string Name { get; }
+
+        /// <summary>The kind of country (vale, highlands, woodland …).</summary>
+        public RegionKind Kind { get; }
         public MapCoord Origin { get; }
         public int Width { get; }
         public int Depth { get; }

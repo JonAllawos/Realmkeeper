@@ -3,7 +3,7 @@
 Every external asset in the repository, with its licence and what was done to it (ADR-0010).
 All of them are **CC0 1.0 Universal** (public domain dedication): free to use, modify and ship,
 commercially or not, and no attribution is required. Credit is given here anyway.
-Downloaded 2026-11-10. Nothing was purchased.
+Downloaded 2026-11-10. Three kits were later replaced by their purchased full versions (see the end of this page).
 
 | Pack | Author | Source | Licence (file in repo) | Used for |
 |---|---|---|---|---|
@@ -64,3 +64,19 @@ Import rules (`ArtImportPostprocessor`, version 8):
 - icons are capped at 256 px, frames and symbols at 128, and parchment at 1024.
 
 About 4 MB in all. The full research and the rejected candidates are in `Documentation/Research/Phase19-Asset-License-Register.md`.
+
+## Purchased full versions (2026-11-13)
+
+The owner bought the full versions of three of the Quaternius kits above; they replace the free versions in the same
+folders, keep their file names, and are still CC0 1.0 (licence files replaced with the paid versions' own).
+
+- **Medieval Village MegaKit Pro:** 304 FBX, 20 textures (colour and normal maps, VineLeaf, WindowGradient). The models also
+  join the scenery catalog under the prefix `village_` (for example `village_Door_3_Flat`, the model on every working door).
+- **Fantasy Props MegaKit Pro:** 211 FBX, 23 textures (the `Textures[Pro]` set without the Unreal-convention normal maps).
+  Used in shop and home interiors (beds, nightstands, dressers, desks, bellows, hammer rack, vice bench, farm crates, rugs)
+  and for the shop signs outside the smithy, provisions, apothecary and bowyer.
+- **Stylized Nature MegaKit Source:** 116 FBX, 33 textures (from `Blends/textures`, without the `Noise_*` and
+  `Normal_Default` maps). Only models and textures were imported; the Source version's Unity, Unreal and Godot projects and
+  its custom shaders were not (the trees use URP Lit). The trees follow the region (pines in the highlands, birches by the
+  lakes, tall broadleaves in woodland, cherry trees in the vales and lowlands). The kit's white leaf textures
+  (`Leaves_*.png`, beside the green-painted `Leaves_*_C.png`) are in the art catalog so the season can colour the leaves.

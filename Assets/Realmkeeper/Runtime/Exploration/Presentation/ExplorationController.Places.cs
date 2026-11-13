@@ -177,7 +177,7 @@ namespace Realmkeeper.Exploration.Presentation
                 {
                     case ConnectionKind.Door:
                     case ConnectionKind.Secret:
-                        PlaceEnvironmentBuilder.Door(root, scene, p, _materials);
+                        PlaceEnvironmentBuilder.Door(root, scene, p, _materials, Catalog);
                         var (centre, _, _) = PlaceEnvironmentBuilder.DoorFrame(scene, p);
                         var verb = p.Door == DoorState.Open ? "Close" : p.Door == DoorState.Broken ? "Broken door" : p.Door == DoorState.Locked ? "Locked door" : p.Door == DoorState.Barred ? "Barred door" : "Open";
                         Target(PlaceInteractable.TargetKind.Passage, p.Id, (p.Kind == ConnectionKind.Secret ? "Hidden way: " : "Door: ") + verb + (p.Guarded ? " (guarded)" : string.Empty), centre + Vector3.up * 1.1f);

@@ -86,11 +86,11 @@ namespace Realmkeeper.Domain.Places
             switch (kind)
             {
                 case RoomKind.Bedroom:
-                    return new[] { new Item("Bed_Twin1", 2.0f, "bed", true), new Item("Nightstand_Shelf", 0.6f, "nightstand", true), new Item("Chest_Wood", 0.85f, "chest", true),
+                    return new[] { new Item(big ? "Bed_Double" : "Bed_Twin1", 2.1f, "bed", true), new Item("Nightstand_Drawer", 0.6f, "nightstand", true), new Item("Dresser_1", 1.2f, "dresser", true), new Item("Chest_Wood", 0.85f, "chest", true),
                                    new Item("Chair_1", 0.95f, "chair", true, false), new Item("Lantern_Wall", 0.4f, "lantern", true, false) };
                 case RoomKind.Quarters:
                 case RoomKind.Barracks:
-                    return new[] { new Item("Bed_Twin2", 2.0f, "bed", true, true, big ? 3 : 2), new Item("Chest_Wood", 0.85f, "chest", true), new Item("Stool", 0.5f, "stool", false, false),
+                    return new[] { new Item(kind == RoomKind.Barracks ? "Bed_Bunk" : "Bed_Twin2", 2.0f, "bed", true, true, big ? 3 : 2), new Item("Chest_Wood", 0.85f, "chest", true), new Item("Stool", 0.5f, "stool", false, false),
                                    new Item("Lantern_Wall", 0.4f, "lantern", true, false) };
                 case RoomKind.Hall:
                 case RoomKind.TapRoom:
@@ -110,7 +110,7 @@ namespace Realmkeeper.Domain.Places
                     return new[] { new Item("crates_stacked", 1.3f, "crates", true), new Item("Barrel", 0.9f, "barrel", true, true, 2), new Item("barrel_small_stack", 1.0f, "barrels", true),
                                    new Item("Crate_Wooden", 0.6f, "crate", true), new Item("Bag", 0.5f, "sack", true, false) };
                 case RoomKind.Office:
-                    return new[] { new Item("Table_Large", 1.6f, "desk", false), new Item("Chair_1", 0.95f, "chair", false, false), new Item("Bookcase_2", 1.9f, "bookcase", true),
+                    return new[] { new Item("Desk", 1.5f, "desk", false), new Item("Rug_1", 2.0f, "rug", false, false), new Item("Chair_1", 0.95f, "chair", false, false), new Item("Bookcase_2", 1.9f, "bookcase", true),
                                    new Item("BookStand", 1.1f, "lectern", true, false), new Item("CandleStick_Stand", 1.3f, "candles", true, false) };
                 case RoomKind.Shrine:
                     return new[] { new Item("Bench", 1.6f, "bench", false, true, big ? 3 : 2), new Item("CandleStick_Stand", 1.3f, "candles", true, false, 2) };

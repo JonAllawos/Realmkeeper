@@ -279,7 +279,9 @@ namespace Realmkeeper.Editor
 
             // Phase 20A assets: packs whose file names are generic (sword_A, wall, roof) join under a prefix, so no earlier
             // scenery ID changes its meaning: "weapon_sword_A" (KayKit Fantasy Weapons Bits), "town_wall" (Kenney Fantasy Town Kit).
-            foreach (var (folder, prefix) in new[] { ("KayKit/FantasyWeaponsBits/Models/", "weapon_"), ("Kenney/FantasyTownKit/Models/", "town_") })
+            // The Medieval Village MegaKit (Pro, purchased by the owner) also joins as scenery under "village_" (doors, windows,
+            // overhangs), beside its use as the building kit's modules.
+            foreach (var (folder, prefix) in new[] { ("KayKit/FantasyWeaponsBits/Models/", "weapon_"), ("Kenney/FantasyTownKit/Models/", "town_"), ("Quaternius/MedievalVillageMegaKit/Models/", "village_") })
             {
                 if (!Directory.Exists(ThirdParty + folder)) continue;
                 foreach (var p in Directory.GetFiles(ThirdParty + folder, "*.fbx").Select(f => f.Replace('\\', '/')).OrderBy(f => f, System.StringComparer.Ordinal))
@@ -288,6 +290,18 @@ namespace Realmkeeper.Editor
                     if (prefab != null) catalog.Scenery.Add(new ArtCatalog.PrefabEntry { Id = prefix + Path.GetFileNameWithoutExtension(p), Prefab = prefab });
                 }
             }
+
+            // The nature kit's white leaf textures, for the seasons (the green-painted ones end "_C").
+            catalog.LeafMasks = new List<ArtCatalog.TextureEntry>();
+            const string natureTextures = "Quaternius/StylizedNatureMegaKit/Textures/";
+            if (Directory.Exists(ThirdParty + natureTextures))
+                foreach (var p in Directory.GetFiles(ThirdParty + natureTextures, "*.png").Select(f => f.Replace('\\', '/')).OrderBy(f => f, System.StringComparer.Ordinal))
+                {
+                    var id = Path.GetFileNameWithoutExtension(p);
+                    if (!id.StartsWith("Lea", System.StringComparison.Ordinal) || id.EndsWith("_C", System.StringComparison.Ordinal)) continue;
+                    var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
+                    if (tex != null) catalog.LeafMasks.Add(new ArtCatalog.TextureEntry { Id = id, Texture = tex });
+                }
 
             EditorUtility.SetDirty(catalog);
         }
