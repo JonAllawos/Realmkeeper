@@ -41,7 +41,7 @@ present but visibly temporary; **Not started**.
 | 18 | World depth, exploration and living content | Implemented (`713b9a0`) |
 | 19 | UI/UX and visual design overhaul (first pass) | Implemented, partly (`6f225d8`; see its report) |
 | 20 | Advanced character creation, character systems and character UI | Implemented (`6dce1a2`, pushed) |
-| 20A | Character systems completion: lineage mechanics in play, eye colour, benefit status, familiarity and progression audits; free asset integration | **Implemented** (committed locally, not pushed). See the Phase 20A report. |
+| 20A | Character systems completion: lineage mechanics in play, eye colour, benefit status, familiarity and progression audits; free asset integration | **Implemented** (`77240e7`, pushed). See the Phase 20A report. |
 | 21 | Mature world content and immersion | Not started (needs the owner's authorisation) |
 
 ### §7 Character and RPG system

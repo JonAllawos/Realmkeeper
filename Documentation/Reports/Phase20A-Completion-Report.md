@@ -1,6 +1,6 @@
 # Phase 20A: Completion report (character systems completion, mechanical integration and regression closeout)
 
-**Date:** 2026-11-12. **Branch:** `feature/phase-0-1-foundation`, on top of `8531143` (Phase 20, pushed). **Committed locally only; nothing is pushed.**
+**Date:** 2026-11-12. **Branch:** `feature/phase-0-1-foundation`, on top of `8531143` (Phase 20, pushed). **Committed as `77240e7` and pushed to origin at the owner's instruction** (section 13).
 
 During the phase the owner also asked for a 3D asset research pass and then for the free assets to be downloaded and integrated. That work is recorded in section 12 and is in the same local commit (section 13).
 
@@ -154,8 +154,8 @@ v21 → v22 is structural: both new fields are optional, and absent means exactl
   - the animation library on the humanoid rig.
 
 ## 13. Git
-- **One local commit** on `feature/phase-0-1-foundation` holds Phase 20A and the asset integration together. The two share files (the body builder, the exploration controller, the credits), so splitting them would have left a commit that does not compile. Its hash is in the final message and `git log`.
-- **Not pushed.** No push is implied or authorised.
+- **One local commit** on `feature/phase-0-1-foundation` holds Phase 20A and the asset integration together. The two share files (the body builder, the exploration controller, the credits), so splitting them would have left a commit that does not compile. It is `77240e7`.
+- **Pushed to `origin`** at the owner's explicit instruction ("can you commit and push all the latest implementations before I purchase unity assets"), as `77240e7` plus the commit recording this. No later push is implied.
 - **Left untouched and uncommitted:**
   - `ProjectSettings/GraphicsSettings.asset`;
   - Unity's `InitTestScene*`;
