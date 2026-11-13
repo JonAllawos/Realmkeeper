@@ -157,6 +157,8 @@ namespace Realmkeeper.Domain.Combat
                 case ReactionKind.UncannyDodge:
                 case ReactionKind.DeflectAttacks:
                     return _aiExpectedDamage >= 4;
+                case ReactionKind.StonesEndurance: // Phase 20A: a use is worth a blow that a 1d12 roll meaningfully cuts
+                    return _aiExpectedDamage >= 6 || hp * 2 < MaxHp(reactor);
                 default:
                     return true;
             }
@@ -308,6 +310,29 @@ namespace Realmkeeper.Domain.Combat
                 }
             }
 
+            // Phase 20A: a stone-giant goliath's reaction and one ancestry use reduce the damage by 1d12 + Constitution.
+            if (amount > 0 && TargetFeature(target, "species:giant_ancestry:stone") && CanReact(target) && ResourceLeft(target, "stones_endurance") > 0)
+            {
+                var con = Stats(target).Modifier(Ability.Constitution);
+                _aiExpectedDamage = amount;
+                if (Ask(new ReactionOpportunity
+                {
+                    Kind = ReactionKind.StonesEndurance, Name = "Stone's Endurance", ReactorId = target.CombatantId, TriggerId = attacker.CombatantId, TargetId = target.CombatantId,
+                    Trigger = $"{attacker.Name}'s {o.Name} hits {target.Name} for {amount} damage.",
+                    Cost = $"{target.Name}'s reaction and one use of Giant Ancestry ({ResourceLeft(target, "stones_endurance")} left)",
+                    Consequence = $"Reduce it by 1d12 {Breakdown.Signed(con)}.",
+                }))
+                {
+                    target.Turn.ReactionUsed = true;
+                    SpendResource(target, "stones_endurance", 1);
+                    var d = Die(12);
+                    var after = Math.Max(0, amount - Math.Max(0, d + con));
+                    r.DamageBreakdown.Note($"Stone's Endurance −{amount - after}");
+                    Log(CombatLogKind.Action, target.CombatantId, attacker.CombatantId, $"{target.Name} braces with Stone's Endurance: 1d12 [{d}] {Breakdown.Signed(con)} — {amount} damage becomes {after}.", d);
+                    amount = after;
+                }
+            }
+
             return amount;
         }
 
@@ -315,14 +340,14 @@ namespace Realmkeeper.Domain.Combat
         private void ReactToBeingHurt(CombatantData attacker, CombatantData target)
         {
             if (target.State != VitalState.Conscious || attacker.State != VitalState.Conscious || !Hostile(target, attacker) || target.Position.DistanceFeet(attacker.Position) > 60) return;
-            if (!HasReadySpell(target, "hellish_rebuke", out var slot)) return;
+            if (!HasReadySpell(target, "hellish_rebuke", out var slot)) { StormsThunder(attacker, target); return; } // Phase 20A
             var dice = 2 + (slot - 1);
             if (!Ask(new ReactionOpportunity
             {
                 Kind = ReactionKind.HellishRebuke, Name = "Hellish Rebuke", ReactorId = target.CombatantId, TriggerId = attacker.CombatantId, TargetId = attacker.CombatantId,
                 Trigger = $"{attacker.Name} hurt {target.Name}.", Cost = $"{target.Name}'s reaction and a level {slot} spell slot",
                 Consequence = $"{attacker.Name} makes a Dexterity save against DC {SpellSaveDc(target)}: {dice}d10 fire, half on a success.",
-            })) return;
+            })) { StormsThunder(attacker, target); return; }
             target.Turn.ReactionUsed = true;
             SpendSlot(target, slot);
             var s = SavingThrow(attacker, Ability.Dexterity, SpellSaveDc(target), target.Name + "'s Hellish Rebuke");
@@ -330,6 +355,23 @@ namespace Realmkeeper.Domain.Combat
             for (var i = 0; i < dice; i++) total += Die(10);
             Log(CombatLogKind.Spell, target.CombatantId, attacker.CombatantId, $"{target.Name} casts Hellish Rebuke (a level {slot} slot): {attacker.Name} {(s.Success ? "saves" : "fails")} — {(s.Success ? total / 2 : total)} fire.");
             ApplyDamage(attacker, s.Success ? total / 2 : total, DamageType.Fire, false, target.Name);
+        }
+
+        /// <summary>Phase 20A: a storm-giant goliath hurt by a creature within 60 ft can spend its reaction and an ancestry use: 1d8 thunder to it.</summary>
+        private void StormsThunder(CombatantData attacker, CombatantData target)
+        {
+            if (!TargetFeature(target, "species:giant_ancestry:storm") || !CanReact(target) || ResourceLeft(target, "stones_endurance") <= 0) return;
+            if (!Ask(new ReactionOpportunity
+            {
+                Kind = ReactionKind.StormsThunder, Name = "Storm's Thunder", ReactorId = target.CombatantId, TriggerId = attacker.CombatantId, TargetId = attacker.CombatantId,
+                Trigger = $"{attacker.Name} hurt {target.Name}.", Cost = $"{target.Name}'s reaction and one use of Giant Ancestry ({ResourceLeft(target, "stones_endurance")} left)",
+                Consequence = $"{attacker.Name} takes 1d8 thunder damage.",
+            })) return;
+            target.Turn.ReactionUsed = true;
+            SpendResource(target, "stones_endurance", 1);
+            var d = Die(8);
+            Log(CombatLogKind.Action, target.CombatantId, attacker.CombatantId, $"{target.Name} answers with Storm's Thunder: 1d8 [{d}] thunder to {attacker.Name}.", d);
+            ApplyDamage(attacker, d, DamageType.Thunder, false, target.Name);
         }
 
         /// <summary>A hostile caster within 60 ft starts a spell: a foe's Counterspell. True when the spell fails (the caster's slot is kept, its action wasted).</summary>

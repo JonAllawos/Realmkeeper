@@ -37,6 +37,9 @@ The SRD supplies the rules mechanics:
 ancestries (cloud, fire, frost, hill, stone, storm) and the gnome's lineages (forest, rock) follow SRD 5.2.1 as rules; their
 descriptions are Realmkeeper's own.
 
+**Lineage mechanics (Phase 20A).** The goliath's six giant-ancestry boons, the tiefling legacy cantrips and Chill Touch
+(SRD 5.2.1) are played as SRD 5.2.1 rules; their descriptions are Realmkeeper's own.
+
 **Realmkeeper originals (not SRD).** The rabbit, fox, cattle, sheep and chicken have no SRD statistics.
 Their statistics are Realmkeeper's own, written in the same format and labelled
 `ContentSource.RealmkeeperOriginal` in the catalog and in the game's combat inspector. Creature
@@ -65,6 +68,7 @@ content comes from which SRD is listed per definition (`ContentSource`) and in
 |---|---|---|---|
 | Medieval Village MegaKit (free version): buildings and props | Quaternius (quaternius.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Quaternius/MedievalVillageMegaKit/License.txt` |
 | Universal Base Characters (free version): bodies and heads | Quaternius | CC0 1.0 | `…/Quaternius/UniversalBaseCharacters/License.txt` |
+| Iris mask (`T_Eye_IrisMask.png`): derived by the project from the Universal Base Characters eye texture with `Tools/Art/make_iris_mask.py` (Phase 20A) | Realmkeeper, from Quaternius's CC0 texture | CC0 1.0 (source) | `…/Quaternius/UniversalBaseCharacters/License.txt` |
 | Modular Character Outfits – Fantasy (free version): clothing and armour | Quaternius | CC0 1.0 | `…/Quaternius/ModularCharacterOutfitsFantasy/License.txt` |
 | Universal Animation Library: character animation | Quaternius | CC0 1.0 | `…/Quaternius/UniversalAnimationLibrary/License.txt` |
 | Grass004, Ground037, Ground054, PavingStones070, Planks021, Wood049: ground and wood materials | ambientCG (ambientcg.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/AmbientCG/License.txt` |
@@ -126,3 +130,14 @@ Both are licensed under the SIL Open Font License, Version 1.1 (https://openfont
 the fonts in `Assets/Realmkeeper/Art/ThirdParty/Fonts/`. The fonts are used unmodified and are not sold on their own.
 
 CC0 text: https://creativecommons.org/publicdomain/zero/1.0/
+
+## Added after the asset research (2026-11-12)
+
+| Work | Author | Licence | Licence file |
+|---|---|---|---|
+| Medieval Village MegaKit (free Standard version): the remaining 103 of its 176 models (overhangs, more roofs, stairs, fences, shutters, half-walls) | Quaternius (quaternius.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Quaternius/MedievalVillageMegaKit/License.txt` |
+| Universal Animation Library 2 (free Standard version): 42 animations on the universal humanoid rig | Quaternius | CC0 1.0 | `…/Quaternius/UniversalAnimationLibrary2/License.txt` |
+| KayKit Fantasy Weapons Bits 1.0 (free version): 31 weapons and shields | Kay Lousberg (kaylousberg.com) | CC0 1.0 | `…/KayKit/FantasyWeaponsBits/License.txt` |
+| Fantasy Town Kit 2.0: 167 town pieces | Kenney (www.kenney.nl) | CC0 1.0 | `…/Kenney/FantasyTownKit/License.txt` |
+| RPG Audio: 50 sounds (footsteps, doors, coins, pages, cloth, metal) | Kenney (www.kenney.nl) | CC0 1.0 | `…/Kenney/RpgAudio/License.txt` |
+| Characters – Fantasy Races (free Standard version): Elf and Orc bodies, male and female. **Local only: not in the repository** (git-ignored, because the licence forbids redistributing the asset files); each machine downloads it from quaternius.itch.io/characters-fantasy-races | Quaternius | Quaternius Asset License (QAL) 1.0: use in products allowed, no credit required, no redistribution of the assets themselves | `Assets/Realmkeeper/Art/ThirdParty/QuaterniusFantasyRaces/License.txt` (local) |

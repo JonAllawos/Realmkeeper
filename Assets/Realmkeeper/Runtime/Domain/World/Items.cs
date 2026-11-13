@@ -255,6 +255,12 @@ namespace Realmkeeper.Domain.World
         /// <summary>Phase 20: build, 0 slight, 1 average, 2 heavy. Widens or narrows the body, not its height.</summary>
         public int Build { get; set; } = 1;
 
+        /// <summary>
+        /// Phase 20A: eye colour, an index into <see cref="PlayerAppearanceOptions.EyePalette"/>. 0 (brown) is the eye
+        /// texture as drawn, so every earlier character keeps exactly the eyes it had.
+        /// </summary>
+        public int EyeColour { get; set; }
+
         public PlayerAppearanceData Clone() => (PlayerAppearanceData)MemberwiseClone();
     }
 
@@ -340,6 +346,18 @@ namespace Realmkeeper.Domain.World
 
         public static readonly System.Collections.Generic.IReadOnlyList<string> BuildNames = new[] { "Slight", "Average", "Heavy" };
 
+        /// <summary>
+        /// Phase 20A: eye colours, as linear RGB the iris is recoloured to (through the iris mask, so the whites and the skin
+        /// around the eye keep their colour). Index 0 is the texture's own brown and is never recoloured. Every species may
+        /// use every colour; appending keeps saved indices meaning the same.
+        /// </summary>
+        public static readonly System.Collections.Generic.IReadOnlyList<(string name, float r, float g, float b)> EyePalette = new[]
+        {
+            ("Brown", 0f, 0f, 0f), ("Dark brown", 0.30f, 0.17f, 0.08f), ("Hazel", 0.48f, 0.38f, 0.16f), ("Amber", 0.80f, 0.52f, 0.10f),
+            ("Green", 0.24f, 0.50f, 0.22f), ("Blue", 0.26f, 0.46f, 0.86f), ("Grey", 0.52f, 0.56f, 0.60f), ("Violet", 0.50f, 0.32f, 0.70f),
+            ("Gold", 0.92f, 0.72f, 0.18f), ("Red", 0.78f, 0.16f, 0.12f),
+        };
+
         public static System.Collections.Generic.IReadOnlyList<string> HairFor(NpcSex frame) => frame == NpcSex.Female ? FemaleHair : MaleHair;
 
         /// <summary>Phase 20: as <see cref="Check(PlayerAppearanceData)"/>, and the skin tone must suit the species (no species yet: the human tones).</summary>
@@ -367,6 +385,7 @@ namespace Realmkeeper.Domain.World
             if (a.HeightPercent < PlayerAppearanceData.MinHeightPercent || a.HeightPercent > PlayerAppearanceData.MaxHeightPercent)
                 return $"Height must be {PlayerAppearanceData.MinHeightPercent}–{PlayerAppearanceData.MaxHeightPercent} % of the species' typical height.";
             if (a.Build < 0 || a.Build > 2) return "Build must be slight, average or heavy.";
+            if (a.EyeColour < 0 || a.EyeColour >= EyePalette.Count) return $"Eye colour must be 0–{EyePalette.Count - 1}."; // Phase 20A
             if (a.HairColour < 0 || a.HairColour >= HairColours) return $"Hair colour must be 0–{HairColours - 1}.";
             if (a.ClothTint < 0 || a.ClothTint >= ClothTints) return $"Cloth tint must be 0–{ClothTints - 1}.";
             return null;

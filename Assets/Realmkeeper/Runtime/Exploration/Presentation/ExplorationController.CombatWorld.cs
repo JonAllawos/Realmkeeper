@@ -56,7 +56,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The centre of a square in the world.</summary>
         public Vector3 SquareCentre(GridPos p) => SquareToWorld(p);
 
-        private bool PlayersMoveTurn => InFight && Combat.Snapshot.IsPlayersTurn && Combat.Snapshot.Prompt == null && !Combat.Composing && !Combat.ConfirmOpen;
+        private bool PlayersMoveTurn => InFight && Combat.Snapshot.IsPlayersTurn && Combat.Snapshot.Prompt == null && !Combat.Composing && !Combat.AimingFeature && !Combat.ConfirmOpen;
 
         // ----- Preview and move ----------------------------------------------------------------------------
 

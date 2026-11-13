@@ -106,6 +106,16 @@ namespace Realmkeeper.Domain.Magic
             },
             new SpellDefinition
             {
+                // Phase 20A (SRD 5.2.1): known innately by a chthonic tiefling. Not yet on the sorcerer, warlock and wizard
+                // lists: adding it there would widen those classes' cantrip menus and change which cantrips newly generated
+                // casters pick, so it waits for a rules version that does that on purpose (ADR-0103).
+                Id = "chill_touch", Name = "Chill Touch", Level = 0, School = SpellSchool.Necromancy, Range = 5, Touch = true, Targeting = SpellTargeting.Creatures, Affects = SpellAffects.Hostile,
+                Classes = Cls(), SpeciesOnly = true, Resolution = SpellResolution.Attack, CantripScaling = true,
+                Effects = new[] { Dmg(1, 10, DamageType.Necrotic), new SpellEffect { Kind = CombatEffectKind.NoHealing, UntilCastersNextTurnEnds = true } },
+                Description = "A grave-cold touch; the creature it strikes cannot heal until your next turn ends.", Upcast = "One more d10 at character levels 5, 11 and 17.",
+            },
+            new SpellDefinition
+            {
                 Id = "poison_spray", Name = "Poison Spray", Level = 0, School = SpellSchool.Necromancy, Range = 30, Targeting = SpellTargeting.Creatures, Affects = SpellAffects.Hostile,
                 Classes = Cls(D, S, K, W), Resolution = SpellResolution.Attack, CantripScaling = true, Effects = new[] { Dmg(1, 12, DamageType.Poison) },
                 Description = "A puff of toxic mist flung at a creature.", Upcast = "One more d12 at character levels 5, 11 and 17.",
@@ -392,6 +402,19 @@ namespace Realmkeeper.Domain.Magic
         };
 
         /// <summary>Problems with the catalog itself; empty when it is valid (checked by the catalog validator and tests).</summary>
+        /// <summary>Phase 20A: whether some species' innate magic (a trait or a lineage option) names this spell.</summary>
+        private static bool AnySpeciesKnows(string spellId)
+        {
+            var key = spellId.Replace('_', '-');
+            foreach (var sp in RpgCatalog.Species)
+            {
+                foreach (var t in sp.Traits) foreach (var e in t.Effects) if (e.Kind == EffectKind.InnateMagic && e.Key == key) return true;
+                foreach (var c in sp.Choices) foreach (var o in c.Options) foreach (var e in o.Effects) if (e.Kind == EffectKind.InnateMagic && e.Key == key) return true;
+            }
+
+            return false;
+        }
+
         public static IReadOnlyList<string> Validate()
         {
             var errors = new List<string>();
@@ -401,7 +424,8 @@ namespace Realmkeeper.Domain.Magic
                 if (string.IsNullOrWhiteSpace(s.Id) || !ids.Add(s.Id)) errors.Add($"Spell '{s.Name}' has a missing or duplicate id.");
                 if (string.IsNullOrWhiteSpace(s.Name) || string.IsNullOrWhiteSpace(s.Description)) errors.Add($"Spell {s.Id} needs a name and a description.");
                 if (s.Level < 0 || s.Level > 9) errors.Add($"Spell {s.Id} has level {s.Level}.");
-                if (s.Classes.Count == 0) errors.Add($"Spell {s.Id} is on no class list.");
+                if (s.Classes.Count == 0 && !s.SpeciesOnly) errors.Add($"Spell {s.Id} is on no class list.");
+                if (s.SpeciesOnly && !AnySpeciesKnows(s.Id)) errors.Add($"Spell {s.Id} is species-only, but no species knows it.");
                 foreach (var c in s.Classes) if (RpgCatalog.FindClass(c)?.Spellcasting == null) errors.Add($"Spell {s.Id} names {c}, which does not cast spells.");
                 if (s.Status != ImplementationStatus.Functional && string.IsNullOrWhiteSpace(s.StatusNote)) errors.Add($"Spell {s.Id} is {s.Status} without saying why.");
                 if (s.Castable && s.Effects.Count == 0 && s.CastingTime != CastingTime.Reaction) errors.Add($"Spell {s.Id} is castable but does nothing.");

@@ -106,6 +106,7 @@ namespace Realmkeeper.Exploration.Presentation
             _body.transform.SetParent(transform, false);
             _body.SetActive(visible);
             Animation = PlayerBodyBuilder.Build(_body.transform, look, catalog, assets, out var report);
+            if (Animation != null) Animation.Footsteps = true; // Phase 20A assets: the player is heard walking
             BodyReport = report;
             LookSignature = look.Signature;
         }

@@ -257,6 +257,7 @@ namespace Realmkeeper.Exploration.Presentation
             // Phase 20: the species' own tones (human tones first where the species has them), and the person's own height and build.
             var tones = PlayerAppearanceOptions.SkinTonesFor(Draft.Choices.SpeciesId);
             _content.Add(SkinSwatches(tones, a.SkinTone, i => { a.SkinTone = i; Changed(); }));
+            _content.Add(EyeSwatches(a.EyeColour, i => { a.EyeColour = i; Changed(); })); // Phase 20A
             var height = new SliderInt("Height", PlayerAppearanceData.MinHeightPercent, PlayerAppearanceData.MaxHeightPercent) { value = a.HeightPercent, name = "xk-cc-height", showInputField = false };
             height.tooltip = "Your height within your species: 92–108 % of a typical " + (species?.Name.ToLowerInvariant() ?? "person") + ".";
             var heightValue = Text(HeightText(a.HeightPercent, species), "xk-w-value");
@@ -300,7 +301,7 @@ namespace Realmkeeper.Exploration.Presentation
                 detail.Add(Pair("Ability increases", Bonuses(s0)));
                 detail.Add(Pair("Languages", Names(s0.Languages, l => RpgCatalog.FindLanguage(l)?.Name)));
                 detail.Add(Text("Traits", "xk-w-heading"));
-                foreach (var t in s0.Traits) detail.Add(Pair(t.Name, t.Description));
+                foreach (var t in s0.Traits) detail.Add(PlayerHubWindow.Trait(t.Name, t.Description, BenefitStatus.Of(t))); // Phase 20A: how each is played
                 foreach (var ch in s0.Choices)
                     if (ch.Kind == ChoiceKind.Option) detail.Add(OptionChoice(ch));
                     else detail.Add(Text($"{ch.Name}: {ch.Prompt} (on the Skills step)", "xk-w-note"));
@@ -734,7 +735,9 @@ namespace Realmkeeper.Exploration.Presentation
                 b.EnableInClassList("xk-w-choice--on", picks.Contains(o.Id));
                 var row = Row("xk-w-pair");
                 row.Add(b);
-                row.Add(Text(o.Description, "xk-w-value"));
+                var status = BenefitStatus.Of(o); // Phase 20A: active, conditional or not yet played
+                row.Add(PlayerHubWindow.BenefitBadge(status.state));
+                row.Add(Text(o.Description + "  · " + status.text, "xk-w-value"));
                 box.Add(row);
             }
 
@@ -748,6 +751,26 @@ namespace Realmkeeper.Exploration.Presentation
         }
 
         /// <summary>Phase 20: the skin tones a species can have, named, from the shared palette.</summary>
+        /// <summary>Phase 20A: the eye colours (the iris alone is recoloured; brown is the eye as drawn).</summary>
+        private static VisualElement EyeSwatches(int selected, Action<int> pick)
+        {
+            var row = Row("xk-w-pair");
+            row.Add(Text("Eyes", "xk-w-key"));
+            for (var index = 0; index < PlayerAppearanceOptions.EyePalette.Count; index++)
+            {
+                var i = index;
+                var c = PlayerAppearanceOptions.EyePalette[i];
+                var b = new UnityEngine.UIElements.Button(() => pick(i)) { text = string.Empty, name = "xk-cc-eyes-" + i, tooltip = c.name };
+                b.AddToClassList("xk-w-swatch");
+                b.EnableInClassList("xk-w-swatch--on", i == selected);
+                b.style.backgroundColor = i == 0 ? new Color(0.42f, 0.24f, 0.10f) : new Color(c.r, c.g, c.b);
+                row.Add(b);
+            }
+
+            row.Add(Text(PlayerAppearanceOptions.EyePalette[Math.Max(0, Math.Min(selected, PlayerAppearanceOptions.EyePalette.Count - 1))].name, "xk-w-desc"));
+            return row;
+        }
+
         private static VisualElement SkinSwatches(IReadOnlyList<int> tones, int selected, Action<int> pick)
         {
             var row = Row("xk-w-pair");

@@ -79,3 +79,12 @@
 | Familiarity reaching 50 in natural play | Low. Tested by setting it; how long it takes in play is unmeasured. | Owner checklist E17 |
 | Keyboard-only use of the creator | Low | Owner checklist A9 |
 | Goliath ancestry boons and innate spells in play | They are flagged as not yet played; combat and magic do not use them | A combat and magic pass |
+
+## Phase 20A (2026-11-12)
+- **Not hand-played:** see `Reports/Phase20A-Owner-Playtest-Checklist.md`.
+- **Balance:** ancestry boons and reactions used by companions and generated goliaths; no encounter-balance measurement.
+- **Sound:** batch runs confirm the clips load and are requested, not that anything is audible or pleasant.
+- **Reactions against non-attack damage** (spells, breath, hazards): not offered, so not tested.
+- **Art models in hands during animation:** checked in still captures only (the sheet preview and a fight), not through every attack animation.
+- **The 103 new village pieces and the 167 town-kit pieces:** catalogued; not used by any generator, so untested in a built street.
+- **Universal Animation Library 2:** imported and humanoid; no clip is played in the game yet.

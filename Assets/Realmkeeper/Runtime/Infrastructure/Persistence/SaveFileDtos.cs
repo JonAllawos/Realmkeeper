@@ -474,6 +474,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v21 (Phase 20). Absent in older saves.
         public int? HeightPercent { get; set; }
         public int? Build { get; set; }
+        public int? EyeColour { get; set; } // Phase 20A (v22)
     }
 
     public sealed class ItemStackDto
@@ -957,6 +958,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         public bool LastHitMelee { get; set; }
         public bool LastHitCritical { get; set; }
         public bool LastHitMonkWeapon { get; set; }
+        public bool LastHitBoonUsed { get; set; } // Phase 20A (v22)
         public bool AttackActionTaken { get; set; }
         public bool StunningStrikeUsed { get; set; }
         public bool FrenzyUsed { get; set; }

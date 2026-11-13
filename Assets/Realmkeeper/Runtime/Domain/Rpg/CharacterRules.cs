@@ -253,12 +253,43 @@ namespace Realmkeeper.Domain.Rpg
             var n = IntegrationNeed.None;
             foreach (var e in effects)
             {
-                if (e.Kind == EffectKind.CombatRule) n |= IntegrationNeed.Combat;
-                if (e.Kind == EffectKind.InnateMagic) n |= IntegrationNeed.Magic;
+                if (e.Kind == EffectKind.CombatRule && !PlayedCombatRuleSet.Contains(e.Key)) n |= IntegrationNeed.Combat;
+                if (e.Kind == EffectKind.InnateMagic && !PlayedInnateMagicSet.Contains(e.Key)) n |= IntegrationNeed.Magic;
             }
 
             return n;
         }
+
+        /// <summary>
+        /// Phase 20A: the combat rules the combat engine plays (the goliath's giant ancestries). Each is tested in
+        /// <c>Phase20ALineageTests</c>; a key not listed here is still flagged "not yet played".
+        /// </summary>
+        private static readonly HashSet<string> PlayedCombatRuleSet = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "teleport", "extra-fire-damage", "extra-cold-slow", "knock-prone", "reduce-damage", "retaliate-thunder",
+        };
+
+        /// <summary>
+        /// Phase 20A: innate magic the game plays. "extra-cantrip" widens the cantrips known; the three tiefling legacy
+        /// cantrips are cast in combat through <see cref="InnateSpells"/>.
+        /// </summary>
+        private static readonly HashSet<string> PlayedInnateMagicSet = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "extra-cantrip", "poison-spray", "chill-touch", "fire-bolt",
+        };
+
+        /// <summary>
+        /// The ability a species' innate spells use. SRD 5.2.1 lets a tiefling choose Intelligence, Wisdom or Charisma when
+        /// the legacy is chosen; the catalog has no such choice yet, so Charisma (the tiefling's own bonus here) is used and
+        /// the choice is recorded as deferred (ADR-0103).
+        /// </summary>
+        public const Ability InnateSpellAbility = Ability.Charisma;
+
+        /// <summary>Phase 20A: true when the combat engine plays this combat rule key.</summary>
+        public static bool IsPlayedCombatRule(string key) => key != null && PlayedCombatRuleSet.Contains(key);
+
+        /// <summary>Phase 20A: true when the game plays this innate magic key.</summary>
+        public static bool IsPlayedInnateMagic(string key) => key != null && PlayedInnateMagicSet.Contains(key);
 
         private bool Applies(RuleEffect e) => _loadout.Allows(e.Condition);
 
@@ -736,8 +767,36 @@ namespace Realmkeeper.Domain.Rpg
         public bool HasFeature(string id)
         {
             foreach (var f in _features) if (f.Feature.Id == id) return true;
+            foreach (var f in _choiceFeatures) if (f.Feature.Id == id) return true; // Phase 20A: "{choice}:{option}", e.g. a giant ancestry
             return false;
         }
+
+        /// <summary>
+        /// Phase 20A: the spells this character knows innately (a tiefling's legacy cantrip), as catalog spell IDs with
+        /// the ability they are cast with and where they come from. Innate magic that is not a catalog spell is left out.
+        /// </summary>
+        public IReadOnlyList<(string spellId, Ability ability, string source)> InnateSpells
+        {
+            get
+            {
+                var list = new List<(string, Ability, string)>();
+                foreach (var se in Of(EffectKind.InnateMagic))
+                {
+                    if (!PlayedInnateMagicSet.Contains(se.Effect.Key)) continue;
+                    var id = se.Effect.Key.Replace('-', '_');
+                    if (Magic.SpellCatalog.Find(id) == null || list.Exists(x => x.Item1 == id)) continue;
+                    list.Add((id, InnateSpellAbility, se.Source));
+                }
+
+                return list;
+            }
+        }
+
+        /// <summary>Phase 20A: the save DC of an innate spell cast with <paramref name="a"/> (8 + proficiency + the ability).</summary>
+        public Breakdown InnateSpellSaveDc(Ability a) => new Breakdown().Add("base", 8).Add("proficiency", ProficiencyBonus).Add(a.ToString(), Modifier(a));
+
+        /// <summary>Phase 20A: the attack bonus of an innate spell cast with <paramref name="a"/>.</summary>
+        public Breakdown InnateSpellAttack(Ability a) => new Breakdown().Add("proficiency", ProficiencyBonus).Add(a.ToString(), Modifier(a));
 
         /// <summary>The systems a feature waits for (its own declaration plus what its effects imply).</summary>
         public static IntegrationNeed Needs(FeatureDefinition f) => f.Needs | NeedsOf(f.Effects);

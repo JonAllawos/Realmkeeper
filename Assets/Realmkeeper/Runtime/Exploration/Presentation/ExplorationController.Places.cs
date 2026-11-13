@@ -621,6 +621,7 @@ namespace Realmkeeper.Exploration.Presentation
             RecordPose();
             var r = _session.Dispatch(new EnterBuildingCommand(layoutKey));
             if (!r.IsSuccess) Hud?.ShowMessage(r);
+            else GameSounds.Play("door-open"); // Phase 20A assets
             return r;
         }
 

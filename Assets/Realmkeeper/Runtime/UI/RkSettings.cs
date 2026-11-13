@@ -93,6 +93,20 @@ namespace Realmkeeper.UI
             if (_panel != null) _panel.scale = EffectiveUiScale;
         }
 
+        private const string VolumeKey = "rk.audio.volume";
+
+        /// <summary>Phase 20A assets: the volume of the game's sounds, 0 (silent) to 1. Default 0.7.</summary>
+        public static float SoundVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(VolumeKey, 0.7f));
+            set
+            {
+                PlayerPrefs.SetFloat(VolumeKey, Mathf.Clamp01(value));
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
         public static bool VSync
         {
             get => PlayerPrefs.GetInt(VSyncKey, QualitySettings.vSyncCount > 0 ? 1 : 0) == 1;

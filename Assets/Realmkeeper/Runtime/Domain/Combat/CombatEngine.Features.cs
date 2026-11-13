@@ -125,6 +125,37 @@ namespace Realmkeeper.Domain.Combat
                     return hit.State != VitalState.Conscious ? $"{hit.Name} is already down." : null;
                 }
 
+                // Phase 20A: the goliath's giant ancestries.
+                case "fires_burn":
+                case "frosts_chill":
+                case "hills_tumble":
+                {
+                    var hit = Encounter.Find(t.LastHitTargetId);
+                    if (hit == null) return "Hit a creature with an attack roll this turn first.";
+                    if (t.LastHitBoonUsed) return "Your ancestry already answered that hit; hit again first.";
+                    if (hit.State != VitalState.Conscious) return $"{hit.Name} is already down.";
+                    if (f.Id == "hills_tumble")
+                    {
+                        if (SizeOf(hit) == CreatureSize.Huge) return $"{hit.Name} is too big to topple (Huge).";
+                        if (Has(hit, ConditionType.Prone)) return $"{hit.Name} is already prone.";
+                    }
+
+                    return null;
+                }
+
+                case "clouds_jaunt":
+                {
+                    if (a.Point == null) return "Choose a square to reappear in.";
+                    var p = a.Point.Value;
+                    if (p.Equals(actor.Position)) return "Choose a square away from where you stand.";
+                    var d = actor.Position.DistanceFeet(p);
+                    if (d > f.Range) return $"That square is {d} ft away; Cloud's Jaunt reaches {f.Range} ft.";
+                    if (IsBlocked(p)) return $"{p} is solid wall.";
+                    if (At(p) != null) return $"{p} is occupied.";
+                    var line = CoverOf(actor.Position, p); // "a space you can see": the same clear line Misty Step needs
+                    return line.HasLineOfEffect ? null : $"You cannot see {p}: total cover from {line.By}.";
+                }
+
                 case "lay_on_hands":
                 {
                     var pool = ResourceLeft(actor, "lay_on_hands");
@@ -162,6 +193,15 @@ namespace Realmkeeper.Domain.Combat
             }
 
             return null;
+        }
+
+        /// <summary>Phase 20A: a combatant's size (its beast form, its stat block, or its species).</summary>
+        public CreatureSize SizeOf(CombatantData c)
+        {
+            var s = Stats(c);
+            if (s.Form != null) return s.Form.Size;
+            if (s.Rules?.Species != null) return s.Rules.Species.Size;
+            return s.Creature?.Size ?? CreatureSize.Medium;
         }
 
         private void DoFeature(CombatantData actor, UseFeatureAction a)
@@ -335,6 +375,48 @@ namespace Realmkeeper.Domain.Combat
                         Say($"{target.Name} shrugs off the stun: half speed, and the next attack against it has advantage.");
                     }
 
+                    break;
+                }
+
+                // ----- Phase 20A: the goliath's giant ancestries (SRD 5.2.1) -----
+                case "fires_burn":
+                case "frosts_chill":
+                {
+                    t.LastHitBoonUsed = true;
+                    target = Encounter.Find(t.LastHitTargetId);
+                    var fire = f.Id == "fires_burn";
+                    var sides = fire ? 10 : 6;
+                    var dice = t.LastHitCritical ? 2 : 1; // a critical hit doubles the hit's extra dice too
+                    var total = 0;
+                    var rolls = new List<int>();
+                    for (var i = 0; i < dice; i++) { var d = Die(sides); rolls.Add(d); total += d; }
+                    var type = fire ? DamageType.Fire : DamageType.Cold;
+                    Say($"{actor.Name}'s {f.Name}: {dice}d{sides} [{string.Join(", ", rolls)}] {type.ToString().ToLowerInvariant()} to {target.Name}.");
+                    ApplyDamage(target, total, type, false, actor.Name);
+                    if (!fire && target.State == VitalState.Conscious)
+                    {
+                        AddEffect(instance, origin, f.Name, actor, target, CombatEffectKind.SpeedChange, -10, expiry: EffectExpiry.StartOfTurn, expiresOn: actor, expiresRound: Encounter.Round + 1);
+                        Say($"{target.Name} is slowed by 10 ft until {actor.Name}'s next turn.");
+                    }
+
+                    break;
+                }
+
+                case "hills_tumble":
+                {
+                    t.LastHitBoonUsed = true;
+                    target = Encounter.Find(t.LastHitTargetId);
+                    var why = ApplyCondition(target, ConditionType.Prone, actor.CombatantId, f.Name, ConditionDuration.UntilRemoved, default, 0);
+                    Say(why ?? $"{actor.Name}'s {f.Name}: {target.Name} is knocked prone.");
+                    break;
+                }
+
+                case "clouds_jaunt":
+                {
+                    var from = actor.Position;
+                    actor.Position = a.Point.Value;
+                    Log(CombatLogKind.Moved, actor.CombatantId, default, $"{actor.Name} uses Cloud's Jaunt: vanishes and reappears, {from} → {actor.Position} (no opportunity attacks).");
+                    ReleaseBrokenGrapples();
                     break;
                 }
 

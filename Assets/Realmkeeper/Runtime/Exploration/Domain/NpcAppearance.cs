@@ -54,6 +54,9 @@ namespace Realmkeeper.Exploration.Domain
         /// <summary>Phase 20: extra width (the player's build); 1 for residents.</summary>
         public float WidthScale { get; set; } = 1f;
 
+        /// <summary>Phase 20A: eye colour (PlayerAppearanceOptions.EyePalette); 0, the drawn brown, for residents.</summary>
+        public int EyeColour { get; set; }
+
         /// <summary>A short, stable description for logs and tests.</summary>
         public string Signature =>
             $"{BodyId}/{OutfitMaterialId}/{HairId ?? "-"}/{BeardId ?? "-"}/s{SkinTone}/h{HairColour}/t{OutfitTint}/{HeightScale:F2}";

@@ -16,6 +16,7 @@ namespace Realmkeeper.UI
         public DropdownField DisplayMode { get; }
         public DropdownField Resolution { get; }
         public Toggle VSync { get; }
+        public Slider Volume { get; }
         public DropdownField Quality { get; }
         public DropdownField UiScale { get; }
         public Button CloseButton { get; }
@@ -112,6 +113,12 @@ namespace Realmkeeper.UI
             VSync.RegisterValueChangedCallback(e => { RkSettings.VSync = e.newValue; Say(e.newValue ? "Vertical sync on: frames match the display, without tearing." : "Vertical sync off."); });
             scroll.Add(Row(Quality, "Shadows, anti-aliasing and render scale, from the project's quality levels."));
             scroll.Add(Row(VSync, "Matches the frame rate to the display to prevent tearing."));
+
+            // Sound (Phase 20A assets)
+            scroll.Add(Section("Sound"));
+            Volume = new Slider("Sound volume", 0f, 1f) { name = "settings-volume", value = RkSettings.SoundVolume, showInputField = false };
+            Volume.RegisterValueChangedCallback(e => { RkSettings.SoundVolume = e.newValue; Say("Sound volume: " + Mathf.RoundToInt(e.newValue * 100f) + " %."); });
+            scroll.Add(Row(Volume, "Footsteps, doors, coins and pages. 0 is silent."));
 
             // Interface
             scroll.Add(Section("Interface"));

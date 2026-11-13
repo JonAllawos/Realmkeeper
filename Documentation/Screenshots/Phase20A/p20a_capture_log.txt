@@ -1,0 +1,26 @@
+p20a_09_combat_clouds_jaunt_aim: 1920x1080. Combat: Cloud's Jaunt waiting for a square on the field.
+p20a_09_combat_clouds_jaunt_aim_768: 1366x768. Combat: Cloud's Jaunt waiting for a square on the field.
+p20a_09_combat_clouds_jaunt_aim_720: 1280x720. Combat: Cloud's Jaunt waiting for a square on the field.
+p20a_10_combat_after_jaunt: 1920x1080. Combat: the goliath after Cloud's Jaunt (one ancestry use left).
+p20a_01_creator_goliath_badges: 1920x1080. Creator, goliath: traits and the six ancestries, each marked active, conditional or not yet played, with when it works.
+p20a_01_creator_goliath_badges_768: 1366x768. Creator, goliath: traits and the six ancestries, each marked active, conditional or not yet played, with when it works.
+p20a_01_creator_goliath_badges_720: 1280x720. Creator, goliath: traits and the six ancestries, each marked active, conditional or not yet played, with when it works.
+p20a_02_creator_gnome_not_yet_played: 1920x1080. Creator, gnome: both lineages marked not yet played, naming the missing magic.
+p20a_02_creator_gnome_not_yet_played_768: 1366x768. Creator, gnome: both lineages marked not yet played, naming the missing magic.
+p20a_02_creator_gnome_not_yet_played_720: 1280x720. Creator, gnome: both lineages marked not yet played, naming the missing magic.
+p20a_03_creator_tiefling_legacy: 1920x1080. Creator, tiefling: the infernal legacy's cantrip cast with Charisma (conditional), its resistance always on.
+p20a_03_creator_tiefling_legacy_768: 1366x768. Creator, tiefling: the infernal legacy's cantrip cast with Charisma (conditional), its resistance always on.
+p20a_03_creator_tiefling_legacy_720: 1280x720. Creator, tiefling: the infernal legacy's cantrip cast with Charisma (conditional), its resistance always on.
+p20a_04_creator_eye_colour: 1920x1080. Appearance: eye colour swatches; blue chosen, height 94 %, slight build.
+p20a_04_creator_eye_colour_768: 1366x768. Appearance: eye colour swatches; blue chosen, height 94 %, slight build.
+p20a_04_creator_eye_colour_720: 1280x720. Appearance: eye colour swatches; blue chosen, height 94 %, slight build.
+p20a_05_eyes_closeup: 1280x720. Close-up of the body in the world: blue irises, whites and skin unchanged.
+p20a_06_sheet_origins_badges: 1920x1080. Sheet, Origins: each trait marked active, conditional or not yet played.
+p20a_06_sheet_origins_badges_768: 1366x768. Sheet, Origins: each trait marked active, conditional or not yet played.
+p20a_06_sheet_origins_badges_720: 1280x720. Sheet, Origins: each trait marked active, conditional or not yet played.
+p20a_07_sheet_overview: 1920x1080. Sheet overview after Phase 20A.
+p20a_07_sheet_overview_768: 1366x768. Sheet overview after Phase 20A.
+p20a_07_sheet_overview_720: 1280x720. Sheet overview after Phase 20A.
+p20a_08_combat_innate_cantrip: 1920x1080. Combat: a tiefling fighter's Fire Bolt, an innate cantrip cast with Charisma.
+p20a_08_combat_innate_cantrip_768: 1366x768. Combat: a tiefling fighter's Fire Bolt, an innate cantrip cast with Charisma.
+p20a_08_combat_innate_cantrip_720: 1280x720. Combat: a tiefling fighter's Fire Bolt, an innate cantrip cast with Charisma.

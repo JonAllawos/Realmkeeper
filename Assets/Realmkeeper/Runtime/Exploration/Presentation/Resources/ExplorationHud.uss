@@ -1803,3 +1803,11 @@
     align-self: stretch;
     width: auto;
 }
+
+/* ----- Phase 20A: how each trait is played (a badge with words; never colour alone) ----- */
+.xk-sheet-trait-badge {
+    align-self: flex-start;
+    flex-shrink: 0;
+    margin: 2px 8px 0 0;
+    -unity-font-style: bold;
+}

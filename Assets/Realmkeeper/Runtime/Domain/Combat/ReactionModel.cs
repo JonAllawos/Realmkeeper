@@ -21,6 +21,12 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>A decision, not a reaction: add a held Bardic Inspiration die to a failed roll.</summary>
         BardicInspiration = 9,
+
+        /// <summary>Phase 20A: a goliath of the stone giants reduces damage from an attack (1d12 + Constitution).</summary>
+        StonesEndurance = 10,
+
+        /// <summary>Phase 20A: a goliath of the storm giants answers damage with 1d8 thunder.</summary>
+        StormsThunder = 11,
     }
 
     /// <summary>One chance to react (or decide), offered by the engine at the moment its trigger happens.</summary>
@@ -124,7 +130,7 @@ namespace Realmkeeper.Domain.Combat
                 case StabilizeAction s: return new ActionRecord { Kind = "stabilize", Target = s.Target };
                 case BonusAbilityAction b: return new ActionRecord { Kind = "bonus", Id = b.AbilityId };
                 case UseItemAction u: return new ActionRecord { Kind = "item", Id = u.StackId.ToString() }; // Phase 11
-                case UseFeatureAction f: return new ActionRecord { Kind = "feature", Id = f.FeatureId, Target = f.Target, Option = f.Option, Amount = f.Amount };
+                case UseFeatureAction f: return new ActionRecord { Kind = "feature", Id = f.FeatureId, Target = f.Target, Option = f.Option, Amount = f.Amount, HasPoint = f.Point.HasValue, Point = f.Point ?? default };
                 case CastSpellAction c:
                     return new ActionRecord
                     {
@@ -151,7 +157,7 @@ namespace Realmkeeper.Domain.Combat
                 case "stabilize": return new StabilizeAction(r.Target);
                 case "bonus": return new BonusAbilityAction(r.Id);
                 case "item": return System.Guid.TryParse(r.Id, out var stack) ? new UseItemAction(new Realmkeeper.Domain.Identifiers.ItemStackId(stack)) : null; // Phase 11
-                case "feature": return new UseFeatureAction(r.Id, r.Target, r.Option, r.Amount);
+                case "feature": return new UseFeatureAction(r.Id, r.Target, r.Option, r.Amount, r.HasPoint ? r.Point : (GridPos?)null);
                 case "spell": return new CastSpellAction(r.Id, r.Level, r.Targets, r.HasPoint ? r.Point : (GridPos?)null, r.Metamagic, r.FreeWith);
                 default: return null;
             }

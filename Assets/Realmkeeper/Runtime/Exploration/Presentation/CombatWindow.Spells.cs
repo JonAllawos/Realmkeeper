@@ -45,6 +45,18 @@ namespace Realmkeeper.Exploration.Presentation
         public event Action<UseFeatureAction> FeatureRequested;
 
         public bool Composing => _cast != null;
+
+        /// <summary>Phase 20A: a feature waiting for its square (Cloud's Jaunt); a grid click uses it instead of moving.</summary>
+        private string _featureAim;
+
+        public bool AimingFeature => _featureAim != null;
+
+        /// <summary>Starts aiming a feature at a square (as its "Choose a square" button does).</summary>
+        public void BeginFeatureAim(string featureId)
+        {
+            _featureAim = featureId;
+            if (Snapshot != null) Show(Snapshot);
+        }
         public string ComposingSpell => _cast?.Spell.Id;
         private bool NeedsPoint => _cast != null && _cast.NeedsPoint;
         private bool InPreview(GridPos p) => _preview.Contains(p.X + "," + p.Y);
@@ -83,6 +95,14 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>Aims the composed area spell at a square (as clicking the grid does), previewing the squares it covers.</summary>
         public void Aim(GridPos p)
         {
+            if (_featureAim != null) // Phase 20A: a feature aimed at a square (Cloud's Jaunt) is used at once
+            {
+                var id = _featureAim;
+                _featureAim = null;
+                FeatureRequested?.Invoke(new UseFeatureAction(id, default, null, 0, p));
+                return;
+            }
+
             if (_cast == null || Snapshot?.Player == null) return;
             _castPoint = p;
             _preview.Clear();
@@ -109,7 +129,8 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (s.PlayerSpells.Count > 0)
             {
-                var fold = Fold($"Spells (save DC {s.Player.SpellSaveDc}, attack {(s.Player.SpellAttack >= 0 ? "+" : string.Empty)}{s.Player.SpellAttack})", "xk-combat-fold-spells");
+                var innateOnly = !s.Player.IsCaster; // Phase 20A: a legacy cantrip, not class spellcasting
+                var fold = Fold($"{(innateOnly ? "Innate spells" : "Spells")} (save DC {s.Player.SpellSaveDc}, attack {(s.Player.SpellAttack >= 0 ? "+" : string.Empty)}{s.Player.SpellAttack})", "xk-combat-fold-spells");
                 fold.AddToClassList("xk-combat-fold");
                 for (var i = 0; i < s.PlayerSpells.Count; i++)
                 {
@@ -132,7 +153,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (s.PlayerFeatures.Count > 0)
             {
-                var fold = Fold("Class features", "xk-combat-fold-features");
+                var fold = Fold("Features", "xk-combat-fold-features"); // Phase 20A: class and species features (the giant ancestries)
                 fold.AddToClassList("xk-combat-fold");
                 foreach (var f in s.PlayerFeatures)
                 {
@@ -149,6 +170,23 @@ namespace Realmkeeper.Exploration.Presentation
                             var option = feature.Id == "divine_spark" ? (t.Hostile ? "harm" : "heal") : f.Options.Count > 0 ? f.Options[0].id : null;
                             var b = new Button(() => FeatureRequested?.Invoke(new UseFeatureAction(feature.Id, target, option))) { text = t.Name, name = $"xk-combat-feature-{feature.Id}-{t.Name.Replace(' ', '-')}" };
                             b.AddToClassList("xk-button");
+                            line.Add(b);
+                        }
+                    }
+                    else if (f.NeedsPoint) // Phase 20A: Cloud's Jaunt is aimed at a square on the grid
+                    {
+                        if (_featureAim == feature.Id)
+                        {
+                            line.Add(TradeWindow.Text($"Click a free square within {feature.Range} ft on the field.", "xk-combat-aim-hint"));
+                            var cancel = new Button(() => { _featureAim = null; Show(Snapshot); }) { text = "Cancel", name = "xk-combat-feature-" + feature.Id + "-cancel" };
+                            cancel.AddToClassList("xk-button");
+                            line.Add(cancel);
+                        }
+                        else
+                        {
+                            var b = new Button(() => { _featureAim = feature.Id; Show(Snapshot); }) { text = "Choose a square", name = "xk-combat-feature-" + feature.Id };
+                            b.AddToClassList("xk-button");
+                            b.SetEnabled(f.Unavailable == null);
                             line.Add(b);
                         }
                     }

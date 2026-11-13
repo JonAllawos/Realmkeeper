@@ -781,3 +781,15 @@ At the owner's direction, the full Unity suites were not rerun after the last fi
 | Unity PlayMode, Phase 20 test with captures | 1 | 0 | 0 | 0 | 0 | 26 files |
 
 After the full runs, one sentence of tiefling description text was corrected (Domain data). The .NET suite was re-run after it: 841/841. The full Unity suites were not re-run.
+
+## Phase 20A runs (2026-11-12)
+
+| Run | Passed | Failed | Skipped | Inconclusive | Notes |
+|---|---|---|---|---|---|
+| Baseline at `8531143`: .NET | 841 | 0 | 0 | — | 0 build warnings |
+| Baseline: Unity EditMode, full | 840 | 1 | 0 | 0 | The failure was a 180 s timeout in `Phase14SaveTests` while .NET suites ran alongside; the fixture alone: 3/3 in 6.5 s |
+| Baseline: Unity PlayMode, full | 122 | 0 | 31 | 2 | Skipped: capture sets. Inconclusive: the dice guards (Phase 9, Phase 11). |
+| Final code: .NET | 868 | 0 | 0 | — | 841 plus 27 Phase 20A tests. One earlier invocation reported 535 passed, 0 failed; not reproduced. |
+| Final code: Unity EditMode, full | 868 | 0 | 0 | 0 | 35 min |
+| Final code: Unity PlayMode, full | 127 | 0 | 31 | 2 | 122 plus 2 Phase 20A and 3 asset tests |
+| Final code: Phase 20A and asset PlayMode tests with captures | 5 | 0 | 0 | 0 | 31 files |

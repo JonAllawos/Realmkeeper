@@ -57,3 +57,7 @@ Thumbs.db
 # Quaternius Bestiary (QAL licence: the asset files may not be redistributed). Installed locally only, never committed.
 /Assets/Realmkeeper/Art/ThirdParty/QuaterniusBestiary/
 /Assets/Realmkeeper/Art/ThirdParty/QuaterniusBestiary.meta
+
+# Quaternius Characters - Fantasy Races (QAL licence: the asset files may not be redistributed). Installed locally only, never committed.
+/Assets/Realmkeeper/Art/ThirdParty/QuaterniusFantasyRaces/
+/Assets/Realmkeeper/Art/ThirdParty/QuaterniusFantasyRaces.meta

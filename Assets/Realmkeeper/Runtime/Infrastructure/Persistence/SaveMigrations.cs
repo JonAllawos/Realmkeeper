@@ -96,6 +96,21 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
     }
 
+    /// <summary>
+    /// v21 → v22 (Phase 20A, ADR-0104). Structural, writes nothing: the player's appearance gains an optional
+    /// <c>eyeColour</c> (absent reads as 0, the eye texture's own brown, which is what every earlier character had), and a
+    /// combatant's turn gains an optional <c>lastHitBoonUsed</c> (absent reads as false: no giant-ancestry boon used yet).
+    /// </summary>
+    public sealed class MigrationV21ToV22 : ISaveMigration
+    {
+        public int SourceVersion => 21;
+
+        public void Migrate(JObject document)
+        {
+            // Both fields are optional and default to exactly what a v21 save meant: nothing to rewrite.
+        }
+    }
+
     public sealed class MigrationV19ToV20 : ISaveMigration
     {
         public int SourceVersion => 19;

@@ -171,6 +171,9 @@ namespace Realmkeeper.Domain.Magic
         /// <summary>The effect ends early when the target attacks, deals damage or casts a spell (Invisibility).</summary>
         EndsOnHostileAct = 21,
 
+        /// <summary>Phase 20A: the target cannot regain hit points while it lasts (Chill Touch).</summary>
+        NoHealing = 22,
+
         // ----- Phase 9: class-feature effects (same records, same engine) -----
 
         /// <summary>Rage: bonus damage on Strength attacks, resistance to bludgeoning, piercing and slashing, advantage on Strength saves; no spells or concentration.</summary>
@@ -289,6 +292,9 @@ namespace Realmkeeper.Domain.Magic
 
         /// <summary>Class IDs whose spell list includes it.</summary>
         public IReadOnlyList<string> Classes { get; set; } = Array.Empty<string>();
+
+        /// <summary>Phase 20A: known only through a species' innate magic (Chill Touch for a chthonic tiefling), on no class list yet.</summary>
+        public bool SpeciesOnly { get; set; }
 
         public SpellResolution Resolution { get; set; }
         public Ability SaveAbility { get; set; }

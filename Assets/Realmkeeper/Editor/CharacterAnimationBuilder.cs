@@ -277,6 +277,18 @@ namespace Realmkeeper.Editor
                 }
             }
 
+            // Phase 20A assets: packs whose file names are generic (sword_A, wall, roof) join under a prefix, so no earlier
+            // scenery ID changes its meaning: "weapon_sword_A" (KayKit Fantasy Weapons Bits), "town_wall" (Kenney Fantasy Town Kit).
+            foreach (var (folder, prefix) in new[] { ("KayKit/FantasyWeaponsBits/Models/", "weapon_"), ("Kenney/FantasyTownKit/Models/", "town_") })
+            {
+                if (!Directory.Exists(ThirdParty + folder)) continue;
+                foreach (var p in Directory.GetFiles(ThirdParty + folder, "*.fbx").Select(f => f.Replace('\\', '/')).OrderBy(f => f, System.StringComparer.Ordinal))
+                {
+                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(p);
+                    if (prefab != null) catalog.Scenery.Add(new ArtCatalog.PrefabEntry { Id = prefix + Path.GetFileNameWithoutExtension(p), Prefab = prefab });
+                }
+            }
+
             EditorUtility.SetDirty(catalog);
         }
 

@@ -44,7 +44,7 @@ namespace Realmkeeper.Editor
                 importer.isReadable = true; // static batching combines the kit pieces at runtime
                 importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
             }
-            else if (assetPath.Contains("/UniversalAnimationLibrary/"))
+            else if (assetPath.Contains("/UniversalAnimationLibrary/") || assetPath.Contains("/UniversalAnimationLibrary2/")) // the second library joined with the Phase 20A assets
             {
                 importer.animationType = ModelImporterAnimationType.Human;
                 importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
@@ -109,7 +109,8 @@ namespace Realmkeeper.Editor
 
         public static bool IsStaticKit(string path) =>
             path.Contains("/KayKit/DungeonRemastered/") || path.Contains("/KayKit/PostLantern/") || path.Contains("/Quaternius/FantasyPropsMegaKit/") ||
-            path.Contains("/Quaternius/StylizedNatureMegaKit/") || path.Contains("/Quaternius/SettlementProps/") || path.Contains("/PolyByGoogle/");
+            path.Contains("/Quaternius/StylizedNatureMegaKit/") || path.Contains("/Quaternius/SettlementProps/") || path.Contains("/PolyByGoogle/") ||
+            path.Contains("/KayKit/FantasyWeaponsBits/") || path.Contains("/Kenney/FantasyTownKit/"); // Phase 20A assets
 
         /// <summary>Phase 18: the animals' standing, walking and running clips loop; one-shots (attacks, hits, deaths) do not.</summary>
         private void OnPreprocessAnimation()

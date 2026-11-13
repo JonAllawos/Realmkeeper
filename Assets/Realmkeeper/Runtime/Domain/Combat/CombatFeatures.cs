@@ -35,6 +35,9 @@ namespace Realmkeeper.Domain.Combat
 
         /// <summary>An ally or a foe, depending on the option chosen (Divine Spark).</summary>
         Either = 4,
+
+        /// <summary>Phase 20A: an unoccupied square within range (Cloud's Jaunt).</summary>
+        Point = 5,
     }
 
     /// <summary>A class feature as the combat engine uses it: cost, resource, target, range, status (data; resolved by the engine).</summary>
@@ -183,6 +186,22 @@ namespace Realmkeeper.Domain.Combat
             },
             Auto("metamagic", "Metamagic", "sorcerer", "Careful, Distant, Empowered, Heightened, Quickened and Twinned Spell shape a spell as you cast it.",
                 ImplementationStatus.Partial, "Extended, Seeking, Subtle and Transmuted Spell are not simulated yet."),
+
+            // ----- Species (Phase 20A): the goliath's giant ancestries, each use spending one of the ancestry's uses -----
+            A("clouds_jaunt", "Cloud's Jaunt", "", "species:giant_ancestry:cloud", FeatureActivation.BonusAction, FeatureTargeting.Point,
+                "Vanish and reappear in an unoccupied square you can see within 30 ft.", "stones_endurance", 1, 30),
+            A("fires_burn", "Fire's Burn", "", "species:giant_ancestry:fire", FeatureActivation.AfterHit, FeatureTargeting.LastHit,
+                "After hitting a creature with an attack roll: it takes 1d10 fire damage.", "stones_endurance", 1),
+            A("frosts_chill", "Frost's Chill", "", "species:giant_ancestry:frost", FeatureActivation.AfterHit, FeatureTargeting.LastHit,
+                "After hitting a creature with an attack roll: it takes 1d6 cold damage and its speed drops by 10 ft until the start of your next turn.", "stones_endurance", 1),
+            A("hills_tumble", "Hill's Tumble", "", "species:giant_ancestry:hill", FeatureActivation.AfterHit, FeatureTargeting.LastHit,
+                "After hitting a Large or smaller creature with an attack roll: it falls prone.", "stones_endurance", 1),
+            A("stones_endurance_reaction", "Stone's Endurance", "", "species:giant_ancestry:stone", FeatureActivation.Automatic, FeatureTargeting.Self,
+                "When an attack damages you, your reaction can reduce the damage by 1d12 + your Constitution modifier (one of the ancestry's uses).",
+                "stones_endurance", 1, status: ImplementationStatus.Partial, note: "Offered against damage from attacks; damage from spells, breath and hazards does not offer it yet."),
+            A("storms_thunder", "Storm's Thunder", "", "species:giant_ancestry:storm", FeatureActivation.Automatic, FeatureTargeting.Self,
+                "When a creature within 60 ft damages you with an attack, your reaction deals it 1d8 thunder damage (one of the ancestry's uses).",
+                "stones_endurance", 1, 60, ImplementationStatus.Partial, "Offered against damage from attacks; damage from spells does not offer it yet."),
 
             // ----- Warlock -----
             Auto("eldritch_invocation", "Eldritch Invocations", "warlock", "Agonizing Blast adds Charisma to each Eldritch Blast beam; Armour of Shadows casts Mage Armour at will.",

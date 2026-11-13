@@ -244,3 +244,12 @@ Known spells, cantrips and spellbook entries are **ordinary character choices** 
 - **Rituals.** Ritual casting is not offered.
 - **Third casters.** The SRD subclasses present include no third-caster subclasses (Eldritch Knight,
   Arcane Trickster), so none were invented.
+
+## Phase 20A: innate spells (ADR-0103)
+
+- **Where they come from.** `CharacterRules.InnateSpells` lists the catalog spells a species knows: a tiefling's legacy cantrip.
+- **In a fight.** `CombatEngine.SpellsOf` adds them after the class cantrips.
+- **The ability.** When the class does not ready the same spell (`InnateAbility`), the attack is proficiency + Charisma and the DC is 8 + both. SRD 5.2.1's choice of Intelligence, Wisdom or Charisma is deferred.
+- **In the window.** The combat window labels them "innate cantrip (Charisma)".
+- **Chill Touch** (SRD 5.2.1) is `SpeciesOnly`: on no class list yet. The catalog validator requires that some species knows it.
+- **Not yet castable.** Innate magic that is not a catalog spell: the gnome's Minor Illusion, Speak with Animals and Mending, and the tiefling's level 3 and 5 legacy spells. These stay flagged.

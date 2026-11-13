@@ -4,6 +4,7 @@ using System.Globalization;
 using Realmkeeper.Domain.Combat;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.Magic;
+using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
 
 namespace Realmkeeper.Application
@@ -57,10 +58,22 @@ namespace Realmkeeper.Application
         public string Unavailable { get; set; }
         public IReadOnlyList<TargetChoice> Targets { get; set; } = new List<TargetChoice>();
         public IReadOnlyList<(string id, string label)> Options { get; set; } = new List<(string, string)>();
+
+        /// <summary>Phase 20A: aimed at a square (Cloud's Jaunt): the window asks for one on the grid.</summary>
+        public bool NeedsPoint { get; set; }
     }
 
     public sealed partial class WorldSession
     {
+        /// <summary>Phase 20A: the save DC and attack bonus of a non-caster's innate spells (0 and 0 when it has none).</summary>
+        private static (int dc, int attack) InnateFigures(CombatStats s)
+        {
+            var rules = s.Rules;
+            if (rules == null || rules.InnateSpells.Count == 0) return (0, 0);
+            var a = rules.InnateSpells[0].ability;
+            return (rules.InnateSpellSaveDc(a).Total, rules.InnateSpellAttack(a).Total);
+        }
+
         private static List<string> EffectLines(CombatEngine engine, CombatantData c)
         {
             var list = new List<string>();
@@ -131,7 +144,7 @@ namespace Realmkeeper.Application
                 var o = new SpellCastOption
                 {
                     Key = s.Id, Spell = s, Explanation = Explain(s), CastLevels = levels, FreeWith = free, AtWill = atWill, MaxTargets = engine.MaxTargets(s, Math.Max(level, s.Level), false),
-                    CostText = atWill ? (s.IsCantrip ? "cantrip" : "at will") : free != null ? "free (Favoured Enemy) or a slot" : levels.Count == 0 ? "no slot left" : "slot level " + string.Join("/", levels),
+                    CostText = atWill ? (s.IsCantrip ? (engine.InnateAbility(player, s) is Ability innate ? "innate cantrip (" + innate + ")" : "cantrip") : "at will") : free != null ? "free (Favoured Enemy) or a slot" : levels.Count == 0 ? "no slot left" : "slot level " + string.Join("/", levels),
                 };
                 if (s.Targeting == SpellTargeting.Creatures)
                     o.Targets = Targets(engine, player, c => engine.SpellProblem(player, new CastSpellAction(s.Id, level, new[] { c.CombatantId }, null, null, free != null && levels.Count == 0 ? free : null)));
@@ -206,6 +219,12 @@ namespace Realmkeeper.Application
                     o.Targets = Targets(engine, player, c => engine.FeatureProblem(player, new UseFeatureAction(f.Id, c.CombatantId, f.Targeting == FeatureTargeting.Either ? (CombatEngine.Hostile(player, c) ? "harm" : "heal") : option)));
                     foreach (var t in o.Targets) if (t.Problem == null) { o.Unavailable = null; break; }
                     if (o.Targets.Count > 0 && o.Targets[0].Problem != null) o.Unavailable = o.Targets[0].Problem;
+                }
+
+                if (f.Targeting == FeatureTargeting.Point) // Phase 20A: the square is chosen on the grid; everything else is checked now
+                {
+                    o.NeedsPoint = true;
+                    if (why != null && why.StartsWith("Choose a square", StringComparison.Ordinal)) o.Unavailable = null;
                 }
 
                 list.Add(o);

@@ -585,6 +585,7 @@ namespace Realmkeeper.Application
                 {
                     Frame = a.Frame, HairId = a.HairId, BeardId = a.BeardId, SkinTone = a.SkinTone, HairColour = a.HairColour, ClothTint = a.ClothTint,
                     HeightPercent = a.HeightPercent, Build = a.Build, // Phase 20
+                    EyeColour = a.EyeColour, // Phase 20A
                 };
                 return CommandResult.Ok("Appearance updated.");
             }

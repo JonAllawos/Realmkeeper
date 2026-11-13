@@ -803,6 +803,12 @@ namespace Realmkeeper.Domain.Combat
             if (amount < 1) return "Heal at least 1 hit point.";
             if (c.State == VitalState.Dead) return $"{c.Name} is dead; healing cannot help.";
             if (c.State == VitalState.Fled) return $"{c.Name} has left the fight.";
+            if (HasEffect(c, CombatEffectKind.NoHealing)) // Phase 20A: Chill Touch
+            {
+                Log(CombatLogKind.Healing, c.CombatantId, default, $"{c.Name} cannot regain hit points now (Chill Touch): {source} restores nothing.", 0);
+                return null;
+            }
+
             var before = Hp(c);
             if (SheetOf(c) is CharacterSheetData healed) CharacterVitals.ChangeHitPoints(healed, amount);
             else c.CurrentHp = Math.Min(c.MaxHp, c.CurrentHp + amount);

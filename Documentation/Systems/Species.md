@@ -81,10 +81,34 @@ added in Phase 6.
 | Gnome | `species:gnome_lineage` | Forest (minor illusion, speak with small beasts), Rock (tinker's tools; mending) | Rock |
 
 Notes:
-- **Not played yet.** Innate spells and the goliath boons are not played by the magic or combat engines yet. Each is flagged, and the sheet's Origins tab says so.
+- **What is played:** see the Phase 20A section below (the goliath boons and the tiefling cantrips now are; the gnome's utility magic is not).
 - **Other variants.** Dwarf is the SRD 5.1 Hill Dwarf and Halfling the Lightfoot; their other variants are not in the SRD. High and Wood Elf remain separate species.
 - **Appearance.**
   - Every species except human shows the human model at the species' height (labelled "placeholder body").
   - Each person now has their own height (92–108 % of the species' typical height) and build.
   - Tieflings, orcs, half-orcs, goliaths, dragonborn and aasimar have their own skin tones (`PlayerAppearanceOptions.SkinTonesFor`).
   - Ears, tusks, horns, tails and scales are not modelled. See `Research/Phase20-Character-Assets-and-References.md`.
+
+## Phase 20A: what each lineage benefit does in play (ADR-0103, ADR-0104)
+
+Every trait and lineage option is shown as **active** (always in effect), **conditional** (played in its situation, which is named) or **not yet played** (with the missing system named). The creator and the sheet's Origins tab both read this from `BenefitStatus`.
+
+| Benefit | State | How it is played |
+|---|---|---|
+| Tiefling legacy resistances (poison, necrotic, fire) | Active | Damage resistance |
+| Tiefling legacy cantrip: Poison Spray, Chill Touch, Fire Bolt | Conditional | Cast in a fight as a cantrip, with Charisma (proficiency + Charisma to hit; DC 8 + both). A class that already readies the same spell casts it with its own ability. Chill Touch stops the target regaining hit points until the caster's next turn ends. |
+| Tiefling level 3 and 5 legacy spells (SRD 5.2.1) | Not in the catalog | Need the spells and a once-per-long-rest innate casting path |
+| Goliath ancestry uses | — | Proficiency bonus per long rest (`stones_endurance`); each boon below spends one |
+| Cloud's Jaunt | Conditional | Bonus action: teleport to a free square within 30 ft in clear line (chosen on the combat grid) |
+| Fire's Burn / Frost's Chill | Conditional | After a hit with an attack roll: +1d10 fire / +1d6 cold and −10 ft speed until the goliath's next turn. Once per hit; dice double on a critical. |
+| Hill's Tumble | Conditional | After a hit: the target (Large or smaller, not already prone) falls prone |
+| Stone's Endurance | Conditional (partial) | Reaction when an attack damages the goliath: −(1d12 + Con). Not yet offered against spell, breath or hazard damage. |
+| Storm's Thunder | Conditional (partial) | Reaction when a creature within 60 ft damages the goliath with an attack: 1d8 thunder to it. Not yet offered against spell damage. |
+| Gnome forest: Minor Illusion, Speak with Animals | Not yet played | No illusion or animal-speech system |
+| Gnome rock: tinker's tools | Active | Tool proficiency (crafting) |
+| Gnome rock: Mending | Not yet played | No object-repair system; the option is flagged as a whole |
+| Dragonborn breath weapon | Not yet played | Unchanged since Phase 20 |
+
+Computer-run goliaths (companions and people) take the same reactions through the same path. Companions also use the after-hit boons.
+
+**Eye colour (Phase 20A).** Ten colours for the player (`PlayerAppearanceOptions.EyePalette`; 0 is the eye as drawn), shown in the creator's preview and on the body in the world. Only the iris is recoloured, through a mask derived from the CC0 eye texture. Generated residents keep brown.

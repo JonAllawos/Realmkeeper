@@ -91,8 +91,9 @@ namespace Realmkeeper.Tests.EditMode.Character
             goliath.Toggle("species:giant_ancestry", "fire");
             var g = Rules(goliath);
             Assert.That(g.ResourceDefinitions.Select(x => x.Id), Has.Member("stones_endurance"), "The ancestry's uses keep their saved resource ID.");
-            Assert.That(RpgCatalog.FindSpecies("goliath").Choices.Single().Options.All(o => o.Needs == IntegrationNeed.Combat), Is.True,
-                "No ancestry boon is played by combat yet, and each says so.");
+            // Phase 20A: every ancestry boon is now played by combat (Phase20ALineageTests), so none is flagged any more.
+            Assert.That(RpgCatalog.FindSpecies("goliath").Choices.Single().Options.All(o => (o.Needs | CharacterRules.NeedsOf(o.Effects)) == IntegrationNeed.None), Is.True,
+                "Every ancestry boon is played by combat, and none is flagged as waiting.");
         }
 
         [Test]

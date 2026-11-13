@@ -400,3 +400,13 @@ Performance: a cover check on a 40×40 grid with 15 % walls takes 20–24 µs; a
 - Attackers lunge; ranged attacks and spells fly as projectiles.
 - Damage (marked resisted or immune), healing, misses, criticals, saves, conditions, downs and deaths float above the body.
 - Each is shown once, from the combat log; nothing here changes the fight.
+
+## Phase 20A: species in combat (ADR-0103)
+
+- **Goliath giant ancestries** go through the shared paths and spend the ancestry's uses (proficiency bonus per long rest):
+  - **After a hit:** Fire's Burn and Frost's Chill (`FeatureActivation.AfterHit`), and Hill's Tumble. One boon per hit (`TurnResources.LastHitBoonUsed`); spell-attack hits count.
+  - **Bonus action:** Cloud's Jaunt (`FeatureTargeting.Point`; the combat window's "Choose a square", then a grid click).
+  - **Reactions:** Stone's Endurance (in `ReactToDamage`) and Storm's Thunder (in `ReactToBeingHurt`). `ReactionKind` gains 10 and 11.
+- **Companions** use the after-hit boons. Computer-run goliaths decide their reactions through the shared policy.
+- **Species features** sit in the combat window's **Features** group, which was "Class features" before.
+- **Chill Touch** adds `CombatEffectKind.NoHealing` (22). `CombatEngine.Heal` restores nothing while it lasts.

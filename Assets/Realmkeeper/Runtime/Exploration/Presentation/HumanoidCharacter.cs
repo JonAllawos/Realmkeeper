@@ -60,7 +60,8 @@ namespace Realmkeeper.Exploration.Presentation
                 Tune(r);
             }
 
-            Attach(catalog.Part(appearance.HeadId), body.transform, bones, (r, i, m) => m != null && m.name.StartsWith("M_Hair", StringComparison.Ordinal) ? hair : m != null && m.name.StartsWith("M_Head", StringComparison.Ordinal) ? skin : Color.white);
+            var head = Attach(catalog.Part(appearance.HeadId), body.transform, bones, (r, i, m) => m != null && m.name.StartsWith("M_Hair", StringComparison.Ordinal) ? hair : m != null && m.name.StartsWith("M_Head", StringComparison.Ordinal) ? skin : Color.white, null, null);
+            if (appearance.EyeColour > 0) EyeColours.Apply(head, appearance.EyeColour); // Phase 20A: the iris alone, through its mask
             if (appearance.HairId != null) Attach(catalog.Part(appearance.HairId), body.transform, bones, (r, i, m) => hair);
             if (appearance.BeardId != null) Attach(catalog.Part(appearance.BeardId), body.transform, bones, (r, i, m) => hair);
 
@@ -192,6 +193,11 @@ namespace Realmkeeper.Exploration.Presentation
         /// </summary>
         public int Pose { get; set; }
 
+        /// <summary>Phase 20A assets: this body makes footstep sounds as it walks (the player's body only).</summary>
+        public bool Footsteps { get; set; }
+
+        private float _stride;
+
         public void Initialize(Animator animator)
         {
             _animator = animator;
@@ -245,6 +251,18 @@ namespace Realmkeeper.Exploration.Presentation
             if (_talkTimer > 0f) _talkTimer -= dt;
             _animator.SetBool(TalkingId, _talkTimer > 0f && Speed < 0.3f);
             if (_hasActivity) _animator.SetInteger(ActivityId, Speed < 0.3f && _talkTimer <= 0f ? Pose : 0);
+
+            // Phase 20A assets: the player's own footsteps, one per stride (faster when running), never while standing.
+            if (Footsteps && Speed > 0.6f)
+            {
+                _stride -= dt;
+                if (_stride <= 0f)
+                {
+                    GameSounds.Play("footstep", Speed > 3.2f ? 0.55f : 0.4f);
+                    _stride = Mathf.Clamp(0.95f / Mathf.Max(1f, Speed), 0.26f, 0.6f);
+                }
+            }
+            else _stride = 0.12f;
         }
     }
 }

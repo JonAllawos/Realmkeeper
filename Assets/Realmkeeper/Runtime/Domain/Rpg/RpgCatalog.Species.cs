@@ -124,9 +124,9 @@ namespace Realmkeeper.Domain.Rpg
                         Id = "species:gnome_lineage", Name = "Gnomish Lineage", Prompt = "Choose your gnomish line.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
                         Options = new[]
                         {
-                            new ChoiceOption("forest", "Forest gnome", "You know a minor illusion and can speak with small beasts (innate magic: usable when innate spells arrive).",
+                            new ChoiceOption("forest", "Forest gnome", "You know a minor illusion and can speak with small beasts.",
                                 E(EffectKind.InnateMagic, "minor-illusion"), E(EffectKind.InnateMagic, "speak-with-small-beasts")) { Needs = IntegrationNeed.Magic },
-                            new ChoiceOption("rock", "Rock gnome", "You are proficient with tinker's tools and know the small tricks of mending and making (the tricks are innate magic, usable when innate spells arrive).",
+                            new ChoiceOption("rock", "Rock gnome", "You are proficient with tinker's tools and know the small tricks of mending and making.",
                                 E(EffectKind.ToolProficiency, "tinkers_tools"), E(EffectKind.InnateMagic, "mending")) { Needs = IntegrationNeed.Magic },
                         },
                     },
@@ -194,12 +194,12 @@ namespace Realmkeeper.Domain.Rpg
                         Id = "species:fiendish_legacy", Name = "Fiendish Legacy", Prompt = "Choose the legacy in your blood.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
                         Options = new[]
                         {
-                            new ChoiceOption("abyssal", "Abyssal", "You resist poison damage, and know a spray of poison (innate magic: usable when innate spells arrive).",
-                                E(EffectKind.Resistance, "poison"), E(EffectKind.InnateMagic, "poison-spray")) { Needs = IntegrationNeed.Magic },
-                            new ChoiceOption("chthonic", "Chthonic", "You resist necrotic damage, and know a chilling, deathly touch (innate magic: usable when innate spells arrive).",
-                                E(EffectKind.Resistance, "necrotic"), E(EffectKind.InnateMagic, "chill-touch")) { Needs = IntegrationNeed.Magic },
-                            new ChoiceOption("infernal", "Infernal", "You resist fire damage, and know a bolt of fire (innate magic: usable when innate spells arrive).",
-                                E(EffectKind.Resistance, "fire"), E(EffectKind.InnateMagic, "fire-bolt")) { Needs = IntegrationNeed.Magic },
+                            new ChoiceOption("abyssal", "Abyssal", "You resist poison damage, and know Poison Spray as a cantrip (cast with Charisma).",
+                                E(EffectKind.Resistance, "poison"), E(EffectKind.InnateMagic, "poison-spray")),
+                            new ChoiceOption("chthonic", "Chthonic", "You resist necrotic damage, and know Chill Touch as a cantrip (cast with Charisma).",
+                                E(EffectKind.Resistance, "necrotic"), E(EffectKind.InnateMagic, "chill-touch")),
+                            new ChoiceOption("infernal", "Infernal", "You resist fire damage, and know Fire Bolt as a cantrip (cast with Charisma).",
+                                E(EffectKind.Resistance, "fire"), E(EffectKind.InnateMagic, "fire-bolt")),
                         },
                     },
                 },
@@ -272,24 +272,24 @@ namespace Realmkeeper.Domain.Rpg
                 Choices = new[]
                 {
                     // Phase 20 (rules 9): the SRD 5.2.1 ancestries. Saves from before choose "stone", which is what a goliath was then.
-                    // None of the six boons is played by the combat engine yet; each is flagged, and the sheet says so.
+                    // Phase 20A: all six boons are played by the combat engine (ADR-0103); each use spends one of the ancestry's uses.
                     new ChoiceDefinition
                     {
                         Id = "species:giant_ancestry", Name = "Giant Ancestry", Prompt = "Choose the giant in your line.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
                         Options = new[]
                         {
                             new ChoiceOption("cloud", "Cloud giant: Cloud's Jaunt", "As a bonus action, you vanish and reappear up to 30 feet away.",
-                                E(EffectKind.CombatRule, "teleport", 30, "Bonus action: teleport 30 ft")) { Needs = IntegrationNeed.Combat },
+                                E(EffectKind.CombatRule, "teleport", 30, "Bonus action: teleport 30 ft")),
                             new ChoiceOption("fire", "Fire giant: Fire's Burn", "When you hit with an attack, you can add 1d10 fire damage.",
-                                E(EffectKind.CombatRule, "extra-fire-damage", 10, "On a hit: +1d10 fire")) { Needs = IntegrationNeed.Combat },
+                                E(EffectKind.CombatRule, "extra-fire-damage", 10, "On a hit: +1d10 fire")),
                             new ChoiceOption("frost", "Frost giant: Frost's Chill", "When you hit, you can add 1d6 cold damage and slow the target by 10 feet until your next turn.",
-                                E(EffectKind.CombatRule, "extra-cold-slow", 6, "On a hit: +1d6 cold, speed −10 ft")) { Needs = IntegrationNeed.Combat },
+                                E(EffectKind.CombatRule, "extra-cold-slow", 6, "On a hit: +1d6 cold, speed −10 ft")),
                             new ChoiceOption("hill", "Hill giant: Hill's Tumble", "When you hit a Large or smaller creature, you can knock it prone.",
-                                E(EffectKind.CombatRule, "knock-prone", 0, "On a hit: knock Large or smaller prone")) { Needs = IntegrationNeed.Combat },
+                                E(EffectKind.CombatRule, "knock-prone", 0, "On a hit: knock Large or smaller prone")),
                             new ChoiceOption("stone", "Stone giant: Stone's Endurance", "When you take damage, you can use your reaction to reduce it by 1d12 + your Constitution modifier.",
-                                E(EffectKind.CombatRule, "reduce-damage", 12, "Reduce damage by 1d12 + Constitution")) { Needs = IntegrationNeed.Combat },
+                                E(EffectKind.CombatRule, "reduce-damage", 12, "Reduce damage by 1d12 + Constitution")),
                             new ChoiceOption("storm", "Storm giant: Storm's Thunder", "When a creature within 60 feet damages you, you can use your reaction to deal it 1d8 thunder damage.",
-                                E(EffectKind.CombatRule, "retaliate-thunder", 8, "Reaction: 1d8 thunder to an attacker within 60 ft")) { Needs = IntegrationNeed.Combat },
+                                E(EffectKind.CombatRule, "retaliate-thunder", 8, "Reaction: 1d8 thunder to an attacker within 60 ft")),
                         },
                     },
                 },

@@ -131,3 +131,13 @@ These use the same tokens, with no new design language.
 | Sheet tabs | `.rk-tabs` / `.rk-tab` (Phase 19 shared tabs) with icons | |
 | Trait not yet played | `.xk-sheet-trait--pending` | Muted value and the words "not yet played by the game" |
 | About them | `.xk-dialogue-about` | A card inside the conversation window; each value's tooltip says how it is known |
+
+## Sound (added with the free asset integration, 2026-11-12)
+
+The game's first sounds are Kenney RPG Audio (CC0), played by `GameSounds`:
+- footsteps under the player;
+- a door on entering a building;
+- coins on a completed trade;
+- pages when the character sheet opens and closes.
+
+Settings ▸ **Sound** has one slider, "Sound volume" (`RkSettings.SoundVolume`, default 70 %; 0 is silent). No meaning is carried by sound alone. Ambience, weather and music are Phase 21 work.

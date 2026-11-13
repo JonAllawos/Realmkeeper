@@ -317,11 +317,9 @@ namespace Realmkeeper.Application
                 Age = p.Age,
                 Background = p.Background,
                 Description = p.Description,
-                Appearance = new PlayerAppearanceData
-                {
-                    Frame = p.Appearance.Frame, HairId = p.Appearance.HairId, BeardId = p.Appearance.BeardId,
-                    SkinTone = p.Appearance.SkinTone, HairColour = p.Appearance.HairColour, ClothTint = p.Appearance.ClothTint,
-                },
+                // Phase 20A: the whole record. The field-by-field copy here dropped Phase 20's height and build, so the body in
+                // the world was always of average height and build while the creator's preview showed the chosen ones.
+                Appearance = p.Appearance.Clone(),
                 Location = p.IsInSettlement ? _world.FindSettlement(p.SettlementId)?.Name ?? "Unknown" : "On the road",
                 Purse = p.Purse,
                 Fed = p.Fed,

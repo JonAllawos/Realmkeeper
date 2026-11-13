@@ -464,7 +464,7 @@ namespace Realmkeeper.Exploration.Presentation
                     var cell = new Button { name = $"xk-combat-cell-{pos.X}-{pos.Y}" };
                     cell.AddToClassList("xk-combat-cell");
                     if (InPreview(pos)) cell.AddToClassList("xk-combat-cell--area");
-                    if (Composing && NeedsPoint && yourTurn) { var aim = pos; cell.clicked += () => Aim(aim); }
+                    if ((Composing && NeedsPoint || AimingFeature) && yourTurn) { var aim = pos; cell.clicked += () => Aim(aim); } // Phase 20A: or a feature's square
                     if (s.DifficultTerrainContains(pos)) cell.AddToClassList("xk-combat-cell--difficult");
                     if (s.BlockedContains(pos)) cell.AddToClassList("xk-combat-cell--wall"); // Phase 13
                     string terrain = null; // Phase 14: doors and low cover on the grid
@@ -497,7 +497,7 @@ namespace Realmkeeper.Exploration.Presentation
                         var id = who.Id;
                         cell.clicked += () => Inspect(id);
                     }
-                    else if (Composing && NeedsPoint) { }
+                    else if (Composing && NeedsPoint || AimingFeature) { }
                     else if (yourTurn && s.Status == EncounterStatus.Active)
                     {
                         var problem = MoveProblem?.Invoke(pos);

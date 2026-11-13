@@ -67,6 +67,14 @@ namespace Realmkeeper.Domain.Combat
 
             if (foes.Count == 0) return new EndTurnAction();
 
+            // Phase 20A: a goliath's giant ancestry answers the hit just landed (one boon per hit, while its uses last).
+            foreach (var boon in new[] { "fires_burn", "frosts_chill", "hills_tumble" })
+                if (Ok(new UseFeatureAction(boon)) is CombatAction answer)
+                {
+                    reason = $"answers the hit with {CombatFeatureCatalog.Find(boon).Name}";
+                    return answer;
+                }
+
             // 3. Their own Second Wind when at half their hit points or less.
             if (engine.Hp(actor) * 2 <= engine.MaxHp(actor) && Ok(new UseFeatureAction("second_wind")) is CombatAction wind)
             {

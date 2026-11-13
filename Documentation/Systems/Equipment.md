@@ -113,3 +113,11 @@ Their bonuses and effects enter the rules as typed effects while worn, and while
 - The wand casts Magic Missile from its charges (one per spell level) in a fight, and regains 1d6 + 1 after a long rest.
 
 **Ammunition.** Bows, crossbows and slings spend arrows, bolts or bullets from the pack. Without ammunition the attack is unavailable. Half of what was shot is gathered back when the fight ends.
+
+## Item models from art assets (added with the free asset integration, 2026-11-12)
+
+- **How it works.** `ItemModels.ArtModels` maps an item to a catalog model with a scale and a turn into the item frame (grip at the origin, length along +Y). `ItemModels.Build` uses it when the catalog has the model, for the item's own entry first, then for the item it is drawn "like". The code-built shape remains the fallback.
+- **Weapons and shields (15 items):** KayKit Fantasy Weapons Bits (CC0), scaled from KayKit's roughly twice-life size to real lengths. These are the dagger, arming sword, shortsword, scimitar, rapier, hand axe, greataxe, mace, spear, javelin, quarterstaff, hunting bow, both shields and the arcane focus.
+- **Other items (12):** the Fantasy Props kit already in the project. These are the keys, both healing potions, the letter and charter, the almanac, ledger and spellbook, and the backpack.
+- **Still code-built:** the light crossbow, hats, food, trade goods, tools and folded clothing; no armour model exists.
+- **Checked by** `AssetIntegrationPlayModeTests` (every mapping resolves and is a believable size) and its gallery capture.

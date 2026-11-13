@@ -48,8 +48,37 @@ namespace Realmkeeper.Domain.Combat
 
             if (SheetOf(c) != null && Stats(c).Rules != null && HasInvocation(c, "armor_of_shadows"))
                 if (!list.Exists(x => x.Id == "mage_armor")) list.Add(SpellCatalog.Find("mage_armor"));
+
+            // Phase 20A: a species' innate spells (a tiefling's legacy cantrip), unless the class already readies the same spell.
+            if (SheetOf(c) != null && Stats(c).Rules is CharacterRules rules)
+                foreach (var (id, _, _) in rules.InnateSpells)
+                    if (!list.Exists(x => x.Id == id) && SpellCatalog.Find(id) is SpellDefinition innate) list.Insert(InnateIndex(list), innate);
             return list;
         }
+
+        private static int InnateIndex(List<SpellDefinition> list)
+        {
+            var i = 0;
+            while (i < list.Count && list[i].IsCantrip) i++;
+            return i; // after the class cantrips, before levelled spells
+        }
+
+        /// <summary>
+        /// Phase 20A: the ability an innate spell is cast with, when this combatant knows <paramref name="s"/> only through
+        /// its species (null when it is a class spell, a creature's or not known at all).
+        /// </summary>
+        public Ability? InnateAbility(CombatantData c, SpellDefinition s)
+        {
+            if (SheetOf(c) == null || !(Stats(c).Rules is CharacterRules rules)) return null;
+            var access = Access(c);
+            if (access != null && (access.ReadyCantrips().Exists(x => x.Id == s.Id) || access.ReadySpells().Exists(x => x.Id == s.Id))) return null;
+            foreach (var (id, ability, _) in rules.InnateSpells) if (id == s.Id) return ability;
+            return null;
+        }
+
+        /// <summary>The save DC for this spell: the innate ability's for a species spell, otherwise the caster's own.</summary>
+        public int SpellSaveDc(CombatantData c, SpellDefinition s) =>
+            InnateAbility(c, s) is Ability a ? Stats(c).Rules.InnateSpellSaveDc(a).Total : SpellSaveDc(c);
 
         private bool HasInvocation(CombatantData c, string id)
         {
@@ -444,7 +473,7 @@ namespace Realmkeeper.Domain.Combat
                 }
             }
 
-            var dc = SpellSaveDc(actor);
+            var dc = SpellSaveDc(actor, s); // Phase 20A: an innate spell uses its own ability
             var careful = new HashSet<CombatantData>();
             if (meta.Contains("careful"))
                 foreach (var c in targets) if (c.Side == actor.Side && careful.Count < Math.Max(1, stats.Modifier(Ability.Charisma))) careful.Add(c);
@@ -511,6 +540,12 @@ namespace Realmkeeper.Domain.Combat
                     {
                         var shots = perTarget.TryGetValue(target.CombatantId, out var k) ? k : 1;
                         var option = stats.SpellAttackOption(s, meta.Contains("distant") ? 2 : 1);
+                        if (InnateAbility(actor, s) is Ability innateAbility) // Phase 20A: a species spell, cast with its own ability
+                        {
+                            option.AttackBonus = stats.Rules.InnateSpellAttack(innateAbility);
+                            option.Ability = innateAbility;
+                        }
+
                         var anyHit = false;
                         for (var i = 0; i < shots; i++)
                         {
@@ -520,6 +555,7 @@ namespace Realmkeeper.Domain.Combat
                             {
                                 anyHit = true;
                                 critical |= roll.Critical;
+                                MarkHit(actor, target, false, roll.Critical, false); // Phase 20A: a spell attack's hit counts for on-hit boons
                                 foreach (var e in s.Effects) if (e.Kind == CombatEffectKind.Damage) AddDamage(e, roll.Critical, 1, null);
                             }
                             else if (s.IsCantrip && AttackerFeature(actor, "potent_cantrip"))

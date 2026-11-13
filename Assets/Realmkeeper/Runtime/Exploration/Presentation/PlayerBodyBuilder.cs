@@ -24,6 +24,9 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>Phase 20: the build's width (slight, average, heavy); height is unchanged.</summary>
         public float WidthScale { get; set; } = 1f;
 
+        /// <summary>Phase 20A: eye colour (an index into PlayerAppearanceOptions.EyePalette; 0 is the drawn brown).</summary>
+        public int EyeColour { get; set; }
+
         /// <summary>The item worn or wielded in each slot (item IDs).</summary>
         public Dictionary<EquipmentSlot, string> Items { get; } = new Dictionary<EquipmentSlot, string>();
 
@@ -40,6 +43,7 @@ namespace Realmkeeper.Exploration.Presentation
             look.ClothTint = a.ClothTint;
             look.HeightScale = (Realmkeeper.Domain.Rpg.RpgCatalog.FindSpecies(hub.SpeciesId)?.Appearance.HeightScale ?? 1f) * Mathf.Clamp(a.HeightPercent <= 0 ? 100 : a.HeightPercent, 80, 120) / 100f; // Phase 20
             look.WidthScale = PlayerAppearanceOptions.BuildWidth(a.Build);
+            look.EyeColour = a.EyeColour; // Phase 20A
             foreach (var pair in hub.Equipment) look.Items[pair.Key] = pair.Value.ItemId;
             return look;
         }
@@ -50,7 +54,7 @@ namespace Realmkeeper.Exploration.Presentation
             get
             {
                 var sb = new StringBuilder();
-                sb.Append(Frame).Append('/').Append(HairId ?? "-").Append('/').Append(BeardId ?? "-").Append("/s").Append(SkinTone).Append("/h").Append(HairColour).Append("/t").Append(ClothTint).Append("/x").Append(HeightScale.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)).Append("/w").Append(WidthScale.ToString("F2", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(Frame).Append('/').Append(HairId ?? "-").Append('/').Append(BeardId ?? "-").Append("/s").Append(SkinTone).Append("/h").Append(HairColour).Append("/t").Append(ClothTint).Append("/x").Append(HeightScale.ToString("F3", System.Globalization.CultureInfo.InvariantCulture)).Append("/w").Append(WidthScale.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)).Append("/e").Append(EyeColour);
                 foreach (EquipmentSlot slot in Enum.GetValues(typeof(EquipmentSlot)))
                     if (Items.TryGetValue(slot, out var item)) sb.Append('|').Append(slot).Append('=').Append(item);
                 return sb.ToString();
@@ -101,6 +105,7 @@ namespace Realmkeeper.Exploration.Presentation
                 OutfitTint = Mathf.Clamp(look.ClothTint, 0, NpcAppearanceResolver.OutfitTints.Count - 1),
                 HeightScale = Mathf.Clamp(look.HeightScale, 0.5f, 1.4f),
                 WidthScale = Mathf.Clamp(look.WidthScale, 0.85f, 1.15f), // Phase 20
+                EyeColour = look.EyeColour, // Phase 20A
             };
             var driver = HumanoidCharacterBuilder.Build(parent, appearance, catalog);
             if (driver == null) return null;

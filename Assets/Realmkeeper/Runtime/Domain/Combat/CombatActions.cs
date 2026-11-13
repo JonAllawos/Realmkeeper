@@ -266,18 +266,22 @@ namespace Realmkeeper.Domain.Combat
     /// <summary>Phase 9: use a class feature (Rage, Action Surge, Flurry of Blows, Lay on Hands …), with a target, an option or an amount where it needs one.</summary>
     public sealed class UseFeatureAction : CombatAction
     {
-        public UseFeatureAction(string featureId, CombatantId target = default, string option = null, int amount = 0)
+        public UseFeatureAction(string featureId, CombatantId target = default, string option = null, int amount = 0, GridPos? point = null)
         {
             FeatureId = featureId;
             Target = target;
             Option = option;
             Amount = amount;
+            Point = point;
         }
 
         public string FeatureId { get; }
         public CombatantId Target { get; }
         public string Option { get; }
         public int Amount { get; }
+
+        /// <summary>Phase 20A: the square a feature moves to (Cloud's Jaunt), or null.</summary>
+        public GridPos? Point { get; }
         public override string Describe => CombatFeatureCatalog.Find(FeatureId)?.Name ?? FeatureId;
     }
 

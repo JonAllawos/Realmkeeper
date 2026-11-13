@@ -116,14 +116,22 @@ namespace Realmkeeper.Domain.Combat
             CreatureHitEffects(attacker, target, o, r, charged); // Phase 10: a charge's knock-down, venom
             if (r.Damage != null && r.Damage.Final > 0) ReactToBeingHurt(attacker, target); // Phase 10: Hellish Rebuke
 
-            var t = attacker.Turn;
-            t.LastHitTargetId = target.CombatantId;
-            t.LastHitMelee = o.Melee && (o.Kind == AttackKind.Weapon || o.Kind == AttackKind.Unarmed);
-            t.LastHitCritical = r.Critical;
-            t.LastHitMonkWeapon = o.Kind == AttackKind.Unarmed || weapon != null && o.Melee && (weapon.Simple || weapon.Has(WeaponProperty.Light)) && !weapon.Has(WeaponProperty.Heavy) && !weapon.Has(WeaponProperty.TwoHanded);
+            MarkHit(attacker, target, o.Melee && (o.Kind == AttackKind.Weapon || o.Kind == AttackKind.Unarmed), r.Critical,
+                o.Kind == AttackKind.Unarmed || weapon != null && o.Melee && (weapon.Simple || weapon.Has(WeaponProperty.Light)) && !weapon.Has(WeaponProperty.Heavy) && !weapon.Has(WeaponProperty.TwoHanded));
             ApplyMastery(attacker, target, o, weapon);
             DarkOnesBlessing(attacker, target, hpBefore);
             return r;
+        }
+
+        /// <summary>Records the last creature hit this turn (smites, Stunning Strike, the giant ancestries' on-hit boons).</summary>
+        private static void MarkHit(CombatantData attacker, CombatantData target, bool melee, bool critical, bool monkWeapon)
+        {
+            var t = attacker.Turn;
+            t.LastHitTargetId = target.CombatantId;
+            t.LastHitMelee = melee;
+            t.LastHitCritical = critical;
+            t.LastHitMonkWeapon = monkWeapon;
+            t.LastHitBoonUsed = false; // Phase 20A: one giant-ancestry boon per hit
         }
 
         /// <summary>The d20 part of any attack (weapon, unarmed, spell): modes, dice, bonuses, critical range, the target's armour class, explained.</summary>

@@ -439,7 +439,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (TradingAt == null) return CommandResult.InvalidState("No shop is open.");
             var result = _session.Dispatch(new BuyItemCommand(TradingAt.ShopId, itemId, 1, unitPrice));
             Trade?.Show(_session.GetShopDetail(TradingAt.ShopId), ResidentView.Describe(result), !result.IsSuccess);
-            if (result.IsSuccess) _residentKeeperTalk(TradingAt);
+            if (result.IsSuccess) { _residentKeeperTalk(TradingAt); GameSounds.Play("coins"); }
             return result;
         }
 
@@ -448,7 +448,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (TradingAt == null) return CommandResult.InvalidState("No shop is open.");
             var result = _session.Dispatch(new SellItemCommand(TradingAt.ShopId, stack, 1, unitPrice));
             Trade?.Show(_session.GetShopDetail(TradingAt.ShopId), ResidentView.Describe(result), !result.IsSuccess);
-            if (result.IsSuccess) _residentKeeperTalk(TradingAt);
+            if (result.IsSuccess) { _residentKeeperTalk(TradingAt); GameSounds.Play("coins"); }
             return result;
         }
 
@@ -463,8 +463,8 @@ namespace Realmkeeper.Exploration.Presentation
         public void ToggleHub()
         {
             if (HubWindow == null) return;
-            if (HubWindow.IsOpen) CloseWindows();
-            else ShowHub(null, false);
+            if (HubWindow.IsOpen) { CloseWindows(); GameSounds.Play("book-close"); }
+            else { ShowHub(null, false); GameSounds.Play("book-open"); }
         }
 
         private void ShowHub(string message, bool failed)
@@ -622,6 +622,7 @@ namespace Realmkeeper.Exploration.Presentation
             look.ClothTint = a.ClothTint;
             look.HeightScale = (draft.Species?.Appearance.HeightScale ?? 1f) * a.HeightPercent / 100f; // Phase 20: the person within the species
             look.WidthScale = PlayerAppearanceOptions.BuildWidth(a.Build);
+            look.EyeColour = a.EyeColour; // Phase 20A
             var cls = draft.Class;
             if (cls == null) return look;
             foreach (var g in cls.Equipment)

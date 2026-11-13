@@ -414,20 +414,20 @@ namespace Realmkeeper.Exploration.Presentation
             _content.Add(Text(sp.Lore, "xk-w-desc"));
             _content.Add(Pair("Size · speed · type", $"{sp.Size} · {r.Speed} ft · {sp.CreatureType}"));
             if (sp.Appearance.PlaceholderNote != null) _content.Add(Text(sp.Appearance.PlaceholderNote, "xk-cc-warn"));
-            foreach (var t in sp.Traits) _content.Add(Trait(t.Name, t.Description, CharacterRules.Needs(t)));
+            foreach (var t in sp.Traits) _content.Add(Trait(t.Name, t.Description, BenefitStatus.Of(t)));
             foreach (var c in sp.Choices)
             {
                 if (c.Kind != ChoiceKind.Option) continue;
                 foreach (var id in ch.Player.Rpg.Chosen(c.Id))
                     foreach (var o in c.Options)
-                        if (o.Id == id) _content.Add(Trait(c.Name + ": " + o.Name, o.Description, o.Needs));
+                        if (o.Id == id) _content.Add(Trait(c.Name + ": " + o.Name, o.Description, BenefitStatus.Of(o)));
             }
 
             var bg = r.Background;
             _content.Add(Text(bg.Name, "xk-w-heading"));
             _content.Add(Text(bg.Description, "xk-w-value"));
             _content.Add(Pair("Skills · tools", string.Join(", ", bg.Skills.Select(SkillRules.Name)) + " · " + string.Join(", ", bg.Tools.Select(t => RpgCatalog.FindTool(t)?.Name ?? t))));
-            _content.Add(Trait(bg.Feature.Name, bg.Feature.Description, CharacterRules.Needs(bg.Feature)));
+            _content.Add(Trait(bg.Feature.Name, bg.Feature.Description, BenefitStatus.Of(bg.Feature)));
 
             var rpg = ch.Player.Rpg;
             _content.Add(Text("In your own words", "xk-w-heading"));
@@ -437,11 +437,29 @@ namespace Realmkeeper.Exploration.Presentation
             if (rpg.CreatedOn.IsValidDate) _content.Add(Pair("Began", rpg.CreatedOn.ToString()));
         }
 
-        private static VisualElement Trait(string name, string description, IntegrationNeed needs)
+        /// <summary>
+        /// Phase 20A: a trait with how the game plays it, in words and a badge (never colour alone): active (always in
+        /// effect), conditional (in its situation or when used) or not yet played (the system it needs is missing).
+        /// </summary>
+        internal static VisualElement Trait(string name, string description, (BenefitState state, string text) status)
         {
-            var row = Pair(name, description + (needs != IntegrationNeed.None ? "  · not yet played by the game: " + CharacterAdvancementWindow.NeedsText(needs) : string.Empty));
-            if (needs != IntegrationNeed.None) row.AddToClassList("xk-sheet-trait--pending");
+            var row = Pair(name, description + "  · " + status.text);
+            row.name = "xk-sheet-trait-" + BenefitStatus.Label(status.state).Replace(' ', '-');
+            row.AddToClassList("xk-sheet-trait");
+            row.Insert(1, BenefitBadge(status.state)); // after the name, before the description
+            row.tooltip = status.text;
+            if (status.state == BenefitState.NotYetPlayed) row.AddToClassList("xk-sheet-trait--pending");
             return row;
+        }
+
+        /// <summary>Phase 20A: the badge naming how a benefit is played (the creator uses it too).</summary>
+        internal static Label BenefitBadge(BenefitState state)
+        {
+            var badge = new Label(BenefitStatus.Label(state)) { name = "xk-benefit-" + BenefitStatus.Label(state).Replace(' ', '-') };
+            badge.AddToClassList("rk-badge");
+            badge.AddToClassList(state == BenefitState.Active ? "rk-badge--good" : state == BenefitState.Conditional ? "rk-badge--info" : "rk-badge--warn");
+            badge.AddToClassList("xk-sheet-trait-badge");
+            return badge;
         }
 
         // ----- Phase 7: experience and progression ----------------------------------------------------------

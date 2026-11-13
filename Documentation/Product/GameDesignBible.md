@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 20, 2026-11-12)
+## Implementation status (updated at the end of Phase 20A, 2026-11-12)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -40,7 +40,8 @@ present but visibly temporary; **Not started**.
 | 17 | Campaign engine and narrative systems | Implemented (`8f36025`) |
 | 18 | World depth, exploration and living content | Implemented (`713b9a0`) |
 | 19 | UI/UX and visual design overhaul (first pass) | Implemented, partly (`6f225d8`; see its report) |
-| 20 | Advanced character creation, character systems and character UI | **Implemented** (committed locally, not pushed). See below and the Phase 20 report. |
+| 20 | Advanced character creation, character systems and character UI | Implemented (`6dce1a2`, pushed) |
+| 20A | Character systems completion: lineage mechanics in play, eye colour, benefit status, familiarity and progression audits; free asset integration | **Implemented** (committed locally, not pushed). See the Phase 20A report. |
 | 21 | Mature world content and immersion | Not started (needs the owner's authorisation) |
 
 ### §7 Character and RPG system
@@ -51,7 +52,7 @@ present but visibly temporary; **Not started**.
 | Standard array, point buy | Implemented | No manual entry or rolling |
 | 18 skills, proficiency, expertise | Implemented | Expertise from levels too; Jack of All Trades; Reliable Talent shown |
 | Six saving throws | Implemented | Save proficiencies and aura bonuses from levels; roll modes |
-| 12 species | Implemented as rules, with SRD 5.2.1 lineages for tiefling, goliath and gnome (Phase 20, rules 9); **Placeholder** art | Non-human species show the human model at their height, with their own skin tones and the person's height and build (Phase 20). Ears, horns, tails and scales: Not started (no fitting licensed asset). |
+| 12 species | Implemented as rules, with SRD 5.2.1 lineages for tiefling, goliath and gnome (Phase 20, rules 9). **Phase 20A:** the goliath ancestries and the tiefling legacy cantrips are played in combat; the gnome utility magic, the tiefling level 3 and 5 spells and the breath weapon are not, and say so. **Placeholder** art | Non-human species show the human model at their height, with their own skin tones and the person's height and build (Phase 20). Ears, horns, tails and scales: Not started (no fitting licensed asset). |
 | 12 backgrounds | Implemented | Social features are Foundation |
 | 12 classes | **Implemented, levels 1–20** | SRD 5.2.1 features, scaling, resources, slots; distinct and validated |
 | Subclasses | Implemented (one per class) | The SRD 5.2.1 subclass; the SRDs hold no others. Further subclasses would be Realmkeeper originals: Not started. |

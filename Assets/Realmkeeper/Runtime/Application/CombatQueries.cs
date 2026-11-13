@@ -198,7 +198,8 @@ namespace Realmkeeper.Application
                     Stats = string.Join(" · ", scores) + $" · speed {s.BaseSpeed} ft · proficiency +{s.ProficiencyBonus}",
                     CreatureIsBeast = s.Creature != null && s.Creature.Type == "Beast" || c.FormCreatureId != null, CreatureId = c.FormCreatureId ?? c.CreatureId,
                     Concentration = c.Concentration?.Name, Effects = EffectLines(engine, c), IsCaster = s.IsCaster && c.FormCreatureId == null,
-                    SpellSaveDc = s.IsCaster ? engine.SpellSaveDc(c) : 0, SpellAttack = s.IsCaster ? s.SpellAttack().Total : 0, Resources = ResourceText(engine, c),
+                    // Phase 20A: someone who casts only innate spells (a tiefling fighter) is shown the figures those spells use.
+                    SpellSaveDc = s.IsCaster ? engine.SpellSaveDc(c) : InnateFigures(s).dc, SpellAttack = s.IsCaster ? s.SpellAttack().Total : InnateFigures(s).attack, Resources = ResourceText(engine, c),
                     Form = c.FormCreatureId == null ? null : CreatureCatalog.Find(c.FormCreatureId)?.Name,
                     Bestiary = c.CreatureId != null && c.FormCreatureId == null ? BestiaryText(CreatureCatalog.Find(c.CreatureId)) : null,
                     CoverFromPlayer = player != null && c != player ? engine.CoverOf(player, c).Describe() : null,

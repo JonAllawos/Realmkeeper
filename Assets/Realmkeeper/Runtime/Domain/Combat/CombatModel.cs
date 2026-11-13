@@ -231,6 +231,9 @@ namespace Realmkeeper.Domain.Combat
         public bool LastHitCritical { get; set; }
         public bool LastHitMonkWeapon { get; set; }
 
+        /// <summary>Phase 20A: a giant-ancestry boon (Fire's Burn, Frost's Chill, Hill's Tumble) was already used on the last hit.</summary>
+        public bool LastHitBoonUsed { get; set; }
+
         /// <summary>Took the Attack action this turn (the monk's bonus unarmed strike follows it).</summary>
         public bool AttackActionTaken { get; set; }
 

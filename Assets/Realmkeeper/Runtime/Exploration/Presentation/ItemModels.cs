@@ -27,6 +27,9 @@ namespace Realmkeeper.Exploration.Presentation
             var k = new Kit(root.transform, catalog, assets);
             // Phase 11: an item drawn like another (a greatsword like the arming sword) until it has its own model.
             var model = def.Visual != null && def.Visual.StartsWith("like:", System.StringComparison.Ordinal) ? def.Visual.Substring(5) : def.Id;
+            // Phase 20A assets: an art model where the catalog has one (KayKit Fantasy Weapons Bits, the Fantasy Props kit);
+            // the item's own entry first, then the item it is drawn like. The built shape below remains the fallback.
+            if (TryArtModel(root.transform, def.Id, catalog) || (model != def.Id && TryArtModel(root.transform, model, catalog))) return root;
             switch (model)
             {
                 case "dagger_iron":
@@ -127,6 +130,56 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             return root;
+        }
+
+        /// <summary>
+        /// Phase 20A assets: which catalog model draws an item, its scale to the item's real size and its turn into the item
+        /// frame (grip at the origin, length along +Y, a shield's face toward +Z). KayKit's weapons are modelled about twice
+        /// life size for its chunky figures; the Fantasy Props are in metres.
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, (string model, float scale, Vector3 euler)> ArtModels = new Dictionary<string, (string, float, Vector3)>(StringComparer.Ordinal)
+        {
+            ["dagger_iron"] = ("weapon_dagger_A", 0.28f, Vector3.zero),
+            ["sword_arming"] = ("weapon_sword_B", 0.54f, Vector3.zero),
+            ["shortsword"] = ("weapon_sword_B", 0.42f, Vector3.zero),
+            ["scimitar"] = ("weapon_sword_C", 0.42f, Vector3.zero),
+            ["rapier"] = ("weapon_sword_D", 0.49f, Vector3.zero),
+            ["axe_hand"] = ("weapon_axe_A", 0.46f, Vector3.zero),
+            ["greataxe"] = ("weapon_axe_B", 0.6f, Vector3.zero),
+            ["mace_flanged"] = ("weapon_hammer_B", 0.41f, Vector3.zero),
+            ["spear_ash"] = ("weapon_spear_A", 0.6f, Vector3.zero),
+            ["javelin"] = ("weapon_spear_A", 0.42f, Vector3.zero),
+            ["staff_quarter"] = ("weapon_staff_A", 0.84f, Vector3.zero),
+            ["bow_hunting"] = ("weapon_bow_A_withString", 0.66f, new Vector3(0f, 0f, 90f)),
+            ["shield_round"] = ("weapon_shield_A", 0.72f, new Vector3(0f, 180f, 0f)),
+            ["shield_buckler"] = ("weapon_shield_A", 0.5f, new Vector3(0f, 180f, 0f)),
+            ["arcane_focus"] = ("weapon_wand_A", 0.36f, Vector3.zero),
+            ["old_key"] = ("Key_Metal", 2.2f, Vector3.zero),
+            ["fort_key"] = ("Key_Metal", 2.2f, Vector3.zero),
+            ["ashgrave_vault_key"] = ("Key_Metal", 2.2f, Vector3.zero),
+            ["crowfoot_strongbox_key"] = ("Key_Gold", 2.2f, Vector3.zero),
+            ["potion_healing"] = ("Potion_1", 1f, Vector3.zero),
+            ["potion_greater_healing"] = ("Potion_2", 1f, Vector3.zero),
+            ["sealed_letter"] = ("Scroll_1", 1f, Vector3.zero),
+            ["old_charter"] = ("Scroll_2", 1f, Vector3.zero),
+            ["almanac"] = ("Book_5", 1f, Vector3.zero),
+            ["true_ledger"] = ("Book_7", 1f, Vector3.zero),
+            ["spellbook"] = ("Book_7", 1f, Vector3.zero),
+            ["backpack"] = ("Bag", 0.55f, Vector3.zero),
+        };
+
+        private static bool TryArtModel(Transform root, string itemId, ArtCatalog catalog)
+        {
+            if (!ArtModels.TryGetValue(itemId, out var art)) return false;
+            var prefab = catalog.SceneryModel(art.model);
+            if (prefab == null) return false;
+            var go = Object.Instantiate(prefab, root, false);
+            go.name = "Art " + art.model;
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.Euler(art.euler) * go.transform.localRotation; // the model keeps its import turn
+            go.transform.localScale = go.transform.localScale * art.scale; // and its import scale
+            foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
+            return true;
         }
 
         /// <summary>The colour a cloth item reads as (its outfit material).</summary>

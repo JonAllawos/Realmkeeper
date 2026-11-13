@@ -271,3 +271,14 @@ In conversation, **About them** shows `KnownPersonQueries.View`. Each layer is c
 - **Companion:** the numbers.
 
 Each line says how it is known, and what is withheld is said. Memories, private knowledge and a stranger's numbers are never shown. The strategic map's people inspector remains the DM's full view.
+
+## Phase 20A: familiarity audit
+
+- **How it grows.** Talking gives +2 familiarity, once per day per person. Trading gives +3, once per day per keeper. Quests can grant more. There is no decay, and it is clamped 0–100.
+- **Reaching 50 ("familiar").** Talking every day takes 25 days; talking and trading with a keeper every day takes 10. Both are measured in `Phase20AFamiliarityTests`.
+- **Anti-farming.** Repeats the same day count conversations but add no familiarity. Loading a save does not reset the day's count (`lastTalkDay` and `lastTradeDay` are saved).
+- **What changes what is shown:**
+  - **Hostility** neither hides nor reveals: an enemy never spoken to stays a stranger.
+  - **Death** shows the condition "dead" and reveals nothing new.
+  - **A companion sent home or departed** falls back to familiar (50+) or acquainted, and no longer shows their numbers.
+- **Not changed.** The pace (25 days) is the owner's call to judge in play; see `Reports/Phase20A-Owner-Playtest-Checklist.md` §F.
