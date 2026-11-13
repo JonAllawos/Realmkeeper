@@ -51,6 +51,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             foreach (var ch in c.Choices.Where(x => x.Kind == ChoiceKind.Option)) d.Toggle(ch.Id, ch.Options[0].Id);
             foreach (var ch in RpgCatalog.FindSpecies(species).Choices.Where(x => x.Kind == ChoiceKind.Skill)) d.Toggle(ch.Id, nameof(Skill.Insight));
             if (choice != null) d.Toggle(choice, option);
+            if (species == "tiefling") d.Toggle(RpgCatalog.LegacyAbilityChoiceId, "charisma"); // Phase 22 (rules 10): the legacy's ability, as these tests assume
             return d;
         }
 
@@ -126,7 +127,7 @@ namespace Realmkeeper.Tests.EditMode.Character
         {
             foreach (var o in RpgCatalog.FindSpecies("goliath").Choices.Single().Options)
                 Assert.That(o.Needs | CharacterRules.NeedsOf(o.Effects), Is.EqualTo(IntegrationNeed.None), "goliath " + o.Id + " is played by combat now.");
-            foreach (var o in RpgCatalog.FindSpecies("tiefling").Choices.Single().Options)
+            foreach (var o in RpgCatalog.FindSpecies("tiefling").Choices.Single(c => c.Id == "species:fiendish_legacy").Options)
                 Assert.That(o.Needs | CharacterRules.NeedsOf(o.Effects), Is.EqualTo(IntegrationNeed.None), "tiefling " + o.Id + " is played now.");
             foreach (var o in RpgCatalog.FindSpecies("gnome").Choices.Single().Options)
                 Assert.That((o.Needs | CharacterRules.NeedsOf(o.Effects)) & IntegrationNeed.Magic, Is.EqualTo(IntegrationNeed.Magic),
@@ -148,7 +149,7 @@ namespace Realmkeeper.Tests.EditMode.Character
         [Test]
         public void EachBenefit_IsShownAsActive_Conditional_OrNotYetPlayed()
         {
-            ChoiceOption Option(string species, string id) => RpgCatalog.FindSpecies(species).Choices.Single(c => c.Kind == ChoiceKind.Option).Options.Single(o => o.Id == id);
+            ChoiceOption Option(string species, string id) => RpgCatalog.FindSpecies(species).Choices.Single(c => c.Kind == ChoiceKind.Option && c.Id != RpgCatalog.LegacyAbilityChoiceId).Options.Single(o => o.Id == id);
 
             foreach (var a in new[] { "cloud", "fire", "frost", "hill", "stone", "storm" })
             {
@@ -159,7 +160,7 @@ namespace Realmkeeper.Tests.EditMode.Character
 
             var infernal = BenefitStatus.Of(Option("tiefling", "infernal"));
             Assert.That(infernal.state, Is.EqualTo(BenefitState.Conditional), "Fire resistance is always on; the cantrip is cast when chosen.");
-            Assert.That(infernal.text, Does.Contain("cantrip").And.Contain("Charisma"));
+            Assert.That(infernal.text, Does.Contain("cantrip").And.Contain("spellcasting ability")); // Phase 22: the ability is chosen (rules 10)
             Assert.That(BenefitStatus.Of(Option("gnome", "forest")).state, Is.EqualTo(BenefitState.NotYetPlayed));
             Assert.That(BenefitStatus.Of(Option("gnome", "forest")).text, Does.Contain("magic"));
             Assert.That(BenefitStatus.Of(Option("gnome", "rock")).state, Is.EqualTo(BenefitState.NotYetPlayed), "Tinker's tools work, but Mending does not: the option says so.");

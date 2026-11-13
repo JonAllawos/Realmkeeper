@@ -104,6 +104,18 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>Phase 14 (ADR-0068): conditions that outlive a fight or come from outside one (a trap's poison, exhaustion).</summary>
         public List<LastingConditionData> Conditions { get; set; } = new List<LastingConditionData>();
 
+        // ----- Phase 22 (ADR-0109) -----
+
+        /// <summary>
+        /// The next level-up while the player is still choosing: the picks made so far for level <c>Level + 1</c> (null when
+        /// none). Nothing in it applies until the level-up is confirmed; it only keeps the player's progress across closing
+        /// the window and saving.
+        /// </summary>
+        public LevelChoices PendingAdvancement { get; set; }
+
+        /// <summary>The highest level the player has been told they can take (0: none yet), so the level-up notice is shown once per level.</summary>
+        public int LevelUpNoticed { get; set; }
+
         public IReadOnlyList<string> Chosen(string choiceId) => Choices.TryGetValue(choiceId, out var list) ? list : (IReadOnlyList<string>)System.Array.Empty<string>();
 
         public CharacterSheetData Clone()
@@ -120,6 +132,7 @@ namespace Realmkeeper.Domain.Rpg
             c.Advancements = new List<AdvancementRecord>();
             foreach (var a in Advancements) c.Advancements.Add(a.Clone());
             c.Spellcasting = (Spellcasting ?? new SpellcastingData()).Clone();
+            c.PendingAdvancement = PendingAdvancement?.Clone();
             return c;
         }
     }

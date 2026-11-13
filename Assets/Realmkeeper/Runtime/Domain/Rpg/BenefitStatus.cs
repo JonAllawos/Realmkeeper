@@ -45,7 +45,7 @@ namespace Realmkeeper.Domain.Rpg
                         break;
                     case EffectKind.InnateMagic:
                         if (e.Key == "extra-cantrip") break; // a wider cantrip list: always in effect
-                        var cast = "cast in a fight as a cantrip, with " + CharacterRules.InnateSpellAbility;
+                        var cast = "cast in a fight as a cantrip, with the spellcasting ability chosen for it";
                         if (!when.Contains(cast)) when.Add(cast);
                         break;
                     case EffectKind.SaveAdvantage:

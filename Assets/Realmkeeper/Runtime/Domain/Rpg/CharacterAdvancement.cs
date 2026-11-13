@@ -130,8 +130,68 @@ namespace Realmkeeper.Domain.Rpg
                 }
             }
 
+            next.PendingAdvancement = null; // Phase 22: the draft was these choices; it is done
+            next.LevelUpNoticed = Math.Max(next.LevelUpNoticed, next.Level);
             foreach (var e in CharacterValidation.CheckSheet(next)) errors.Add(e);
             return errors.Count == 0 ? next : null;
+        }
+
+        /// <summary>
+        /// Phase 22 (ADR-0109): the problems with a saved, possibly partial, draft of the next level-up: it must be for
+        /// <c>Level + 1</c>, which the experience must allow; each key must be a choice that level asks for (or an earlier
+        /// one still open); no choice may hold more picks than it allows or a value that is not one of its options; and a
+        /// subclass only at the subclass level, of the character's class. Unfinished is fine: a draft is not applied.
+        /// </summary>
+        public static List<string> DraftProblems(CharacterSheetData s, LevelChoices draft)
+        {
+            var problems = new List<string>();
+            if (draft == null) return problems;
+            if (s.State != CreationState.Complete) { problems.Add("A character not yet created has a level-up in progress."); return problems; }
+            if (draft.Level != s.Level + 1) { problems.Add($"A level-up in progress is for level {draft.Level}; the next level is {s.Level + 1}."); return problems; }
+            if (draft.Level > AbilityRules.MaxLevel || ProgressionRules.LevelFor(s.Experience) < draft.Level)
+            {
+                problems.Add($"A level-up to {draft.Level} is in progress without the experience for it.");
+                return problems;
+            }
+
+            var cls = RpgCatalog.FindClass(s.ClassId);
+            if (draft.SubclassId != null)
+            {
+                var sub = RpgCatalog.FindSubclass(draft.SubclassId);
+                if (cls == null || draft.Level != cls.SubclassLevel) problems.Add($"A {cls?.SubclassTitle ?? "subclass"} is chosen at level {cls?.SubclassLevel}.");
+                else if (sub == null || sub.ClassId != cls.Id) problems.Add($"'{draft.SubclassId}' is not a {cls.Name} subclass.");
+            }
+
+            var slots = new Dictionary<string, ChoiceDefinition>(StringComparer.Ordinal);
+            foreach (var slot in RequiredChoices(s, draft)) slots[slot.Choice.Id] = slot.Choice;
+            foreach (var pair in draft.Choices)
+            {
+                if (pair.Value == null || pair.Value.Count == 0) continue;
+                if (s.Choices.ContainsKey(pair.Key)) { problems.Add($"'{pair.Key}' was already chosen."); continue; }
+                if (!slots.TryGetValue(pair.Key, out var c)) { problems.Add($"'{pair.Key}' is not a choice at level {draft.Level}."); continue; }
+                if (pair.Value.Count > c.Count) problems.Add($"{c.Name} has {pair.Value.Count} picks; it allows {c.Count}.");
+                if (c.Kind == ChoiceKind.Option)
+                    foreach (var v in pair.Value)
+                        if (CharacterValidation.FindOption(c, v) == null) problems.Add($"'{v}' is not an option of {c.Name}.");
+            }
+
+            return problems;
+        }
+
+        /// <summary>Phase 22: how many choices of a draft are still to make (a subclass counts as one).</summary>
+        public static int OpenChoices(CharacterSheetData s, LevelChoices draft)
+        {
+            draft = draft ?? new LevelChoices { Level = s.Level + 1 };
+            var open = 0;
+            foreach (var slot in RequiredChoices(s, draft))
+            {
+                var c = slot.Choice;
+                if (c.Kind == ChoiceKind.Subclass) { if (draft.SubclassId == null) open++; continue; }
+                var n = draft.Choices.TryGetValue(c.Id, out var list) ? list.Count : 0;
+                if (!c.CountAllowed(n)) open++;
+            }
+
+            return open;
         }
 
         private static List<string> Step(CharacterSheetData next, LevelChoices step, WorldDate date)

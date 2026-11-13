@@ -7,6 +7,11 @@
 - **How it is offered:** in a settlement, the HUD shows **Create character (C)**, and the Player Hub's
   Character section offers it too. Creation is offered, never forced: pending and legacy players can
   walk, trade and talk as before.
+- **No experience before creation (Phase 22, owner decision D4).** Experience is earned only by a created character, so every
+  new character starts at level 1 with 0 experience. An older save whose pending player already earned some keeps it.
+- **Exactly level 1 (Phase 22, ADR-0109).** Creation is refused unless the sheet passes the level 1 baseline
+  (`CharacterProgression.md` § Level 1 baseline). The review page shows level 1, AC, initiative and speed, hit
+  points, the level 1 features, cantrips, spells and slots, uses, and the species traits that come later.
 - **Once only:** after creation the prompt disappears and the creator cannot be opened again.
 
 ## The creator (`CharacterCreatorWindow`)

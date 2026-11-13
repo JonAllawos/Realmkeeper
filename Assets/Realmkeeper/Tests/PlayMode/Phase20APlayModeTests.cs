@@ -149,8 +149,9 @@ namespace Realmkeeper.Tests.PlayMode
 
             Click(root, "xk-cc-species-tiefling");
             Click(root, "xk-cc-species-fiendish_legacy-infernal");
+            Click(root, "xk-cc-species-legacy_ability-charisma"); // Phase 22 (rules 10): the legacy's ability is chosen
             yield return Settle();
-            Assert.That(root.Query<Label>().ToList().Any(l => l.text.Contains("Fire Bolt") && l.text.Contains("Charisma")), Is.True);
+            Assert.That(root.Query<Label>().ToList().Any(l => l.text.Contains("Fire Bolt") && l.text.Contains("ability")), Is.True);
             yield return Shoot("p20a_03_creator_tiefling_legacy", "Creator, tiefling: the infernal legacy's cantrip cast with Charisma (conditional), its resistance always on.", cam, true);
 
             // Appearance: blue eyes, shorter, slight.

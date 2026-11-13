@@ -150,6 +150,7 @@ namespace Realmkeeper.Domain.Combat
                 var amount = s.Success ? total / 2 : total;
                 Log(CombatLogKind.Effect, target.CombatantId, attacker.CombatantId,
                     $"{target.Name}'s {src.SaveDamageAbility} save against the {src.SaveDamageType.ToString().ToLowerInvariant()}: {s.Total} vs DC {src.SaveDamageDc} — {(s.Success ? "half" : "full")} ({amount} of {total}).", s.Total, s.Roll);
+                amount = StonesEndurance(attacker, target, $"The {src.SaveDamageType.ToString().ToLowerInvariant()} from {attacker.Name}'s {o.Name.ToLowerInvariant()} would deal {target.Name} {amount} damage.", amount, null); // Phase 22
                 if (amount > 0) ApplyDamage(target, amount, src.SaveDamageType, false, attacker.Name);
             }
         }

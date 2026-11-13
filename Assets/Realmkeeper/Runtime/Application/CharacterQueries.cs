@@ -58,6 +58,26 @@ namespace Realmkeeper.Application
         /// <summary>Choices from earlier rules versions still to make (made with the next level-up).</summary>
         public IReadOnlyList<ChoiceSlot> Outstanding => CharacterProgression.Outstanding(Player.Rpg);
 
+        // ----- Phase 22 (ADR-0109): the level-up as the player sees it -----
+
+        /// <summary>The highest level the experience allows now (the current level when none is available).</summary>
+        public int EligibleLevel => ProgressionCommandHandlers.EligibleLevel(Player.Rpg);
+
+        /// <summary>A level is available that the player has not been told about yet: show the notice (once).</summary>
+        public bool LevelUpUnannounced => ProgressionCommandHandlers.LevelUpUnannounced(Player.Rpg);
+
+        /// <summary>The next level-up's picks so far (null when none are kept).</summary>
+        public LevelChoices PendingAdvancement => Player.Rpg.PendingAdvancement;
+
+        /// <summary>Choices the next level-up still needs (0 when it can be confirmed, or when no level is available).</summary>
+        public int OpenChoices => CanAdvance ? CharacterAdvancement.OpenChoices(Player.Rpg, PendingAdvancement) : 0;
+
+        /// <summary>Everything the next level gives on its own (hit points, proficiency, features, resources), before any choice.</summary>
+        public AdvancementPreview NextLevelPreview => CanAdvance ? CharacterAdvancement.Preview(Player.Rpg, PendingAdvancement ?? new LevelChoices { Level = Level + 1 }) : null;
+
+        /// <summary>Features still to come, with the level each arrives at.</summary>
+        public IReadOnlyList<FeatureEntry> LockedFeatures => Rules.LockedFeatures;
+
         /// <summary>Progress towards the next level, 0–1 (1 at level 20).</summary>
         public float Progress
         {

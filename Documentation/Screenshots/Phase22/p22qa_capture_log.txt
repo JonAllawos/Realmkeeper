@@ -1,0 +1,6 @@
+p22qa_01_trade_window: 1920x1080. A working shop: Brooke's Outfitters's trade window (its trade, stock, prices; shortfalls and supply on hover).
+p22qa_01_trade_window_768: 1366x768. A working shop: Brooke's Outfitters's trade window (its trade, stock, prices; shortfalls and supply on hover).
+p22qa_01_trade_window_720: 1280x720. A working shop: Brooke's Outfitters's trade window (its trade, stock, prices; shortfalls and supply on hover).
+p22qa_02_station_crafting: 1920x1080. A work station in use: crafting opened at Fairweather's Smithy's Forge (recipes for this station, with a station note).
+p22qa_02_station_crafting_768: 1366x768. A work station in use: crafting opened at Fairweather's Smithy's Forge (recipes for this station, with a station note).
+p22qa_02_station_crafting_720: 1280x720. A work station in use: crafting opened at Fairweather's Smithy's Forge (recipes for this station, with a station note).

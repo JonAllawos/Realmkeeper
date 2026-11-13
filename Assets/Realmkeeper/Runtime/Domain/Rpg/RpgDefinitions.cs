@@ -27,6 +27,12 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>Systems this feature waits for (shown on the sheet; nothing is faked meanwhile).</summary>
         public IntegrationNeed Needs { get; set; }
 
+        /// <summary>
+        /// Phase 22: for a species trait, the character level it arrives at (1: from creation). Class features use the
+        /// level they are listed under instead. A trait above the character's level is locked: shown, never applied.
+        /// </summary>
+        public int MinLevel { get; set; } = 1;
+
         /// <summary>The feature this one supersedes (e.g. Two Extra Attacks replaces Extra Attack); the replaced one stops applying.</summary>
         public string Replaces { get; set; }
 

@@ -97,6 +97,23 @@ namespace Realmkeeper.Infrastructure.Persistence
     }
 
     /// <summary>
+    /// v23 → v24 (Phase 22, ADR-0109). A character sheet gains an optional <c>pendingAdvancement</c> (absent: no level-up
+    /// in progress) and <c>levelUpNoticed</c> (absent reads as 0: no level announced yet, so a character who could already
+    /// advance is told once after loading). Rules 10 adds the tiefling legacy's spellcasting ability: a player not yet created
+    /// (no choices to leave open) moves to rules 10, as a new world's does; a created character keeps its rules version and
+    /// makes the new choice at its next level-up. Levels, experience, choices and advancement history are untouched.
+    /// </summary>
+    public sealed class MigrationV23ToV24 : ISaveMigration
+    {
+        public int SourceVersion => 23;
+
+        public void Migrate(JObject document)
+        {
+            if (document["world"] is JObject world && world["player"] is JObject player && player["rpg"] is JObject rpg && (string)rpg["state"] != "Complete") rpg["rulesVersion"] = 10;
+        }
+    }
+
+    /// <summary>
     /// v22 → v23 (Phase 21, ADR-0105). The world gains an optional <c>environment</c> (absent: no weather simulated yet;
     /// the session works today's weather out from the seed when the world is loaded). The weather system joins the day,
     /// first, before labour, as in a new world.

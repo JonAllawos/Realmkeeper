@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 23; // Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
+        public const int CurrentSchemaVersion = 24; // Phase 22 (ADR-0109): the level-up in progress and the level-up notice; Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }

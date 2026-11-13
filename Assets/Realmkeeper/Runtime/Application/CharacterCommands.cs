@@ -102,6 +102,25 @@ namespace Realmkeeper.Application
             return list;
         }
 
+        /// <summary>
+        /// Phase 22: the armour and shield the starting kit puts on (the pieces it equips), so the creator's review can show
+        /// the armour class the character will start with.
+        /// </summary>
+        public static Loadout StartingLoadout(CharacterSheetData sheet)
+        {
+            string body = null, shield = null;
+            foreach (var k in KitFor(sheet))
+            {
+                if (!k.Equip) continue;
+                var armor = ItemCatalog.Find(k.ItemId)?.Armor;
+                if (armor == null) continue;
+                if (armor.Category == ArmorCategory.Shield) shield = shield ?? k.ItemId;
+                else body = body ?? k.ItemId;
+            }
+
+            return new Loadout(body, shield);
+        }
+
         /// <summary>Every problem with the choices (identity, appearance and the character rules), as the command checks them.</summary>
         public static List<string> Check(PlayerCharacterData current, CharacterCreationChoices c)
         {
@@ -158,8 +177,13 @@ namespace Realmkeeper.Application
                 p.Background = rules.Background.Name;
                 sheet.CreatedOn = edit.CurrentSimulationDate;
                 // Experience earned before creation (legacy or pending players) is kept, with its ledger.
+                // Since Phase 22 (D4) nothing is earned before creation, so this is 0 in every new game.
                 sheet.Experience = current.Rpg?.Experience ?? 0;
                 if (current.Rpg != null) foreach (var a in current.Rpg.ExperienceLog) sheet.ExperienceLog.Add(a.Clone());
+
+                // Phase 22 (ADR-0109): exactly a level 1 character, checked against the class table before anything commits.
+                var baseline = LevelOneBaseline.Check(sheet, sheet.Experience);
+                if (baseline.Count > 0) return CommandResult.Invalid("The character is not a valid level 1 character.", baseline);
                 p.Rpg = sheet;
 
                 // The kit, once: into the pack through the inventory rules, then the marked pieces equipped.

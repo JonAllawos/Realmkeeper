@@ -159,6 +159,8 @@ namespace Realmkeeper.Exploration.Presentation
             var p = Draft.Preview();
             var c = Character;
             _content.Add(Text($"{c.FullName} has {c.Experience.ToString("N0", CultureInfo.InvariantCulture)} experience: enough for level {Draft.Level}. Review what it brings, make its choices, then confirm.", "xk-w-note"));
+            if (Draft.Resumed) _content.Add(Text("Picking up where you left off: the choices you made before are kept.", "xk-cc-source")); // Phase 22
+            _content.Add(Text("Gained automatically when you confirm", "xk-w-heading")); // Phase 22: automatic and chosen benefits apart
             var cards = Row("xk-cc-wrap");
             cards.name = "xk-lv-cards";
             foreach (var (k, v) in new[]
@@ -178,14 +180,14 @@ namespace Realmkeeper.Exploration.Presentation
             _content.Add(cards);
             _content.Add(Text($"Hit points: d{c.Rules.HitDie} average {c.Rules.HitDie / 2 + 1} + Constitution {Breakdown.Signed(c.Rules.Modifier(Ability.Constitution))}, plus any bonuses. Current hit points rise by the same amount; nothing is healed or refilled beyond that.", "xk-w-desc"));
 
-            _content.Add(Text("New features", "xk-w-heading"));
+            _content.Add(Text("New features", "xk-w-subheading"));
             if (p.NewFeatures.Count == 0) _content.Add(Text("No new features at this level beyond its choices.", "xk-w-empty"));
             foreach (var f in p.NewFeatures) _content.Add(Feature(f.Feature, f.Source, p.After));
             foreach (var f in p.ReplacedFeatures) _content.Add(Pair("Replaced", f.Feature.Name + " (superseded by its improved form)"));
 
             if (p.Resources.Count > 0 || p.Scalings.Count > 0)
             {
-                _content.Add(Text("Resources and class table", "xk-w-heading"));
+                _content.Add(Text("Resources and class table", "xk-w-subheading"));
                 foreach (var (name, before, after) in p.Resources) _content.Add(Pair(name, before == 0 ? $"new: {after}" : $"{before} → {after}"));
                 foreach (var (name, before, after) in p.Scalings) _content.Add(Pair(name, $"{before} → {after}"));
             }
@@ -198,10 +200,34 @@ namespace Realmkeeper.Exploration.Presentation
                 foreach (var o in outstanding) _content.Add(Pair(o.Choice.Name, o.Choice.Prompt));
             }
 
-            if (p.Choices.Count > 0)
+            // Phase 22: the choices only the player can make, each with its state; nothing is picked for them.
+            _content.Add(Text("Your choices", "xk-w-heading"));
+            if (p.Choices.Count == 0) _content.Add(Text("This level asks for no choices: confirm it to take what it gives.", "xk-w-empty"));
+            foreach (var slot in p.Choices)
             {
-                _content.Add(Text("Choices", "xk-w-heading"));
-                foreach (var slot in p.Choices) _content.Add(Pair(slot.Choice.Name, slot.Choice.Prompt));
+                var ch = slot.Choice;
+                var picks = ch.Kind == ChoiceKind.Subclass ? (Draft.Choices.SubclassId != null ? 1 : 0) : Draft.Picked(ch.Id).Count;
+                var done = ch.Kind == ChoiceKind.Subclass ? picks > 0 : ch.CountAllowed(picks);
+                var optional = done && picks == 0; // an "up to" choice left empty: allowed, but nothing is chosen
+                var row = Pair((optional ? "◌ " : done ? "✓ " : "○ ") + ch.Name, (optional ? "Optional, nothing picked yet: " : done ? "Chosen. " : "To choose: ") + ch.Prompt);
+                row.name = "xk-lv-choice-" + ch.Id.Replace(':', '-');
+                _content.Add(row);
+            }
+
+            if (p.Choices.Count > 0)
+                _content.Add(Text(Draft.OpenChoices == 0 ? "Every choice is made; the review confirms them." : $"{Draft.OpenChoices} still to make. Closing keeps your picks; the level is not taken until you confirm.", "xk-cc-source"));
+
+            // Phase 22: what stays locked, and when it comes.
+            var locked = p.After.LockedFeatures;
+            if (locked.Count > 0)
+            {
+                _content.Add(Text("Still to come", "xk-w-heading"));
+                var shown = 0;
+                foreach (var f in locked)
+                {
+                    if (shown++ >= 6) break;
+                    _content.Add(Pair("Level " + f.Level, f.Feature.Name + " (" + f.Source + ")"));
+                }
             }
         }
 

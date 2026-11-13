@@ -46,6 +46,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             foreach (var s in c.SkillOptions) if (d.Picked(ClassDefinition.SkillChoiceId).Count < c.SkillChoices) d.Toggle(ClassDefinition.SkillChoiceId, s.ToString());
             foreach (var ch in c.Choices.Where(x => x.Kind == ChoiceKind.Option)) d.Toggle(ch.Id, ch.Options[0].Id);
             foreach (var ch in RpgCatalog.FindSpecies(species).Choices.Where(x => x.Kind == ChoiceKind.Skill)) d.Toggle(ch.Id, nameof(Skill.Insight));
+            if (species == "tiefling") d.Toggle(RpgCatalog.LegacyAbilityChoiceId, "charisma"); // Phase 22 (rules 10): the legacy's ability
             return d;
         }
 

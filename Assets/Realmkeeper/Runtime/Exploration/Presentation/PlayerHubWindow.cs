@@ -414,7 +414,10 @@ namespace Realmkeeper.Exploration.Presentation
             _content.Add(Text(sp.Lore, "xk-w-desc"));
             _content.Add(Pair("Size · speed · type", $"{sp.Size} · {r.Speed} ft · {sp.CreatureType}"));
             if (sp.Appearance.PlaceholderNote != null) _content.Add(Text(sp.Appearance.PlaceholderNote, "xk-cc-warn"));
-            foreach (var t in sp.Traits) _content.Add(Trait(t.Name, t.Description, BenefitStatus.Of(t)));
+            foreach (var t in sp.Traits)
+                _content.Add(t.MinLevel > r.Level // Phase 22: a later trait is shown locked, never as yours yet
+                    ? Trait(t.Name + $" (locked until level {t.MinLevel})", t.Description, (BenefitState.NotYetPlayed, $"Arrives at level {t.MinLevel}; you are level {r.Level}."))
+                    : Trait(t.Name, t.Description, BenefitStatus.Of(t)));
             foreach (var c in sp.Choices)
             {
                 if (c.Kind != ChoiceKind.Option) continue;
@@ -490,7 +493,23 @@ namespace Realmkeeper.Exploration.Presentation
                 ? $"You have enough experience for level {ch.Level + 1}."
                 : $"You have enough experience for {ch.LevelsAvailable} more levels (up to {ch.Level + ch.LevelsAvailable}); each is taken in turn with its own choices.", "xk-w-value"));
             if (ch.Outstanding.Count > 0) banner.Add(Text("Some level-1 choices added since your character was made will be asked for too.", "xk-w-desc"));
-            var b = new Button(() => LevelUpRequested?.Invoke()) { text = $"Level up to {ch.Level + 1} (L)", name = "xk-hub-levelup" };
+            // Phase 22 (ADR-0109): what the level gives by itself, and the choices still waiting on the player.
+            var p = ch.NextLevelPreview;
+            if (p != null)
+            {
+                var gains = new List<string> { $"+{p.HitPointGain} hit points" };
+                if (p.ProficiencyAfter != p.ProficiencyBefore) gains.Add($"proficiency +{p.ProficiencyAfter}");
+                foreach (var f in p.NewFeatures) gains.Add(f.Feature.Name);
+                banner.Add(Text("Gained automatically: " + string.Join(", ", gains) + ".", "xk-w-desc"));
+            }
+
+            var open = ch.OpenChoices;
+            var pending = Text(open == 0 ? "No choices are waiting: confirm the level to take it."
+                : ch.PendingAdvancement != null ? $"Level-up in progress: {open} choice{(open == 1 ? string.Empty : "s")} still to make. Your picks so far are kept."
+                : $"{open} choice{(open == 1 ? string.Empty : "s")} to make (nothing is chosen for you).", open > 0 ? "xk-cc-warn" : "xk-w-desc");
+            pending.name = "xk-hub-levelup-pending";
+            banner.Add(pending);
+            var b = new Button(() => LevelUpRequested?.Invoke()) { text = (ch.PendingAdvancement != null ? "Continue level up to " : "Level up to ") + (ch.Level + 1) + " (L)", name = "xk-hub-levelup" };
             b.AddToClassList("xk-button");
             b.AddToClassList("xk-button--primary");
             banner.Add(b);
@@ -501,8 +520,20 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var r = ch.Rules;
             var s = ch.Player.Rpg;
+            var heading = Text($"{r.Class.Name} {r.Level}" + (r.Subclass != null ? $" · {r.Subclass.Name}" : r.Level < r.Class.SubclassLevel ? $" · {r.Class.SubclassTitle} at level {r.Class.SubclassLevel}" : string.Empty), "xk-cc-name");
+            heading.name = "xk-hub-progression-class"; // Phase 22
+            _content.Add(heading);
             _content.Add(ExperienceBar(ch));
             if (ch.CanAdvance) _content.Add(LevelUpBanner(ch));
+
+            // Phase 22: what the last level brought, at a glance.
+            if (s.Advancements.Count > 0)
+            {
+                var last = s.Advancements[s.Advancements.Count - 1];
+                var recent = Pair($"Latest: level {last.Level}", last.Summary);
+                recent.name = "xk-hub-progression-latest";
+                _content.Add(recent);
+            }
 
             _content.Add(Text("Levels gained", "xk-w-heading"));
             if (s.Advancements.Count == 0) _content.Add(Text("None yet: experience from quests, encounters and discoveries opens the next level.", "xk-w-empty"));
@@ -523,13 +554,18 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (s.ExperienceLog.Count > 12) _content.Add(Text($"… and {s.ExperienceLog.Count - 12} earlier awards.", "xk-w-desc"));
 
-            _content.Add(Text($"Ahead: {r.Class.Name}", "xk-w-heading"));
+            // Phase 22: locked until their level — class and subclass features and later species traits (a tiefling's legacy spells).
+            _content.Add(Text($"Ahead: still locked", "xk-w-heading"));
+            var locked = ch.LockedFeatures;
             for (var level = r.Level + 1; level <= Math.Min(AbilityRules.MaxLevel, r.Level + 4); level++)
             {
                 var names = new List<string>();
-                if (r.Class.LaterFeatures.TryGetValue(level, out var fs)) foreach (var f in fs) names.Add(f.Name);
-                if (r.Subclass != null && r.Subclass.Features.TryGetValue(level, out var sfs)) foreach (var f in sfs) names.Add(f.Name);
-                _content.Add(Pair($"Level {level} ({ProgressionRules.ExperienceFor(level).ToString("N0", CultureInfo.InvariantCulture)} XP)", names.Count == 0 ? "Hit points and class-table increases" : string.Join(", ", names)));
+                foreach (var f in locked)
+                    if (f.Level == level) names.Add(f.Feature.Name + (CharacterRules.Needs(f.Feature) != IntegrationNeed.None ? " (not yet played)" : string.Empty));
+                if (level == r.Class.SubclassLevel && r.Subclass == null) names.Insert(0, "choose your " + r.Class.SubclassTitle);
+                var row = Pair($"Level {level} ({ProgressionRules.ExperienceFor(level).ToString("N0", CultureInfo.InvariantCulture)} XP)", names.Count == 0 ? "Hit points and class-table increases" : string.Join(", ", names));
+                row.name = "xk-hub-locked-" + level;
+                _content.Add(row);
             }
 
             if (ch.Outstanding.Count > 0)

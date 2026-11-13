@@ -340,6 +340,9 @@ namespace Realmkeeper.Domain.World
         CampaignConsequence = 98,
         CampaignEnded = 99,
         StoryOpportunity = 100,
+
+        // Phase 22 (ADR-0109): the player has enough experience for a new level (facts: player, from, to).
+        PlayerLevelReady = 101,
     }
 
     /// <summary>Tone of an event (drives colour). Persisted by name.</summary>

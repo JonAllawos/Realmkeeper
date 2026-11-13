@@ -179,7 +179,7 @@ namespace Realmkeeper.Application
             if (xp > 0)
             {
                 var player = world.Player?.Rpg;
-                if (player != null && !player.IsDead && !HasKey(player, key))
+                if (player != null && player.State == Realmkeeper.Domain.Rpg.CreationState.Complete && !player.IsDead && !HasKey(player, key)) // Phase 22 (D4): created characters only
                 {
                     player.ExperienceLog.Add(new ExperienceAward { Key = key, Source = ExperienceSource.Encounter, SourceId = e.EncounterId.ToString(), Amount = xp, Date = world.CurrentSimulationDate, Reason = e.Name });
                     player.Experience += xp;

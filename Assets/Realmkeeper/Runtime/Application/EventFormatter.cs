@@ -78,6 +78,8 @@ namespace Realmkeeper.Application
                     return $"{e.Get("player") ?? "A traveller"}, {An($"{(e.Get("species") ?? "traveller").ToLowerInvariant()} {(e.Get("background") ?? "wanderer").ToLowerInvariant()}")}, set out as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}.";
                 case HistoricalEventType.PlayerLevelAdvanced:
                     return $"{e.Get("player") ?? "A traveller"} rose to level {e.Get("to") ?? "?"} as {An((e.Get("class") ?? "adventurer").ToLowerInvariant())}" + (string.IsNullOrEmpty(e.Get("subclass")) ? "." : $" of the {e.Get("subclass")}.");
+                case HistoricalEventType.PlayerLevelReady:
+                    return $"{e.Get("player") ?? "A traveller"} had earned enough experience to rise from level {e.Get("from") ?? "?"} to level {e.Get("to") ?? "?"}.";
                 case HistoricalEventType.EncounterStarted:
                     return $"A fight broke out in {s}: {e.Get("name") ?? "an encounter"} ({e.Get("participants") ?? "?"} taking part).";
                 case HistoricalEventType.EncounterEnded:

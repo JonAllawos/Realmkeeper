@@ -197,11 +197,11 @@ namespace Realmkeeper.Domain.Combat
             A("hills_tumble", "Hill's Tumble", "", "species:giant_ancestry:hill", FeatureActivation.AfterHit, FeatureTargeting.LastHit,
                 "After hitting a Large or smaller creature with an attack roll: it falls prone.", "stones_endurance", 1),
             A("stones_endurance_reaction", "Stone's Endurance", "", "species:giant_ancestry:stone", FeatureActivation.Automatic, FeatureTargeting.Self,
-                "When an attack damages you, your reaction can reduce the damage by 1d12 + your Constitution modifier (one of the ancestry's uses).",
-                "stones_endurance", 1, status: ImplementationStatus.Partial, note: "Offered against damage from attacks; damage from spells, breath and hazards does not offer it yet."),
+                "When you take damage in a fight, your reaction can reduce it by 1d12 + your Constitution modifier (one of the ancestry's uses).",
+                "stones_endurance", 1, status: ImplementationStatus.Partial, note: "Offered against attacks, spells and saving-throw damage in a fight (Phase 22); hazards outside a fight (a trap, a fall) do not offer it, as no reaction is taken outside a fight."),
             A("storms_thunder", "Storm's Thunder", "", "species:giant_ancestry:storm", FeatureActivation.Automatic, FeatureTargeting.Self,
-                "When a creature within 60 ft damages you with an attack, your reaction deals it 1d8 thunder damage (one of the ancestry's uses).",
-                "stones_endurance", 1, 60, ImplementationStatus.Partial, "Offered against damage from attacks; damage from spells does not offer it yet."),
+                "When a creature within 60 ft damages you, your reaction deals it 1d8 thunder damage (one of the ancestry's uses).",
+                "stones_endurance", 1, 60, ImplementationStatus.Functional, "Offered after damage from a creature's attack or spell (Phase 22)."),
 
             // ----- Warlock -----
             Auto("eldritch_invocation", "Eldritch Invocations", "warlock", "Agonizing Blast adds Charisma to each Eldritch Blast beam; Armour of Shadows casts Mage Armour at will.",

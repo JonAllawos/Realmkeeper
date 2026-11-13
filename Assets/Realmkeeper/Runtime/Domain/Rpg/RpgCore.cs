@@ -344,8 +344,8 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>The most experience a character may hold.</summary>
         public const int MaxExperience = 10000000;
 
-        /// <summary>The rules version new characters are built under (6 = Phase 6 data; 7 adds level-1 choices; 8 spells; 9 the species lineages of Phase 20).</summary>
-        public const int CurrentRulesVersion = 9;
+        /// <summary>The rules version new characters are built under (6 = Phase 6 data; 7 adds level-1 choices; 8 spells; 9 the species lineages of Phase 20; 10 the tiefling legacy's spellcasting ability, Phase 22).</summary>
+        public const int CurrentRulesVersion = 10;
 
         /// <summary>The experience a level needs.</summary>
         public static int ExperienceFor(int level) => Thresholds[Math.Max(1, Math.Min(AbilityRules.MaxLevel, level)) - 1];

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
@@ -37,6 +38,25 @@ namespace Realmkeeper.Application
     {
         public AdvanceCharacterCommand(params LevelChoices[] levels) { Levels = levels ?? Array.Empty<LevelChoices>(); }
         public IReadOnlyList<LevelChoices> Levels { get; }
+    }
+
+    /// <summary>
+    /// Phase 22 (ADR-0109): keeps the player's progress on the next level-up — the picks made so far — on the sheet, so it
+    /// survives closing the window and saving. Nothing in it applies; null or an empty draft clears it. Refused when the
+    /// picks are not choices of that level, exceed a choice's count, or name an option that does not exist.
+    /// </summary>
+    public sealed class SaveAdvancementDraftCommand : ICommand
+    {
+        public SaveAdvancementDraftCommand(LevelChoices draft) { Draft = draft; }
+        public LevelChoices Draft { get; }
+    }
+
+    /// <summary>
+    /// Phase 22 (ADR-0109): the player has been shown that a new level is available. Records the highest level they can now
+    /// take, so the notice is shown once per level, and writes it to the chronicle. Refused when there is nothing new to tell.
+    /// </summary>
+    public sealed class AcknowledgeLevelUpCommand : ICommand
+    {
     }
 
     /// <summary>Spends uses of one of the player's resources (Phase 7; combat, magic and other systems will call it).</summary>
@@ -91,6 +111,8 @@ namespace Realmkeeper.Application
         {
             commands.Register<AwardExperienceCommand>(new AwardHandler());
             commands.Register<AdvanceCharacterCommand>(new AdvanceHandler());
+            commands.Register<SaveAdvancementDraftCommand>(new DraftHandler());
+            commands.Register<AcknowledgeLevelUpCommand>(new AcknowledgeHandler());
             commands.Register<SpendResourceCommand>(new SpendHandler());
             commands.Register<RestoreResourceCommand>(new RestoreHandler());
             commands.Register<RecoverResourcesCommand>(new RecoverHandler());
@@ -116,6 +138,10 @@ namespace Realmkeeper.Application
             {
                 var refused = Player(context, out var current);
                 if (refused != null) return refused;
+                // Phase 22 (owner decision D4): experience is earned by a created character only, so every new character
+                // starts at exactly 0. Experience an older save already holds from before creation is kept as it was.
+                if (current.Rpg.State != CreationState.Complete)
+                    return CommandResult.InvalidState("Experience is earned once your character is created.");
                 if (command.Amount < 1 || command.Amount > ProgressionRules.MaxAward)
                     return CommandResult.Invalid($"An award is 1–{ProgressionRules.MaxAward} experience.", new[] { $"Amount {command.Amount}." });
                 if (!Enum.IsDefined(typeof(ExperienceSource), command.Source)) return CommandResult.Invalid("Unknown experience source.");
@@ -184,6 +210,64 @@ namespace Realmkeeper.Application
                 context.ReportEvent(HistoricalEventType.PlayerLevelAdvanced, EventSeverity.Info, EventImportance.Minor, where, facts);
                 var last = advanced.Advancements[advanced.Advancements.Count - 1];
                 return CommandResult.Ok($"{p.Name} is now a level-{advanced.Level} {rules.Class.Name.ToLowerInvariant()}. {last.Summary}.");
+            }
+        }
+
+        /// <summary>The highest level the player's experience allows now (their level when none is available).</summary>
+        public static int EligibleLevel(CharacterSheetData s) => s == null ? 0 : s.Level + CharacterAdvancement.LevelsAvailable(s);
+
+        /// <summary>Phase 22: true when a level is available that the player has not yet been told about.</summary>
+        public static bool LevelUpUnannounced(CharacterSheetData s) =>
+            s != null && s.State == CreationState.Complete && !s.IsDead && CharacterAdvancement.LevelsAvailable(s) > 0 && EligibleLevel(s) > Math.Max(s.LevelUpNoticed, s.Level);
+
+        private sealed class DraftHandler : ICommandHandler<SaveAdvancementDraftCommand>
+        {
+            public CommandResult Handle(SaveAdvancementDraftCommand command, CommandContext context)
+            {
+                var refused = Player(context, out var current);
+                if (refused != null) return refused;
+                if (current.Rpg.State != CreationState.Complete) return CommandResult.InvalidState("Create your character before advancing.");
+                var draft = command.Draft;
+                var empty = draft == null || (draft.SubclassId == null && !draft.Choices.Values.Any(v => v != null && v.Count > 0));
+                if (empty)
+                {
+                    if (current.Rpg.PendingAdvancement == null) return CommandResult.Ok("Nothing to keep.");
+                    context.Edit().Player.Rpg.PendingAdvancement = null;
+                    return CommandResult.Ok("The level-up in progress was cleared.");
+                }
+
+                if (!CharacterAdvancement.CanAdvance(current.Rpg)) return CommandResult.InvalidState($"Level {current.Rpg.Level + 1} needs {ProgressionRules.ExperienceFor(current.Rpg.Level + 1)} experience.");
+                var clean = new LevelChoices { Level = draft.Level, SubclassId = draft.SubclassId };
+                foreach (var pair in draft.Choices) if (pair.Value != null && pair.Value.Count > 0) clean.Choices[pair.Key] = new List<string>(pair.Value);
+                var problems = CharacterAdvancement.DraftProblems(current.Rpg, clean);
+                if (problems.Count > 0) return CommandResult.Invalid("Those picks cannot be kept.", problems);
+                context.Edit().Player.Rpg.PendingAdvancement = clean;
+                var open = CharacterAdvancement.OpenChoices(current.Rpg, clean);
+                return CommandResult.Ok(open == 0 ? $"Your level {clean.Level} choices are all made; confirm them to rise." : $"Kept: {open} choice{(open == 1 ? string.Empty : "s")} still to make for level {clean.Level}.");
+            }
+        }
+
+        private sealed class AcknowledgeHandler : ICommandHandler<AcknowledgeLevelUpCommand>
+        {
+            public CommandResult Handle(AcknowledgeLevelUpCommand command, CommandContext context)
+            {
+                var refused = Player(context, out var current);
+                if (refused != null) return refused;
+                if (!LevelUpUnannounced(current.Rpg)) return CommandResult.InvalidState("No new level to announce.");
+                var edit = context.Edit();
+                var p = edit.Player;
+                var to = EligibleLevel(p.Rpg);
+                p.Rpg.LevelUpNoticed = to;
+                var facts = new Dictionary<string, string>
+                {
+                    ["source"] = "player",
+                    ["player"] = p.Name,
+                    ["from"] = p.Rpg.Level.ToString(CultureInfo.InvariantCulture),
+                    ["to"] = to.ToString(CultureInfo.InvariantCulture),
+                };
+                var where = p.IsInSettlement ? new[] { p.SettlementId } : Array.Empty<SettlementId>();
+                context.ReportEvent(HistoricalEventType.PlayerLevelReady, EventSeverity.Positive, EventImportance.Minor, where, facts);
+                return CommandResult.Ok($"Level {to} is yours to take.");
             }
         }
 

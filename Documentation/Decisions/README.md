@@ -104,5 +104,12 @@
 | [0100](ADR-0100-species-lineages-rules-9.md) | Species lineages as choices (rules 9) | Accepted (Phase 20) |
 | [0101](ADR-0101-save-schema-v21-identity-appearance.md) | Save schema v21: lineages, identity, height and build | Accepted (Phase 20) |
 | [0102](ADR-0102-people-known-as-far-as-the-player-knows-them.md) | People are known as far as the player knows them | Accepted (Phase 20) |
+| [0103](ADR-0103-lineage-mechanics-played.md) | Lineage benefits played through the existing systems | Accepted (Phase 20A) |
+| [0104](ADR-0104-eye-colour-iris-mask-schema-v22.md) | Eye colour through an iris mask (schema v22) | Accepted (Phase 20A) |
+| [0105](ADR-0105-seasons-and-regional-weather-in-the-simulation.md) | Seasons and regional weather live in the simulation; the street only shows them | Accepted (Phase 21) |
+| [0106](ADR-0106-shop-kinds-supply-records-and-specialist-shops.md) | Shop kinds, supply records and specialist shops | Accepted (Phase 21) |
+| [0107](ADR-0107-work-stations-in-shops-and-keepers-production.md) | Work stations in shops, and keepers' production | Accepted (Phase 21) |
+| [0108](ADR-0108-furnished-interiors-and-settlement-errands.md) | Furnished interiors from a plan never saved; settlement errands | Accepted (Phase 21) |
+| [0109](ADR-0109-level-one-baseline-and-player-driven-level-up.md) | A level 1 baseline at creation, and a player-driven level-up on the explicit advancement | Accepted (Phase 22) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

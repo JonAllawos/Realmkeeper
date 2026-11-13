@@ -33,8 +33,20 @@ namespace Realmkeeper.Application
         public AdvancementDraft(CharacterSheetData sheet)
         {
             Sheet = sheet?.Clone() ?? throw new ArgumentNullException(nameof(sheet));
-            Choices = new LevelChoices { Level = Sheet.Level + 1 };
+            // Phase 22 (ADR-0109): pick up where the player left off — the picks kept on the sheet for this level.
+            var kept = Sheet.PendingAdvancement;
+            Choices = kept != null && kept.Level == Sheet.Level + 1 ? kept.Clone() : new LevelChoices { Level = Sheet.Level + 1 };
+            Resumed = kept != null && kept.Level == Sheet.Level + 1;
         }
+
+        /// <summary>Phase 22: the draft began from picks kept on the sheet (the player had started this level-up before).</summary>
+        public bool Resumed { get; }
+
+        /// <summary>Phase 22: the command that keeps these picks on the sheet (to resume later).</summary>
+        public SaveAdvancementDraftCommand ToSaveCommand() => new SaveAdvancementDraftCommand(Clean());
+
+        /// <summary>Phase 22: choices still to make (a subclass counts as one).</summary>
+        public int OpenChoices => CharacterAdvancement.OpenChoices(Sheet, Choices);
 
         public CharacterSheetData Sheet { get; }
         public LevelChoices Choices { get; }

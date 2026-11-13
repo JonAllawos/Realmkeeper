@@ -18,7 +18,7 @@ The phase-by-phase plan from Phase 21 onward is in [`FutureRoadmap.md`](FutureRo
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 21, 2026-11-13)
+## Implementation status (updated at the end of Phase 22, 2026-11-13)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -120,8 +120,9 @@ present but visibly temporary; **Not started**.
 | Furnished interiors and errands (Phase 21) | **Implemented** | Rooms furnished by kind from a validated, deterministic plan (scenery, not saved); shop fit-outs per trade; residents run errands to their town's shops on free days (ADR-0108) |
 | Open-world overland travel (amendment A1) | **Not started** | Travel is abstract today: journeys hour by hour on the atlas strip over the route graph. Settlement scenes end at their edge (110–200 m half-extent) with no surrounding landscape. Positions are region-local. Planned as Phases 23–29. |
 | Navigation HUD, overland discovery by sight (amendment A1) | **Not started** | Place discovery states exist (ADR-0065); compass, minimap and landmark sighting do not. Planned as Phase 27. |
-| Level 1 start (amendment A2) | **Implemented in the creation command, with gaps** | `CreateCharacterCommand` creates level 1 with full HP, resources and kit once. Gaps: creation is optional (pending play), and pre-creation experience, coin and belongings carry over. No level 1 validator exists. Planned as Phase 22. |
-| Realmkeeper ruleset document (amendment A3) | **Not started** | The rules are SRD 5.2.1 data plus labelled Realmkeeper originals (ADR-0022, ADR-0026), but no single document classifies every rule area. Planned in Phases 22 and 30. |
+| Level 1 start (amendment A2) | **Implemented (Phase 22)** | Every new character passes `LevelOneBaseline` before creation commits: level 1, 0 experience, proficiency +2, HP from the hit die, level 1 features, slots and spells only, resources full, the kit once. Proven over every class, species, lineage and background. No experience is earned before creation (owner decision D4); pending play (walking, trading, talking) remains, and coin and belongings carried before creation are kept. Old saves keep what they hold (ADR-0109) |
+| Player-driven level-up (Phase 22) | **Implemented** | A one-time, recorded level-up notice; a HUD button that stays bronze with the open choices; the window separates automatic benefits from the player's choices and shows what stays locked; picks are kept on closing and saving and resumed; confirming applies each level once; nothing is chosen for the player (ADR-0109) |
+| Realmkeeper ruleset document (amendment A3) | **Baseline written (Phase 22)** | `Ruleset-Baseline.md` classifies each rule area as implemented, from SRD 5.2.1 (as-is or adapted), Realmkeeper-specific, incomplete, planned or unsupported. The full ruleset document and its name (decision D3) are Phase 30 |
 
 ### §19 Design principles: how Phases 6–7 respect them
 
@@ -330,8 +331,8 @@ Players and NPCs share one underlying progression model. NPCs may have a simpler
 **Status:**
 - The creation command already builds level 1 (Implemented, with gaps; see the status table).
 - The level-up window and keyed ledger exist (ADR-0028).
-- The level 1 audit and gap fixes are planned as Phase 22; the fuller workflow and presentation as
-  Phase 30.
+- Phase 22 delivered the level 1 audit and baseline, and a player-driven level-up workflow (ADR-0109).
+  Deeper advancement (more subclasses and options, class depth) is Phase 30.
 
 ### A3. Realmkeeper's own ruleset, not a 5e reproduction
 
@@ -413,8 +414,8 @@ These extend the list in §19; the original twenty stand.
 | No terrain beyond settlement edges; no physical roads between settlements | Phases 24–25 |
 | Road fights staged on the near settlement's ground (Phase 17 limitation) | Phase 26 |
 | No compass, minimap, or landmark sighting | Phases 25–27 |
-| Creation optional; pre-creation experience and coin carry over; no level 1 validator | Decision D4, then Phase 22 |
-| No ruleset classification document | Decision D3; Phases 22 and 30 |
+| ~~Creation optional; pre-creation experience and coin carry over; no level 1 validator~~ | Resolved in Phase 22: D4 decided (no experience before creation); level 1 baseline |
+| No full ruleset document (a baseline exists since Phase 22) | Decision D3; Phase 30 |
 | Non-human anatomy placeholders | Asset gate L-Characters; Phase 31 |
 | No content settings screen (tags exist, ADR-0061) | Phase 32, then Phase 33 |
 

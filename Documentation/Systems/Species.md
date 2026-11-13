@@ -96,18 +96,19 @@ Every trait and lineage option is shown as **active** (always in effect), **cond
 | Benefit | State | How it is played |
 |---|---|---|
 | Tiefling legacy resistances (poison, necrotic, fire) | Active | Damage resistance |
-| Tiefling legacy cantrip: Poison Spray, Chill Touch, Fire Bolt | Conditional | Cast in a fight as a cantrip, with Charisma (proficiency + Charisma to hit; DC 8 + both). A class that already readies the same spell casts it with its own ability. Chill Touch stops the target regaining hit points until the caster's next turn ends. |
-| Tiefling level 3 and 5 legacy spells (SRD 5.2.1) | Not in the catalog | Need the spells and a once-per-long-rest innate casting path |
+| Tiefling legacy cantrip: Poison Spray, Chill Touch, Fire Bolt | Conditional | Cast in a fight as a cantrip, with the legacy's chosen ability (Phase 22: Intelligence, Wisdom or Charisma, chosen with the legacy; characters made before rules 10 use Charisma until they choose at their next level-up). Proficiency + that ability to hit; DC 8 + both. A class that already readies the same spell casts it with its own ability. Chill Touch stops the target regaining hit points until the caster's next turn ends. |
+| Tiefling legacy spells at levels 3 and 5 (SRD 5.2.1) | Locked until level 3 and 5, then not yet played | Phase 22: in the data as species traits that arrive at levels 3 and 5 (`MinLevel`); shown locked before, listed as new in the level-up that brings them. Not cast: Ray of Sickness, False Life, Ray of Enfeeblement and Darkness are not in the spell catalog, and there is no once-per-long-rest innate casting path (Hellish Rebuke and Hold Person are) |
+| Tiefling Otherworldly Presence: Thaumaturgy (SRD 5.2.1) | Not yet played | Phase 22: in the data at level 1, marked; no Thaumaturgy effects system |
 | Goliath ancestry uses | — | Proficiency bonus per long rest (`stones_endurance`); each boon below spends one |
 | Cloud's Jaunt | Conditional | Bonus action: teleport to a free square within 30 ft in clear line (chosen on the combat grid) |
 | Fire's Burn / Frost's Chill | Conditional | After a hit with an attack roll: +1d10 fire / +1d6 cold and −10 ft speed until the goliath's next turn. Once per hit; dice double on a critical. |
 | Hill's Tumble | Conditional | After a hit: the target (Large or smaller, not already prone) falls prone |
-| Stone's Endurance | Conditional (partial) | Reaction when an attack damages the goliath: −(1d12 + Con). Not yet offered against spell, breath or hazard damage. |
-| Storm's Thunder | Conditional (partial) | Reaction when a creature within 60 ft damages the goliath with an attack: 1d8 thunder to it. Not yet offered against spell damage. |
+| Stone's Endurance | Conditional (partial) | Reaction when the goliath takes damage in a fight: −(1d12 + Con). Phase 22: offered against attacks, spells and saving-throw damage (the total of a spell's damage; the cut comes off the largest share). Not offered outside a fight (traps, falls), where no reaction is taken. |
+| Storm's Thunder | Conditional | Reaction when a creature within 60 ft damages the goliath, by an attack or (Phase 22) a spell: 1d8 thunder to it. |
 | Gnome forest: Minor Illusion, Speak with Animals | Not yet played | No illusion or animal-speech system |
 | Gnome rock: tinker's tools | Active | Tool proficiency (crafting) |
 | Gnome rock: Mending | Not yet played | No object-repair system; the option is flagged as a whole |
-| Dragonborn breath weapon | Not yet played | Unchanged since Phase 20 |
+| Dragonborn breath weapon | Not yet played | Unchanged since Phase 20 (2d6, once per short rest, SRD 5.1 data). Phase 22 classified it as a level 1 trait and deferred it: it needs a non-spell area action in combat (cone or line aiming, the AI's use, the grid UI). Routing it through the spell engine would let Counterspell stop it and rage or Wild Shape block it, which is wrong |
 
 Computer-run goliaths (companions and people) take the same reactions through the same path. Companions also use the after-hit boons.
 

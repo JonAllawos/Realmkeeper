@@ -1811,3 +1811,67 @@
     margin: 2px 8px 0 0;
     -unity-font-style: bold;
 }
+
+/* ----- Phase 22 (ADR-0109): level-up notice, pending indicator, XP progress ----- */
+
+.xk-w-subheading {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--rk-bronze);
+    margin: 4px 0 2px 0;
+}
+
+/* The notice shown once when a new level becomes available: centred, above the HUD, hard to miss. */
+.xk-levelnotice {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 18%;
+    align-items: center;
+}
+
+.xk-levelnotice-card {
+    min-width: 420px;
+    max-width: 640px;
+    padding: 18px 26px 16px 26px;
+    background-color: var(--rk-window);
+    border-width: 2px;
+    border-color: var(--rk-bronze-hi);
+    border-radius: 6px;
+    align-items: center;
+}
+
+.xk-levelnotice-kicker {
+    font-size: var(--rk-size-small);
+    letter-spacing: 3px;
+    color: var(--rk-bronze);
+}
+
+.xk-levelnotice-title {
+    font-size: var(--rk-size-title);
+    -unity-font-style: bold;
+    color: var(--rk-heading);
+    margin: 2px 0 6px 0;
+}
+
+.xk-levelnotice-text {
+    font-size: var(--rk-size-body);
+    color: var(--rk-text);
+    white-space: normal;
+    -unity-text-align: middle-center;
+    margin-bottom: 4px;
+}
+
+.xk-levelnotice-buttons {
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+/* The HUD's level-up button while a level is waiting: bronze and bold, with its open choices. */
+.xk-levelup-ready {
+    background-color: var(--rk-bronze-deep);
+    border-color: var(--rk-bronze-hi);
+    border-width: 2px;
+    color: var(--rk-heading);
+    -unity-font-style: bold;
+}

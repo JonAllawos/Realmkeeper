@@ -617,12 +617,18 @@ namespace Realmkeeper.Domain.Combat
                     }
                 }
 
+                // Phase 22: a goliath's ancestry answers spell damage as it answers a blow (SRD 5.2.1: "when you take damage").
+                if (damage.Count > 0 && target.State == VitalState.Conscious) damage = ReduceWithAncestry(actor, target, $"{actor.Name}'s {s.Name}", damage);
+                var hurt = 0;
                 foreach (var pair in damage)
                 {
                     if (target.State == VitalState.Dead) break;
                     var dr = ApplyDamage(target, pair.Value, pair.Key, critical, actor.Name);
                     tr.Damage += dr.Final;
+                    hurt += dr.Final;
                 }
+
+                if (hurt > 0) AncestryAfterHurt(actor, target);
 
                 // Healing, then every other effect (on a hit, a failed save, or always for spells without a roll).
                 foreach (var e in s.Effects)

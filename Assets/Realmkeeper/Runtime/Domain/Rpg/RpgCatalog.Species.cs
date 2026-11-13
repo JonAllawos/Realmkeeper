@@ -4,6 +4,9 @@ namespace Realmkeeper.Domain.Rpg
 {
     public static partial class RpgCatalog
     {
+        /// <summary>Phase 22: the tiefling legacy's spellcasting ability (Intelligence, Wisdom or Charisma).</summary>
+        public const string LegacyAbilityChoiceId = "species:legacy_ability";
+
         private static RuleEffect E(EffectKind kind, string key = null, int value = 0, string text = null) => new RuleEffect(kind, key, value, text);
 
         private static FeatureDefinition F(string id, string name, string description, params RuleEffect[] effects) => new FeatureDefinition(id, name, description, effects);
@@ -185,6 +188,17 @@ namespace Realmkeeper.Domain.Rpg
                 {
                     Darkvision(60),
                     F("fiendish_legacy", "Fiendish Legacy", "The power in your bloodline decides the harm you shrug off and the minor magic you were born knowing."),
+                    // Phase 22: SRD 5.2.1's Otherworldly Presence and the legacy's spells at levels 3 and 5. The engine does not
+                    // cast them yet (no Thaumaturgy effects; no once-a-day innate spell path), so the sheet marks them "not yet
+                    // played"; the level 3 and 5 spells stay locked until those levels and are never granted at creation.
+                    F("otherworldly_presence", "Otherworldly Presence", "You know the Thaumaturgy cantrip, cast with your legacy's spellcasting ability.",
+                        E(EffectKind.InnateMagic, "thaumaturgy")),
+                    new FeatureDefinition("legacy_spell_3", "Legacy Spell (level 3)",
+                        "At level 3 your legacy gives a 1st-level spell you can cast once per long rest without a slot: Ray of Sickness (abyssal), False Life (chthonic) or Hellish Rebuke (infernal).",
+                        E(EffectKind.InnateMagic, "legacy-spell-3")) { MinLevel = 3 },
+                    new FeatureDefinition("legacy_spell_5", "Legacy Spell (level 5)",
+                        "At level 5 your legacy gives a 2nd-level spell you can cast once per long rest without a slot: Hold Person (abyssal), Ray of Enfeeblement (chthonic) or Darkness (infernal).",
+                        E(EffectKind.InnateMagic, "legacy-spell-5")) { MinLevel = 5 },
                 },
                 Choices = new[]
                 {
@@ -194,12 +208,26 @@ namespace Realmkeeper.Domain.Rpg
                         Id = "species:fiendish_legacy", Name = "Fiendish Legacy", Prompt = "Choose the legacy in your blood.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
                         Options = new[]
                         {
-                            new ChoiceOption("abyssal", "Abyssal", "You resist poison damage, and know Poison Spray as a cantrip (cast with Charisma).",
+                            new ChoiceOption("abyssal", "Abyssal", "You resist poison damage, and know Poison Spray as a cantrip (cast with your legacy's ability).",
                                 E(EffectKind.Resistance, "poison"), E(EffectKind.InnateMagic, "poison-spray")),
-                            new ChoiceOption("chthonic", "Chthonic", "You resist necrotic damage, and know Chill Touch as a cantrip (cast with Charisma).",
+                            new ChoiceOption("chthonic", "Chthonic", "You resist necrotic damage, and know Chill Touch as a cantrip (cast with your legacy's ability).",
                                 E(EffectKind.Resistance, "necrotic"), E(EffectKind.InnateMagic, "chill-touch")),
-                            new ChoiceOption("infernal", "Infernal", "You resist fire damage, and know Fire Bolt as a cantrip (cast with Charisma).",
+                            new ChoiceOption("infernal", "Infernal", "You resist fire damage, and know Fire Bolt as a cantrip (cast with your legacy's ability).",
                                 E(EffectKind.Resistance, "fire"), E(EffectKind.InnateMagic, "fire-bolt")),
+                        },
+                    },
+
+                    // Phase 22 (rules 10): SRD 5.2.1 lets a tiefling choose the ability its legacy's spells use. Characters made
+                    // before rules 10 cast with Charisma (as they always did) until they make the choice at their next level-up.
+                    new ChoiceDefinition
+                    {
+                        Id = LegacyAbilityChoiceId, Name = "Legacy Spellcasting Ability", Prompt = "Choose the ability your legacy's spells use.", Kind = ChoiceKind.Option, Count = 1,
+                        IntroducedInRules = 10,
+                        Options = new[]
+                        {
+                            new ChoiceOption("intelligence", "Intelligence", "Your legacy's spells use Intelligence: attack bonus and save DC."),
+                            new ChoiceOption("wisdom", "Wisdom", "Your legacy's spells use Wisdom: attack bonus and save DC."),
+                            new ChoiceOption("charisma", "Charisma", "Your legacy's spells use Charisma: attack bonus and save DC."),
                         },
                     },
                 },

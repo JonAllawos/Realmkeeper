@@ -39,6 +39,8 @@ namespace Realmkeeper.Exploration.Presentation
         public CharacterAdvancementWindow Advancement { get; private set; }
 
         private Button _levelUpButton;
+        private VisualElement _levelNotice; // Phase 22: the one-time "a new level is yours" notice
+        private Label _levelNoticeText;
 
         public TradeWindow Trade { get; private set; }
         public PlayerHubWindow HubWindow { get; private set; }
@@ -391,6 +393,7 @@ namespace Realmkeeper.Exploration.Presentation
             var character = _session?.GetCharacter();
             _createButton?.EnableInClassList("xk-hidden", character?.NeedsCreation != true);
             _levelUpButton?.EnableInClassList("xk-hidden", character?.CanAdvance != true);
+            RefreshLevelUp(character); // Phase 22
             if (_clock == null) return;
             _clock.text = time.Clock + " · " + time.DayPart + (Weather != null ? " · " + Weather.Line : string.Empty);
             // Phase 21: the outlook and what the weather changes, on hover.
@@ -537,12 +540,14 @@ namespace Realmkeeper.Exploration.Presentation
             if (Combat != null && Combat.IsOpen && !InFight) CloseFight(); // a finished fight's panel; an active one stays
             if (Dialogue != null && Dialogue.IsOpen) { _session?.Dispatch(new EndConversationCommand()); Dialogue.Hide(); } // Phase 12
             Creator?.Hide();
+            KeepAdvancementPicks(); // Phase 22: closing the level-up window keeps its picks
             Advancement?.Hide();
             Trade?.Hide();
             HubWindow?.Hide();
             Preview?.SetActive(false);
             TradingAt = null;
             SetWindowMode(false);
+            CheckLevelUp(); // Phase 22: experience earned behind a window (a quest finished in conversation) is announced as it closes
         }
 
         private void SetWindowMode(bool open)
@@ -600,6 +605,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var character = _session?.GetCharacter();
             if (Advancement == null || character == null || !character.CanAdvance) return false;
+            HideLevelNotice(); // Phase 22
             Trade?.Hide();
             HubWindow?.Hide();
             Creator?.Hide();
@@ -636,6 +642,95 @@ namespace Realmkeeper.Exploration.Presentation
             ShowHub(ResidentView.Describe(result), false);
             HubWindow?.SelectCharacterPanel("Progression");
             return result;
+        }
+
+        // ----- Phase 22 (ADR-0109): the level-up notice and the level-up in progress ------------------------------
+
+        /// <summary>Phase 22: checks now whether a new level should be announced (also run on each HUD refresh).</summary>
+        public void CheckLevelUp() => RefreshLevelUp(_session?.GetCharacter());
+
+        /// <summary>The level-up notice is on screen.</summary>
+        public bool LevelNoticeShown => _levelNotice != null && !_levelNotice.ClassListContains("xk-hidden");
+
+        /// <summary>
+        /// Keeps the HUD's level-up button in step (bronze while a level waits, with the choices still open) and, the first
+        /// time a new level is available and nothing else is on screen, shows the notice and records that the player was told
+        /// (so it appears once per level, across saves).
+        /// </summary>
+        private void RefreshLevelUp(CharacterSnapshot character)
+        {
+            if (_levelUpButton != null && character != null && character.CanAdvance)
+            {
+                var open = character.OpenChoices;
+                _levelUpButton.text = $"Level {character.Level + 1} ready (L)" + (open > 0 ? $" · {open} choice{(open == 1 ? string.Empty : "s")}" : string.Empty);
+                _levelUpButton.AddToClassList("xk-levelup-ready");
+                _levelUpButton.tooltip = character.PendingAdvancement != null
+                    ? $"You started this level-up: {open} choice{(open == 1 ? string.Empty : "s")} still to make. Open it to continue."
+                    : $"{character.Experience} experience: enough for level {character.EligibleLevel}. Open the level-up to see what it brings and make its choices.";
+            }
+
+            if (character == null || !character.LevelUpUnannounced || InFight || WindowOpen || _session == null) return;
+            if (_session.Dispatch(new AcknowledgeLevelUpCommand()).IsSuccess) ShowLevelNotice(character);
+        }
+
+        private void ShowLevelNotice(CharacterSnapshot character)
+        {
+            if (Hud?.Root == null) return;
+            if (_levelNotice == null)
+            {
+                _levelNotice = new VisualElement { name = "xk-levelnotice", pickingMode = PickingMode.Ignore };
+                _levelNotice.AddToClassList("xk-levelnotice");
+                var card = new VisualElement { name = "xk-levelnotice-card" };
+                card.AddToClassList("xk-levelnotice-card");
+                var kicker = new Label("NEW LEVEL") { name = "xk-levelnotice-kicker" };
+                kicker.AddToClassList("xk-levelnotice-kicker");
+                card.Add(kicker);
+                var title = new Label { name = "xk-levelnotice-title" };
+                title.AddToClassList("xk-levelnotice-title");
+                card.Add(title);
+                _levelNoticeText = new Label { name = "xk-levelnotice-text" };
+                _levelNoticeText.AddToClassList("xk-levelnotice-text");
+                card.Add(_levelNoticeText);
+                var buttons = new VisualElement();
+                buttons.AddToClassList("xk-levelnotice-buttons");
+                var now = new Button(() => { HideLevelNotice(); OpenAdvancement(); }) { text = "Level up now (L)", name = "xk-levelnotice-open" };
+                now.AddToClassList("xk-button");
+                now.AddToClassList("xk-button--primary");
+                var later = new Button(HideLevelNotice) { text = "Later", name = "xk-levelnotice-later" };
+                later.AddToClassList("xk-button");
+                buttons.Add(now);
+                buttons.Add(later);
+                card.Add(buttons);
+                _levelNotice.Add(card);
+                Hud.Root.Add(_levelNotice);
+            }
+
+            var to = character.EligibleLevel;
+            _levelNotice.Q<Label>("xk-levelnotice-title").text = to > character.Level + 1 ? $"Levels {character.Level + 1}–{to} reached" : $"Level {to} reached";
+            var p = character.NextLevelPreview;
+            var gains = new List<string>();
+            if (p != null)
+            {
+                gains.Add($"+{p.HitPointGain} hit points");
+                if (p.ProficiencyAfter != p.ProficiencyBefore) gains.Add($"proficiency +{p.ProficiencyAfter}");
+                foreach (var f in p.NewFeatures) if (gains.Count < 6) gains.Add(f.Feature.Name);
+            }
+
+            var choices = character.OpenChoices;
+            _levelNoticeText.text = $"{character.FullName} has {character.Experience} experience. Level {character.Level + 1} brings " + string.Join(", ", gains) + "." +
+                                    (choices > 0 ? $"\nIt asks for {choices} choice{(choices == 1 ? string.Empty : "s")} only you can make." : "\nIt asks for no choices.") +
+                                    "\nNothing is taken until you confirm it. The level waits on the Level up button and on your character sheet.";
+            _levelNotice.RemoveFromClassList("xk-hidden");
+        }
+
+        public void HideLevelNotice() => _levelNotice?.AddToClassList("xk-hidden");
+
+        /// <summary>Keeps the open level-up window's picks on the sheet, so closing it (or saving) loses nothing.</summary>
+        private void KeepAdvancementPicks()
+        {
+            if (_session == null || Advancement == null || !Advancement.IsOpen || Advancement.Draft == null) return;
+            if (_session.GetCharacter()?.CanAdvance != true) return;
+            _session.Dispatch(Advancement.Draft.ToSaveCommand());
         }
 
         private void EnsurePreview()

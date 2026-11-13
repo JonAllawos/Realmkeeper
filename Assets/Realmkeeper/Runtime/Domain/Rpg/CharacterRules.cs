@@ -159,7 +159,8 @@ namespace Realmkeeper.Domain.Rpg
         {
             if (Species != null)
             {
-                foreach (var t in Species.Traits) _features.Add(new FeatureEntry(t, Species.Name, 1));
+                foreach (var t in Species.Traits)
+                    if (t.MinLevel <= Level) _features.Add(new FeatureEntry(t, Species.Name, Math.Max(1, t.MinLevel))); // Phase 22: later traits wait for their level
                 foreach (var l in Species.Languages) Add(new RuleEffect(EffectKind.Language, l), Species.Name, 1);
             }
 
@@ -279,11 +280,29 @@ namespace Realmkeeper.Domain.Rpg
         };
 
         /// <summary>
-        /// The ability a species' innate spells use. SRD 5.2.1 lets a tiefling choose Intelligence, Wisdom or Charisma when
-        /// the legacy is chosen; the catalog has no such choice yet, so Charisma (the tiefling's own bonus here) is used and
-        /// the choice is recorded as deferred (ADR-0103).
+        /// The ability a species' innate spells use when none was chosen: Charisma, as before Phase 22 (ADR-0103). A tiefling
+        /// made under rules 10 chooses Intelligence, Wisdom or Charisma with the legacy (SRD 5.2.1); one made earlier keeps
+        /// Charisma until it makes that choice at its next level-up.
         /// </summary>
         public const Ability InnateSpellAbility = Ability.Charisma;
+
+        /// <summary>Phase 22: the ability this character's innate spells use (the legacy's chosen ability, else Charisma).</summary>
+        public Ability InnateAbility
+        {
+            get
+            {
+                var picked = _sheet.Chosen(RpgCatalog.LegacyAbilityChoiceId);
+                if (picked.Count == 1)
+                    switch (picked[0])
+                    {
+                        case "intelligence": return Ability.Intelligence;
+                        case "wisdom": return Ability.Wisdom;
+                        case "charisma": return Ability.Charisma;
+                    }
+
+                return InnateSpellAbility;
+            }
+        }
 
         /// <summary>Phase 20A: true when the combat engine plays this combat rule key.</summary>
         public static bool IsPlayedCombatRule(string key) => key != null && PlayedCombatRuleSet.Contains(key);
@@ -745,6 +764,31 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>Active class, subclass, species and background features (replaced ones removed), in level order.</summary>
         public IReadOnlyList<FeatureEntry> ActiveFeatures => _features;
 
+        /// <summary>
+        /// Phase 22: the features still to come, each with the level it arrives at: the class's later features, the
+        /// subclass's (once chosen), and species traits with a later level. In level order; nothing here applies.
+        /// </summary>
+        public IReadOnlyList<FeatureEntry> LockedFeatures
+        {
+            get
+            {
+                var list = new List<FeatureEntry>();
+                for (var level = Level + 1; level <= AbilityRules.MaxLevel; level++) // level by level, so the order is stable
+                {
+                    if (Species != null)
+                        foreach (var t in Species.Traits)
+                            if (t.MinLevel == level) list.Add(new FeatureEntry(t, Species.Name, level));
+                    if (Class == null) continue;
+                    if (Class.LaterFeatures.TryGetValue(level, out var later))
+                        foreach (var f in later) list.Add(new FeatureEntry(f, Class.Name + " " + level, level));
+                    if (Subclass != null && Subclass.Features.TryGetValue(level, out var sf))
+                        foreach (var f in sf) list.Add(new FeatureEntry(f, Subclass.Name + " " + level, level));
+                }
+
+                return list;
+            }
+        }
+
         /// <summary>Every feature the character has, with where it comes from: active features, chosen options and feats.</summary>
         public IReadOnlyList<(string source, FeatureDefinition feature)> Features
         {
@@ -785,7 +829,7 @@ namespace Realmkeeper.Domain.Rpg
                     if (!PlayedInnateMagicSet.Contains(se.Effect.Key)) continue;
                     var id = se.Effect.Key.Replace('-', '_');
                     if (Magic.SpellCatalog.Find(id) == null || list.Exists(x => x.Item1 == id)) continue;
-                    list.Add((id, InnateSpellAbility, se.Source));
+                    list.Add((id, InnateAbility, se.Source)); // Phase 22: the legacy's chosen ability
                 }
 
                 return list;

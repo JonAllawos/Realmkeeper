@@ -193,6 +193,47 @@ The same operations exist for any sheet in `CharacterVitals`.
 Schema v9 (see `Persistence.md`) adds `rulesVersion`, `experienceLog` and `advancements` to the
 character record. Level choices live in the existing `choices` map.
 
+Schema v24 (Phase 22) adds `pendingAdvancement` (the next level's picks so far) and `levelUpNoticed`.
+
+## Level 1 baseline (Phase 22, ADR-0109)
+
+Every new player character is exactly level 1. `LevelOneBaseline.Check` runs before `CreateCharacterCommand`
+commits, and recomputes the level 1 figures from the class table and the sheet's own picks:
+
+| Figure | At creation |
+|---|---|
+| Level, history | 1; no advancement records; no subclass; no level-up in progress; current rules (10) |
+| Experience | 0. Nothing is earned before creation (owner decision D4). An older save that already holds pre-creation experience keeps it |
+| Proficiency | +2 |
+| Hit points | Hit die maximum + Constitution + per-level bonuses (at least 1); full; no temporary hit points |
+| Features | Level 1 only: class features listed at level 1, background, species traits whose `MinLevel` is 1 |
+| Choices | Creation choices only; no `lv{n}:` key |
+| Resources | Every one full at its level 1 maximum; hit dice 1 |
+| Spell slots | The class table's level 1 row: two 1st-level slots (full and half casters), one pact slot (warlock); no 2nd-level slot |
+| Spells | Cantrip picks are cantrips; known, spellbook and prepared spells are 1st level at most, within the level 1 counts |
+| Kit | The class option and background kit, once, with the marked pieces worn |
+
+- **Species traits by level.** A species trait may arrive later (`FeatureDefinition.MinLevel`). The tiefling's Legacy Spells arrive at levels 3 and 5. A later trait is shown locked with its level, in the creator, on the sheet and in the level-up's "Still to come", and never applies early.
+- **Tested.** The matrix covers every class with every species and lineage option, and every background with every class (`Phase22LevelOneTests`). Mutation tests show the baseline catching each kind of leak.
+
+## The level-up, as the player meets it (Phase 22)
+
+1. **Experience makes the character eligible; it never levels them.**
+2. **The notice.** The first time a new level is available, and nothing else is on screen, the notice appears once. It shows the levels reached, what the next level brings, how many choices it asks, and that nothing is taken until the player confirms. It is recorded (`levelUpNoticed`, and `PlayerLevelReady` in the chronicle), so it is not repeated after loading.
+3. **The HUD button.** It stays bronze ("Level N ready (L) · k choices") while any level waits.
+4. **The sheet.** Progression shows:
+   - the class and subclass (or when the subclass comes);
+   - experience and next-level progress;
+   - the waiting level, with what it gives automatically and the choices still open;
+   - the latest level's summary and every level gained;
+   - what is still locked, by level.
+5. **The window.**
+   - **Overview:** "Gained automatically when you confirm" (hit points, proficiency, features, resources, class-table columns), apart from "Your choices" (each chosen, optional and empty, or still to choose) and "Still to come".
+   - **Pages:** one per choice, then the review.
+   - **Closing keeps the picks** (`SaveAdvancementDraftCommand`), and reopening resumes them. Confirming applies the whole level once, with its automatic benefits and choices together (ADR-0028).
+   - **Several levels** are taken one after another, each with its own choices.
+6. **Nothing is chosen for the player.** No subclass, feat, spell or option is filled in automatically. Choices the rules do not have are not invented. Only the SRD subclass is offered for each class, and the window says so.
+
 ## The level-up window
 
 See `CharacterCreation.md` § Level-up for the window, and `RulesEngine.md` for how the sheet

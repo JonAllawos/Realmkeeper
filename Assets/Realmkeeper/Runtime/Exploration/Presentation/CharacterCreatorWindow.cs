@@ -301,7 +301,10 @@ namespace Realmkeeper.Exploration.Presentation
                 detail.Add(Pair("Ability increases", Bonuses(s0)));
                 detail.Add(Pair("Languages", Names(s0.Languages, l => RpgCatalog.FindLanguage(l)?.Name)));
                 detail.Add(Text("Traits", "xk-w-heading"));
-                foreach (var t in s0.Traits) detail.Add(PlayerHubWindow.Trait(t.Name, t.Description, BenefitStatus.Of(t))); // Phase 20A: how each is played
+                foreach (var t in s0.Traits) // Phase 20A: how each is played; Phase 22: a later trait is marked as arriving later, not at creation
+                    detail.Add(t.MinLevel > 1
+                        ? PlayerHubWindow.Trait(t.Name + $" (from level {t.MinLevel})", t.Description, (BenefitState.NotYetPlayed, $"Locked: arrives at level {t.MinLevel}, not at creation."))
+                        : PlayerHubWindow.Trait(t.Name, t.Description, BenefitStatus.Of(t)));
                 foreach (var ch in s0.Choices)
                     if (ch.Kind == ChoiceKind.Option) detail.Add(OptionChoice(ch));
                     else detail.Add(Text($"{ch.Name}: {ch.Prompt} (on the Skills step)", "xk-w-note"));
@@ -573,6 +576,20 @@ namespace Realmkeeper.Exploration.Presentation
             var scores = new List<string>();
             foreach (var a in AbilityRules.All) scores.Add($"{a.ToString().Substring(0, 3)} {rules.Score(a)} ({Breakdown.Signed(rules.Modifier(a))})");
             _content.Add(Pair("Abilities", string.Join("  ", scores)));
+            // Phase 22 (ADR-0109): exactly what the character starts with, at level 1 — nothing more is granted on entering the world.
+            var built = Draft.Class != null ? CharacterCommandHandlers.BuildSheet(Draft.Clean(), out _) : null;
+            var start = built != null ? new CharacterRules(built, CharacterCommandHandlers.StartingLoadout(built)) : null;
+            if (start != null)
+            {
+                var lv = Pair("Level", $"1 · 0 experience (level 2 at {ProgressionRules.ExperienceFor(2)}) · proficiency +{start.ProficiencyBonus}");
+                lv.name = "xk-cc-review-level";
+                _content.Add(lv);
+                var ac = Pair("Armour class", start.ArmorClass(null).Total + " (" + start.ArmorClass(null).Text + ", in your starting kit)");
+                ac.name = "xk-cc-review-ac";
+                _content.Add(ac);
+                _content.Add(Pair("Initiative · speed", Breakdown.Signed(start.Initiative().Total) + " · " + start.Speed + " ft"));
+            }
+
             if (Draft.Class != null)
             {
                 _content.Add(Pair("Hit points", rules.MaxHp + " (" + rules.MaxHitPoints().Text + ")"));
@@ -590,8 +607,60 @@ namespace Realmkeeper.Exploration.Presentation
             _content.Add(Pair("Languages", Names(rules.Languages, l => RpgCatalog.FindLanguage(l)?.Name)));
             if (Draft.Class != null) _content.Add(Pair("Starting equipment", Kit(CharacterCommandHandlers.KitFor(CharacterCommandHandlers.BuildSheet(Draft.Clean(), out _) ?? new CharacterSheetData()))
                                                                               + (Draft.Background != null ? $" and {Draft.Background.Coin} coin" : string.Empty)));
+            if (start != null) ReviewStartingPowers(start);
             foreach (var p in Draft.Problems(CreationStep.Review)) _content.Add(Text("• " + p, "xk-cc-warn"));
         }
+
+        /// <summary>
+        /// Phase 22: the level 1 features (class, species, background), spells and slots, and resources the character starts
+        /// with, each with how the game plays it; and the species traits still locked, with their level.
+        /// </summary>
+        private void ReviewStartingPowers(CharacterRules start)
+        {
+            var features = new List<string>();
+            foreach (var f in start.ActiveFeatures)
+                if (!CharacterRules.IsChoiceSlot(f.Feature) && f.Feature.Kind != FeatureKind.Choice)
+                    features.Add(f.Feature.Name + (CharacterRules.Needs(f.Feature) != IntegrationNeed.None ? " (not yet played)" : string.Empty));
+            var row = Pair("Level 1 features", features.Count == 0 ? "none" : string.Join(", ", features));
+            row.name = "xk-cc-review-features";
+            _content.Add(row);
+
+            var sc = start.Class.Spellcasting;
+            var magic = new List<string>();
+            var cantrips = new List<string>();
+            foreach (var id in start.Sheet.Chosen("class:cantrips")) cantrips.Add(SpellName(id));
+            foreach (var (id, ability, _) in start.InnateSpells)
+                if (!start.Sheet.Chosen("class:cantrips").Contains(id)) cantrips.Add(SpellName(id) + $" ({ability}, from your species)"); // a class cantrip of the same spell is cast as the class's (Phase 20A)
+            if (cantrips.Count > 0) magic.Add("cantrips: " + string.Join(", ", cantrips));
+            var spells = new List<string>();
+            foreach (var key in new[] { "class:spells", "class:spellbook" })
+                foreach (var id in start.Sheet.Chosen(key)) spells.Add(SpellName(id));
+            if (spells.Count > 0) magic.Add("spells: " + string.Join(", ", spells));
+            if (sc != null)
+            {
+                if (start.SpellSlotText.Length > 0) magic.Add("slots: " + start.SpellSlotText);
+                if (start.PreparedSpells > 0 && start.Sheet.Chosen("class:spells").Count == 0) magic.Add($"prepares {start.PreparedSpells} level 1 spells after creation");
+                magic.Add($"save DC {start.SpellSaveDc().Total}, attack {Breakdown.Signed(start.SpellAttack().Total)}");
+            }
+
+            var mg = Pair("Magic", magic.Count == 0 ? "none" : string.Join(" · ", magic));
+            mg.name = "xk-cc-review-magic";
+            _content.Add(mg);
+
+            var resources = new List<string>();
+            foreach (var r in start.ResourceDefinitions) resources.Add($"{r.Name} {start.ResourceMax(r)}");
+            var rs = Pair("Uses", resources.Count == 0 ? "none" : string.Join(", ", resources));
+            rs.name = "xk-cc-review-resources";
+            _content.Add(rs);
+
+            var later = new List<string>();
+            foreach (var f in start.LockedFeatures)
+                if (f.Source == start.Species.Name) later.Add($"{f.Feature.Name} at level {f.Level}");
+            if (later.Count > 0) _content.Add(Pair("Later, from your species", string.Join(", ", later)));
+            _content.Add(Text("Your class's later features, and its " + start.Class.SubclassTitle + " at level " + start.Class.SubclassLevel + ", come with the levels you earn; each level-up shows what it brings and asks for its choices.", "xk-w-desc"));
+        }
+
+        private static string SpellName(string id) => Realmkeeper.Domain.Magic.SpellCatalog.Find(id)?.Name ?? id;
 
         // ----- Bits -------------------------------------------------------------------------------------
 

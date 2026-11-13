@@ -680,6 +680,18 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         // Schema v11 (Phase 9): prepared spells, the preparation window and rests.
         public SpellcastingDto Spellcasting { get; set; }
+
+        // Schema v24 (Phase 22, ADR-0109): the level-up in progress (optional) and the highest level announced.
+        public LevelChoicesDto PendingAdvancement { get; set; }
+        public int LevelUpNoticed { get; set; }
+    }
+
+    /// <summary>Schema v24: a level-up's picks so far (level, choices by ID, subclass).</summary>
+    public sealed class LevelChoicesDto
+    {
+        public int Level { get; set; }
+        public Dictionary<string, List<string>> Choices { get; set; }
+        public string SubclassId { get; set; }
     }
 
     public sealed class ExperienceAwardDto

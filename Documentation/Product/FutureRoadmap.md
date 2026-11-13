@@ -36,7 +36,7 @@ These facts shape the plan below.
 
 ### Level 1 gaps found while inspecting
 
-These are documented here and not fixed. Fixing them is Phase 22's work.
+These were documented here and not fixed. **Phase 22 addressed them (2026-11-13):** items 2 and 4 are fixed (D4; the level 1 baseline and its matrix test), item 5 is now proven by a test, and items 1 and 3 keep their paths (pending play allowed; legacy players are created through the same command and baseline). See `../Reports/Phase22-Completion-Report.md`.
 
 1. **Creation is offered, never forced.** A new world's player starts *Pending*, with no class or level, and can walk, trade and talk before creating a character (`Systems/CharacterCreation.md`).
 2. **Pre-creation play carries over.** Experience earned before creation is kept, with its ledger. A freshly created character can therefore be eligible for level 2 or higher at once; they are never levelled automatically. Coin and belongings carried before creation are also kept, and the background's coin is added on top.
@@ -109,7 +109,7 @@ These must be decided before or at the start of the named phase. The roadmap doe
 | D1 | **World scale for walking.** At the current scale (1.2 km a cell, 4.8 km/h), one region takes about 32 hours to walk across, and the full world is roughly 460 × 307 km, about ten times wider than large open-world RPGs. Options: (a) compress the walkable scale (for example 100–200 m a cell) and re-derive travel times; (b) keep the travel scale and generate the walkable world at reduced detail in a coarse outer zone; (c) shrink the region grid. | Start of Phase 23 | Changes `TravelRules`, groups, trade timing and save data. Needs an ADR that supersedes part of ADR-0076 and ADR-0077. |
 | D2 | **What "fast travel" is.** For example: carts between connected towns, a known-road auto-walk, or none. | Phase 29 | Physical travel stays the primary experience. |
 | D3 | **Ruleset identity.** The name and scope of the Realmkeeper ruleset (for example "Realmkeeper Rules 1.0"); which SRD content is kept as-is; what is adapted. | Phase 22 (baseline), Phase 30 (expansion) | See the Bible's ruleset section |
-| D4 | **Pending play before creation.** Should a new game require creation before play, or allow pending play but discard pre-creation experience and coin? | Phase 22 | Legacy saves need a stated path either way |
+| D4 | **Pending play before creation.** Should a new game require creation before play, or allow pending play but discard pre-creation experience and coin? | Phase 22 | **Decided 2026-11-13: "No XP before creation".** Experience awards are refused until the character exists, so every new character starts at 0. Pending play (walking, trading, talking) stays allowed, and coin earned before creation is kept. Old saves that already hold pre-creation experience keep it (ADR-0109) |
 | D5 | **Store-licensed and paid assets.** Commit them to the private repository, or keep them local only? | Phase 25 | Currently local only and git-ignored |
 
 ## 5. The proposed phases
@@ -119,6 +119,8 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 ---
 
 ### Phase 22: Character creation and level 1 integrity (workstream B)
+
+**Status:** complete and committed locally (2026-11-13), not pushed. Delivered with a player-driven level-up workflow on the existing advancement (ADR-0109). The outcome is in `../Reports/Phase22-Completion-Report.md`.
 
 **Kind:** Func, Test.
 
@@ -747,3 +749,24 @@ These are restated from the Bible, not new.
   - Domain and Simulation stay free of UnityEngine. An exception needs an ADR.
 - **No premature scaling.** No multiplayer, cloud services, ECS/DOTS or speculative infrastructure.
 - **Controlled phases.** Each phase is tested, documented and stopped for review.
+
+## 8. Recorded requirements, not yet scheduled
+
+### R1: Shops as economic entities (recorded in Phase 22, 2026-11-13)
+
+**Source:** the Phase 21 report found that keepers' purses run low, because NPC customers do not buy with money. Phase 22's brief asked for this to be recorded as a future requirement and **not** built in Phase 22.
+
+**Requirement.** Shops should eventually work as actual economic entities, not as inventories that replenish themselves:
+- **NPC purchases:** people buy goods with their own money, at the same prices and through the same stock and till.
+- **Customer demand:** what a town wants, by season, occupation, wealth and events, drives what sells.
+- **NPC spending behaviour:** budgets, needs before wants, and saving.
+- **Revenue and depletion:** sales fill the keeper's till and empty the shelves.
+- **Feedback into production and trade:** what sells is made and imported more; what does not is made less.
+- **Believable behaviour:** customers seen buying in the street and in shops; keepers who adjust prices and stock to their trade.
+
+**Constraints:**
+- One economy and one inventory (ADR-0018, ADR-0106). No second stock or price system.
+- Deterministic and saved.
+- Measured against the daily tick budget. Shops already cost about 14 ms per simulated day for 67 shops.
+
+**Candidate phases:** Phase 28 (living overland simulation) or a dedicated economy phase. The owner decides.

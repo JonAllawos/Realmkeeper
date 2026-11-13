@@ -157,15 +157,21 @@ namespace Realmkeeper.Tests.EditMode.Character
         }
 
         [Test]
-        public void Experience_BeforeCreation_IsKept_AndCountsOnceCreated()
+        public void Experience_BeforeCreation_IsRefused_SoANewCharacterStartsAtZero()
         {
+            // Phase 22 (owner decision D4): until Phase 22 this was kept and counted once the character was created. Experience an
+            // older save already holds from before creation is still kept (Phase22LevelOneTests).
             Assert.That(Sheet.State, Is.EqualTo(CreationState.Pending));
-            Assert.That(_s.Dispatch(new AwardExperienceCommand(400, ExperienceSource.Story, "prologue")).IsSuccess, Is.True);
-            Assert.That(_s.GetCharacter().CanAdvance, Is.False, "Nothing to advance before creation.");
+            var refused = _s.Dispatch(new AwardExperienceCommand(400, ExperienceSource.Story, "prologue"));
+            Assert.That(refused.IsSuccess, Is.False);
+            Assert.That(refused.Message, Does.Contain("created"));
+            Assert.That(Sheet.ExperienceLog, Is.Empty);
             Assert.That(_s.Dispatch(new AdvanceCharacterCommand(new LevelChoices { Level = 2 })).IsSuccess, Is.False);
             Create("rogue");
-            Assert.That(Sheet.Experience, Is.EqualTo(400));
-            Assert.That(Sheet.ExperienceLog.Single().Key, Is.EqualTo("story:prologue"));
+            Assert.That(Sheet.Experience, Is.EqualTo(0));
+            Assert.That(Sheet.Level, Is.EqualTo(1));
+            Assert.That(_s.GetCharacter().CanAdvance, Is.False);
+            Assert.That(_s.Dispatch(new AwardExperienceCommand(400, ExperienceSource.Story, "prologue")).IsSuccess, Is.True, "Once created, the same award is given.");
             Assert.That(_s.GetCharacter().CanAdvance, Is.True);
         }
 

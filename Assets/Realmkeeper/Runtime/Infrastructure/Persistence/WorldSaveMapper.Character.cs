@@ -36,6 +36,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                 IsDead = s.IsDead,
                 Spellcasting = SpellcastingToDto(s.Spellcasting),
                 RulesVersion = s.RulesVersion,
+                LevelUpNoticed = s.LevelUpNoticed, // schema v24
+                PendingAdvancement = LevelChoicesToDto(s.PendingAdvancement),
                 ExperienceLog = new List<ExperienceAwardDto>(),
                 Advancements = new List<AdvancementRecordDto>(),
             };
@@ -54,6 +56,26 @@ namespace Realmkeeper.Infrastructure.Persistence
             keys.Sort(System.StringComparer.Ordinal);
             foreach (var k in keys) d.Choices[k] = new List<string>(s.Choices[k]);
             return d;
+        }
+
+        /// <summary>Schema v24 (Phase 22): the level-up in progress, choice keys in order.</summary>
+        private static LevelChoicesDto LevelChoicesToDto(LevelChoices c)
+        {
+            if (c == null) return null;
+            var d = new LevelChoicesDto { Level = c.Level, SubclassId = c.SubclassId, Choices = new Dictionary<string, List<string>>() };
+            var keys = new List<string>(c.Choices.Keys);
+            keys.Sort(System.StringComparer.Ordinal);
+            foreach (var k in keys) d.Choices[k] = new List<string>(c.Choices[k]);
+            return d;
+        }
+
+        private static LevelChoices LevelChoicesFromDto(LevelChoicesDto d)
+        {
+            if (d == null) return null;
+            var c = new LevelChoices { Level = d.Level, SubclassId = d.SubclassId };
+            foreach (var pair in d.Choices ?? new Dictionary<string, List<string>>())
+                if (pair.Value != null) c.Choices[pair.Key] = new List<string>(pair.Value);
+            return c;
         }
 
         private static SpellcastingDto SpellcastingToDto(SpellcastingData s)
@@ -106,6 +128,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                 DeathSaveFailures = d.DeathSaveFailures,
                 IsStable = d.IsStable,
                 IsDead = d.IsDead,
+                LevelUpNoticed = d.LevelUpNoticed, // schema v24 (absent: 0, nothing announced yet)
+                PendingAdvancement = LevelChoicesFromDto(d.PendingAdvancement),
             };
             s.Spellcasting = SpellcastingFromDto(d.Spellcasting);
             if (d.BaseScores != null)

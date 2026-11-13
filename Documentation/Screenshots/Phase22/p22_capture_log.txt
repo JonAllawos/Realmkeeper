@@ -1,0 +1,21 @@
+p22_01_creator_tiefling_ability_and_later_traits: 1920x1080. Creator, tiefling: the legacy's ability chosen (Intelligence); the level 3 and 5 legacy spells marked as arriving later, not at creation.
+p22_01_creator_tiefling_ability_and_later_traits_768: 1366x768. Creator, tiefling: the legacy's ability chosen (Intelligence); the level 3 and 5 legacy spells marked as arriving later, not at creation.
+p22_01_creator_tiefling_ability_and_later_traits_720: 1280x720. Creator, tiefling: the legacy's ability chosen (Intelligence); the level 3 and 5 legacy spells marked as arriving later, not at creation.
+p22_02_creator_review_level_one: 1920x1080. Creator review: level 1, AC, initiative and speed, level 1 features, magic (cantrips, spellbook, two 1st-level slots), uses, and the species' later spells.
+p22_02_creator_review_level_one_768: 1366x768. Creator review: level 1, AC, initiative and speed, level 1 features, magic (cantrips, spellbook, two 1st-level slots), uses, and the species' later spells.
+p22_02_creator_review_level_one_720: 1280x720. Creator review: level 1, AC, initiative and speed, level 1 features, magic (cantrips, spellbook, two 1st-level slots), uses, and the species' later spells.
+p22_03_sheet_progression_level_one: 1920x1080. Sheet, Progression at level 1: class, experience, and what is still locked by level (the legacy spells at 3 and 5).
+p22_04_level_up_notice: 1920x1080. The level-up notice: levels 2–3 reached, what level 2 brings, nothing taken until confirmed; the HUD button bronze.
+p22_04_level_up_notice_768: 1366x768. The level-up notice: levels 2–3 reached, what level 2 brings, nothing taken until confirmed; the HUD button bronze.
+p22_04_level_up_notice_720: 1280x720. The level-up notice: levels 2–3 reached, what level 2 brings, nothing taken until confirmed; the HUD button bronze.
+p22_05_level_up_overview: 1920x1080. Level-up overview: gained automatically (hit points, proficiency, features, resources) apart from the player's choices; what is still to come.
+p22_05_level_up_overview_768: 1366x768. Level-up overview: gained automatically (hit points, proficiency, features, resources) apart from the player's choices; what is still to come.
+p22_05_level_up_overview_720: 1280x720. Level-up overview: gained automatically (hit points, proficiency, features, resources) apart from the player's choices; what is still to come.
+p22_06_hud_level_up_in_progress: 1920x1080. After closing: the HUD button keeps the level-up waiting, with its choices.
+p22_07_level_up_subclass_choice: 1920x1080. Level 3: the Arcane Tradition, the player's own choice (none picked for them).
+p22_07_level_up_subclass_choice_768: 1366x768. Level 3: the Arcane Tradition, the player's own choice (none picked for them).
+p22_07_level_up_subclass_choice_720: 1280x720. Level 3: the Arcane Tradition, the player's own choice (none picked for them).
+p22_08_level_up_review: 1920x1080. Level 3 review before confirming.
+p22_09_sheet_after_levelling: 1920x1080. Sheet, Progression at level 3: the tradition, the latest level's summary, levels gained, and what is still locked.
+p22_09_sheet_after_levelling_768: 1366x768. Sheet, Progression at level 3: the tradition, the latest level's summary, levels gained, and what is still locked.
+p22_09_sheet_after_levelling_720: 1280x720. Sheet, Progression at level 3: the tradition, the latest level's summary, levels gained, and what is still locked.

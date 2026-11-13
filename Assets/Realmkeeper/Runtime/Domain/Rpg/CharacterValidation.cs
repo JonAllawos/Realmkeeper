@@ -70,6 +70,8 @@ namespace Realmkeeper.Domain.Rpg
             CheckExperience(s, errors);
             CheckDeathState(s, errors);
             CheckSpellcasting(s, errors);
+            if (s.LevelUpNoticed < 0 || s.LevelUpNoticed > AbilityRules.MaxLevel) errors.Add($"The level-up notice level {s.LevelUpNoticed} is outside 0–{AbilityRules.MaxLevel}.");
+            if (s.PendingAdvancement != null && s.State != CreationState.Complete) errors.Add("A character not yet created has a level-up in progress.");
 
             if (s.State != CreationState.Complete)
             {
@@ -105,6 +107,7 @@ namespace Realmkeeper.Domain.Rpg
                 if (rules.BaseScore(a) + rules.SpeciesBonus(a) > AbilityRules.MaxScore) errors.Add($"{a} exceeds {AbilityRules.MaxScore}.");
 
             CheckSubclass(s, rules, errors);
+            if (s.PendingAdvancement != null) errors.AddRange(CharacterAdvancement.DraftProblems(s, s.PendingAdvancement)); // Phase 22
             var known = new HashSet<string>(StringComparer.Ordinal);
             CheckCreationChoices(rules, errors, known);
             CheckLevelChoices(s, rules, errors, known);

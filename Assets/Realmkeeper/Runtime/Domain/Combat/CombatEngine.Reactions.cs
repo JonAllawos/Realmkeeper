@@ -311,29 +311,70 @@ namespace Realmkeeper.Domain.Combat
             }
 
             // Phase 20A: a stone-giant goliath's reaction and one ancestry use reduce the damage by 1d12 + Constitution.
-            if (amount > 0 && TargetFeature(target, "species:giant_ancestry:stone") && CanReact(target) && ResourceLeft(target, "stones_endurance") > 0)
+            amount = StonesEndurance(attacker, target, $"{attacker.Name}'s {o.Name} hits {target.Name} for {amount} damage.", amount, note => r.DamageBreakdown.Note(note));
+            return amount;
+        }
+
+        /// <summary>
+        /// Phase 20A (attacks); Phase 22 (spells and other saving-throw damage): SRD 5.2.1's Stone's Endurance — "when you
+        /// take damage" — a stone-giant goliath may spend its reaction and an ancestry use to reduce the damage by 1d12 +
+        /// Constitution. Offered once per blow (the total about to land); returns the damage left.
+        /// </summary>
+        private int StonesEndurance(CombatantData attacker, CombatantData target, string trigger, int amount, Action<string> note)
+        {
+            if (amount <= 0 || !TargetFeature(target, "species:giant_ancestry:stone") || !CanReact(target) || ResourceLeft(target, "stones_endurance") <= 0) return amount;
+            var con = Stats(target).Modifier(Ability.Constitution);
+            _aiExpectedDamage = amount;
+            if (!Ask(new ReactionOpportunity
             {
-                var con = Stats(target).Modifier(Ability.Constitution);
-                _aiExpectedDamage = amount;
-                if (Ask(new ReactionOpportunity
-                {
-                    Kind = ReactionKind.StonesEndurance, Name = "Stone's Endurance", ReactorId = target.CombatantId, TriggerId = attacker.CombatantId, TargetId = target.CombatantId,
-                    Trigger = $"{attacker.Name}'s {o.Name} hits {target.Name} for {amount} damage.",
-                    Cost = $"{target.Name}'s reaction and one use of Giant Ancestry ({ResourceLeft(target, "stones_endurance")} left)",
-                    Consequence = $"Reduce it by 1d12 {Breakdown.Signed(con)}.",
-                }))
-                {
-                    target.Turn.ReactionUsed = true;
-                    SpendResource(target, "stones_endurance", 1);
-                    var d = Die(12);
-                    var after = Math.Max(0, amount - Math.Max(0, d + con));
-                    r.DamageBreakdown.Note($"Stone's Endurance −{amount - after}");
-                    Log(CombatLogKind.Action, target.CombatantId, attacker.CombatantId, $"{target.Name} braces with Stone's Endurance: 1d12 [{d}] {Breakdown.Signed(con)} — {amount} damage becomes {after}.", d);
-                    amount = after;
-                }
+                Kind = ReactionKind.StonesEndurance, Name = "Stone's Endurance", ReactorId = target.CombatantId, TriggerId = attacker.CombatantId, TargetId = target.CombatantId,
+                Trigger = trigger,
+                Cost = $"{target.Name}'s reaction and one use of Giant Ancestry ({ResourceLeft(target, "stones_endurance")} left)",
+                Consequence = $"Reduce it by 1d12 {Breakdown.Signed(con)}.",
+            })) return amount;
+            target.Turn.ReactionUsed = true;
+            SpendResource(target, "stones_endurance", 1);
+            var d = Die(12);
+            var after = Math.Max(0, amount - Math.Max(0, d + con));
+            note?.Invoke($"Stone's Endurance −{amount - after}");
+            Log(CombatLogKind.Action, target.CombatantId, attacker.CombatantId, $"{target.Name} braces with Stone's Endurance: 1d12 [{d}] {Breakdown.Signed(con)} — {amount} damage becomes {after}.", d);
+            return after;
+        }
+
+        /// <summary>
+        /// Phase 22: damage of several types about to land from a spell or a saving throw (no attack roll). Stone's Endurance
+        /// may reduce the total; the reduction comes off the largest share first. Returns the amounts to apply.
+        /// </summary>
+        private Dictionary<DamageType, int> ReduceWithAncestry(CombatantData attacker, CombatantData target, string what, Dictionary<DamageType, int> damage)
+        {
+            var total = 0;
+            foreach (var v in damage.Values) total += v;
+            var after = StonesEndurance(attacker, target, $"{what} would deal {target.Name} {total} damage.", total, null);
+            if (after >= total) return damage;
+            var cut = total - after;
+            var result = new Dictionary<DamageType, int>(damage);
+            var order = new List<DamageType>(result.Keys);
+            order.Sort((a, b) => result[b] != result[a] ? result[b].CompareTo(result[a]) : a.CompareTo(b));
+            foreach (var t in order)
+            {
+                var take = Math.Min(cut, result[t]);
+                result[t] -= take;
+                cut -= take;
+                if (cut == 0) break;
             }
 
-            return amount;
+            return result;
+        }
+
+        /// <summary>
+        /// Phase 22: after damage from a creature that came without an attack roll (a spell, a saving throw): SRD 5.2.1's
+        /// Storm's Thunder — "when you take damage from a creature within 60 feet". Hellish Rebuke stays on attacks only, as
+        /// before (its spell path is unchanged this phase).
+        /// </summary>
+        private void AncestryAfterHurt(CombatantData attacker, CombatantData target)
+        {
+            if (attacker == null || target.State != VitalState.Conscious || attacker.State != VitalState.Conscious || !Hostile(target, attacker) || target.Position.DistanceFeet(attacker.Position) > 60) return;
+            StormsThunder(attacker, target);
         }
 
         /// <summary>After damage from a creature it can see within 60 ft: a warlock's Hellish Rebuke (Dexterity save, 2d10 fire, half on a success).</summary>
