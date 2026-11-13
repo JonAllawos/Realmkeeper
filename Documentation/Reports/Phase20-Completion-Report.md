@@ -1,6 +1,6 @@
 # Phase 20: Completion report (advanced character creation, character systems, appearance, progression and character UI)
 
-**Date:** 2026-11-12. **Branch:** `feature/phase-0-1-foundation`, on top of `79099a6` (Phase 19, pushed). **Phase 20 is committed locally and not pushed** (section 14).
+**Date:** 2026-11-12. **Branch:** `feature/phase-0-1-foundation`, on top of `79099a6` (Phase 19, pushed). **Phase 20 is committed and pushed to origin at the owner's instruction** (section 14).
 
 ## 1. Summary
 Phase 20 extends the existing character systems instead of replacing them:
@@ -195,8 +195,10 @@ See `Reports/Phase20-Preflight-Audit.md`.
 
 ## 14. Git
 - **Branch:** `feature/phase-0-1-foundation`.
-- **Commit:** one local commit on top of `79099a6`. The hash is in the hand-off message and `git log`.
-- **Not pushed.**
+- **Commits:**
+  - `6dce1a2`: Phase 20.
+  - The commit after it: Unity's reserialisation of `RealmkeeperPanelSettings.asset` (formatting and one default field, no value changed) and this git section.
+- **Pushed to `origin`** at the owner's explicit instruction ("Commit, push it and send report").
 - **Not committed and left untouched:**
   - `ProjectSettings/GraphicsSettings.asset` (unmodified);
   - Unity's `InitTestScene*`;
