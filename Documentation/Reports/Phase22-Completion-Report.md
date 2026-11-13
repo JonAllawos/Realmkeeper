@@ -233,7 +233,7 @@ No assertion was weakened.
 - **Branch:** `feature/phase-0-1-foundation`.
 - **Commits this phase:**
   - `30b5681`: the Phase 21 kit closeout;
-  - the Phase 22 commit (hash below).
+  - `746ff3c`: Phase 22, plus this note's follow-up commit recording the hash.
 - **Working tree after committing:** clean, apart from `ProjectSettings/GraphicsSettings.asset` (if Unity touched it) and Unity's `Assets/InitTestScene*`, which are never committed.
 
 ## 15. Push
