@@ -71,3 +71,20 @@ Each species declares:
 **Art requirement:** a rigged body and head per species on the existing humanoid skeleton (so
 equipment and animation keep working), with matching outfit fits. No licensed asset was found or
 added in Phase 6.
+
+## Phase 20: lineages and appearance (rules 9, ADR-0100)
+
+| Species | Choice | Options (SRD 5.2.1) | Saves from before get |
+|---|---|---|---|
+| Tiefling | `species:fiendish_legacy` | Abyssal (poison resistance; poison spray), Chthonic (necrotic resistance; chill touch), Infernal (fire resistance; fire bolt) | Infernal |
+| Goliath | `species:giant_ancestry` | Cloud's Jaunt, Fire's Burn, Frost's Chill, Hill's Tumble, Stone's Endurance, Storm's Thunder, each usable a number of times equal to the proficiency bonus per long rest | Stone |
+| Gnome | `species:gnome_lineage` | Forest (minor illusion, speak with small beasts), Rock (tinker's tools; mending) | Rock |
+
+Notes:
+- **Not played yet.** Innate spells and the goliath boons are not played by the magic or combat engines yet. Each is flagged, and the sheet's Origins tab says so.
+- **Other variants.** Dwarf is the SRD 5.1 Hill Dwarf and Halfling the Lightfoot; their other variants are not in the SRD. High and Wood Elf remain separate species.
+- **Appearance.**
+  - Every species except human shows the human model at the species' height (labelled "placeholder body").
+  - Each person now has their own height (92–108 % of the species' typical height) and build.
+  - Tieflings, orcs, half-orcs, goliaths, dragonborn and aasimar have their own skin tones (`PlayerAppearanceOptions.SkinTonesFor`).
+  - Ears, tusks, horns, tails and scales are not modelled. See `Research/Phase20-Character-Assets-and-References.md`.

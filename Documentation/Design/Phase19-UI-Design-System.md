@@ -115,3 +115,19 @@ The smallest text is 12 px at 1080p. With the Auto interface scale, it is never 
 
 ## Charts
 `Painter2D` lines and fills on the tokens, as the existing prosperity and stability bars already do (`.rk-bar`). No chart library and no chart images.
+
+## Phase 20 additions (character screens)
+
+These use the same tokens, with no new design language.
+
+| Element | Classes | Notes |
+|---|---|---|
+| Creator layout | `.xk-cc-body` > `.xk-cc-side` (preview, about 31 %, at least 340 px), `.xk-cc-content`, `.xk-cc-build` (300 px) | `.xk-cc--compact` below 1380 px of window width hides the build panel and shows the short summary under the preview |
+| Step bar | `.xk-cc-step` (pill, 34 px, icon) with `--active` and `--done` | Done is green and active is bronze; the text says the step number and name |
+| Choice cards | `.xk-cc-card` (name, then the gist on a second line) | Selected: a bronze border and fill |
+| Build panel | `.xk-cc-build-name` (serif), `-what`, `-concept` (serif italic), `-head` (tracked small capitals style), `-row`, `-key`, `-value`, `-problem` (warn), `-ok` (good) | |
+| Ability tiles | `.xk-cc-ability` (creator, small), `.xk-sheet-ability` (sheet and companions, 118 px) with `-score` (serif) and `-save` | Each tooltip gives the full breakdown |
+| Species adjustment note | `.xk-cc-adjust` | Warn colours; says what changing species changed |
+| Sheet tabs | `.rk-tabs` / `.rk-tab` (Phase 19 shared tabs) with icons | |
+| Trait not yet played | `.xk-sheet-trait--pending` | Muted value and the words "not yet played by the game" |
+| About them | `.xk-dialogue-about` | A card inside the conversation window; each value's tooltip says how it is known |

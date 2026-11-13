@@ -65,6 +65,8 @@ namespace Realmkeeper.Domain.Rpg
 
             if (s.Title != null && s.Title.Length > CharacterSheetData.MaxTitleLength) errors.Add($"A title is at most {CharacterSheetData.MaxTitleLength} characters.");
             if (s.History != null && s.History.Length > CharacterSheetData.MaxHistoryLength) errors.Add($"A history is at most {CharacterSheetData.MaxHistoryLength} characters.");
+            if (s.Pronouns != null && s.Pronouns.Length > CharacterSheetData.MaxPronounsLength) errors.Add($"Pronouns are at most {CharacterSheetData.MaxPronounsLength} characters.");
+            if (s.Concept != null && s.Concept.Length > CharacterSheetData.MaxConceptLength) errors.Add($"A concept is at most {CharacterSheetData.MaxConceptLength} characters.");
             CheckExperience(s, errors);
             CheckDeathState(s, errors);
             CheckSpellcasting(s, errors);

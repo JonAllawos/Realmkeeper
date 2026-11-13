@@ -578,12 +578,13 @@ namespace Realmkeeper.Application
             {
                 var p = Player(context, out var failure);
                 if (p == null) return failure;
-                var problem = PlayerAppearanceOptions.Check(c.Appearance);
+                var problem = PlayerAppearanceOptions.Check(c.Appearance, p.Rpg?.State == Realmkeeper.Domain.Rpg.CreationState.Complete ? p.Rpg.SpeciesId : null);
                 if (problem != null) return CommandResult.Invalid(problem);
                 var a = c.Appearance;
                 context.Edit().Player.Appearance = new PlayerAppearanceData
                 {
                     Frame = a.Frame, HairId = a.HairId, BeardId = a.BeardId, SkinTone = a.SkinTone, HairColour = a.HairColour, ClothTint = a.ClothTint,
+                    HeightPercent = a.HeightPercent, Build = a.Build, // Phase 20
                 };
                 return CommandResult.Ok("Appearance updated.");
             }

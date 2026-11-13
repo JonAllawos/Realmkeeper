@@ -28,7 +28,8 @@ namespace Realmkeeper.Exploration.Presentation
             body.name = "Body " + appearance.BodyId;
             body.transform.localPosition = Vector3.zero;
             body.transform.localRotation = Quaternion.identity;
-            body.transform.localScale = Vector3.one * appearance.HeightScale;
+            var width = appearance.WidthScale <= 0f ? 1f : appearance.WidthScale; // Phase 20: build
+            body.transform.localScale = new Vector3(appearance.HeightScale * width, appearance.HeightScale, appearance.HeightScale * width);
 
             var bones = new Dictionary<string, Transform>(StringComparer.Ordinal);
             foreach (var t in body.GetComponentsInChildren<Transform>(true)) if (!bones.ContainsKey(t.name)) bones[t.name] = t;

@@ -114,7 +114,22 @@ namespace Realmkeeper.Domain.Rpg
                 {
                     Darkvision(60),
                     F("gnome_cunning", "Gnomish Cunning", "You have advantage on Intelligence, Wisdom and Charisma saving throws against magic.", E(EffectKind.SaveAdvantage, "magic-mental")),
-                    F("tinker", "Tinker", "You are proficient with tinker's tools.", E(EffectKind.ToolProficiency, "tinkers_tools")),
+                    F("gnomish_lineage", "Gnomish Lineage", "Your family's line decides a small gift: the forest gnomes' way with beasts and illusion, or the rock gnomes' knack for small mechanisms."),
+                },
+                Choices = new[]
+                {
+                    // Phase 20 (rules 9): the SRD 5.2.1 lineages. Saves from before choose "rock", which is what a gnome was then.
+                    new ChoiceDefinition
+                    {
+                        Id = "species:gnome_lineage", Name = "Gnomish Lineage", Prompt = "Choose your gnomish line.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
+                        Options = new[]
+                        {
+                            new ChoiceOption("forest", "Forest gnome", "You know a minor illusion and can speak with small beasts (innate magic: usable when innate spells arrive).",
+                                E(EffectKind.InnateMagic, "minor-illusion"), E(EffectKind.InnateMagic, "speak-with-small-beasts")) { Needs = IntegrationNeed.Magic },
+                            new ChoiceOption("rock", "Rock gnome", "You are proficient with tinker's tools and know the small tricks of mending and making (the tricks are innate magic, usable when innate spells arrive).",
+                                E(EffectKind.ToolProficiency, "tinkers_tools"), E(EffectKind.InnateMagic, "mending")) { Needs = IntegrationNeed.Magic },
+                        },
+                    },
                 },
                 Appearance = new SpeciesAppearance { HeightScale = 0.6f, Features = new[] { "small frame", "large nose and ears" } },
             },
@@ -162,15 +177,31 @@ namespace Realmkeeper.Domain.Rpg
             new SpeciesDefinition
             {
                 Id = "tiefling", Name = "Tiefling", Source = ContentSource.Srd51,
-                Description = "Marked by an infernal inheritance: horns, a tail, and a resistance to fire.",
+                Description = "Marked by a fiendish inheritance: horns, a tail, and a resistance that depends on the legacy in their blood.",
                 Lore = "No one chooses to be born a tiefling. Somewhere in the bloodline a pact was made, and the marks show generations later. Tieflings are met with suspicion in most towns and learn early to rely on themselves.",
                 Speed = 30, Languages = new[] { "common", "infernal" },
                 AbilityBonuses = Bonus((Ability.Charisma, 2), (Ability.Intelligence, 1)),
                 Traits = new[]
                 {
                     Darkvision(60),
-                    F("hellish_resistance", "Hellish Resistance", "You resist fire damage.", E(EffectKind.Resistance, "fire")),
-                    F("infernal_legacy", "Infernal Legacy", "You know a minor infernal trick of magic (chosen when magic arrives in a later phase).", E(EffectKind.InnateMagic, "infernal-legacy")),
+                    F("fiendish_legacy", "Fiendish Legacy", "The power in your bloodline decides the harm you shrug off and the minor magic you were born knowing."),
+                },
+                Choices = new[]
+                {
+                    // Phase 20 (rules 9): the SRD 5.2.1 legacies. Saves from before choose "infernal", which is what a tiefling was then.
+                    new ChoiceDefinition
+                    {
+                        Id = "species:fiendish_legacy", Name = "Fiendish Legacy", Prompt = "Choose the legacy in your blood.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
+                        Options = new[]
+                        {
+                            new ChoiceOption("abyssal", "Abyssal", "You resist poison damage, and know a spray of poison (innate magic: usable when innate spells arrive).",
+                                E(EffectKind.Resistance, "poison"), E(EffectKind.InnateMagic, "poison-spray")) { Needs = IntegrationNeed.Magic },
+                            new ChoiceOption("chthonic", "Chthonic", "You resist necrotic damage, and know a chilling, deathly touch (innate magic: usable when innate spells arrive).",
+                                E(EffectKind.Resistance, "necrotic"), E(EffectKind.InnateMagic, "chill-touch")) { Needs = IntegrationNeed.Magic },
+                            new ChoiceOption("infernal", "Infernal", "You resist fire damage, and know a bolt of fire (innate magic: usable when innate spells arrive).",
+                                E(EffectKind.Resistance, "fire"), E(EffectKind.InnateMagic, "fire-bolt")) { Needs = IntegrationNeed.Magic },
+                        },
+                    },
                 },
                 Appearance = new SpeciesAppearance { HeightScale = 1f, Features = new[] { "horns", "tail", "red to violet skin tones", "solid-colour eyes" } },
             },
@@ -234,11 +265,35 @@ namespace Realmkeeper.Domain.Rpg
                 Traits = new[]
                 {
                     F("powerful_build", "Powerful Build", "You count as one size larger for what you can carry: you carry twice as much before it slows you.", E(EffectKind.CarryCapacityPercent, value: 200)),
-                    F("stones_endurance", "Stone's Endurance", "When you take damage you can reduce it, a number of times equal to your proficiency bonus per long rest.",
-                        E(EffectKind.Resource, "stones_endurance"), E(EffectKind.CombatRule, "reduce-damage", 12, "Reduce damage by 1d12 + Constitution")),
+                    F("giant_ancestry", "Giant Ancestry", "A giant's gift runs in your line; you can call on it a number of times equal to your proficiency bonus per long rest.",
+                        E(EffectKind.Resource, "stones_endurance")),
                     F("mountain_born", "Mountain Born", "You are proficient in Athletics.", E(EffectKind.SkillProficiency, nameof(Skill.Athletics))),
                 },
-                Resources = new[] { new ResourceDefinition { Id = "stones_endurance", Name = "Stone's Endurance", Formula = ResourceFormula.ProficiencyBonus, Recovery = ResourceRecovery.LongRest } },
+                Choices = new[]
+                {
+                    // Phase 20 (rules 9): the SRD 5.2.1 ancestries. Saves from before choose "stone", which is what a goliath was then.
+                    // None of the six boons is played by the combat engine yet; each is flagged, and the sheet says so.
+                    new ChoiceDefinition
+                    {
+                        Id = "species:giant_ancestry", Name = "Giant Ancestry", Prompt = "Choose the giant in your line.", Kind = ChoiceKind.Option, Count = 1, IntroducedInRules = 9,
+                        Options = new[]
+                        {
+                            new ChoiceOption("cloud", "Cloud giant: Cloud's Jaunt", "As a bonus action, you vanish and reappear up to 30 feet away.",
+                                E(EffectKind.CombatRule, "teleport", 30, "Bonus action: teleport 30 ft")) { Needs = IntegrationNeed.Combat },
+                            new ChoiceOption("fire", "Fire giant: Fire's Burn", "When you hit with an attack, you can add 1d10 fire damage.",
+                                E(EffectKind.CombatRule, "extra-fire-damage", 10, "On a hit: +1d10 fire")) { Needs = IntegrationNeed.Combat },
+                            new ChoiceOption("frost", "Frost giant: Frost's Chill", "When you hit, you can add 1d6 cold damage and slow the target by 10 feet until your next turn.",
+                                E(EffectKind.CombatRule, "extra-cold-slow", 6, "On a hit: +1d6 cold, speed −10 ft")) { Needs = IntegrationNeed.Combat },
+                            new ChoiceOption("hill", "Hill giant: Hill's Tumble", "When you hit a Large or smaller creature, you can knock it prone.",
+                                E(EffectKind.CombatRule, "knock-prone", 0, "On a hit: knock Large or smaller prone")) { Needs = IntegrationNeed.Combat },
+                            new ChoiceOption("stone", "Stone giant: Stone's Endurance", "When you take damage, you can use your reaction to reduce it by 1d12 + your Constitution modifier.",
+                                E(EffectKind.CombatRule, "reduce-damage", 12, "Reduce damage by 1d12 + Constitution")) { Needs = IntegrationNeed.Combat },
+                            new ChoiceOption("storm", "Storm giant: Storm's Thunder", "When a creature within 60 feet damages you, you can use your reaction to deal it 1d8 thunder damage.",
+                                E(EffectKind.CombatRule, "retaliate-thunder", 8, "Reaction: 1d8 thunder to an attacker within 60 ft")) { Needs = IntegrationNeed.Combat },
+                        },
+                    },
+                },
+                Resources = new[] { new ResourceDefinition { Id = "stones_endurance", Name = "Giant Ancestry", Formula = ResourceFormula.ProficiencyBonus, Recovery = ResourceRecovery.LongRest } },
                 Appearance = new SpeciesAppearance { HeightScale = 1.22f, Features = new[] { "very tall frame", "stony skin patterning" } },
             },
         };

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
 
@@ -99,9 +100,26 @@ namespace Realmkeeper.Application
             if (RpgCatalog.FindSpecies(id) == null || id == Choices.SpeciesId) return;
             foreach (var key in new List<string>(Choices.Choices.Keys)) if (key.StartsWith("species:", StringComparison.Ordinal)) Choices.Choices.Remove(key);
             Choices.SpeciesId = id;
-            if (!Species.Appearance.AllowsBeard) Choices.Appearance.BeardId = null;
+            Adjustment = null;
+            if (!Species.Appearance.AllowsBeard && Choices.Appearance.BeardId != null)
+            {
+                Choices.Appearance.BeardId = null;
+                Adjustment = Species.Name + " have no beards: the beard was removed.";
+            }
+
+            // Phase 20: a skin tone the species cannot have is replaced by its first, and the creator says so.
+            var tones = PlayerAppearanceOptions.SkinTonesFor(id);
+            if (!tones.Contains(Choices.Appearance.SkinTone))
+            {
+                Choices.Appearance.SkinTone = tones[0];
+                Adjustment = (Adjustment == null ? string.Empty : Adjustment + " ") + $"{Species.Name} skin is not human-coloured: skin set to {PlayerAppearanceOptions.SkinPalette[tones[0]].name}; change it on the Appearance step.";
+            }
+
             DropGrantedSkills();
         }
+
+        /// <summary>Phase 20: what changing species changed in the appearance (said, never silent), or null.</summary>
+        public string Adjustment { get; private set; }
 
         public void SetBackground(string id)
         {
@@ -275,9 +293,11 @@ namespace Realmkeeper.Application
                     if (c.Age < CharacterCommandHandlers.MinAge || c.Age > CharacterCommandHandlers.MaxAge) list.Add($"Age must be {CharacterCommandHandlers.MinAge}–{CharacterCommandHandlers.MaxAge}.");
                     if ((c.Title ?? string.Empty).Length > CharacterSheetData.MaxTitleLength) list.Add($"A title is at most {CharacterSheetData.MaxTitleLength} characters.");
                     if ((c.History ?? string.Empty).Length > CharacterSheetData.MaxHistoryLength) list.Add($"A history is at most {CharacterSheetData.MaxHistoryLength} characters.");
+                    if ((c.Pronouns ?? string.Empty).Length > CharacterSheetData.MaxPronounsLength) list.Add($"Pronouns are at most {CharacterSheetData.MaxPronounsLength} characters.");
+                    if ((c.Concept ?? string.Empty).Length > CharacterSheetData.MaxConceptLength) list.Add($"A concept is at most {CharacterSheetData.MaxConceptLength} characters.");
                     break;
                 case CreationStep.Appearance:
-                    var look = PlayerAppearanceOptions.Check(c.Appearance);
+                    var look = PlayerAppearanceOptions.Check(c.Appearance, c.SpeciesId);
                     if (look != null) list.Add(look);
                     break;
                 case CreationStep.Species:
@@ -330,7 +350,7 @@ namespace Realmkeeper.Application
             var c = Choices;
             var copy = new CharacterCreationChoices
             {
-                Name = c.Name, Title = c.Title, Age = c.Age, Description = c.Description, History = c.History,
+                Name = c.Name, Title = c.Title, Age = c.Age, Description = c.Description, History = c.History, Pronouns = c.Pronouns, Concept = c.Concept,
                 Appearance = c.Appearance?.Clone(), SpeciesId = c.SpeciesId, BackgroundId = c.BackgroundId, ClassId = c.ClassId,
                 Method = c.Method, BaseScores = (int[])c.BaseScores.Clone(),
             };

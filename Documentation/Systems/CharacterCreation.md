@@ -129,3 +129,30 @@ The Hub's Character section keeps its structure, with one new panel, **Progressi
 The other panels now show initiative, speed, passive scores, roll modes, senses, movement,
 fighting styles, class-table columns, resource recovery, spell slots and prepared spells, and each
 score's breakdown.
+
+## Phase 20: the redesigned creator
+
+**Layout.** Three regions:
+- the 3D preview on the left: about a third of the window, at least 340 px;
+- the step in the middle;
+- a live build panel on the right.
+
+The build panel shows:
+- name, species, background, class, pronouns and concept;
+- six ability tiles, whose tooltips give the sources;
+- hit points, speed, initiative and proficiency, each with its breakdown;
+- the six saves, proficient skills with sources, spellcasting, and features;
+- **everything still to choose, by step**.
+
+Below 1380 px of window width, the build panel steps aside and a short summary stays under the preview.
+
+**The steps:**
+- **Identity:** pronouns and a one-line concept (both optional, validated), with writing prompts that do not decide the story.
+- **Appearance:** the species' own skin tones (named), height (92–108 %, shown in metres) and build (slight, average, heavy). All change the preview's real model. A species change that alters the skin tone or removes a beard says so (`CharacterDraft.Adjustment`).
+- **Species, Background and Class:** cards showing the name, then the gist:
+  - species: size, speed, ability increases;
+  - background: its skills;
+  - class: hit die, primary abilities, spellcasting or martial.
+- **Class detail:** also shows the subclass (with its features and levels) and "the road ahead" (features at levels 2–6, and the ASI or feat levels).
+
+Element names used by tests are unchanged.

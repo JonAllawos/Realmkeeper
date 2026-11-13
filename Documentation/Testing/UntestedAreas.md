@@ -69,3 +69,13 @@
 | Tooltip placement at screen edges | Low. The clamping was checked in code only. | Hover controls in the screen corners |
 | Interface frame time | Not profiled. Batch captures have no meaningful timing. | The performance probe in a development build |
 | Screens restyled but not redesigned (inspector charts, event-feed filters, inventory grid, per-item icons, contextual HUD) | — | Later passes; see the completion report, section 3 |
+
+## Phase 20 (characters)
+
+| Area | Risk | How to close |
+|---|---|---|
+| Hand use of the creator, sheet, "About them" and companions | Medium. Driven by tests through the real controls and inspected in captures, but no person has used them. | `Reports/Phase20-Owner-Playtest-Checklist.md` |
+| Appearance at extremes (height 92 % or 108 % with heavy build, every species tone) | Low. One combination was captured. | Owner checklist A3 |
+| Familiarity reaching 50 in natural play | Low. Tested by setting it; how long it takes in play is unmeasured. | Owner checklist E17 |
+| Keyboard-only use of the creator | Low | Owner checklist A9 |
+| Goliath ancestry boons and innate spells in play | They are flagged as not yet played; combat and magic do not use them | A combat and magic pass |

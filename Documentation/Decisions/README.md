@@ -101,5 +101,8 @@
 | [0097](ADR-0097-third-party-creatures-and-scenery-through-one-pipeline.md) | Third-party creatures and scenery come in through one pipeline, licence first | Accepted (Phase 18) |
 | [0098](ADR-0098-one-design-system-and-a-shared-ui-assembly.md) | One design system (tokens, shared components) and a shared UI assembly | Accepted (Phase 19) |
 | [0099](ADR-0099-interface-assets-and-fonts.md) | Interface assets and fonts: CC BY icons, CC0 kits, OFL fonts | Accepted (Phase 19) |
+| [0100](ADR-0100-species-lineages-rules-9.md) | Species lineages as choices (rules 9) | Accepted (Phase 20) |
+| [0101](ADR-0101-save-schema-v21-identity-appearance.md) | Save schema v21: lineages, identity, height and build | Accepted (Phase 20) |
+| [0102](ADR-0102-people-known-as-far-as-the-player-knows-them.md) | People are known as far as the player knows them | Accepted (Phase 20) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -33,6 +33,10 @@ The SRD supplies the rules mechanics:
   bandit captain, cultist, veteran, skeleton, zombie, ogre and troll, with their traits (Charge,
   Regeneration, Undead Fortitude, Relentless, Nimble Escape, Parry and others).
 
+**Species lineages (Phase 20).** The tiefling's fiendish legacies (abyssal, chthonic, infernal), the goliath's giant
+ancestries (cloud, fire, frost, hill, stone, storm) and the gnome's lineages (forest, rock) follow SRD 5.2.1 as rules; their
+descriptions are Realmkeeper's own.
+
 **Realmkeeper originals (not SRD).** The rabbit, fox, cattle, sheep and chicken have no SRD statistics.
 Their statistics are Realmkeeper's own, written in the same format and labelled
 `ContentSource.RealmkeeperOriginal` in the catalog and in the game's combat inspector. Creature

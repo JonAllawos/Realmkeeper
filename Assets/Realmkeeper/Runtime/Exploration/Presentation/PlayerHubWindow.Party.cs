@@ -99,7 +99,22 @@ namespace Realmkeeper.Exploration.Presentation
                 d.Add(Pair("Hit points", $"{s.Hp}/{s.MaxHp} ({s.State})"));
                 d.Add(Pair("Armour class", $"{s.ArmorClass} — {s.ArmorClassText}"));
                 d.Add(Pair("Speed", $"{s.Speed} ft · proficiency +{s.ProficiencyBonus}"));
-                d.Add(Pair("Abilities", string.Join("  ", new[] { "Str", "Dex", "Con", "Int", "Wis", "Cha" }.Select((a, i) => a + " " + s.Scores[i]))));
+                // Phase 20: the same ability tiles as the player's own sheet, from the same rules.
+                var tiles = Row("xk-sheet-abilities");
+                tiles.name = "xk-party-abilities";
+                var names = new[] { "Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma" };
+                for (var i = 0; i < 6; i++)
+                {
+                    var mod = (int)System.Math.Floor((s.Scores[i] - 10) / 2.0);
+                    var tile = Column("xk-sheet-ability");
+                    tile.Add(Text(names[i].ToUpperInvariant(), "xk-cc-ability-name"));
+                    tile.Add(Text(s.Scores[i].ToString(System.Globalization.CultureInfo.InvariantCulture), "xk-sheet-ability-score"));
+                    tile.Add(Text((mod >= 0 ? "+" : string.Empty) + mod, "xk-cc-ability-mod"));
+                    tile.tooltip = names[i] + " " + s.Scores[i] + ": modifier " + (mod >= 0 ? "+" : string.Empty) + mod + ", added to every " + names[i].ToLowerInvariant() + " check, save and (where it applies) attack.";
+                    tiles.Add(tile);
+                }
+
+                d.Add(tiles);
                 d.Add(Pair("Saves", string.Join(", ", s.Saves)));
                 if (s.Skills.Count > 0) d.Add(Pair("Skills", string.Join(", ", s.Skills)));
                 if (s.Features.Count > 0) d.Add(Pair("Features", string.Join(", ", s.Features)));

@@ -620,7 +620,8 @@ namespace Realmkeeper.Exploration.Presentation
             look.SkinTone = a.SkinTone;
             look.HairColour = a.HairColour;
             look.ClothTint = a.ClothTint;
-            look.HeightScale = draft.Species?.Appearance.HeightScale ?? 1f;
+            look.HeightScale = (draft.Species?.Appearance.HeightScale ?? 1f) * a.HeightPercent / 100f; // Phase 20: the person within the species
+            look.WidthScale = PlayerAppearanceOptions.BuildWidth(a.Build);
             var cls = draft.Class;
             if (cls == null) return look;
             foreach (var g in cls.Equipment)

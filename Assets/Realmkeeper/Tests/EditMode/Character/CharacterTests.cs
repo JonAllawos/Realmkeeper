@@ -441,6 +441,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             var before = CommerceMath.SellingPrice(w, shop, item);
             var d = new CharacterDraft();
             d.SetSpecies("goliath");
+            d.Toggle("species:giant_ancestry", "stone"); // Phase 20: goliaths choose their giant ancestry
             d.SetBackground("merchant");
             d.SetClass("fighter");
             d.Toggle(ClassDefinition.SkillChoiceId, nameof(Skill.Perception));

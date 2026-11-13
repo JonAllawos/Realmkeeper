@@ -51,6 +51,51 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// places of each region and their quests are added by the session on load (as each generation of places has been),
     /// mechanisms keep their state in the places' own variables, and world events and quests keep their existing fields.
     /// </summary>
+    /// <summary>
+    /// Phase 20 (rules 9): tieflings, goliaths and gnomes now choose a lineage (SRD 5.2.1). Every sheet saved before
+    /// (the player, every named person, companions among them) is given the lineage it already had: an infernal
+    /// tiefling (fire resistance), a stone goliath (Stone's Endurance), a rock gnome (tinker's tools). Nothing a
+    /// character could do before changes, and no choice the player made is overwritten. The identity and appearance
+    /// fields added in v21 are optional and default when absent.
+    /// </summary>
+    public sealed class MigrationV20ToV21 : ISaveMigration
+    {
+        public int SourceVersion => 20;
+
+        /// <summary>Species → (choice, the option that matches the earlier fixed traits).</summary>
+        public static readonly IReadOnlyDictionary<string, (string choice, string option)> Lineages = new Dictionary<string, (string, string)>
+        {
+            ["tiefling"] = ("species:fiendish_legacy", "infernal"),
+            ["goliath"] = ("species:giant_ancestry", "stone"),
+            ["gnome"] = ("species:gnome_lineage", "rock"),
+        };
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            Visit(world);
+            // A character not yet created is made under the current rules, as in the v10 → v11 step.
+            if (world["player"] is JObject player && player["rpg"] is JObject rpg && (string)rpg["state"] != "Complete") rpg["rulesVersion"] = 9;
+        }
+
+        /// <summary>Every character sheet in the save, wherever it sits: an object with a species and a choice map.</summary>
+        private static void Visit(JToken token)
+        {
+            if (token is JObject o)
+            {
+                if (o["speciesId"]?.Type == JTokenType.String && o["choices"] is JObject choices
+                    && Lineages.TryGetValue((string)o["speciesId"], out var lineage)
+                    && !(choices[lineage.choice] is JArray picked && picked.Count > 0))
+                    choices[lineage.choice] = new JArray(lineage.option);
+                foreach (var p in o.Properties()) Visit(p.Value);
+            }
+            else if (token is JArray a)
+            {
+                foreach (var t in a) Visit(t);
+            }
+        }
+    }
+
     public sealed class MigrationV19ToV20 : ISaveMigration
     {
         public int SourceVersion => 19;

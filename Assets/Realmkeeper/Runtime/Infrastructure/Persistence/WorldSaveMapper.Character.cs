@@ -14,6 +14,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                 State = s.State.ToString(),
                 Title = s.Title,
                 History = s.History,
+                Pronouns = s.Pronouns, // schema v21
+                Concept = s.Concept,
                 SpeciesId = s.SpeciesId,
                 BackgroundId = s.BackgroundId,
                 ClassId = s.ClassId,
@@ -86,6 +88,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                 State = ParseEnum<CreationState>(d.State, "character state"),
                 Title = d.Title ?? string.Empty,
                 History = d.History ?? string.Empty,
+                Pronouns = d.Pronouns ?? string.Empty,
+                Concept = d.Concept ?? string.Empty,
                 SpeciesId = d.SpeciesId,
                 BackgroundId = d.BackgroundId,
                 ClassId = d.ClassId,

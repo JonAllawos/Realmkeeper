@@ -261,3 +261,13 @@ Details: `Documentation/Phase10/CreatureAndNpcSystems.md`.
   - They say what they really know, worded by certainty; rivals argue.
   - The scene shows lines above pairs within 14 m and turns them to each other. Nothing in the world changes.
 - **Deferred:** sitting poses, because the streets and interiors have no seats.
+
+## Phase 20: people as the player knows them (ADR-0102)
+
+In conversation, **About them** shows `KnownPersonQueries.View`. Each layer is cumulative:
+- **Stranger:** what anyone can see.
+- **Spoken with:** where they are from, their background, whom they serve.
+- **Familiarity 50+:** their training (level in words), what they are good at, languages.
+- **Companion:** the numbers.
+
+Each line says how it is known, and what is withheld is said. Memories, private knowledge and a stranger's numbers are never shown. The strategic map's people inspector remains the DM's full view.

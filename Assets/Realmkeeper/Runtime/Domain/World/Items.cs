@@ -243,6 +243,18 @@ namespace Realmkeeper.Domain.World
         /// <summary>Tint applied to clothing (index into the outfit tints).</summary>
         public int ClothTint { get; set; }
 
+        public const int MinHeightPercent = 92;
+        public const int MaxHeightPercent = 108;
+
+        /// <summary>
+        /// Phase 20: height relative to the species' typical height, in percent (92–108). The species sets the scale
+        /// (a halfling is small); this is the person's own place within it.
+        /// </summary>
+        public int HeightPercent { get; set; } = 100;
+
+        /// <summary>Phase 20: build, 0 slight, 1 average, 2 heavy. Widens or narrows the body, not its height.</summary>
+        public int Build { get; set; } = 1;
+
         public PlayerAppearanceData Clone() => (PlayerAppearanceData)MemberwiseClone();
     }
 
@@ -288,11 +300,58 @@ namespace Realmkeeper.Domain.World
         public static readonly System.Collections.Generic.IReadOnlyList<string> MaleHair = new[] { "Hair_SimpleParted", "Hair_Buzzed", "Hair_Long", null };
         public static readonly System.Collections.Generic.IReadOnlyList<string> FemaleHair = new[] { "Hair_Buns", "Hair_Long", "Hair_BuzzedFemale", null };
         public static readonly System.Collections.Generic.IReadOnlyList<string> Beards = new[] { "Hair_Beard", null };
+        /// <summary>The human skin tones (indices 0–4), shared by every species and by generated residents.</summary>
         public const int SkinTones = 5;
         public const int HairColours = 6;
         public const int ClothTints = 4;
 
+        /// <summary>
+        /// Phase 20: every skin tone, as linear RGB multipliers on the shared skin texture. Indices 0–4 are the human
+        /// tones every species may use; the rest belong to species whose people are not human-coloured (a tiefling's
+        /// red and violet, an orc's grey-green, a goliath's stone). Appending keeps every saved index meaning the same.
+        /// </summary>
+        public static readonly System.Collections.Generic.IReadOnlyList<(string name, float r, float g, float b)> SkinPalette = new[]
+        {
+            ("Fair", 1.00f, 1.00f, 1.00f), ("Light", 0.96f, 0.90f, 0.84f), ("Olive", 0.84f, 0.74f, 0.64f), ("Brown", 0.66f, 0.54f, 0.44f), ("Deep", 0.48f, 0.37f, 0.30f),
+            ("Ember red", 0.78f, 0.36f, 0.32f), ("Wine", 0.58f, 0.28f, 0.34f), ("Violet", 0.56f, 0.40f, 0.62f),           // 5–7 tiefling
+            ("Grey-green", 0.60f, 0.70f, 0.52f), ("Moss", 0.48f, 0.58f, 0.40f), ("Slate", 0.55f, 0.60f, 0.56f),            // 8–10 orc, half-orc
+            ("Stone", 0.70f, 0.70f, 0.68f), ("Blue-grey", 0.60f, 0.64f, 0.72f),                                         // 11–12 goliath
+            ("Bronze scale", 0.74f, 0.52f, 0.28f), ("Red scale", 0.66f, 0.26f, 0.20f), ("Blue scale", 0.34f, 0.44f, 0.66f), ("Green scale", 0.36f, 0.56f, 0.34f), ("White scale", 0.92f, 0.92f, 0.94f), // 13–17 dragonborn
+            ("Gilded", 1.00f, 0.92f, 0.70f), ("Silvered", 0.90f, 0.90f, 0.96f),                                          // 18–19 aasimar
+        };
+
+        /// <summary>Phase 20: the skin tones a species' people can have (human tones first, then their own).</summary>
+        public static System.Collections.Generic.IReadOnlyList<int> SkinTonesFor(string speciesId)
+        {
+            switch (speciesId)
+            {
+                case "tiefling": return new[] { 5, 6, 7, 0, 1, 2, 3, 4 };
+                case "orc": return new[] { 8, 9, 10, 0, 1, 2, 3, 4 };
+                case "half_orc": return new[] { 8, 10, 0, 1, 2, 3, 4 };
+                case "goliath": return new[] { 11, 12, 0, 1, 2, 3, 4 };
+                case "dragonborn": return new[] { 13, 14, 15, 16, 17 };
+                case "aasimar": return new[] { 18, 19, 0, 1, 2, 3, 4 };
+                default: return new[] { 0, 1, 2, 3, 4 };
+            }
+        }
+
+        /// <summary>Phase 20: the build's width relative to average (height is unchanged).</summary>
+        public static float BuildWidth(int build) => build <= 0 ? 0.93f : build >= 2 ? 1.08f : 1f;
+
+        public static readonly System.Collections.Generic.IReadOnlyList<string> BuildNames = new[] { "Slight", "Average", "Heavy" };
+
         public static System.Collections.Generic.IReadOnlyList<string> HairFor(NpcSex frame) => frame == NpcSex.Female ? FemaleHair : MaleHair;
+
+        /// <summary>Phase 20: as <see cref="Check(PlayerAppearanceData)"/>, and the skin tone must suit the species (no species yet: the human tones).</summary>
+        public static string Check(PlayerAppearanceData a, string speciesId)
+        {
+            var basic = Check(a);
+            if (basic != null) return basic; // no species yet: the human tones only
+            foreach (var i in SkinTonesFor(speciesId)) if (i == a.SkinTone) return null;
+            return speciesId == null
+                ? $"Skin tone '{SkinPalette[a.SkinTone].name}' needs a species that has it; choose the species first."
+                : $"Skin tone '{SkinPalette[a.SkinTone].name}' is not one a {speciesId.Replace('_', '-')} has.";
+        }
 
         /// <summary>Null when the appearance can be rendered, otherwise why not.</summary>
         public static string Check(PlayerAppearanceData a)
@@ -304,7 +363,10 @@ namespace Realmkeeper.Domain.World
             foreach (var h in hair) if (h == a.HairId) found = true;
             if (!found) return $"Hair '{a.HairId ?? "none"}' is not available for that frame.";
             if (a.BeardId != null && (a.Frame != NpcSex.Male || a.BeardId != "Hair_Beard")) return "That beard is not available.";
-            if (a.SkinTone < 0 || a.SkinTone >= SkinTones) return $"Skin tone must be 0–{SkinTones - 1}.";
+            if (a.SkinTone < 0 || a.SkinTone >= SkinPalette.Count) return $"Skin tone must be 0–{SkinPalette.Count - 1}.";
+            if (a.HeightPercent < PlayerAppearanceData.MinHeightPercent || a.HeightPercent > PlayerAppearanceData.MaxHeightPercent)
+                return $"Height must be {PlayerAppearanceData.MinHeightPercent}–{PlayerAppearanceData.MaxHeightPercent} % of the species' typical height.";
+            if (a.Build < 0 || a.Build > 2) return "Build must be slight, average or heavy.";
             if (a.HairColour < 0 || a.HairColour >= HairColours) return $"Hair colour must be 0–{HairColours - 1}.";
             if (a.ClothTint < 0 || a.ClothTint >= ClothTints) return $"Cloth tint must be 0–{ClothTints - 1}.";
             return null;

@@ -1,0 +1,27 @@
+p20_01_creator_overview: 1920x1080. Creator: identity with pronouns and a concept; the live build lists what is still to choose.
+p20_01_creator_overview_768: 1366x768. Creator: identity with pronouns and a concept; the live build lists what is still to choose.
+p20_02_species_selection: 1920x1080. Species as cards; a tiefling selected, its legacy not yet chosen (the problem is named).
+p20_02_species_selection_768: 1366x768. Species as cards; a tiefling selected, its legacy not yet chosen (the problem is named).
+p20_03_species_detail: 1920x1080. Species detail: traits, lore, the chosen chthonic legacy.
+p20_03_species_detail_768: 1366x768. Species detail: traits, lore, the chosen chthonic legacy.
+p20_04_appearance: 1920x1080. Appearance: a tiefling skin tone (violet), height 106 %, heavy build, in the live preview.
+p20_04_appearance_768: 1366x768. Appearance: a tiefling skin tone (violet), height 106 %, heavy build, in the live preview.
+measure: Creator redraw with a new look (preview rebuilt): 4.4 ms; without a change: 4.8 ms.
+p20_06_background_selection: 1920x1080. Background cards and the criminal background's detail.
+p20_06_background_selection_768: 1366x768. Background cards and the criminal background's detail.
+p20_05_class_selection: 1920x1080. Class cards; the rogue's subclass and the road ahead (levels 2–6).
+p20_05_class_selection_768: 1366x768. Class cards; the rogue's subclass and the road ahead (levels 2–6).
+p20_07_abilities_skills: 1920x1080. Skills with their totals and sources; the build panel shows abilities and saves.
+p20_07_abilities_skills_768: 1366x768. Skills with their totals and sources; the build panel shows abilities and saves.
+p20_08_review: 1920x1080. Review before creating.
+p20_08_review_768: 1366x768. Review before creating.
+p20_09_sheet_overview: 1920x1080. Character sheet overview: name, concept, ability tiles with saves, combat numbers.
+p20_09_sheet_overview_768: 1366x768. Character sheet overview: name, concept, ability tiles with saves, combat numbers.
+measure: Opening each of the 7 sheet tabs: 1.2 ms each.
+p20_10_sheet_skills: 1920x1080. Skills: every total with its sources.
+p20_11_sheet_origins: 1920x1080. Origins: species, legacy, traits (with what the game cannot play yet), background, history.
+p20_11b_sheet_progression: 1920x1080. Progression: experience and the history of levels taken.
+p20_15_equipment_appearance: 1920x1080. Equipment beside the 3D preview wearing it.
+p20_13_npc_inspection: 1920x1080. About them: what the player knows of a person they have just met.
+p20_14_companion_sheet: 1920x1080. A companion's sheet in the party: ability tiles, saves, skills, features, loyalty.
+p20_12_level_up: 1920x1080. The level-up window for level 2: what the new level gives, before confirming.

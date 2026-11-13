@@ -15,6 +15,10 @@ namespace Realmkeeper.Application
         public int Age { get; set; } = 25;
         public string Description { get; set; } = string.Empty;
         public string History { get; set; } = string.Empty;
+
+        /// <summary>Phase 20: optional pronouns and a one-line concept, in the player's words.</summary>
+        public string Pronouns { get; set; } = string.Empty;
+        public string Concept { get; set; } = string.Empty;
         public PlayerAppearanceData Appearance { get; set; }
         public string SpeciesId { get; set; }
         public string BackgroundId { get; set; }
@@ -57,6 +61,8 @@ namespace Realmkeeper.Application
                 State = CreationState.Complete,
                 Title = (c.Title ?? string.Empty).Trim(),
                 History = (c.History ?? string.Empty).Trim(),
+                Pronouns = (c.Pronouns ?? string.Empty).Trim(),
+                Concept = (c.Concept ?? string.Empty).Trim(),
                 SpeciesId = c.SpeciesId,
                 BackgroundId = c.BackgroundId,
                 ClassId = c.ClassId,
@@ -111,7 +117,7 @@ namespace Realmkeeper.Application
             if (c.Age < MinAge || c.Age > MaxAge) errors.Add($"Age must be {MinAge}–{MaxAge}.");
             if ((c.Description ?? string.Empty).Length > PlayerCommandHandlers.MaxDescriptionLength)
                 errors.Add($"A description is at most {PlayerCommandHandlers.MaxDescriptionLength} characters.");
-            var look = PlayerAppearanceOptions.Check(c.Appearance);
+            var look = PlayerAppearanceOptions.Check(c.Appearance, c.SpeciesId);
             if (look != null) errors.Add(look);
 
             var sheet = BuildSheet(c, out var missing);

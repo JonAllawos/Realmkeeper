@@ -172,7 +172,7 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(hub.Section, Is.EqualTo("Character"));
             var vitals = hub.Content.Q<VisualElement>("xk-hub-vitals");
             Assert.That(vitals.Query<Label>().ToList().Select(l => l.text), Has.Member("12 / 12"));
-            Assert.That(hub.Content.Q<VisualElement>("xk-hub-ability-Wisdom").Query<Label>().ToList().Select(l => l.text), Has.Member("16").And.Member("+3").And.Member("● +5"), "15 + 1 (dwarf), proficient save.");
+            Assert.That(hub.Content.Q<VisualElement>("xk-hub-ability-Wisdom").Query<Label>().ToList().Select(l => l.text), Has.Member("16").And.Member("+3").And.Member("● save +5"), "15 + 1 (dwarf), proficient save (Phase 20 ability tile).");
             hub.SelectCharacterPanel("Skills");
             Assert.That(hub.Content.Q<VisualElement>("xk-hub-skill-Medicine").Q<Label>().text, Does.StartWith("●"));
             Assert.That(hub.Content.Q<VisualElement>("xk-hub-skill-Arcana").Q<Label>().text, Does.StartWith("○"));

@@ -49,6 +49,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                 d.Appearance = new PlayerAppearanceDto
                 {
                     Frame = a.Frame.ToString(), HairId = a.HairId, BeardId = a.BeardId, SkinTone = a.SkinTone, HairColour = a.HairColour, ClothTint = a.ClothTint,
+                    HeightPercent = a.HeightPercent, Build = a.Build, // schema v21
                 };
                 d.Inventory = new List<ItemStackDto>();
                 foreach (var s in p.Inventory) d.Inventory.Add(StackDto(s));
@@ -129,6 +130,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                         SkinTone = d.Appearance.SkinTone,
                         HairColour = d.Appearance.HairColour,
                         ClothTint = d.Appearance.ClothTint,
+                        HeightPercent = d.Appearance.HeightPercent ?? 100, // schema v21; absent before: the species' typical height
+                        Build = d.Appearance.Build ?? 1,
                     };
                 }
 

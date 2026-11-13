@@ -470,6 +470,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public int SkinTone { get; set; }
         public int HairColour { get; set; }
         public int ClothTint { get; set; }
+
+        // Schema v21 (Phase 20). Absent in older saves.
+        public int? HeightPercent { get; set; }
+        public int? Build { get; set; }
     }
 
     public sealed class ItemStackDto
@@ -633,6 +637,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string State { get; set; }
         public string Title { get; set; }
         public string History { get; set; }
+
+        // Schema v21 (Phase 20): identity. Absent in older saves.
+        public string Pronouns { get; set; }
+        public string Concept { get; set; }
         public string SpeciesId { get; set; }
         public string BackgroundId { get; set; }
         public string ClassId { get; set; }

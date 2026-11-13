@@ -770,3 +770,14 @@ At the owner's direction, the full Unity suites were not rerun after the last fi
 | Unity PlayMode, full (at `6f225d8`) | 121 | 0 | 31 | 2 | 0 | 8.3 min. Skipped: the capture sets (no `RK_CAPTURE_DIR`). Inconclusive: the known dice guards in Phase 9 and Phase 11. All 9 Phase 19 tests passed. |
 | Unity PlayMode, Phase 19 capture | 1 | 0 | 0 | 0 | 0 | 34 files written |
 | Bound raised (owner's instruction): `offerMs < 3` (was 1); re-run in Unity and .NET | 3 + 3 | 0 | 0 | 0 | 0 | `Phase18PerformanceTests`: Unity measured 1.87 ms |
+
+## Phase 20 runs (2026-11-12)
+
+| Run | Passed | Failed | Skipped | Inconclusive | Timed out | Notes |
+|---|---|---|---|---|---|---|
+| .NET, Release, all tests (final code) | 841 | 0 | 0 | — | 0 | 834 plus 7 Phase 20 tests (lineages, migration, identity and appearance, validation, generated people, people by acquaintance, measurements) |
+| Unity EditMode, full | 841 | 0 | 0 | 0 | 0 | 38.6 min |
+| Unity PlayMode, full | 121 | 1 | 31 | 2 | 0 | 7.8 min. The failure: `Phase6PlayModeTests` expected the sheet's old ability-row text "● +5"; the Phase 20 tile writes "● save +5" (same value). Expected text updated; `Phase6PlayModeTests` re-run: 2/2 passed. Skipped: capture sets; inconclusive: the known dice guards (Phase 9, Phase 11). |
+| Unity PlayMode, Phase 20 test with captures | 1 | 0 | 0 | 0 | 0 | 26 files |
+
+After the full runs, one sentence of tiefling description text was corrected (Domain data). The .NET suite was re-run after it: 841/841. The full Unity suites were not re-run.

@@ -11,7 +11,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 18, 2026-11-12)
+## Implementation status (updated at the end of Phase 20, 2026-11-12)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -36,8 +36,12 @@ present but visibly temporary; **Not started**.
 | 13 | Persistent dungeons, ruins, interiors and exploration | Implemented (`cda9da0`) |
 | 14 | Exploration integrity, living locations, world reactivity (and the combat overhaul) | Implemented (`242fde2`, `08c222e`) |
 | 15 | Companions, parties, relationships and party progression | Implemented (`9a48d27`) |
-| 16 | World events, regional travel, dynamic simulation and persistent world expansion | **Implemented** (committed locally, not pushed). See below. |
-| 17 | Onwards | Not started (needs the owner's authorisation) |
+| 16 | World events, regional travel, dynamic simulation and persistent world expansion | Implemented (`7ab5163`) |
+| 17 | Campaign engine and narrative systems | Implemented (`8f36025`) |
+| 18 | World depth, exploration and living content | Implemented (`713b9a0`) |
+| 19 | UI/UX and visual design overhaul (first pass) | Implemented, partly (`6f225d8`; see its report) |
+| 20 | Advanced character creation, character systems and character UI | **Implemented** (committed locally, not pushed). See below and the Phase 20 report. |
+| 21 | Mature world content and immersion | Not started (needs the owner's authorisation) |
 
 ### §7 Character and RPG system
 
@@ -47,10 +51,11 @@ present but visibly temporary; **Not started**.
 | Standard array, point buy | Implemented | No manual entry or rolling |
 | 18 skills, proficiency, expertise | Implemented | Expertise from levels too; Jack of All Trades; Reliable Talent shown |
 | Six saving throws | Implemented | Save proficiencies and aura bonuses from levels; roll modes |
-| 12 species | Implemented as rules; **Placeholder** art | Unchanged from Phase 6 |
+| 12 species | Implemented as rules, with SRD 5.2.1 lineages for tiefling, goliath and gnome (Phase 20, rules 9); **Placeholder** art | Non-human species show the human model at their height, with their own skin tones and the person's height and build (Phase 20). Ears, horns, tails and scales: Not started (no fitting licensed asset). |
 | 12 backgrounds | Implemented | Social features are Foundation |
 | 12 classes | **Implemented, levels 1–20** | SRD 5.2.1 features, scaling, resources, slots; distinct and validated |
-| Subclasses | Implemented (one per class) | The SRD 5.2.1 subclass; further subclasses Not started |
+| Subclasses | Implemented (one per class) | The SRD 5.2.1 subclass; the SRDs hold no others. Further subclasses would be Realmkeeper originals: Not started. |
+| Character creator, sheet, person inspection (Phase 20) | Implemented | Three-region creator with live build; sheet tiles, explanations and Origins; "About them" by acquaintance (ADR-0102); pronouns and concept; height and build |
 | Feats | Implemented (SRD set) | General, Origin, Fighting Style, Epic Boon; prerequisites and repeat rules |
 | XP and levelling | **Implemented** | Keyed ledger; explicit level-up window; multi-level transactions |
 | Hit points, hit dice | Implemented | Fixed averages; current HP rises with the maximum; damage, healing, temporary HP |

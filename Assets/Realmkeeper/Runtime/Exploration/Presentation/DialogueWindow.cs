@@ -40,10 +40,19 @@ namespace Realmkeeper.Exploration.Presentation
             titles.Add(_name);
             titles.Add(_standing);
             head.Add(titles);
+            // Phase 20: what the player knows about this person, as far as they know it (never the hidden sheet).
+            AboutButton = new Button(ToggleAbout) { text = "About them", name = "xk-dialogue-about-toggle", tooltip = "What you know about this person: what you have seen, been told, or learned by knowing them." };
+            AboutButton.AddToClassList("xk-button");
+            Realmkeeper.UI.RkIcons.Lead(AboutButton, "insight", "s");
+            head.Add(AboutButton);
             var close = new Button(() => EndRequested?.Invoke()) { text = "Leave (Esc)", name = "xk-dialogue-close" };
             close.AddToClassList("xk-button");
             head.Add(close);
             Root.Add(head);
+            About = Column("xk-dialogue-about");
+            About.name = "xk-dialogue-about";
+            About.AddToClassList("xk-hidden");
+            Root.Add(About);
 
             _quest = Text(string.Empty, "xk-dialogue-quest");
             _quest.name = "xk-dialogue-quest";
@@ -65,6 +74,41 @@ namespace Realmkeeper.Exploration.Presentation
 
         public VisualElement Root { get; }
         public bool IsOpen => !Root.ClassListContains("xk-hidden");
+
+        /// <summary>Phase 20: the "About them" panel and its toggle.</summary>
+        public VisualElement About { get; }
+        public Button AboutButton { get; }
+        public bool AboutOpen => !About.ClassListContains("xk-hidden");
+
+        /// <summary>Phase 20: supplies the person as the player knows them (set by the controller from the session).</summary>
+        public Func<Realmkeeper.Domain.Identifiers.NpcId, KnownPersonView> AboutSource { get; set; }
+
+        public void ToggleAbout()
+        {
+            var open = !AboutOpen;
+            About.EnableInClassList("xk-hidden", !open);
+            AboutButton.EnableInClassList("xk-button--primary", open);
+            if (open) RenderAbout();
+        }
+
+        private void RenderAbout()
+        {
+            About.Clear();
+            var who = View != null && AboutSource != null ? AboutSource(View.NpcId) : null;
+            if (who == null) { About.Add(Text("You know nothing more about them.", "xk-w-empty")); return; }
+            About.Add(Text(who.AcquaintanceText, "xk-w-note"));
+            foreach (var l in who.Lines)
+            {
+                var row = Row("xk-w-pair");
+                row.Add(Text(l.Label, "xk-w-key"));
+                var v = Text(l.Value, "xk-w-value");
+                v.tooltip = "How you know: " + l.How + ".";
+                row.Add(v);
+                About.Add(row);
+            }
+
+            if (who.Withheld != null) About.Add(Text(who.Withheld, "xk-w-desc"));
+        }
         public DialogueView View { get; private set; }
         public string LastMessage => _message.text;
 
@@ -82,6 +126,7 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             Root.RemoveFromClassList("xk-hidden");
+            if (AboutOpen) RenderAbout(); // Phase 20: talking can teach you more
             _name.text = view.Name + (string.IsNullOrEmpty(view.Role) ? string.Empty : " — " + view.Role);
             _standing.text = Tier(view.Tier) + (string.IsNullOrEmpty(view.Mood) ? string.Empty : " · " + view.Mood) + (string.IsNullOrEmpty(view.Activity) ? string.Empty : " · " + view.Activity.ToLowerInvariant());
             _quest.text = view.QuestName == null ? string.Empty : "Concerning: " + view.QuestName;

@@ -1503,3 +1503,303 @@
 .xk-cbt-slots > Label {
     flex-shrink: 0;
 }
+
+/* ----- Phase 20: the character creator (preview left, step in the middle, the build on the right) ------------------ */
+
+.xk-creator {
+    left: 2.5%;
+    right: 2.5%;
+    top: 3.5%;
+    bottom: 3.5%;
+    padding: 16px 20px;
+}
+
+.xk-cc-titles > .rk-eyebrow {
+    margin-bottom: 0;
+}
+
+.xk-cc-steps {
+    border-bottom-width: 1px;
+    border-color: var(--rk-line);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.xk-cc-step {
+    height: 34px;
+    font-size: 14px;
+    border-radius: 17px;
+    margin-right: 6px;
+}
+
+.xk-cc-step--active {
+    -unity-font-style: normal;
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Bold.ttf");
+}
+
+.xk-cc-body {
+    flex-direction: row;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.xk-cc-side {
+    width: 31%;
+    min-width: 340px;
+    max-width: 560px;
+    margin: 0 16px 0 0;
+}
+
+.xk-cc-preview {
+    width: auto;
+    flex-grow: 1;
+    border-color: var(--rk-line-strong);
+    background-color: rgb(24, 20, 16);
+}
+
+.xk-cc-content {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 420px;
+}
+
+.xk-cc-build {
+    width: 300px;
+    flex-shrink: 0;
+    margin-left: 16px;
+    padding: 12px 14px;
+    background-color: var(--rk-card);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: 4px;
+}
+
+.xk-cc--compact .xk-cc-build {
+    display: none;
+}
+
+.xk-cc-summary {
+    display: none;
+}
+
+.xk-cc--compact .xk-cc-summary {
+    display: flex;
+}
+
+.xk-cc-adjust {
+    margin-top: 8px;
+    padding: 6px 10px;
+    white-space: normal;
+    font-size: 13px;
+    color: var(--rk-warn);
+    background-color: var(--rk-warn-bg);
+    border-radius: 3px;
+}
+
+.xk-cc-build-name {
+    font-size: 22px;
+    color: var(--rk-heading);
+    white-space: normal;
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+}
+
+.xk-cc-build-what {
+    color: var(--rk-text-2);
+    white-space: normal;
+    font-size: 13px;
+}
+
+.xk-cc-build-concept {
+    color: var(--rk-text-2);
+    white-space: normal;
+    margin-top: 4px;
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Italic.ttf");
+}
+
+.xk-cc-build-head {
+    margin-top: 12px;
+    margin-bottom: 3px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--rk-text-3);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Medium.ttf");
+}
+
+.xk-cc-build-row {
+    flex-direction: row;
+    min-height: 21px;
+}
+
+.xk-cc-build-key {
+    flex-grow: 1;
+    color: var(--rk-text-2);
+    font-size: 13px;
+}
+
+.xk-cc-build-value {
+    color: var(--rk-text);
+    font-size: 13px;
+    -unity-text-align: middle-right;
+}
+
+.xk-cc-build-list {
+    white-space: normal;
+    font-size: 13px;
+    color: var(--rk-text-2);
+}
+
+.xk-cc-build-problem {
+    white-space: normal;
+    font-size: 13px;
+    color: var(--rk-warn);
+    margin-bottom: 2px;
+}
+
+.xk-cc-build-ok {
+    color: var(--rk-good);
+    font-size: 13px;
+}
+
+.xk-cc-abilities {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.xk-cc-ability {
+    width: 31%;
+    margin-bottom: 6px;
+    padding: 4px 0 5px 0;
+    align-items: center;
+    background-color: var(--rk-ink-800);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: 3px;
+}
+
+.xk-cc-ability-name {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--rk-text-3);
+}
+
+.xk-cc-ability-score {
+    font-size: 22px;
+    color: var(--rk-text);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+}
+
+.xk-cc-ability-mod {
+    font-size: 12px;
+    color: var(--rk-bronze-hi);
+}
+
+/* Choice cards: the name, then what it means at a glance. */
+.xk-cc-picker {
+    width: 260px;
+}
+
+.xk-cc-card {
+    height: auto;
+    min-height: 48px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    white-space: normal;
+    -unity-text-align: middle-left;
+    font-size: 14px;
+    border-color: var(--rk-line);
+    background-color: var(--rk-control);
+}
+
+.xk-cc-card:hover {
+    border-color: var(--rk-line-strong);
+}
+
+.xk-cc-pick--on.xk-cc-card {
+    border-color: var(--rk-bronze-hi);
+    background-color: var(--rk-bronze-deep);
+}
+
+.xk-cc-detail .xk-cc-name {
+    font-size: 26px;
+    color: var(--rk-heading);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+    -unity-font-style: normal;
+}
+
+/* ----- Phase 20: the character sheet ---------------------------------------------------------------------------- */
+
+.xk-sheet-name {
+    font-size: 30px;
+}
+
+.xk-sheet-abilities {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.xk-sheet-ability {
+    width: 118px;
+    margin: 0 8px 8px 0;
+    padding: 6px 0 8px 0;
+    align-items: center;
+    background-color: var(--rk-ink-800);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: 4px;
+}
+
+.xk-sheet-ability:hover {
+    border-color: var(--rk-bronze);
+}
+
+.xk-sheet-ability-score {
+    font-size: 30px;
+    color: var(--rk-text);
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+}
+
+.xk-sheet-ability-save {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--rk-text-2);
+}
+
+.xk-sheet-trait--pending .xk-w-value {
+    color: var(--rk-text-2);
+}
+
+.xk-dialogue-about {
+    margin: 4px 0 8px 0;
+    padding: 8px 12px;
+    background-color: var(--rk-card);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: 4px;
+}
+
+.xk-cc-split > .xk-cc-picker {
+    width: 270px;
+    flex-shrink: 0;
+}
+
+.xk-cc-split > .xk-cc-detail {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.xk-cc-detail > .xk-w-value,
+.xk-cc-detail > .xk-w-desc {
+    flex-grow: 0;
+    margin-bottom: 6px;
+}
+
+.xk-cc-split > .xk-cc-picker {
+    align-items: stretch;
+}
+
+.xk-cc-picker > .xk-cc-card {
+    align-self: stretch;
+    width: auto;
+}

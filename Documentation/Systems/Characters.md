@@ -151,3 +151,17 @@ pipeline as the player's:
 
 Promotion, keyed experience and advancement use the shared rules. The world validator checks every NPC sheet
 as it checks the player's. Details: `Documentation/Phase10/CreatureAndNpcSystems.md`.
+
+## Phase 20: identity, the sheet, and how it explains itself
+
+**Identity.** The sheet record gains `Pronouns` and `Concept` (schema v21).
+
+**The Player Hub's character sheet:**
+- **Sheet** opens on the name (serif), the species with lineage, background, class, pronouns and concept.
+- The six abilities are tiles showing score, modifier and saving throw. Each tile's tooltip gives the score's sources, the modifier rule, the save's breakdown and whether it is proficient.
+- A new **Origins** tab shows:
+  - the species and lineage with every trait, flagged where the game cannot play it yet;
+  - the background and its feature;
+  - the player's own concept, pronouns and history.
+- Tabs use the Phase 19 tab style with icons.
+- Companions in the party view get the same ability tiles.

@@ -27,6 +27,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (Hud?.Root == null) return;
             Dialogue = new DialogueWindow(Hud.Root);
+            Dialogue.AboutSource = id => _session?.GetKnownPerson(id); // Phase 20
             Dialogue.ChooseRequested += id => ChooseResponse(id);
             Dialogue.EndRequested += () => EndDialogue();
             Dialogue.TradeRequested += shop =>

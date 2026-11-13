@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.Rpg;
 using Realmkeeper.Domain.World;
@@ -31,7 +32,14 @@ namespace Realmkeeper.Exploration.Presentation
         private readonly Button _next;
         private readonly Button _create;
         private readonly Label _placeholder;
+        private readonly Label _adjustment;
+        private readonly ScrollView _build;
         private bool _dragging;
+
+        private static readonly string[] StepIcons = { "character", "appearance", "people", "book", "weapons", "str", "insight", "equipment", "check" };
+
+        /// <summary>Phase 20: the live build panel (for tests).</summary>
+        public VisualElement Build => _build;
         private Vector2 _last;
 
         public CharacterCreatorWindow(VisualElement hudRoot)
@@ -42,9 +50,12 @@ namespace Realmkeeper.Exploration.Presentation
             Root.AddToClassList("xk-hidden");
 
             var head = Row("xk-w-head");
+            var titles = Column("xk-cc-titles");
+            titles.style.flexGrow = 1;
+            titles.Add(Text("A new life in the realm", "rk-eyebrow"));
             var title = Text("Create your character", "xk-w-title");
-            title.style.flexGrow = 1;
-            head.Add(title);
+            titles.Add(title);
+            head.Add(titles);
             var close = new Button(() => CloseRequested?.Invoke()) { text = "Later (Esc)", name = "xk-creator-close" };
             close.AddToClassList("xk-button");
             head.Add(close);
@@ -56,16 +67,15 @@ namespace Realmkeeper.Exploration.Presentation
                 var step = s;
                 var b = new Button(() => { Draft?.GoTo(step); Render(); }) { text = (int)s + 1 + "  " + StepNames[(int)s], name = "xk-cc-step-" + s };
                 b.AddToClassList("xk-cc-step");
+                Realmkeeper.UI.RkIcons.Lead(b, StepIcons[(int)s], "s"); // Phase 20
                 _steps[s] = b;
                 steps.Add(b);
             }
 
             Root.Add(steps);
 
-            var body = Row("xk-hub-body");
-            _content = new ScrollView { name = "xk-cc-content" };
-            _content.AddToClassList("xk-hub-content");
-            body.Add(_content);
+            // Phase 20: the character on the left and large; the step in the middle; the build as it stands on the right.
+            var body = Row("xk-cc-body");
             var side = Column("xk-cc-side");
             _preview = new VisualElement { name = "xk-cc-preview" };
             _preview.AddToClassList("xk-hub-preview");
@@ -83,11 +93,24 @@ namespace Realmkeeper.Exploration.Presentation
             _preview.RegisterCallback<PointerUpEvent>(e => { _dragging = false; _preview.ReleasePointer(e.pointerId); });
             _preview.RegisterCallback<WheelEvent>(e => PreviewZoomed?.Invoke(-e.delta.y * 0.08f));
             side.Add(_preview);
+            _adjustment = Text(string.Empty, "xk-cc-adjust");
+            _adjustment.name = "xk-cc-adjust";
+            side.Add(_adjustment);
             _summary = Text("-", "xk-cc-summary");
             _summary.name = "xk-cc-summary";
             side.Add(_summary);
             body.Add(side);
+            _content = new ScrollView { name = "xk-cc-content" };
+            _content.AddToClassList("xk-hub-content");
+            _content.AddToClassList("xk-cc-content");
+            body.Add(_content);
+            _build = new ScrollView { name = "xk-cc-build" };
+            _build.AddToClassList("xk-cc-build");
+            body.Add(_build);
             Root.Add(body);
+            // Too narrow for three columns (small windows, large interface scale): the build panel steps aside and its
+            // short form stays under the preview.
+            Root.RegisterCallback<GeometryChangedEvent>(e => Root.EnableInClassList("xk-cc--compact", e.newRect.width < 1380f));
 
             var foot = Row("xk-cc-foot");
             _problems = Text(string.Empty, "xk-cc-problems");
@@ -192,13 +215,19 @@ namespace Realmkeeper.Exploration.Presentation
             description.RegisterValueChangedCallback(e => c.Description = e.newValue);
             var history = new TextField("Personal history (optional)") { value = c.History, multiline = true, name = "xk-cc-history", maxLength = CharacterSheetData.MaxHistoryLength };
             history.RegisterValueChangedCallback(e => c.History = e.newValue);
-            foreach (var f in new VisualElement[] { name, title, age, description, history })
+            var pronouns = new TextField("Pronouns (optional)") { value = c.Pronouns, name = "xk-cc-pronouns", maxLength = CharacterSheetData.MaxPronounsLength };
+            pronouns.RegisterValueChangedCallback(e => { c.Pronouns = e.newValue; Summarise(); RefreshProblems(); });
+            var concept = new TextField("In a line (optional)") { value = c.Concept, name = "xk-cc-concept", maxLength = CharacterSheetData.MaxConceptLength };
+            concept.RegisterValueChangedCallback(e => { c.Concept = e.newValue; Summarise(); RefreshProblems(); });
+            foreach (var f in new VisualElement[] { name, title, pronouns, age, concept, description, history })
             {
                 f.AddToClassList("xk-hub-field");
                 _content.Add(f);
             }
 
             _content.Add(Text("Your background, species and class shape your skills and gear, not your fate: you are no chosen one. The world will judge you by what you do.", "xk-w-note"));
+            _content.Add(Text("If you want a prompt: what did you leave behind? What do you owe, and to whom? What would you never do for money? " +
+                              "A wandering sellsword, a lapsed scholar, a farmer's widow, a thief who wants out: any of them will do.", "xk-w-desc"));
         }
 
         private void Appearance()
@@ -225,7 +254,19 @@ namespace Realmkeeper.Exploration.Presentation
             _content.Add(Choices("Hair", labels, current, i => { a.HairId = hair[i]; Changed(); }));
             if (a.Frame == NpcSex.Male && (species == null || species.Appearance.AllowsBeard))
                 _content.Add(Choices("Beard", new[] { "Beard", "Clean-shaven" }, a.BeardId == null ? 1 : 0, i => { a.BeardId = i == 0 ? "Hair_Beard" : null; Changed(); }));
-            _content.Add(Swatches("Skin", NpcAppearanceResolver.SkinTones, a.SkinTone, i => { a.SkinTone = i; Changed(); }));
+            // Phase 20: the species' own tones (human tones first where the species has them), and the person's own height and build.
+            var tones = PlayerAppearanceOptions.SkinTonesFor(Draft.Choices.SpeciesId);
+            _content.Add(SkinSwatches(tones, a.SkinTone, i => { a.SkinTone = i; Changed(); }));
+            var height = new SliderInt("Height", PlayerAppearanceData.MinHeightPercent, PlayerAppearanceData.MaxHeightPercent) { value = a.HeightPercent, name = "xk-cc-height", showInputField = false };
+            height.tooltip = "Your height within your species: 92–108 % of a typical " + (species?.Name.ToLowerInvariant() ?? "person") + ".";
+            var heightValue = Text(HeightText(a.HeightPercent, species), "xk-w-value");
+            height.RegisterValueChangedCallback(e => { a.HeightPercent = e.newValue; heightValue.text = HeightText(e.newValue, species); DraftChanged?.Invoke(Draft); });
+            var heightRow = Row("xk-w-pair");
+            heightRow.Add(height);
+            heightRow.Add(heightValue);
+            height.style.flexGrow = 1;
+            _content.Add(heightRow);
+            _content.Add(Choices("Build", PlayerAppearanceOptions.BuildNames, a.Build, i => { a.Build = i; Changed(); }));
             _content.Add(Swatches("Hair colour", NpcAppearanceResolver.HairColours, a.HairColour, i => { a.HairColour = i; Changed(); }));
             _content.Add(Swatches("Cloth tint", NpcAppearanceResolver.OutfitTints, a.ClothTint, i => { a.ClothTint = i; Changed(); }));
         }
@@ -237,8 +278,9 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var s in RpgCatalog.Species)
             {
                 var id = s.Id;
-                var b = Button(s.Name + (s.Appearance.HasFinishedModel ? string.Empty : "  ◇"), "xk-cc-species-" + id, () => { Draft.SetSpecies(id); Changed(); });
+                var b = Button(s.Name + (s.Appearance.HasFinishedModel ? string.Empty : "  ◇") + "\n" + SpeciesLine(s), "xk-cc-species-" + id, () => { Draft.SetSpecies(id); Changed(); });
                 b.AddToClassList("xk-cc-pick");
+                b.AddToClassList("xk-cc-card");
                 b.EnableInClassList("xk-cc-pick--on", Draft.Choices.SpeciesId == id);
                 picker.Add(b);
             }
@@ -275,8 +317,9 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var b in RpgCatalog.Backgrounds)
             {
                 var id = b.Id;
-                var button = Button(b.Name, "xk-cc-background-" + id, () => { Draft.SetBackground(id); Changed(); });
+                var button = Button(b.Name + "\n" + Names(b.Skills, s => SkillRules.Name(s)), "xk-cc-background-" + id, () => { Draft.SetBackground(id); Changed(); });
                 button.AddToClassList("xk-cc-pick");
+                button.AddToClassList("xk-cc-card");
                 button.EnableInClassList("xk-cc-pick--on", Draft.Choices.BackgroundId == id);
                 picker.Add(button);
             }
@@ -310,8 +353,9 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var c in RpgCatalog.Classes)
             {
                 var id = c.Id;
-                var b = Button(c.Name + "  d" + c.HitDie, "xk-cc-class-" + id, () => { Draft.SetClass(id); Changed(); });
+                var b = Button(c.Name + "\n" + ClassLine(c), "xk-cc-class-" + id, () => { Draft.SetClass(id); Changed(); });
                 b.AddToClassList("xk-cc-pick");
+                b.AddToClassList("xk-cc-card");
                 b.EnableInClassList("xk-cc-pick--on", Draft.Choices.ClassId == id);
                 picker.Add(b);
             }
@@ -344,7 +388,22 @@ namespace Realmkeeper.Exploration.Presentation
                 foreach (var f in cls.Features) detail.Add(Pair(f.Name, f.Description));
                 foreach (var ch in cls.Choices)
                     if (ch.Kind == ChoiceKind.Option) detail.Add(OptionChoice(ch));
-                detail.Add(Text($"Subclass ({cls.SubclassTitle}): chosen at level {cls.SubclassLevel}, with progression.", "xk-w-desc"));
+                // Phase 20: the subclass and the road ahead, so the choice is made knowing where it leads.
+                detail.Add(Text($"{cls.SubclassTitle} (chosen at level {cls.SubclassLevel})", "xk-w-heading"));
+                foreach (var sub in RpgCatalog.Subclasses)
+                {
+                    if (sub.ClassId != cls.Id) continue;
+                    detail.Add(Pair(sub.Name, sub.Description));
+                    var gains = new List<string>();
+                    foreach (var pair in sub.Features) foreach (var f in pair.Value) gains.Add($"{f.Name} ({pair.Key})");
+                    if (gains.Count > 0) detail.Add(Text("Features: " + string.Join(", ", gains), "xk-w-desc"));
+                }
+
+                detail.Add(Text("The road ahead", "xk-w-heading"));
+                for (var level = 2; level <= 6; level++)
+                    if (cls.LaterFeatures.TryGetValue(level, out var later) && later.Count > 0)
+                        detail.Add(Pair("Level " + level, string.Join(", ", later.Select(f => f.Name))));
+                detail.Add(Text($"Ability score improvements or feats at levels {string.Join(", ", cls.FeatLevels)}.", "xk-w-desc"));
             }
 
             list.Add(detail);
@@ -556,8 +615,110 @@ namespace Realmkeeper.Exploration.Presentation
             parts.Add(string.Join("  ", scores));
             _summary.text = string.Join("\n", parts);
             var note = Draft.Species?.Appearance.PlaceholderNote;
-            _placeholder.text = note == null ? string.Empty : "Placeholder body";
+            _placeholder.text = note == null ? string.Empty : "Placeholder body: human model at " + (Draft.Species?.Name ?? "this species") + " height";
             _placeholder.EnableInClassList("xk-hidden", note == null);
+            _adjustment.text = Draft.Adjustment ?? string.Empty;
+            _adjustment.EnableInClassList("xk-hidden", string.IsNullOrEmpty(Draft.Adjustment));
+            FillBuild();
+        }
+
+        /// <summary>
+        /// Phase 20: the build as it stands, from the same rules the game plays by: who, the six abilities with where each
+        /// number comes from, combat numbers, saves, skills, spellcasting, features, and what is still missing (by step,
+        /// never silently fixed).
+        /// </summary>
+        private void FillBuild()
+        {
+            _build.Clear();
+            var rules = Draft.Rules;
+            var c = Draft.Choices;
+            void Head(string text) { var l = Text(text, "xk-cc-build-head"); _build.Add(l); }
+            void Line(string key, string value, string tip = null)
+            {
+                var row = Row("xk-cc-build-row");
+                row.Add(Text(key, "xk-cc-build-key"));
+                var v = Text(value, "xk-cc-build-value");
+                if (tip != null) { v.tooltip = tip; row.tooltip = tip; }
+                row.Add(v);
+                _build.Add(row);
+            }
+
+            var who = Text(string.IsNullOrWhiteSpace(c.Name) ? "Unnamed" : (string.IsNullOrEmpty(c.Title) ? c.Name : c.Name + " " + c.Title), "xk-cc-build-name");
+            _build.Add(who);
+            var what = $"{Draft.Species?.Name ?? "—"} · {Draft.Background?.Name ?? "—"} · {(Draft.Class != null ? Draft.Class.Name + " 1" : "—")}";
+            _build.Add(Text(what + (string.IsNullOrEmpty(c.Pronouns) ? string.Empty : " · " + c.Pronouns), "xk-cc-build-what"));
+            if (!string.IsNullOrEmpty(c.Concept)) _build.Add(Text("“" + c.Concept + "”", "xk-cc-build-concept"));
+
+            Head("Abilities");
+            var grid = Row("xk-cc-abilities");
+            foreach (var a in AbilityRules.All)
+            {
+                var card = Column("xk-cc-ability");
+                card.name = "xk-cc-build-" + a;
+                var primary = Draft.Class != null && Contains(Draft.Class.PrimaryAbilities, a);
+                card.Add(Text(a.ToString().Substring(0, 3).ToUpperInvariant() + (primary ? " ★" : string.Empty), "xk-cc-ability-name"));
+                card.Add(Text(rules.Score(a).ToString(CultureInfo.InvariantCulture), "xk-cc-ability-score"));
+                card.Add(Text(Breakdown.Signed(rules.Modifier(a)), "xk-cc-ability-mod"));
+                card.tooltip = a + ": " + rules.ScoreBreakdown(a).Text + (primary ? ". Your class's primary ability." : string.Empty);
+                grid.Add(card);
+            }
+
+            _build.Add(grid);
+            if (Draft.Class != null)
+            {
+                Head("In a fight");
+                Line("Hit points", rules.MaxHp.ToString(CultureInfo.InvariantCulture), rules.MaxHitPoints().Text);
+                Line("Speed", rules.Speed + " ft", rules.SpeedBreakdown().Text);
+                Line("Initiative", Breakdown.Signed(rules.Initiative().Total), rules.Initiative().Text);
+                Line("Proficiency", "+" + rules.ProficiencyBonus, "Added to every skill, save and attack you are proficient in.");
+                Head("Saving throws");
+                foreach (var a in AbilityRules.All)
+                {
+                    var save = rules.SaveBonus(a);
+                    Line((rules.SaveProficient(a) ? "● " : "○ ") + a, Breakdown.Signed(save.Total), save.Text);
+                }
+            }
+
+            var proficient = SkillRules.All.Where(x => rules.SkillRank(x) != ProficiencyRank.None).ToList();
+            Head("Skills (" + proficient.Count + ")");
+            if (proficient.Count == 0) _build.Add(Text("None yet: your background, species and class each grant some.", "xk-w-desc"));
+            foreach (var sk in proficient)
+            {
+                var bonus = rules.SkillBonus(sk);
+                Line(SkillRules.Name(sk) + (rules.SkillRank(sk) == ProficiencyRank.Expertise ? " ◆" : string.Empty), Breakdown.Signed(bonus.Total),
+                    bonus.Text + " — from " + string.Join(", ", rules.SkillSources(sk)));
+            }
+
+            if (Draft.Class?.Spellcasting != null)
+            {
+                var sc = Draft.Class.Spellcasting;
+                Head("Spellcasting");
+                Line("Ability", sc.Ability.ToString());
+                if (rules.SpellSaveDc() != null) Line("Save DC", rules.SpellSaveDc().Total.ToString(CultureInfo.InvariantCulture), rules.SpellSaveDc().Text);
+                Line("Cantrips · slots", sc.CantripsKnown + " · " + sc.FirstLevelSlots);
+            }
+
+            var features = rules.Features.Select(f => f.feature.Name).Distinct().ToList();
+            if (features.Count > 0)
+            {
+                Head("Features and traits (" + features.Count + ")");
+                _build.Add(Text(string.Join(", ", features), "xk-cc-build-list"));
+            }
+
+            Head("Still to choose");
+            var any = false;
+            foreach (CreationStep step in CharacterDraft.Steps)
+            {
+                if (step == CreationStep.Review) continue;
+                foreach (var problem in Draft.Problems(step))
+                {
+                    any = true;
+                    var l = Text(StepNames[(int)step] + ": " + problem, "xk-cc-build-problem");
+                    _build.Add(l);
+                }
+            }
+
+            if (!any) _build.Add(Text("✓ Every step is complete.", "xk-cc-build-ok"));
         }
 
         private VisualElement OptionChoice(ChoiceDefinition ch)
@@ -580,12 +741,48 @@ namespace Realmkeeper.Exploration.Presentation
             return box;
         }
 
+        private static string HeightText(int percent, SpeciesDefinition species)
+        {
+            var metres = 1.75f * (species?.Appearance.HeightScale ?? 1f) * percent / 100f;
+            return percent + " % · about " + metres.ToString("0.00", CultureInfo.InvariantCulture) + " m";
+        }
+
+        /// <summary>Phase 20: the skin tones a species can have, named, from the shared palette.</summary>
+        private static VisualElement SkinSwatches(IReadOnlyList<int> tones, int selected, Action<int> pick)
+        {
+            var row = Row("xk-w-pair");
+            row.Add(Text("Skin", "xk-w-key"));
+            foreach (var index in tones)
+            {
+                var i = index;
+                var c = PlayerAppearanceOptions.SkinPalette[i];
+                var b = new UnityEngine.UIElements.Button(() => pick(i)) { text = string.Empty, name = "xk-cc-skin-" + i, tooltip = c.name };
+                b.AddToClassList("xk-w-swatch");
+                b.EnableInClassList("xk-w-swatch--on", i == selected);
+                b.style.backgroundColor = new Color(Mathf.Pow(c.r, 0.6f) * 0.86f, Mathf.Pow(c.g, 0.6f) * 0.72f, Mathf.Pow(c.b, 0.6f) * 0.62f);
+                row.Add(b);
+            }
+
+            row.Add(Text(PlayerAppearanceOptions.SkinPalette[Math.Max(0, Math.Min(selected, PlayerAppearanceOptions.SkinPalette.Count - 1))].name, "xk-w-desc"));
+            return row;
+        }
+
         private static int SpeedBonus(SpeciesDefinition s)
         {
             var n = 0;
             foreach (var t in s.Traits) foreach (var e in t.Effects) if (e.Kind == EffectKind.SpeedBonus) n += e.Value;
             return n;
         }
+
+        private static string SpeciesLine(SpeciesDefinition s)
+        {
+            var bonus = new List<string>();
+            foreach (var a in AbilityRules.All) if (s.AbilityBonuses.TryGetValue(a, out var v)) bonus.Add(a.ToString().Substring(0, 3) + " " + Breakdown.Signed(v));
+            return $"{s.Size} · {s.Speed + SpeedBonus(s)} ft · {string.Join(" ", bonus)}";
+        }
+
+        private static string ClassLine(ClassDefinition c) =>
+            $"d{c.HitDie} · {Names(c.PrimaryAbilities, a => a.ToString().Substring(0, 3))}" + (c.Spellcasting != null ? " · spells (" + c.Spellcasting.Ability.ToString().Substring(0, 3) + ")" : " · martial");
 
         private static string Bonuses(SpeciesDefinition s)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.Randomness;
 using Realmkeeper.Domain.World;
@@ -50,6 +51,9 @@ namespace Realmkeeper.Exploration.Domain
         /// <summary>Uniform scale of the body (about ±5% around 1).</summary>
         public float HeightScale { get; set; }
 
+        /// <summary>Phase 20: extra width (the player's build); 1 for residents.</summary>
+        public float WidthScale { get; set; } = 1f;
+
         /// <summary>A short, stable description for logs and tests.</summary>
         public string Signature =>
             $"{BodyId}/{OutfitMaterialId}/{HairId ?? "-"}/{BeardId ?? "-"}/s{SkinTone}/h{HairColour}/t{OutfitTint}/{HeightScale:F2}";
@@ -64,10 +68,8 @@ namespace Realmkeeper.Exploration.Domain
     public static class NpcAppearanceResolver
     {
         /// <summary>Skin tone multipliers (linear RGB) applied to the shared skin textures.</summary>
-        public static readonly IReadOnlyList<(float r, float g, float b)> SkinTones = new[]
-        {
-            (1.00f, 1.00f, 1.00f), (0.96f, 0.90f, 0.84f), (0.84f, 0.74f, 0.64f), (0.66f, 0.54f, 0.44f), (0.48f, 0.37f, 0.30f),
-        };
+        /// <remarks>Phase 20: the player's species-wide palette (<see cref="PlayerAppearanceOptions.SkinPalette"/>); residents draw from its human tones only.</remarks>
+        public static readonly IReadOnlyList<(float r, float g, float b)> SkinTones = PlayerAppearanceOptions.SkinPalette.Select(t => (t.r, t.g, t.b)).ToList();
 
         public static readonly IReadOnlyList<(float r, float g, float b)> HairColours = new[]
         {
@@ -108,7 +110,7 @@ namespace Realmkeeper.Exploration.Domain
                 Frame = frame,
                 BodyId = sex + "_" + outfit,
                 OutfitMaterialId = material,
-                SkinTone = Index(2, SkinTones.Count),
+                SkinTone = Index(2, PlayerAppearanceOptions.SkinTones), // human tones only (Phase 20 appended species tones)
                 HairColour = role == NpcRole.Elder ? GreyHair : Index(3, HairColours.Count - 1),
                 OutfitTint = Index(4, OutfitTints.Count),
                 HeightScale = 0.95f + Index(5, 11) * 0.01f,

@@ -60,7 +60,7 @@ namespace Realmkeeper.Domain.World
         {
             if (p.Purse < 0) result.AddError($"The player's purse is negative ({p.Purse}).");
             if (p.Fed < 0 || p.Fed > 100) result.AddError($"The player's fed level {p.Fed} is outside 0–100.");
-            var look = PlayerAppearanceOptions.Check(p.Appearance);
+            var look = PlayerAppearanceOptions.Check(p.Appearance, p.Rpg?.State == Realmkeeper.Domain.Rpg.CreationState.Complete ? p.Rpg.SpeciesId : null);
             if (look != null) result.AddError("Player appearance: " + look);
 
             void Check(ItemStackData s, string where)

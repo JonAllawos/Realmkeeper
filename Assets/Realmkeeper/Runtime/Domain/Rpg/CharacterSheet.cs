@@ -24,6 +24,15 @@ namespace Realmkeeper.Domain.Rpg
         /// <summary>Optional personal history in the player's words.</summary>
         public string History { get; set; } = string.Empty;
 
+        public const int MaxPronounsLength = 24;
+        public const int MaxConceptLength = 80;
+
+        /// <summary>Phase 20: how the character is referred to ("she/her", "they/them", or anything the player writes). Optional.</summary>
+        public string Pronouns { get; set; } = string.Empty;
+
+        /// <summary>Phase 20: the character in a line, in the player's words ("a disgraced notary who keeps other people's secrets"). Optional.</summary>
+        public string Concept { get; set; } = string.Empty;
+
         public string SpeciesId { get; set; }
         public string BackgroundId { get; set; }
         public string ClassId { get; set; }

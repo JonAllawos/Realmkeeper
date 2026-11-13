@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
@@ -194,7 +195,13 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The Character section's sub-panel: Sheet, Skills, Features, Proficiencies, Identity.</summary>
         public string CharacterPanel { get; private set; } = "Sheet";
 
-        public static readonly IReadOnlyList<string> CharacterPanels = new[] { "Sheet", "Skills", "Features", "Proficiencies", "Progression", "Identity" };
+        public static readonly IReadOnlyList<string> CharacterPanels = new[] { "Sheet", "Skills", "Features", "Origins", "Proficiencies", "Progression", "Identity" };
+
+        private static readonly IReadOnlyDictionary<string, string> PanelIcons = new Dictionary<string, string>
+        {
+            ["Sheet"] = "character", ["Skills"] = "insight", ["Features"] = "bonus", ["Origins"] = "people",
+            ["Proficiencies"] = "weapons", ["Progression"] = "quest", ["Identity"] = "journal",
+        };
 
         public event Action CreateCharacterRequested;
 
@@ -227,14 +234,14 @@ namespace Realmkeeper.Exploration.Presentation
                 return;
             }
 
-            var tabs = Row("xk-cc-wrap");
+            var tabs = Row("rk-tabs");
             foreach (var p in CharacterPanels)
             {
                 var panel = p;
                 var b = new Button(() => SelectCharacterPanel(panel)) { text = panel, name = "xk-hub-charpanel-" + panel };
-                b.AddToClassList("xk-button");
-                b.AddToClassList("xk-w-choice");
-                b.EnableInClassList("xk-w-choice--on", panel == CharacterPanel);
+                b.AddToClassList("rk-tab");
+                b.EnableInClassList("rk-tab--active", panel == CharacterPanel);
+                if (PanelIcons.TryGetValue(panel, out var icon)) Realmkeeper.UI.RkIcons.Lead(b, icon, "s"); // Phase 20
                 tabs.Add(b);
             }
 
@@ -319,9 +326,16 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Identity":
                     Profile(h, false);
                     break;
+                case "Origins":
+                    Origins(ch);
+                    break;
                 default:
-                    _content.Add(Text(ch.FullName, "xk-cc-name"));
-                    _content.Add(Text($"{r.Species.Name} · {r.Background.Name} · {r.Class.Name} {r.Level}" + (r.Subclass != null ? " (" + r.Subclass.Name + ")" : string.Empty), "xk-w-value"));
+                    var name = Text(ch.FullName, "xk-cc-name");
+                    name.AddToClassList("xk-sheet-name");
+                    _content.Add(name);
+                    _content.Add(Text($"{r.Species.Name}{LineageText(r)} · {r.Background.Name} · {r.Class.Name} {r.Level}" + (r.Subclass != null ? " (" + r.Subclass.Name + ")" : string.Empty)
+                                      + (string.IsNullOrEmpty(ch.Player.Rpg.Pronouns) ? string.Empty : " · " + ch.Player.Rpg.Pronouns), "xk-w-value"));
+                    if (!string.IsNullOrEmpty(ch.Player.Rpg.Concept)) _content.Add(Text("“" + ch.Player.Rpg.Concept + "”", "xk-cc-build-concept"));
                     if (r.Species.Appearance.PlaceholderNote != null) _content.Add(Text(r.Species.Appearance.PlaceholderNote, "xk-cc-warn"));
                     _content.Add(ExperienceBar(ch));
                     if (ch.VitalText != null) _content.Add(Text(ch.VitalText, "xk-cc-warn")); // Phase 8
@@ -346,21 +360,25 @@ namespace Realmkeeper.Exploration.Presentation
 
                     _content.Add(vit);
                     _content.Add(Text("Armour class: " + ch.ArmorClass.Text + " (provisional until combat defines armour types).", "xk-w-desc"));
-                    _content.Add(Text("Abilities", "xk-w-heading"));
-                    var head = Row("xk-w-row");
-                    foreach (var t in new[] { "Ability", "Score", "Modifier", "Save" }) head.Add(Text(t, "xk-cc-col"));
-                    _content.Add(head);
+                    // Phase 20: the six abilities as tiles: score, modifier, saving throw (● proficient), and where it all comes from.
+                    _content.Add(Text("Abilities and saving throws", "xk-w-heading"));
+                    var tiles = Row("xk-sheet-abilities");
                     foreach (var a in AbilityRules.All)
                     {
-                        var row = Row("xk-w-row");
-                        row.name = "xk-hub-ability-" + a;
-                        row.Add(Text(a.ToString(), "xk-cc-col"));
-                        row.Add(Text(r.Score(a).ToString(CultureInfo.InvariantCulture), "xk-cc-col"));
-                        row.Add(Text(Breakdown.Signed(r.Modifier(a)), "xk-cc-col"));
-                        row.Add(Text((r.SaveProficient(a) ? "● " : "○ ") + Breakdown.Signed(r.SaveBonus(a).Total), "xk-cc-col"));
-                        row.Add(Text(r.ScoreBreakdown(a).Text, "xk-w-desc"));
-                        _content.Add(row);
+                        var tile = Column("xk-sheet-ability");
+                        tile.name = "xk-hub-ability-" + a;
+                        var primary = r.Class.PrimaryAbilities.Contains(a);
+                        tile.Add(Text(a.ToString().ToUpperInvariant() + (primary ? " ★" : string.Empty), "xk-cc-ability-name"));
+                        tile.Add(Text(r.Score(a).ToString(CultureInfo.InvariantCulture), "xk-sheet-ability-score"));
+                        tile.Add(Text(Breakdown.Signed(r.Modifier(a)), "xk-cc-ability-mod"));
+                        var save = r.SaveBonus(a);
+                        tile.Add(Text((r.SaveProficient(a) ? "● save " : "○ save ") + Breakdown.Signed(save.Total), "xk-sheet-ability-save"));
+                        tile.tooltip = $"{a} {r.Score(a)}: {r.ScoreBreakdown(a).Text}.\nModifier {Breakdown.Signed(r.Modifier(a))} = (score − 10) ÷ 2, rounded down.\nSaving throw: {save.Text}" +
+                                       (r.SaveProficient(a) ? " (proficient)." : " (not proficient).") + (primary ? "\nYour class's primary ability." : string.Empty);
+                        tiles.Add(tile);
                     }
+
+                    _content.Add(tiles);
 
                     _content.Add(Pair("Initiative", r.Initiative().Text + (r.InitiativeRoll.Text.Length > 0 ? " · " + r.InitiativeRoll.Text : string.Empty)));
                     _content.Add(Pair("Speed", r.SpeedBreakdown().Text + " ft"));
@@ -369,6 +387,61 @@ namespace Realmkeeper.Exploration.Presentation
                     _content.Add(Pair("Arms", $"{h.Weapon} (damage {h.Damage})"));
                     break;
             }
+        }
+
+        // ----- Phase 20: origins ------------------------------------------------------------------------------
+
+        private static string LineageText(CharacterRules r)
+        {
+            foreach (var c in r.Species.Choices)
+            {
+                if (c.Kind != ChoiceKind.Option) continue;
+                var picked = r.Sheet.Chosen(c.Id);
+                if (picked.Count == 0) continue;
+                foreach (var o in c.Options) if (o.Id == picked[0]) return " (" + o.Name.Split(':')[0].Replace(" (", ", ").TrimEnd(')') + ")";
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>Phase 20: where the character comes from: species and lineage with every trait, background, and their own history.</summary>
+        private void Origins(CharacterSnapshot ch)
+        {
+            var r = ch.Rules;
+            var sp = r.Species;
+            _content.Add(Text(sp.Name + LineageText(r), "xk-w-heading"));
+            _content.Add(Text(sp.Description, "xk-w-value"));
+            _content.Add(Text(sp.Lore, "xk-w-desc"));
+            _content.Add(Pair("Size · speed · type", $"{sp.Size} · {r.Speed} ft · {sp.CreatureType}"));
+            if (sp.Appearance.PlaceholderNote != null) _content.Add(Text(sp.Appearance.PlaceholderNote, "xk-cc-warn"));
+            foreach (var t in sp.Traits) _content.Add(Trait(t.Name, t.Description, CharacterRules.Needs(t)));
+            foreach (var c in sp.Choices)
+            {
+                if (c.Kind != ChoiceKind.Option) continue;
+                foreach (var id in ch.Player.Rpg.Chosen(c.Id))
+                    foreach (var o in c.Options)
+                        if (o.Id == id) _content.Add(Trait(c.Name + ": " + o.Name, o.Description, o.Needs));
+            }
+
+            var bg = r.Background;
+            _content.Add(Text(bg.Name, "xk-w-heading"));
+            _content.Add(Text(bg.Description, "xk-w-value"));
+            _content.Add(Pair("Skills · tools", string.Join(", ", bg.Skills.Select(SkillRules.Name)) + " · " + string.Join(", ", bg.Tools.Select(t => RpgCatalog.FindTool(t)?.Name ?? t))));
+            _content.Add(Trait(bg.Feature.Name, bg.Feature.Description, CharacterRules.Needs(bg.Feature)));
+
+            var rpg = ch.Player.Rpg;
+            _content.Add(Text("In your own words", "xk-w-heading"));
+            if (!string.IsNullOrEmpty(rpg.Concept)) _content.Add(Pair("In a line", rpg.Concept));
+            if (!string.IsNullOrEmpty(rpg.Pronouns)) _content.Add(Pair("Pronouns", rpg.Pronouns));
+            _content.Add(Pair("History", string.IsNullOrEmpty(rpg.History) ? "Not written. You can add it under Identity." : rpg.History));
+            if (rpg.CreatedOn.IsValidDate) _content.Add(Pair("Began", rpg.CreatedOn.ToString()));
+        }
+
+        private static VisualElement Trait(string name, string description, IntegrationNeed needs)
+        {
+            var row = Pair(name, description + (needs != IntegrationNeed.None ? "  · not yet played by the game: " + CharacterAdvancementWindow.NeedsText(needs) : string.Empty));
+            if (needs != IntegrationNeed.None) row.AddToClassList("xk-sheet-trait--pending");
+            return row;
         }
 
         // ----- Phase 7: experience and progression ----------------------------------------------------------
