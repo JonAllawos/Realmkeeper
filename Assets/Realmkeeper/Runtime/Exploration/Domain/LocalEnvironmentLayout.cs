@@ -55,6 +55,14 @@ namespace Realmkeeper.Exploration.Domain
         None = 0,
         General = 1,
         Smithy = 2,
+
+        // Phase 21 (ADR-0106): the specialist trades, each fitted out for its work.
+        Leatherworks = 3,
+        Tailor = 4,
+        Bowyer = 5,
+        Apothecary = 6,
+        Provisions = 7,
+        Carpentry = 8,
     }
 
     public sealed class LayoutBuilding

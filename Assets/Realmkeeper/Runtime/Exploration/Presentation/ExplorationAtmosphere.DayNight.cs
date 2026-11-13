@@ -91,6 +91,8 @@ namespace Realmkeeper.Exploration.Presentation
                 RenderSettings.skybox = _sky;
             }
 
+            PrepareWeather(environmentRoot); // Phase 21: before the lamps, so lamp glass is never mistaken for a surface
+
             var lamps = new GameObject("Night lamps").transform;
             lamps.SetParent(environmentRoot, false);
             var posts = 0;
@@ -162,7 +164,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             minute = Mathf.Clamp(minute, 0, 1439);
             AppliedMinute = minute;
-            var elevation = ElevationAt(minute);
+            var elevation = Elevation(minute); // Phase 21: the season's daylight
             SunElevation = elevation;
             Daylight = Mathf.Clamp01((elevation + 4f) / 16f);
             var night = Mathf.Clamp01(-elevation / 10f);
@@ -171,7 +173,7 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (Sun != null)
             {
-                Sun.transform.rotation = Quaternion.Euler(Mathf.Max(elevation, -20f), AzimuthAt(minute), 0f);
+                Sun.transform.rotation = Quaternion.Euler(Mathf.Max(elevation, -20f), Azimuth(minute), 0f);
                 var lift = Mathf.Clamp01(elevation / 14f);
                 Sun.intensity = 1.55f * lift;
                 Sun.color = Color.Lerp(Golden, SunColour, Mathf.Clamp01((elevation - 3f) / 22f));
@@ -204,6 +206,7 @@ namespace Realmkeeper.Exploration.Presentation
             RenderSettings.fogDensity = Mathf.Lerp(0.0062f, 0.0048f, day);
             if (_sky != null && _sky.HasProperty("_Exposure")) _sky.SetFloat("_Exposure", Mathf.Lerp(0.18f, 1f, Mathf.Clamp01(day + golden * 0.3f)));
             if (_colour != null) _colour.postExposure.Override(Mathf.Lerp(0.2f, 0.35f, day));
+            ApplyWeatherToLight(day, night); // Phase 21: cloud, rain, snow and fog over the hour's light (may light the lamps early)
 
             foreach (var lamp in _lamps)
             {
@@ -218,6 +221,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void RestoreNight()
         {
+            RestoreWeather();
             foreach (var m in _clones)
             {
                 if (m == null) continue;

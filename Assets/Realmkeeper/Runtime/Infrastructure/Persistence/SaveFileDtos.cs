@@ -99,6 +99,9 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         // Schema v19 (Phase 17): campaigns begun in this world (companions' remarks are on their records).
         public List<CampaignInstanceDto> Campaigns { get; set; }
+
+        // Schema v23 (Phase 21): seasons and regional weather (null in older saves).
+        public WorldEnvironmentDto Environment { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -510,6 +513,10 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Schema v13 (Phase 11): particular items the shop holds.</summary>
         public List<ItemStackDto> Goods { get; set; }
+
+        /// <summary>Schema v23 (Phase 21): the kind of shop (absent: worked out on load) and where its stock came from.</summary>
+        public string Kind { get; set; }
+        public List<SupplyRecordDto> Supply { get; set; }
     }
 
     public sealed class TransactionDto

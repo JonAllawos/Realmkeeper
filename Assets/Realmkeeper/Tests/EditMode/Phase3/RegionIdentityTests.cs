@@ -141,7 +141,7 @@ namespace Realmkeeper.Tests.EditMode.Phase3
         public void NamedResidents_AreAStableSubsetOfThePopulation()
         {
             var world = Phase2Worlds.Generated(123456789);
-            Assert.That(world.Npcs.Count, Is.EqualTo((6 + 3) + 5 + (4 + 1) + 5), "Town, village and hamlet residents, the watch fort's garrison of five (Phase 13) (Phase 10: the town's captain, guard and priest, the hamlet's warden).");
+            Assert.That(world.Npcs.Count - Weather.Phase21Trades.Count(world) /* Phase 21: the specialists' keepers */, Is.EqualTo((6 + 3) + 5 + (4 + 1) + 5), "Town, village and hamlet residents, the watch fort's garrison of five (Phase 13) (Phase 10: the town's captain, guard and priest, the hamlet's warden).");
             Assert.That(world.Npcs.Select(n => n.NpcId).Distinct().Count(), Is.EqualTo(world.Npcs.Count));
             foreach (var s in world.Settlements)
                 Assert.That(world.Npcs.Count(n => n.HomeSettlementId == s.SettlementId), Is.LessThanOrEqualTo(s.Population));

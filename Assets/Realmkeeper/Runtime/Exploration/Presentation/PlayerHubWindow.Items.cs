@@ -64,6 +64,16 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void Run(Func<WorldSession, CommandResult> act) => ItemActionRequested?.Invoke(act);
 
+        // Phase 21 (ADR-0107): crafting opened at a shop's work station (empty: from the hub, any open station here).
+        private Realmkeeper.Domain.Identifiers.ShopId _stationShop;
+        private string _stationNote;
+
+        public void AtStation(Realmkeeper.Domain.Identifiers.ShopId shop, string note)
+        {
+            _stationShop = shop;
+            _stationNote = note;
+        }
+
         private static string W(int grams) => WorldSession.FormatWeight(grams);
 
         // ----- Inventory --------------------------------------------------------------------------------
@@ -295,6 +305,7 @@ namespace Realmkeeper.Exploration.Presentation
             else _content.Add(Text("One piece of work at a time: it holds its materials until it is done, and time passes while you work.", "xk-w-note"));
             if (!v.InSettlement) _content.Add(Text("Crafting and gathering need a settlement.", "xk-w-empty"));
 
+            if (_stationNote != null) _content.Add(Text(_stationNote, "xk-w-note")); // Phase 21: working at a shop's station
             _content.Add(Text("Recipes", "xk-w-heading"));
             string discipline = null;
             foreach (var r in v.Recipes)
@@ -311,7 +322,8 @@ namespace Realmkeeper.Exploration.Presentation
                 row.Add(Text(r.Dc > 0 ? $"DC {r.Dc} · {r.ChancePercent}%" : "sure", "xk-w-price"));
                 row.Add(Text(ItemCommandHandlers.Duration(r.Minutes), "xk-w-price"));
                 var id = r.Id;
-                var start = Act("Start", () => Run(s => s.Dispatch(StartWorkCommand.Craft(id))));
+                var at = _stationShop;
+                var start = Act("Start", () => Run(s => s.Dispatch(StartWorkCommand.Craft(id, at))));
                 start.SetEnabled(r.CanStart && v.Active == null);
                 row.Add(start);
                 _content.Add(row);

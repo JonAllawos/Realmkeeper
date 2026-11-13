@@ -160,7 +160,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
             Assert.That(leaders.Distinct().Count(), Is.EqualTo(4), "Nobody leads two factions.");
             Assert.That(leaders.All(id => world.FindNpc(id) != null), Is.True);
             Assert.That(world.Factions.Single(f => f.Type == FactionType.ReligiousOrder).LeaderNpcId.IsEmpty, Is.True);
-            Assert.That(world.Npcs.Count, Is.EqualTo(15 + 4 + 5), "No resident was created for politics (Phase 13: five are the watch fort's garrison) (the four Phase 10 people fill posts: guards, a priest, a warden).");
+            Assert.That(world.Npcs.Count - Weather.Phase21Trades.Count(world), Is.EqualTo(15 + 4 + 5), /* Phase 21: and the specialists' keepers */ "No resident was created for politics (Phase 13: five are the watch fort's garrison) (the four Phase 10 people fill posts: guards, a priest, a warden).");
 
             // Every pair has one relationship; the starting agreements are in place.
             Assert.That(world.Relations.Count, Is.EqualTo(10));
@@ -243,7 +243,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
 
             var systems = (JArray)w["settings"]["enabledSimulationSystems"];
             systems.First(t => (string)t == PoliticalSystem.Id).Remove();
-            Assert.That(systems.Count, Is.EqualTo(7));
+            Assert.That(systems.Count, Is.EqualTo(8)); // the world it starts from has the Phase 21 weather system too
 
             var result = serializer.Deserialize(doc.ToString());
 

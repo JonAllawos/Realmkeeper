@@ -1,8 +1,15 @@
 # Realmkeeper Game Design Bible
 
 This file holds the **Game Design Bible as supplied by the project owner** with the Phase 6 brief
-(2026-11-10). The Bible's own text follows the status section, unchanged. Only the status section
-below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
+(2026-11-10). The Bible's own text follows the status section, unchanged.
+
+Two parts are maintained:
+- **The status section** below, by implementation phases (Bible §21, items 7, 8 and 10).
+- **The "Owner design amendments" section**, which records later owner requirements that extend
+  the supplied text. Where an amendment and the supplied text differ, the amendment is the newer
+  owner decision.
+
+The phase-by-phase plan from Phase 21 onward is in [`FutureRoadmap.md`](FutureRoadmap.md).
 
 > **Relationship to `ProductFoundation.md`.** The binding product foundation describes "a persistent
 > fantasy world simulation and exploration platform". The Bible extends this into a full RPG
@@ -11,7 +18,7 @@ below is maintained by implementation phases (Bible §21, items 7, 8 and 10).
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 20A, 2026-11-12)
+## Implementation status (updated at the end of Phase 21, 2026-11-13)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -42,7 +49,8 @@ present but visibly temporary; **Not started**.
 | 19 | UI/UX and visual design overhaul (first pass) | Implemented, partly (`6f225d8`; see its report) |
 | 20 | Advanced character creation, character systems and character UI | Implemented (`6dce1a2`, pushed) |
 | 20A | Character systems completion: lineage mechanics in play, eye colour, benefit status, familiarity and progression audits; free asset integration | **Implemented** (`77240e7`, pushed). See the Phase 20A report. |
-| 21 | Mature world content and immersion | Not started (needs the owner's authorisation) |
+| 21 | Environment and settlement depth: weather, seasons, functional shops, crafting stations, keepers' production, furnished interiors, settlement errands | **Implemented** (committed locally, not pushed; see `Reports/Phase21-Completion-Report.md`). Not hand-played: the owner checklist is open. This row previously read "Mature world content and immersion"; that scope is now planned as Phase 33. |
+| 22–34 | Level 1 integrity, the open world (frame, streaming, geography, traversal, navigation, living overland), optional fast travel, advancement depth, visual identity, interface overhaul, mature content, release readiness | **Planned, not started.** Proposed order and detail in [`FutureRoadmap.md`](FutureRoadmap.md); each phase needs its own brief |
 
 ### §7 Character and RPG system
 
@@ -107,6 +115,13 @@ present but visibly temporary; **Not started**.
 | Creature and scenery models | **Implemented** (Phase 18) | 19 creatures drawn with 15 CC0 or CC BY animal and monster models, animated or tipping over when they fall; settlement trees, wells and place props from CC0 kits; licences and credits recorded (ADR-0097) |
 | Road fights in the combat scene | **Implemented** (Phase 17) | A fight met on the road is played with the existing tactical combat on the ground at the road's end; the party stays on the road (ADR-0086) |
 | Main campaign, setting canon | **Not started** | The kingdoms, antagonist and world history are not approved canon; the one campaign is provisional demonstration content |
+| Seasons, regional climate and weather (Phase 21) | **Implemented** | Seasons from the calendar; climate from region kind, latitude and mountains; fronts crossing the atlas; eight periods a day per region, saved (v23). Effects: seasonal farming and fishing, slower travel in bad weather, people shelter in storms. Shown in the street: rain, snow, clouds, fog, lightning, stars and moon, wet and snowy ground, seasonal daylight (ADR-0105). |
+| Kinds of shop, supply records, work stations, keepers' production (Phase 21) | **Implemented** | Twelve kinds; specialists in towns' empty shop buildings; supply records with origins; imports only by open road; shortfalls explained; seven stations; 15 new recipes (26 in all); keepers make goods at their stations from their own stock (ADR-0106, ADR-0107). Keepers' purses run low without NPC customers buying: the wider shop economy is not modelled |
+| Furnished interiors and errands (Phase 21) | **Implemented** | Rooms furnished by kind from a validated, deterministic plan (scenery, not saved); shop fit-outs per trade; residents run errands to their town's shops on free days (ADR-0108) |
+| Open-world overland travel (amendment A1) | **Not started** | Travel is abstract today: journeys hour by hour on the atlas strip over the route graph. Settlement scenes end at their edge (110–200 m half-extent) with no surrounding landscape. Positions are region-local. Planned as Phases 23–29. |
+| Navigation HUD, overland discovery by sight (amendment A1) | **Not started** | Place discovery states exist (ADR-0065); compass, minimap and landmark sighting do not. Planned as Phase 27. |
+| Level 1 start (amendment A2) | **Implemented in the creation command, with gaps** | `CreateCharacterCommand` creates level 1 with full HP, resources and kit once. Gaps: creation is optional (pending play), and pre-creation experience, coin and belongings carry over. No level 1 validator exists. Planned as Phase 22. |
+| Realmkeeper ruleset document (amendment A3) | **Not started** | The rules are SRD 5.2.1 data plus labelled Realmkeeper originals (ADR-0022, ADR-0026), but no single document classifies every rule area. Planned in Phases 22 and 30. |
 
 ### §19 Design principles: how Phases 6–7 respect them
 
@@ -140,6 +155,287 @@ Still open: the final XP curve, the subclass catalogue, the spell list, the comb
 and the world's names and history.
 
 The `ProductFoundation.md` and Bible scope question remains an owner decision.
+
+New open decisions from the 2026-11-12 amendments are listed in `FutureRoadmap.md` §4 (D1–D5):
+- the walkable world scale;
+- what fast travel is;
+- the ruleset's name and scope;
+- pending play before creation;
+- committing store-licensed assets.
+
+---
+
+## Owner design amendments (2026-11-12)
+
+Supplied by the owner on 2026-11-12, while Phase 21 was in progress. Status words follow the
+status section above. **Everything in this section is a requirement or a plan unless the status
+table marks it implemented.**
+
+### A1. Genuine open-world overland travel
+
+**The problem today.** These facts were inspected in the code; see `FutureRoadmap.md` §1.
+- **Settlement scenes are islands.** A settlement is a persisted layout 220–400 m across. Beyond
+  its edge there is no continuing geography: nothing behind the player, no road leading away, and
+  no distant mountains or towns.
+- **The atlas is the only way between places.** Travel is the hour-by-hour journey on the strategic
+  map (ADR-0077, ADR-0078).
+- **Positions are region-local**, by design in ADR-0076.
+
+**Requirement.** The player physically traverses one connected, persistent world. They can:
+- leave any settlement, dungeon or place on foot;
+- walk or run into the countryside;
+- follow roads, trails, bridges, passes and natural routes;
+- see meaningful terrain and recognisable landmarks in every direction;
+- reach and explore places without selecting them on the map first;
+- find alternate routes and hidden places;
+- spend substantial in-game time on long journeys.
+
+There is no blank zone around a settlement and no invisible wall that makes a place feel like a
+level.
+
+**Design references.** Skyrim and Kingdom Come: Deliverance 2 are studied for their patterns, such
+as:
+- landmarks visible from afar that pull the player toward them;
+- roads that are themselves content;
+- signposts and diegetic navigation;
+- travel time that matters.
+
+None of their content or proprietary systems is copied.
+
+**Continuous world architecture.** This extends §3.2 and §15.1.
+- **One authority.** The strategic map, local settlement environments, wilderness and places are
+  views of one authoritative world. No duplicated world exists, and no scene invents its own
+  geography.
+- **Matching positions.** A settlement's atlas position is its real position in the walkable world.
+  Roads, rivers and ranges connect logically across region borders, as ADR-0076 already requires
+  for the map.
+- **Streaming, not one scene.** The world is not one enormous Unity scene. It is a world coordinate
+  frame with deterministic terrain tiles streamed around the player and floating-origin precision.
+  The existing settlement and place builders are placed at their world anchors.
+- **What the architecture must cover:** distance and travel time from one scale; persistence across
+  region transitions; continuity of NPCs, creatures, caravans, patrols and events; save and load
+  anywhere in the open; deterministic generation; stated performance and memory budgets.
+- **The scale (decision D1)** must be settled first. At today's travel scale, about 154 km a region,
+  a literal walk would take a day and a half per region.
+
+**Terrain and geography.** Expected content:
+- mountains and ranges, hills, valleys, cliffs and rock formations;
+- forests, woods and clearings; plains, meadows, grassland and farmland;
+- rivers, streams, lakes, waterfalls and coastlines;
+- roads, trails, bridges, crossings and passes;
+- farms, mills, watchtowers, ruins, forts, camps and roadside structures;
+- natural landmarks;
+- weather, atmosphere and seasons (Phase 21).
+
+Terrain is not decoration. It decides:
+- how the world is crossed;
+- where settlements stand;
+- how trade routes run;
+- where creatures live;
+- where encounters happen.
+
+**Travel as gameplay.** Planned elements:
+- walking and running; navigation and choice of route; roads versus wilderness; terrain movement
+  costs;
+- day and night; weather;
+- wildlife and creatures; bandits, patrols and caravans; travellers, merchants and refugees;
+- roadside discoveries and hidden places; gathering where appropriate;
+- camps and rest; party and companion behaviour;
+- travel quests and events; injuries and hazards;
+- the world simulating on through long journeys.
+
+Not a stream of repetitive random encounters: authored places, emergent situations with causes,
+landmarks and discoveries, at a stated density.
+
+**Navigation HUD.** Planned elements:
+- a compass with heading;
+- a minimap or local map;
+- discovered roads and trails;
+- nearby points of interest;
+- destination and quest markers, with distances;
+- optional route guidance;
+- zoom and orientation.
+
+The world itself also guides the player, through signposts and landmarks. Guidance is a player
+setting (guided, markers only, or explorer), so exploration is never a permanent GPS line. The
+strategic map remains for planning.
+
+**Discovery.** A location can **exist** (in world data), be **known** (directions, rumours, maps,
+documents, quests, travellers, merchants, faction or settlement knowledge, or seen from afar), and
+be **discovered** (physically reached). This extends the place states of ADR-0065 and the region
+states of ADR-0076 to the whole overworld.
+
+**Fast travel** is optional, never foundational. It:
+- may come late (proposed Phase 29);
+- never replaces walking, and is never the only practical way to reach a settlement;
+- respects geography and the road network;
+- is justified in the world (known roads, real services);
+- passes real time, so events and closures still apply.
+
+**Status:** Not started. Planned as Phases 23–29 in `FutureRoadmap.md`.
+
+### A2. Every new character starts at level 1
+
+This extends §7.2 and §7.7.
+
+**Creation.** Every new player character is a legitimate level 1 character:
+- species and lineage;
+- background and origin;
+- class;
+- ability scores;
+- skills and proficiencies;
+- level 1 features only;
+- starting equipment, spells and resources;
+- appearance and identity.
+
+Creation never grants features, resources, equipment, spells or benefits of later levels, and never
+quietly produces an advanced character.
+
+**Level 1 validation.** A formal check covers:
+- hit points, AC, proficiency, skills and saves;
+- class features limited to level 1;
+- appropriate species and lineage features;
+- starting spells and slots;
+- starting kit;
+- resources and charges;
+- no subclass features early;
+- no higher-level abilities active;
+- a sheet that matches the rules engine.
+
+The check is class-specific: classes legitimately differ in what and how much they get at level 1.
+
+**Progression.** Levelling is a clear, deliberate event:
+- experience (or another documented model) makes a character eligible;
+- a notification says so;
+- a level-up workflow presents, for each level:
+  1. what is gained automatically;
+  2. what new options exist;
+  3. which choices are required;
+  4. which choices are optional;
+  5. what will come at future levels.
+
+The workflow also covers prerequisites, class-specific advancement, ability improvements and feats,
+subclass at its level, spell selection, proficiencies, HP and resources, and an advancement history
+that is saved.
+
+Important choices are never made silently for the player. The sheet distinguishes:
+- current abilities;
+- newly gained abilities;
+- unselected choices;
+- future locked features;
+- historical decisions.
+
+Players and NPCs share one underlying progression model. NPCs may have a simpler presentation.
+
+**Status:**
+- The creation command already builds level 1 (Implemented, with gaps; see the status table).
+- The level-up window and keyed ledger exist (ADR-0028).
+- The level 1 audit and gap fixes are planned as Phase 22; the fuller workflow and presentation as
+  Phase 30.
+
+### A3. Realmkeeper's own ruleset, not a 5e reproduction
+
+This extends §7.1 and §19 principle 7.
+
+Realmkeeper draws on D&D, including SRD 5.2.1 under CC BY 4.0, without being bound to reproduce 5e
+exactly. Every rule area is to be classed as one of:
+1. **Implemented by Realmkeeper today**, with its source.
+2. **Inherited from SRD 5.2.1**: as-is, or adapted, with the adaptation stated.
+3. **Realmkeeper-specific**, labelled as an original.
+4. **Planned.**
+5. **Deferred or deliberately unsupported**, for example multiclassing (not supported today).
+
+Areas covered: species and lineages, backgrounds and origins, classes and subclasses, abilities and
+derived statistics, skills and proficiencies, feats, spells and progression, equipment and
+properties, conditions and combat, advancement, NPC construction.
+
+The classification will live in a ruleset document (planned, Phase 30), with the baseline in
+Phase 22.
+
+**The Tavern Table** is the owner's separate D&D application. A standalone build exists on the
+owner's machine; it has not yet been studied for this roadmap. It is a **design reference only**:
+its species, class, item, spell and progression ideas may be studied and selectively adapted, but
+its code, assets and data are not merged into Realmkeeper. Working Realmkeeper systems are not
+rewritten to resemble it.
+
+### A4. Workstreams reaffirmed
+
+These requirements were established before and are restated so the roadmap keeps them:
+- **Complete UI/UX and gameplay interface overhaul.**
+  - The full interface, not a restyle: menus, world and campaign selection, world creation, loading
+    screens, navigation, HUD and context menus.
+  - Character creation and sheets, inventory and equipment, spellbook, journal and quests, map, NPC
+    interaction.
+  - Settlement, kingdom and faction management.
+  - Settings, accessibility, key bindings, graphics, audio and gameplay.
+  - A cohesive design language with feedback, transitions and responsive layouts.
+  - The first pass was Phase 19. The rest is planned as Phase 32.
+- **Advanced character creation and visual identity.**
+  - More species and subspecies, species-specific anatomy and proportions.
+  - Faces, hair, facial hair, skin, eyes, scars and tattoos.
+  - Fitted clothing and armour, starting equipment, a high-quality 3D preview.
+  - NPCs created and inspected by the same rules.
+  - **Known gap:** non-human species are shown on the human model (ADR-0024, Phase 20).
+  - Planned as Phase 31.
+- **Mature world content and immersion**, intentional and contextual, never gratuitous:
+  - contextual non-sexual nudity, profanity, blood, injuries and gore, violence and its consequences,
+    darker themes, adult relationships and romance;
+  - believable taverns, bathhouses, homes and medical settings;
+  - player content settings applied consistently to dialogue, appearance, NPC behaviour and
+    environments (hook: ADR-0061).
+  - Planned as Phase 33. This was previously listed as Phase 21.
+- **Asset research, integration and visual quality.**
+  - Exact licence verification, attribution, confirmation of commercial use, technical suitability
+    and performance.
+  - Free does not mean commercially usable, and a marketplace listing does not mean a suitable
+    licence.
+  - Runs as a gate inside each phase (`FutureRoadmap.md` §6), building on `Research/Realmkeeper-Asset-*.md`.
+
+### A5. Principles added to §19
+
+These extend the list in §19; the original twenty stand.
+
+21. **The player physically travels one connected world.** Physical travel is the primary way to
+    move between places; fast travel is optional and in-world.
+22. **Locations are known before they are reached.** Existence, knowledge and physical discovery
+    are distinct.
+23. **Every new character starts at level 1.** Every advancement is an explicit, player-facing
+    event, and its choices are the player's.
+24. **The ruleset is Realmkeeper's own.** It is D&D-inspired and SRD-informed, with every rule's
+    origin and status stated.
+25. **Planned is never shown as implemented**, in documents or in the game.
+
+### A6. Known gaps and dependencies
+
+| Gap | Depends on |
+|---|---|
+| No world coordinate frame; positions are region-local | Owner decision D1 (scale), then Phase 23 |
+| No terrain beyond settlement edges; no physical roads between settlements | Phases 24–25 |
+| Road fights staged on the near settlement's ground (Phase 17 limitation) | Phase 26 |
+| No compass, minimap, or landmark sighting | Phases 25–27 |
+| Creation optional; pre-creation experience and coin carry over; no level 1 validator | Decision D4, then Phase 22 |
+| No ruleset classification document | Decision D3; Phases 22 and 30 |
+| Non-human anatomy placeholders | Asset gate L-Characters; Phase 31 |
+| No content settings screen (tags exist, ADR-0061) | Phase 32, then Phase 33 |
+
+### Cross-references
+
+- **The plan:** `FutureRoadmap.md`; `../Roadmap.md` (history).
+- **World and travel:**
+  - `../Architecture/DualPerspective.md`, ADR-0009 (one world, two views);
+  - ADR-0076 (connected regions), ADR-0077 (route graph and scale), ADR-0078 (journeys on the one
+    clock), ADR-0081 (simulation tiers and the atlas), ADR-0086 (road fights);
+  - `../Systems/Travel.md`, `../Systems/WorldGeneration.md`, `../Systems/Exploration.md`.
+- **Discovery:** ADR-0065, ADR-0088.
+- **Characters:**
+  - ADR-0020, ADR-0022, ADR-0023, ADR-0025, ADR-0026, ADR-0028, ADR-0029, ADR-0043, ADR-0100,
+    ADR-0103;
+  - `../Systems/CharacterCreation.md`, `../Systems/CharacterProgression.md`,
+    `../Systems/RulesEngine.md`.
+- **Phase 21:** `../Briefs/Phase21-Brief.md`, `../Reports/Phase21-Preflight-Audit.md`.
+- **Interface:** `../Design/Phase19-UI-Design-System.md`, ADR-0098, ADR-0099.
+- **Assets:** `../Research/Realmkeeper-Asset-Research-Master.md`,
+  `../Research/Realmkeeper-Asset-License-Registry.md`, `../Art/AssetInventory.md`.
 
 ---
 

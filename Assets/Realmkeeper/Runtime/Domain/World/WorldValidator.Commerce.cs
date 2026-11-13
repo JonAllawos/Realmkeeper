@@ -27,7 +27,8 @@ namespace Realmkeeper.Domain.World
                 else if (place.SettlementId != shop.SettlementId) result.AddError($"{label} stands in a location of another settlement.");
                 if (!npcIds.Contains(shop.ShopkeeperNpcId)) result.AddError($"{label} has no existing shopkeeper ({shop.ShopkeeperNpcId}).");
                 else if (!keepers.Add(shop.ShopkeeperNpcId)) result.AddError($"{label}: its shopkeeper already keeps another shop.");
-                if (shop.Categories.Count == 0) result.AddError($"{label} deals in nothing.");
+                var kindDef = ShopKinds.Find(shop.Kind); // Phase 21: a kind with its own item list needs no categories
+                if (shop.Categories.Count == 0 && (kindDef == null || kindDef.Items.Length == 0)) result.AddError($"{label} deals in nothing.");
                 if (shop.OpensAt < 0 || shop.ClosesAt > WorldTime.MinutesPerDay || shop.OpensAt >= shop.ClosesAt)
                     result.AddError($"{label} has invalid hours {shop.OpensAt}–{shop.ClosesAt}.");
                 if (shop.TotalSales < 0 || shop.TotalPurchases < 0) result.AddError($"{label} has negative trade totals.");

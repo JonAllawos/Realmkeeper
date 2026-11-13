@@ -34,6 +34,14 @@ namespace Realmkeeper.Infrastructure.Generation
             if (Simulation.Fauna.FaunaGenesis.Ensure(world, map)) changed = true; // wildlife, road bands, vermin, herds
             if (EnsureLayouts(world, map)) changed = true;
             if (Simulation.Items.ItemGenesis.Ensure(world)) changed = true; // Phase 11: chests, caches, gathering sites
+            if (WorldPopulationInitializer.EnsureTradespeople(world, random).Count > 0) // Phase 21: keepers for the specialists, from the population
+            {
+                Simulation.Npcs.NpcGenesis.EnsurePeople(world);
+                NpcCharacterGenesis.Ensure(world); // their character records, as everyone else's (a reload would add them otherwise)
+                changed = true;
+            }
+
+            if (Simulation.Commerce.CommerceGenesis.EnsureKinds(world) > 0) changed = true; // Phase 21 (ADR-0106): shop kinds, specialists in unused shop buildings (before the quests, which read the shops)
             if (regionOnly) return changed; // Phase 16: a further region has no authored quests or places of its own
             if (Simulation.Quests.QuestGenesis.Ensure(world)) changed = true; // Phase 12: the authored quests and today's emergent ones
             if (PlaceGenesis.Ensure(world, map, random)) changed = true; // Phase 13: wilderness places, their contents, captive and garrison

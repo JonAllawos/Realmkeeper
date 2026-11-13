@@ -58,7 +58,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var go = new GameObject("Shop interior " + building.Key);
             go.transform.SetParent(parent, false);
-            go.transform.localPosition = new Vector3(building.Center.X, 0f, building.Center.Z);
+            go.transform.localPosition = new Vector3(building.Center.X, building.FloorHeight, building.Center.Z); // Phase 21: on the shop's own floor (raised foundations sank the fittings)
             go.transform.localRotation = Quaternion.Euler(0f, -building.Yaw, 0f);
             var view = go.AddComponent<ShopInteriorView>();
             view._building = building;
@@ -106,22 +106,23 @@ namespace Realmkeeper.Exploration.Presentation
 
             if (Smithy)
             {
-                // A forge and an anvil in the front-west corner.
+                // A forge in the front-west corner; the anvil beside it (the kit's own when installed).
                 Block(t, "Forge", new Vector3(1.2f, 0.9f, 1.0f), _catalog.Material("RockTrim"), new Vector3(-W + 0.95f, 0.45f, -D + 0.9f), true);
                 Block(t, "Embers", new Vector3(0.8f, 0.08f, 0.6f), _catalog.Material("Ember"), new Vector3(-W + 0.95f, 0.93f, -D + 0.9f), false);
-                Block(t, "Anvil", new Vector3(0.5f, 0.75f, 0.28f), _catalog.Material("Metal"), new Vector3(-W + 2.3f, 0.375f, -D + 1.0f), true);
-                var forge = new GameObject("Forge light").AddComponent<Light>();
-                forge.transform.SetParent(t, false);
-                forge.transform.localPosition = new Vector3(-W + 0.95f, 1.3f, -D + 0.9f);
-                forge.type = LightType.Point;
-                forge.color = new Color(1f, 0.52f, 0.24f);
-                forge.range = 4.5f;
-                forge.intensity = 2.2f;
+                if (Prop("Anvil", new Vector3(-W + 2.3f, 0f, -D + 1.0f), 90f, 0.75f) == null)
+                    Block(t, "Anvil", new Vector3(0.5f, 0.75f, 0.28f), _catalog.Material("Metal"), new Vector3(-W + 2.3f, 0.375f, -D + 1.0f), true);
+                Glow("Forge light", new Vector3(-W + 0.95f, 1.3f, -D + 0.9f), new Color(1f, 0.52f, 0.24f), 4.5f, 2.2f);
             }
-            else
-            {
+
+            Dress(); // Phase 21: the trade's own furniture and tools from the CC0 kits
+
+            // Phase 21 (ADR-0107): the trade's work station, in the front-west corner where its forge, bench or oven stands.
+            var station = StationFor(_building.Fit);
+            if (station != StationKind.None)
+                _stations.Add(WorkStationView.Create(t, new Vector3(-W + 1.3f, 0.9f, -D + 1.2f), ShopId, station));
+
+            if (!Smithy && _dressed == 0)
                 Block(t, "Crate", new Vector3(0.6f, 0.6f, 0.6f), _catalog.Material("WoodTrimWear"), new Vector3(-W + 0.8f, 0.3f, -D + 0.9f), true);
-            }
 
             var lamp = new GameObject("Shop lamp").AddComponent<Light>();
             lamp.transform.SetParent(t, false);
@@ -133,6 +134,172 @@ namespace Realmkeeper.Exploration.Presentation
 
             _wares = new GameObject("Wares").transform;
             _wares.SetParent(t, false);
+        }
+
+        // ----- Phase 21: each trade's furniture (ADR-0106) ---------------------------------------------------
+        //
+        // The room's working floor is the front half: the counter, the shelves (back and east walls) and the long-goods rack
+        // (west wall) hold the wares, so the trade's furniture stands in the two front corners and beside the counter, clear
+        // of the middle path from the door. Every model is measured and scaled to a stated size, so a kit's import scale
+        // does not matter. Nothing here is a ware: wares are only ever the shop's stock (Refresh).
+
+        private int _dressed;
+        private readonly List<WorkStationView> _stations = new List<WorkStationView>();
+
+        /// <summary>Phase 21: the work stations in this shop (to register for interaction).</summary>
+        public IReadOnlyList<WorkStationView> Stations => _stations;
+
+        public static StationKind StationFor(ShopFit fit)
+        {
+            switch (fit)
+            {
+                case ShopFit.Smithy: return StationKind.Forge;
+                case ShopFit.Leatherworks: return StationKind.LeatherBench;
+                case ShopFit.Tailor: return StationKind.SewingTable;
+                case ShopFit.Bowyer:
+                case ShopFit.Carpentry: return StationKind.Workbench;
+                case ShopFit.Apothecary: return StationKind.Still;
+                case ShopFit.Provisions: return StationKind.Oven;
+                default: return StationKind.None;
+            }
+        }
+
+        /// <summary>Props placed for the trade (for tests and the walkthrough).</summary>
+        public int Dressed => _dressed;
+
+        private void Dress()
+        {
+            var fw = new Vector3(-W + 1.05f, 0f, -D + 1.05f);  // front-west corner
+            var fe = new Vector3(W - 1.25f, 0f, -D + 1.0f);    // front-east corner
+            var cw = new Vector3(-Mathf.Min(_plan.Width - 2.4f, 3.4f) / 2f - 0.55f, 0f, D - 1.75f); // west end of the counter
+            switch (_building.Fit)
+            {
+                case ShopFit.Smithy:
+                    Prop("WeaponStand", fe, -90f, 1.6f);
+                    Prop("Barrel", fe + new Vector3(-0.2f, 0f, 1.1f), 0f, 0.9f);          // the quench
+                    Prop("Whetstone", cw, 0f, 0.7f);
+                    Prop("Bucket_Metal", new Vector3(-W + 0.45f, 0f, -D + 2.0f), 0f, 0.4f, false);
+                    break;
+                case ShopFit.Leatherworks:
+                    Prop("Workbench", fw, 90f, 1.7f);                                     // the cutting and stitching bench
+                    Prop("Peg_Rack", new Vector3(W - 0.12f, 1.6f, -D + 1.2f), -90f, 1.2f, false); // hides and straps hung to dry
+                    Prop("Barrel", fe, 0f, 0.95f);                                         // the tanning tub
+                    Prop("Stool", fw + new Vector3(0.9f, 0f, 0.1f), 30f, 0.5f);
+                    Prop("Rope_1", fw + new Vector3(0f, 0.95f, 0f), 0f, 0.4f, false);
+                    break;
+                case ShopFit.Tailor:
+                    Prop("Table_Large", fw + new Vector3(0.25f, 0f, 0.1f), 90f, 1.8f);   // the cutting table
+                    Prop("Dummy", fe, 180f, 1.75f);                                         // a dress form
+                    Prop("Stool", fw + new Vector3(1.2f, 0f, 0.2f), -20f, 0.5f);
+                    Prop("Bag", cw, 0f, 0.5f, false);
+                    break;
+                case ShopFit.Bowyer:
+                    Prop("Workbench", fw, 90f, 1.7f);
+                    Prop("WeaponStand", fe, -90f, 1.6f);
+                    Prop("Peg_Rack", new Vector3(W - 0.12f, 1.6f, -D + 1.2f), -90f, 1.2f, false);
+                    Prop("Stool", fw + new Vector3(0.9f, 0f, 0.1f), 10f, 0.5f);
+                    break;
+                case ShopFit.Apothecary:
+                    Prop("Cauldron", fw, 0f, 0.9f);                                        // the still and simmering pot
+                    Prop("Shelf_Small_Bottles", new Vector3(W - 0.15f, 1.3f, -D + 1.1f), -90f, 1.0f, false);
+                    Prop("Bookcase_2", fe + new Vector3(0.6f, 0f, 1.4f), -90f, 1.9f);
+                    Prop("CandleStick_Triple", new Vector3(-Mathf.Min(_plan.Width - 2.4f, 3.4f) / 2f + 0.35f, 1.06f, D - 1.75f), 0f, 0.4f, false); // on the counter
+                    Glow("Still fire", fw + new Vector3(0f, 0.35f, 0f), new Color(1f, 0.55f, 0.3f), 2.5f, 1.2f);
+                    break;
+                case ShopFit.Provisions:
+                    // The bread oven (built, with its fire), sacks and baskets of the day's goods.
+                    Block(transform, "Oven", new Vector3(1.3f, 1.1f, 1.1f), _catalog.Material("RockTrim"), fw + new Vector3(0f, 0.55f, 0f), true);
+                    Block(transform, "Oven mouth", new Vector3(0.5f, 0.32f, 0.06f), _catalog.Material("Ember"), fw + new Vector3(0f, 0.45f, -0.56f), false); // its front face
+                    Glow("Oven fire", fw + new Vector3(0f, 0.6f, -0.65f), new Color(1f, 0.55f, 0.28f), 3.0f, 1.6f);
+                    Prop("Barrel_Apples", fe, 0f, 0.95f);
+                    Prop("FarmCrate_Carrot", fe + new Vector3(-0.1f, 0f, 1.0f), 15f, 0.6f);
+                    Prop("Table_Large", cw + new Vector3(-0.3f, 0f, -1.5f), 0f, 1.4f);
+                    break;
+                case ShopFit.Carpentry:
+                    Prop("Workbench_Drawers", fw, 90f, 1.7f);
+                    Prop("Workbench", fe, -90f, 1.6f);
+                    Prop("Stool", fw + new Vector3(0.9f, 0f, 0.1f), 15f, 0.5f);
+                    break;
+                case ShopFit.General:
+                    Prop("Barrel", fw, 0f, 0.9f);
+                    Prop("Crate_Wooden", fw + new Vector3(0.9f, 0f, 0f), 12f, 0.6f);
+                    Prop("Chest_Wood", fe, -90f, 0.9f);
+                    break;
+            }
+
+            // A wall lantern by the door for every shop.
+            Prop("Lantern_Wall", new Vector3(-W + 0.1f, 2.1f, -D + 0.6f), 90f, 0.45f, false);
+        }
+
+        /// <summary>
+        /// A CC0 kit model, measured and scaled so its largest side is <paramref name="size"/> metres, standing at
+        /// <paramref name="at"/> (its base at at.y). Solid ones get a box collider of their measured size. Null when the
+        /// kit is not installed (the room then keeps its built pieces).
+        /// </summary>
+        private GameObject Prop(string id, Vector3 at, float yaw, float size, bool solid = true)
+        {
+            var prefab = _catalog != null ? _catalog.SceneryModel(id) : null;
+            if (prefab == null) return null;
+            var go = Instantiate(prefab, transform, false);
+            go.name = id;
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.Euler(0f, yaw, 0f) * go.transform.localRotation;
+            foreach (var c in go.GetComponentsInChildren<Collider>()) Destroy(c);
+            if (!Measure(go, out var b) || b.size.sqrMagnitude < 1e-6f)
+            {
+                Destroy(go);
+                return null;
+            }
+
+            var largest = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+            go.transform.localScale *= size / largest;
+            Measure(go, out b);
+            go.transform.localPosition += new Vector3(at.x - b.center.x, at.y - b.min.y, at.z - b.center.z);
+            foreach (var r in go.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.On;
+            if (solid)
+            {
+                Measure(go, out b);
+                var col = new GameObject(id + " collider");
+                col.transform.SetParent(transform, false);
+                col.transform.localPosition = b.center;
+                col.AddComponent<BoxCollider>().size = b.size;
+            }
+
+            _dressed++;
+            return go;
+        }
+
+        /// <summary>A model's bounds in this room's own axes (from its meshes' corners).</summary>
+        private bool Measure(GameObject go, out Bounds bounds)
+        {
+            bounds = default;
+            var any = false;
+            foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+            {
+                if (mf.sharedMesh == null) continue;
+                var mb = mf.sharedMesh.bounds;
+                for (var i = 0; i < 8; i++)
+                {
+                    var corner = mb.center + Vector3.Scale(mb.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                    var local = transform.InverseTransformPoint(mf.transform.TransformPoint(corner));
+                    if (!any) { bounds = new Bounds(local, Vector3.zero); any = true; }
+                    else bounds.Encapsulate(local);
+                }
+            }
+
+            return any;
+        }
+
+        private void Glow(string name, Vector3 at, Color colour, float range, float intensity)
+        {
+            var light = new GameObject(name).AddComponent<Light>();
+            light.transform.SetParent(transform, false);
+            light.transform.localPosition = at;
+            light.type = LightType.Point;
+            light.color = colour;
+            light.range = range;
+            light.intensity = intensity;
+            light.shadows = LightShadows.None;
         }
 
         private void Block(Transform parent, string name, Vector3 size, Material material, Vector3 at, bool solid)
@@ -154,6 +321,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (detail == null) return;
             ShopName = detail.Summary.Name;
+            foreach (var st in _stations) st.ShopName = ShopName;
             IsOpen = detail.Summary.IsOpen;
             Status = detail.Summary.Status;
             foreach (Transform child in _wares)

@@ -48,7 +48,7 @@ namespace Realmkeeper.Exploration.Application
             {
                 if (s.SettlementId != settlement.SettlementId) continue;
                 var key = world.FindLocation(s.LocationId)?.LayoutKey;
-                if (key != null) shops[key] = FitFor(s.Categories);
+                if (key != null) shops[key] = FitFor(s.Kind, s.Categories);
             }
 
             var plan = world.FindLayout(settlement.SettlementId);
@@ -64,12 +64,28 @@ namespace Realmkeeper.Exploration.Application
             var residents = new List<ResidentInput>();
             foreach (var n in session.GetPresenceIn(settlement.SettlementId)) residents.Add(new ResidentInput(n.NpcId, n.Role, n.LayoutKey, n.LocationKind));
             var shops = new Dictionary<string, ShopFit>(StringComparer.Ordinal);
-            foreach (var s in session.GetShops(settlement.SettlementId)) if (s.LayoutKey != null) shops[s.LayoutKey] = FitFor(s.Categories);
+            foreach (var s in session.GetShops(settlement.SettlementId)) if (s.LayoutKey != null) shops[s.LayoutKey] = FitFor(s.Kind, s.Categories);
             var plan = session.GetSettlementLayout(settlement.SettlementId);
             if (plan == null) return LocalEnvironmentGenerator.Generate(session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
             var layout = LocalEnvironmentGenerator.FromPlan(plan, session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
             foreach (var h in session.GetHerds(settlement.SettlementId)) layout.Herds.Add(new LayoutHerd { CreatureId = h.CreatureId, Count = h.Count, PastureKey = h.PastureKey });
             return layout;
+        }
+
+        /// <summary>Phase 21: how a shop of a kind is fitted out (the specialists have their own fit-out).</summary>
+        public static ShopFit FitFor(ShopKind kind, IEnumerable<ShopCategory> categories)
+        {
+            switch (kind)
+            {
+                case ShopKind.Smithy: return ShopFit.Smithy;
+                case ShopKind.Leatherworker: return ShopFit.Leatherworks;
+                case ShopKind.Tailor: return ShopFit.Tailor;
+                case ShopKind.Bowyer: return ShopFit.Bowyer;
+                case ShopKind.Apothecary: return ShopFit.Apothecary;
+                case ShopKind.Provisioner: return ShopFit.Provisions;
+                case ShopKind.Carpenter: return ShopFit.Carpentry;
+                default: return FitFor(categories);
+            }
         }
 
         /// <summary>How a shop is fitted out: a smithy for arms and armour, a merchant's counter otherwise.</summary>

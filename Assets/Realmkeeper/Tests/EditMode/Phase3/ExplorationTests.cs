@@ -174,8 +174,11 @@ namespace Realmkeeper.Tests.EditMode.Phase3
             // The hall, and (Phase 5) each house that is a shop.
             var shopHouses = _session.GetShops(_town.SettlementId).Count(s => s.LayoutKey != null && s.LayoutKey.StartsWith("house-"));
             Assert.That(shopHouses, Is.GreaterThanOrEqualTo(2), "A town has a general merchant and a smithy in its houses.");
-            Assert.That(a.Buildings.Count(x => x.IsEnterable), Is.EqualTo(1 + shopHouses));
-            Assert.That(a.Buildings.Count(x => x.Fit != ShopFit.None), Is.EqualTo(shopHouses));
+            // Phase 21: specialist shops in the town's other shop buildings are fitted out too.
+            var shopBuildings = _session.GetShops(_town.SettlementId).Count(s => s.LayoutKey != null && a.Buildings.Any(x => x.Key == s.LayoutKey && x.Kind == BuildingKind.House));
+            Assert.That(shopBuildings, Is.GreaterThanOrEqualTo(shopHouses));
+            Assert.That(a.Buildings.Count(x => x.IsEnterable), Is.EqualTo(1 + shopBuildings));
+            Assert.That(a.Buildings.Count(x => x.Fit != ShopFit.None), Is.EqualTo(shopBuildings));
             Assert.That(a.FindInteractable(InteractableKind.LabourNoticeBoard), Is.Not.Null);
             Assert.That(a.FindInteractable(InteractableKind.GranaryLedger), Is.Not.Null);
             var residents = _session.GetResidents(_town.SettlementId);

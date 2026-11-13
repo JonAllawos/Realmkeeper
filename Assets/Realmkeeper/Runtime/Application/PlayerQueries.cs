@@ -243,6 +243,9 @@ namespace Realmkeeper.Application
         public NpcId KeeperId { get; internal set; }
         public string KeeperName { get; internal set; }
         public IReadOnlyList<ShopCategory> Categories { get; internal set; }
+
+        /// <summary>Phase 21 (ADR-0106): the kind of shop.</summary>
+        public ShopKind Kind { get; internal set; }
         public string Hours { get; internal set; }
         public bool IsOpen { get; internal set; }
         public string Status { get; internal set; }
@@ -283,6 +286,15 @@ namespace Realmkeeper.Application
         public string KeeperActivity { get; internal set; }
         public bool PlayerIsHere { get; internal set; }
         public List<TransactionView> Ledger { get; } = new List<TransactionView>();
+
+        /// <summary>Phase 21: what the shop deals in but has none of, each with the reason (an empty store, no open road …).</summary>
+        public List<(string ItemId, string Name, string Why)> Shortfalls { get; } = new List<(string, string, string)>();
+
+        /// <summary>Phase 21: where its stock came from, newest first, in words.</summary>
+        public List<string> Supply { get; } = new List<string>();
+
+        /// <summary>Phase 21: the kind of shop and what it deals in.</summary>
+        public string Trade { get; internal set; }
     }
 
     /// <summary>Where a person is this hour and what they are doing (for exploration and the inspector).</summary>
@@ -396,6 +408,7 @@ namespace Realmkeeper.Application
                 KeeperId = s.ShopkeeperNpcId,
                 KeeperName = keeper?.Name ?? "nobody",
                 Categories = s.Categories.ToArray(),
+                Kind = s.Kind,
                 Hours = WorldTime.Clock(s.OpensAt) + "–" + WorldTime.Clock(s.ClosesAt),
                 IsOpen = open.IsOpen,
                 Status = open.Reason,
@@ -430,6 +443,23 @@ namespace Realmkeeper.Application
             {
                 var now = NpcActivityPlan.Now(_world, keeper);
                 detail.KeeperActivity = now.Activity + ": " + now.Reason;
+            }
+
+            // Phase 21 (ADR-0106): the trade, what is missing and why, and where the stock came from.
+            var kind = ShopKinds.Find(shop.Kind);
+            if (kind != null) detail.Trade = kind.Description;
+            foreach (var item in ItemCatalog.Items)
+            {
+                var why = CommerceMath.Shortfall(_world, shop, item);
+                if (why != null) detail.Shortfalls.Add((item.Id, item.Name, why));
+            }
+
+            for (var i = (shop.Supply?.Count ?? 0) - 1; i >= 0; i--)
+            {
+                var r = shop.Supply[i];
+                var name = ItemCatalog.Find(r.ItemId)?.Name ?? r.ItemId;
+                var date = Domain.Calendar.WorldDate.FromDayNumber(r.Day);
+                detail.Supply.Add($"{(date.IsValidDate ? date.ToString() : "-")}: {r.Quantity} × {name}, {r.Detail}.");
             }
 
             foreach (var line in shop.Stock)

@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 22; // Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
+        public const int CurrentSchemaVersion = 23; // Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -163,6 +163,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 17 (ADR-0082): campaigns begun in this world (empty: an open-ended sandbox world).</summary>
         public List<Realmkeeper.Domain.Campaigns.CampaignInstanceData> Campaigns { get; set; } = new List<Realmkeeper.Domain.Campaigns.CampaignInstanceData>();
+
+        /// <summary>Phase 21 (ADR-0105): seasons and regional weather. Null in a world never simulated since (filled on load).</summary>
+        public WorldEnvironmentData Environment { get; set; }
 
         public RouteSegmentData FindRoute(string id)
         {
@@ -338,6 +341,7 @@ namespace Realmkeeper.Domain.World
             if (WorldEvents != null) foreach (var e in WorldEvents) copy.WorldEvents.Add(e?.Clone());
             copy.NextWorldEventNumber = NextWorldEventNumber;
             if (Campaigns != null) foreach (var c in Campaigns) copy.Campaigns.Add(c?.Clone());
+            copy.Environment = Environment?.Clone(); // Phase 21
             return copy;
         }
 

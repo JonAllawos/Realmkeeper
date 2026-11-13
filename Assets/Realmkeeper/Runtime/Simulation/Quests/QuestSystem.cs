@@ -30,6 +30,7 @@ namespace Realmkeeper.Simulation.Quests
             if (w == null) throw new ArgumentNullException(nameof(w));
             report = report ?? Direct(w);
             var changed = false;
+            var fresh = w.Quests.Count == 0;
             var town = FirstTown(w);
             if (town != null)
             {
@@ -48,7 +49,13 @@ namespace Realmkeeper.Simulation.Quests
                 }
             }
 
-            if (Emerge(w, report)) changed = true;
+            // Phase 21: emergent quests come when the daily system would offer them (a new world or quest log; the week's
+            // turn; a settlement short of food), so loading a save mid-week offers nothing a continuous game would not.
+            var shortage = false;
+            foreach (var s in w.Settlements) if (s.IsInFoodShortage) shortage = true;
+            var day = w.CurrentSimulationDate.IsValidDate ? w.CurrentSimulationDate.ToDayNumber() : 0;
+            if (fresh || shortage || day % Domain.Calendar.WorldDate.DaysPerWeek == 0)
+                if (Emerge(w, report)) changed = true;
             return changed;
         }
 

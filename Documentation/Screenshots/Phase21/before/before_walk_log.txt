@@ -1,0 +1,44 @@
+Town: Town, half extent 200 m, 71 buildings, 157 props, 9 residents shown, 2 shops.
+  Barn: 3
+  Civic: 1
+  Cottage: 6
+  Farmhouse: 3
+  Gatehouse: 2
+  Granary: 1
+  GuardPost: 1
+  Home: 21
+  Keep: 1
+  LargeHome: 6
+  MarketHall: 1
+  Mill: 1
+  Religious: 1
+  Shed: 10
+  Shop: 5
+  Smithy: 1
+  Stable: 1
+  Tavern: 1
+  Warehouse: 2
+  Workshop: 3
+before_01_town_overview_high: The whole town from above, morning.
+before_02_town_street_level: From the arrival point toward the centre, at eye height.
+before_03_shop_brookesoutfitters: Inside Brooke's Outfitters (General): 18 wares shown.
+before_04_shop_fairweatherssmithy: Inside Fairweather's Smithy (Smithy): 6 wares shown.
+before_05_tavern: Inside the tavern (Hall, fit None).
+before_06_tavern_outside: The tavern from the street.
+before_07_inside_Home: Inside an entered Home: (3.75, 0.00, 2.25).
+before_07_inside_Home_back: The same room looking back toward the door.
+before_08_inside_LargeHome: Inside an entered LargeHome: (5.25, 0.00, 2.25).
+before_08_inside_LargeHome_back: The same room looking back toward the door.
+before_09_inside_Cottage: Inside an entered Cottage: (3.75, 0.00, 2.25).
+before_09_inside_Cottage_back: The same room looking back toward the door.
+before_10_inside_Workshop: Inside an entered Workshop: (3.75, 0.04, 2.25).
+before_10_inside_Workshop_back: The same room looking back toward the door.
+before_11_inside_Religious: Inside an entered Religious: (3.75, 0.00, 2.25).
+before_11_inside_Religious_back: The same room looking back toward the door.
+before_12_inside_GuardPost: Inside an entered GuardPost: (3.75, 0.00, 2.25).
+before_12_inside_GuardPost_back: The same room looking back toward the door.
+before_13_inside_Warehouse: Inside an entered Warehouse: (5.25, 0.00, 2.25).
+before_13_inside_Warehouse_back: The same room looking back toward the door.
+before_14_street_dusk: The same street at dusk.
+before_15_street_night: The same street at night.
+before_16_smithy_night: The smithy at night.

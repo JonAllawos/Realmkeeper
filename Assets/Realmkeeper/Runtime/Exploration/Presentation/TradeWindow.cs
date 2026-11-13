@@ -20,6 +20,7 @@ namespace Realmkeeper.Exploration.Presentation
         private readonly VisualElement _forSale;
         private readonly VisualElement _offers;
         private readonly VisualElement _ledger;
+        private readonly Label _supply; // Phase 21: what is missing and why; where the stock came from
         private readonly VisualElement _goods;
         private readonly VisualElement _repairs;
         private readonly Label _title;
@@ -97,6 +98,9 @@ namespace Realmkeeper.Exploration.Presentation
             Root.Add(Text("Recent trades here", "xk-w-heading"));
             _ledger = Column("xk-w-ledger");
             Root.Add(_ledger);
+            _supply = Text(string.Empty, "xk-w-ledger-line");
+            _supply.style.whiteSpace = WhiteSpace.Normal;
+            Root.Add(_supply);
             hudRoot.Add(Root);
         }
 
@@ -183,6 +187,15 @@ namespace Realmkeeper.Exploration.Presentation
             _ledger.Clear();
             if (detail.Ledger.Count == 0) _ledger.Add(Text("No trades with you yet.", "xk-w-empty"));
             for (var i = 0; i < detail.Ledger.Count && i < 4; i++) _ledger.Add(Text(detail.Ledger[i].Text, "xk-w-ledger-line"));
+
+            // Phase 21 (ADR-0106): the trade, what it lacks and why (at most three), and its latest supplies (on hover, all).
+            var lines = new System.Collections.Generic.List<string>();
+            if (!string.IsNullOrEmpty(detail.Trade)) lines.Add(detail.Trade);
+            for (var i = 0; i < detail.Shortfalls.Count && i < 3; i++) lines.Add("No " + detail.Shortfalls[i].Name.ToLowerInvariant() + ": " + detail.Shortfalls[i].Why);
+            if (detail.Shortfalls.Count > 3) lines.Add($"… and {detail.Shortfalls.Count - 3} more out of stock.");
+            if (detail.Supply.Count > 0) lines.Add("Latest in: " + detail.Supply[0]);
+            _supply.text = string.Join("\n", lines);
+            _supply.tooltip = detail.Supply.Count == 0 ? null : string.Join("\n", detail.Supply);
         }
 
         public void Hide()

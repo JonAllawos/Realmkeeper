@@ -791,7 +791,11 @@ namespace Realmkeeper.Application
                 player.Purse += total;
 
                 // A plain item joins the shop's counted stock; a distinct one (worn, fine, part-charged) keeps its identity.
-                if (plain) CommerceMath.AddStock(eshop, def.Id, c.Quantity);
+                if (plain)
+                {
+                    CommerceMath.AddStock(eshop, def.Id, c.Quantity);
+                    eshop.RecordSupply(edit.CurrentSimulationDate.ToDayNumber(), def.Id, c.Quantity, SupplyOrigin.FromPlayer, "bought from " + player.Name); // Phase 21
+                }
                 else
                 {
                     part.Provenance = "Sold by " + player.Name;

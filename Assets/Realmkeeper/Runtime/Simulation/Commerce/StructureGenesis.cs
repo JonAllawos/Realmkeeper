@@ -25,23 +25,7 @@ namespace Realmkeeper.Simulation.Commerce
                 foreach (var l in world.Locations)
                 {
                     if (l.SettlementId != s.SettlementId) continue;
-                    var def = StructureCatalog.Find(StructureCatalog.ForLocation(l));
-                    ShopData shop = null;
-                    foreach (var x in world.Shops) if (x.LocationId == l.LocationId) shop = x;
-                    var owner = shop != null ? shop.ShopkeeperNpcId : OwnerOf(world, l, def);
-                    world.Structures.Add(new StructureData
-                    {
-                        StructureId = new StructureId(NpcHash.Guid(NpcHash.Of(world.Seed, "structure", s.SettlementId + ":" + l.LocationId))),
-                        DefinitionId = def.Id,
-                        Name = shop != null ? shop.Name : l.Name,
-                        SettlementId = s.SettlementId,
-                        LocationId = l.LocationId,
-                        ShopId = shop?.ShopId ?? ShopId.Empty,
-                        OwnerNpcId = owner,
-                        FactionId = def.Category == StructureCategory.Civic || def.Category == StructureCategory.Military ? s.FactionId : FactionId.Empty,
-                        LayoutKey = l.LayoutKey ?? string.Empty,
-                        EstablishedOn = world.CurrentSimulationDate,
-                    });
+                    world.Structures.Add(Functional(world, s, l));
                     added++;
                 }
 
@@ -61,6 +45,49 @@ namespace Realmkeeper.Simulation.Commerce
             }
 
             return added;
+        }
+
+        /// <summary>
+        /// Phase 21: the functional structure of a location added after the settlement's structures were made (a specialist
+        /// shop in a once-unused building). Nothing when the settlement has no structures yet (they will all be made
+        /// together) or the location already has one. True when one was added.
+        /// </summary>
+        public static bool EnsureFor(WorldData world, LocationData l)
+        {
+            var s = world.FindSettlement(l.SettlementId);
+            if (s == null) return false;
+            var any = false;
+            foreach (var st in world.Structures)
+            {
+                if (st.SettlementId != s.SettlementId) continue;
+                any = true;
+                if (st.LocationId == l.LocationId) return false;
+            }
+
+            if (!any) return false;
+            world.Structures.Add(Functional(world, s, l));
+            return true;
+        }
+
+        private static StructureData Functional(WorldData world, SettlementData s, LocationData l)
+        {
+            var def = StructureCatalog.Find(StructureCatalog.ForLocation(l));
+            ShopData shop = null;
+            foreach (var x in world.Shops) if (x.LocationId == l.LocationId) shop = x;
+            var owner = shop != null ? shop.ShopkeeperNpcId : OwnerOf(world, l, def);
+            return new StructureData
+            {
+                StructureId = new StructureId(NpcHash.Guid(NpcHash.Of(world.Seed, "structure", s.SettlementId + ":" + l.LocationId))),
+                DefinitionId = def.Id,
+                Name = shop != null ? shop.Name : l.Name,
+                SettlementId = s.SettlementId,
+                LocationId = l.LocationId,
+                ShopId = shop?.ShopId ?? ShopId.Empty,
+                OwnerNpcId = owner,
+                FactionId = def.Category == StructureCategory.Civic || def.Category == StructureCategory.Military ? s.FactionId : FactionId.Empty,
+                LayoutKey = l.LayoutKey ?? string.Empty,
+                EstablishedOn = world.CurrentSimulationDate,
+            };
         }
 
         /// <summary>The settlement's structures in a stable order: functional first (by name), then the rest.</summary>

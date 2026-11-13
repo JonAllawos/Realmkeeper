@@ -231,6 +231,9 @@ namespace Realmkeeper.Tests.PlayMode
             runtime.Playback.Pause();
             var atmosphere = controller.Atmosphere;
             Assert.That(atmosphere.AppliedMinute, Is.EqualTo(session.GetWorldTime().MinuteOfDay));
+            // Phase 21: this test is about the clock's light, so it shows fair weather (cloud dims the sun and a storm lights
+            // the lamps early; Phase21WeatherCaptureTests covers those).
+            atmosphere.SetWeather(null);
             Assert.That(atmosphere.Sun.intensity, Is.GreaterThan(0.5f), "Morning sun.");
             Assert.That(atmosphere.Lamps.Count, Is.GreaterThan(5));
             Assert.That(atmosphere.Lamps.All(l => !l.enabled), Is.True, "No lamps by day.");

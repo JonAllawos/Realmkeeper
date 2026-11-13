@@ -190,3 +190,29 @@ window shows:
 - **Particular goods.** A plain item sold joins the shop's counted stock as before. A distinct one (worn, fine, part-charged) keeps its identity in `ShopData.Goods`, at most 24 per shop. It is offered back under **Particular goods** at its own price, and `BuyGoodsCommand` buys that very instance.
 - **Mending.** A shop that deals in weapons and armour mends what the player carries, worn or in the pack, to good condition: 15 % of base value per step below Good, paid to the keeper (`RepairAtShopCommand`). The prices are listed under **Mending**.
 - **Shrines.** A settlement with a place of worship lifts a curse for a 60-coin offering (`LiftCurseCommand`).
+
+## Phase 21: kinds of shop, supply records, work stations and production
+
+- **Kinds** (ADR-0106).
+  - Every shop has a kind from one catalog (`ShopKinds`): general store, outfitters, smithy, tavern kitchen, granary yard and farm stall (the Phase 5 kinds, read from what each shop was made as), plus bakery & provisions, leatherworks, tailor, bowyer & fletcher, apothecary and carpentry.
+  - A specialist deals in its own item list; the Phase 5 kinds keep their categories.
+  - The smithy now deals in metalwork and its forge materials (iron bars, timber) only; stock it held before stays on its shelf.
+- **Specialists in the town's empty shop buildings.**
+  - Towns gain specialists in the planned shop buildings no one used (villages a leatherworks), kept by townspeople named from the population, the way Phase 10 named its priests and guards.
+  - Nothing existing is moved or replaced.
+- **Supply records.** Each shop keeps its 40 latest:
+  - made here from the stores;
+  - brought in by road (named);
+  - made at the bench by the keeper;
+  - bought from the player.
+- **Imports need an open road.** An item with no modelled material is bought in only along a trade route that is not suspended.
+- **Shortfalls are explained** in the trade window: an empty store, food kept back, no open road, the keeper's purse, unrest, or simply sold out and being remade.
+- **Work stations** (ADR-0107).
+  - Forge, woodworker's bench, leatherworker's bench, sewing table, bread oven, kitchen hearth and apothecary's still, each kept by the shops of a kind.
+  - The player works at one by interacting with it in the shop, while it is open.
+  - 15 new recipes use them.
+- **Production.** Each day after restocking, a keeper makes what their shop is short of, at their own station, from their own stock, within a working day; recorded as made at the bench.
+  - A workshop does not buy in what it makes.
+  - It keeps of each input what one batch takes, and restocks its inputs first.
+  - Keepers keep a float of 10 coin from restocking to buy from customers.
+- **Fit-outs.** Each kind's interior is dressed with CC0 kit pieces for its trade (forge, anvil, weapon stand; bench, peg rack, tanning tub; cutting table, dress form; still, bottle shelf; oven). Wares remain exactly the stock.

@@ -123,15 +123,17 @@ namespace Realmkeeper.Application
     /// <summary>Starts work: crafting a recipe, gathering at a site, repairing an item, or attuning to one.</summary>
     public sealed class StartWorkCommand : ICommand
     {
-        private StartWorkCommand(WorkKind kind, string recipeId, string siteKey, ItemStackId stackId)
+        private StartWorkCommand(WorkKind kind, string recipeId, string siteKey, ItemStackId stackId, ShopId at = default)
         {
             Kind = kind;
             RecipeId = recipeId;
             SiteKey = siteKey;
             StackId = stackId;
+            At = at;
         }
 
-        public static StartWorkCommand Craft(string recipeId) => new StartWorkCommand(WorkKind.Craft, recipeId, null, default);
+        /// <summary>Crafts a recipe; <paramref name="at"/> names the shop whose station the player works at (Phase 21; empty: any open one here).</summary>
+        public static StartWorkCommand Craft(string recipeId, ShopId at = default) => new StartWorkCommand(WorkKind.Craft, recipeId, null, default, at);
         public static StartWorkCommand Gather(string siteKey) => new StartWorkCommand(WorkKind.Gather, null, siteKey, default);
         public static StartWorkCommand Repair(ItemStackId stackId) => new StartWorkCommand(WorkKind.Repair, null, null, stackId);
         public static StartWorkCommand Attune(ItemStackId stackId) => new StartWorkCommand(WorkKind.Attune, null, null, stackId);
@@ -140,6 +142,9 @@ namespace Realmkeeper.Application
         public string RecipeId { get; }
         public string SiteKey { get; }
         public ItemStackId StackId { get; }
+
+        /// <summary>Phase 21: the shop whose station is worked at (empty: any open one in the settlement).</summary>
+        public ShopId At { get; }
     }
 
     /// <summary>Collects finished work (its time has passed): the result goes to the pack.</summary>
@@ -685,11 +690,18 @@ namespace Realmkeeper.Application
         }
 
         /// <summary>Why a recipe cannot be started now (null when it can): place, station, tool and materials.</summary>
-        public static string CraftProblem(WorldData world, PlayerCharacterData p, RecipeDefinition r)
+        public static string CraftProblem(WorldData world, PlayerCharacterData p, RecipeDefinition r, ShopId at = default)
         {
             if (r == null) return "Unknown recipe.";
             if (!p.IsInSettlement) return "Crafting needs a settlement's shelter and fire.";
-            if (!HasStation(world, p, r.Station)) return $"{r.Name} needs a {StationName(r.Station)}, and there is none here.";
+            if (r.StationKind != StationKind.None)
+            {
+                // Phase 21 (ADR-0107): a physical station in an open shop here; the older place kind (a shrine's still, a
+                // tavern's kitchen, a village workshop) still serves where the recipe names one.
+                var station = Simulation.Commerce.CraftingStations.Problem(world, p.SettlementId, r, at, out _);
+                if (station != null && !(at.IsEmpty && r.Station != null && HasStation(world, p, r.Station))) return station;
+            }
+            else if (!HasStation(world, p, r.Station)) return $"{r.Name} needs a {StationName(r.Station)}, and there is none here.";
             if (r.ToolId != null && Tool(p, r.ToolId, null) == null) return $"You need {ItemCatalog.Find(r.ToolId)?.Name.ToLowerInvariant() ?? r.ToolId} (not broken).";
             foreach (var (item, qty) in r.Inputs)
                 if (CountInPack(p, item) < qty) return $"You need {I(qty)} {ItemCatalog.Find(item)?.Name.ToLowerInvariant() ?? item} and have {I(CountInPack(p, item))}.";
@@ -784,7 +796,7 @@ namespace Realmkeeper.Application
             {
                 var r = RecipeCatalog.Find(c.RecipeId);
                 if (r == null) return CommandResult.NotFound($"Unknown recipe '{c.RecipeId}'.");
-                var problem = CraftProblem(context.Committed, p, r);
+                var problem = CraftProblem(context.Committed, p, r, c.At);
                 if (problem != null) return CommandResult.InvalidState(problem);
                 var bonus = CheckBonus(p, r.CheckAbility, r.ToolId, out var proficient);
 

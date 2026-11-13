@@ -49,6 +49,24 @@ namespace Realmkeeper.Domain.World
         public int TotalSales { get; set; }
         public int TotalPurchases { get; set; }
 
+        /// <summary>Phase 21 (ADR-0106): what kind of shop this is (<see cref="ShopKinds"/>); set on load for older shops.</summary>
+        public ShopKind Kind { get; set; }
+
+        /// <summary>Phase 21: where its stock came from, the most recent <see cref="MaxSupplyRecords"/> lines.</summary>
+        public List<SupplyRecordData> Supply { get; set; } = new List<SupplyRecordData>();
+
+        public const int MaxSupplyRecords = 40;
+
+        /// <summary>Records that so many of an item came in (merging with today's record of the same item and origin).</summary>
+        public void RecordSupply(long day, string itemId, int quantity, SupplyOrigin origin, string detail)
+        {
+            if (quantity <= 0) return;
+            foreach (var r in Supply)
+                if (r.Day == day && r.ItemId == itemId && r.Origin == origin && r.Detail == detail) { r.Quantity += quantity; return; }
+            Supply.Add(new SupplyRecordData { Day = day, ItemId = itemId, Quantity = quantity, Origin = origin, Detail = detail });
+            while (Supply.Count > MaxSupplyRecords) Supply.RemoveAt(0);
+        }
+
         public int QuantityOf(string itemId)
         {
             foreach (var s in Stock) if (s.ItemId == itemId) return s.Quantity;
@@ -62,6 +80,7 @@ namespace Realmkeeper.Domain.World
             c.Stock = new List<ShopStockData>(Stock.Count);
             foreach (var s in Stock) c.Stock.Add(s.Clone());
             c.Goods = Goods.ConvertAll(x => x.Clone());
+            c.Supply = (Supply ?? new List<SupplyRecordData>()).ConvertAll(x => x.Clone());
             return c;
         }
     }

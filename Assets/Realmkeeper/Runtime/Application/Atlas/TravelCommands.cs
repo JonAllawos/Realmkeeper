@@ -236,6 +236,7 @@ namespace Realmkeeper.Application.Atlas
                 var said = new List<string>();
                 var left = 60; // minutes of walking this hour
                 var checkedThreat = false;
+                string slowedBy = null;
                 while (left > 0 && j.SegmentIndex < j.Segments.Count)
                 {
                     var seg = edit.FindRoute(j.Segments[j.SegmentIndex]);
@@ -269,7 +270,11 @@ namespace Realmkeeper.Application.Atlas
                         }
                     }
 
-                    var perMinute = TravelRules.MetresPerHour(seg, night, walkingBack) / 60.0;
+                    // Phase 21: the weather where the party walks slows them.
+                    var here = edit.Environment?.Find(p.RegionId);
+                    var weatherFactor = TravelRules.WeatherFactor(seg, here?.At(edit.MinuteOfDay), here?.SnowCover ?? 0, out var weatherWhy);
+                    if (weatherWhy != null && slowedBy == null) slowedBy = weatherWhy;
+                    var perMinute = TravelRules.MetresPerHour(seg, night, walkingBack) * weatherFactor / 60.0;
                     var length = (int)Math.Round(TravelRules.Km(seg) * 1000);
                     var need = length - j.MetresIntoSegment;
                     var minutes = (int)Math.Ceiling(need / Math.Max(0.001, perMinute));
@@ -297,7 +302,7 @@ namespace Realmkeeper.Application.Atlas
                 j.HoursTravelled++;
                 if (j.SegmentIndex >= j.Segments.Count) return Arrive(context, edit, said);
                 var (now, at, m) = Position(edit);
-                said.Insert(0, $"An hour on the road{(night ? " in the dark (half pace)" : string.Empty)}: {m / 1000.0:0.0} km along the way from {Name(edit, at)} to {Name(edit, now?.Other(at) ?? at)}.");
+                said.Insert(0, $"An hour on the road{(night ? " in the dark (half pace)" : string.Empty)}{(slowedBy != null ? ", slowed by " + slowedBy : string.Empty)}: {m / 1000.0:0.0} km along the way from {Name(edit, at)} to {Name(edit, now?.Other(at) ?? at)}.");
                 return CommandResult.Ok(string.Join(" ", said));
             }
         }

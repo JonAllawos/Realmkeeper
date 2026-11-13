@@ -588,6 +588,10 @@ namespace Realmkeeper.Application
 
         private void Replace(WorldData world, RegionMap map, WorldChangeReason reason)
         {
+            // Phase 21: a new, loaded or newly connected world has today's weather at once, not from its first midnight
+            // (deterministic from the seed and the saved weather; a save that has it is unchanged).
+            if (world != null && world.CurrentSimulationDate.IsValidDate) WeatherModel.AdvanceTo(world, world.CurrentSimulationDate.ToDayNumber());
+            if (world != null) Simulation.Commerce.CommerceGenesis.EnsureKinds(world); // Phase 21 (ADR-0106): shop kinds; specialists in unused shop buildings
             _world = world;
             _maps.Clear();
             if (map != null && world?.Regions.Count > 0) { if (map.RegionId.IsEmpty) map.RegionId = world.Regions[0].RegionId; _maps[map.RegionId] = map; }

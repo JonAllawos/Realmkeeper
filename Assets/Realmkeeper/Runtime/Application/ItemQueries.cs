@@ -572,7 +572,11 @@ namespace Realmkeeper.Application
                 var rv = new RecipeView
                 {
                     Id = r.Id, Name = r.Name, Discipline = r.Discipline, Minutes = r.Minutes, Dc = r.Dc, Ability = r.CheckAbility,
-                    Station = ItemCommandHandlers.StationName(r.Station), HasStation = ItemCommandHandlers.HasStation(_world, p, r.Station),
+                    // Phase 21 (ADR-0107): the physical station and where it is kept here.
+                    Station = r.StationKind != StationKind.None ? StationWords.Name(r.StationKind) : ItemCommandHandlers.StationName(r.Station),
+                    HasStation = r.StationKind != StationKind.None
+                        ? (p.IsInSettlement && (Simulation.Commerce.CraftingStations.In(_world, p.SettlementId, r.StationKind).Count > 0 || (r.Station != null && ItemCommandHandlers.HasStation(_world, p, r.Station))))
+                        : ItemCommandHandlers.HasStation(_world, p, r.Station),
                     Output = (r.OutputQuantity > 1 ? I(r.OutputQuantity) + " × " : string.Empty) + ItemCatalog.Find(r.OutputItemId)?.Name,
                 };
                 foreach (var (item, qty) in r.Inputs) rv.Inputs.Add((ItemCatalog.Find(item)?.Name ?? item, qty, ItemCommandHandlers.CountInPack(p, item)));

@@ -178,6 +178,53 @@ namespace Realmkeeper.Infrastructure.Generation
             return added;
         }
 
+        /// <summary>
+        /// Phase 21 (ADR-0106): townspeople who keep the specialist shops. A town's named people are a few of its many; for
+        /// each specialist its size calls for and it has an unused shop building for (and no free resident to keep), one more
+        /// of its own population is named, as Phase 10 named its priests and guards: deterministic IDs and names from their
+        /// own stream, never more named people than the population, and once only. Their homes, days and natures are filled
+        /// by <c>NpcGenesis.EnsurePeople</c>; <c>CommerceGenesis.EnsureKinds</c> then gives each a shop.
+        /// </summary>
+        public static List<NpcData> EnsureTradespeople(WorldData world, IRandomSourceFactory random)
+        {
+            var added = new List<NpcData>();
+            var ids = Stream(world, "npcs-v23-trades", random);
+            var names = new PersonNameGenerator(Stream(world, "npc-names-v23-trades", random));
+            var first = true;
+            foreach (var s in world.Settlements)
+            {
+                if (s.SettlementType < SettlementType.Village) continue;
+                var wanted = Simulation.Commerce.CommerceGenesis.SpecialistsWanted(world, s);
+                if (wanted == 0) continue;
+                var named = 0;
+                var free = 0;
+                foreach (var n in world.Npcs)
+                {
+                    if (n.HomeSettlementId != s.SettlementId || n.IsDeceased) continue;
+                    named++;
+                    if ((n.Role == NpcRole.Resident || n.Role == NpcRole.Labourer || n.Role == NpcRole.Farmer) && !n.ResidenceId.IsEmpty &&
+                        !world.Shops.Exists(x => x.ShopkeeperNpcId == n.NpcId) && world.Party?.Find(n.NpcId) == null)
+                        free++;
+                }
+
+                for (var i = free; i < wanted; i++)
+                {
+                    var id = new NpcId(DeterministicGuid.Next(ids));
+                    if (first && world.FindNpc(id) != null) return added; // already added once: never twice
+                    first = false;
+                    var name = names.NextFullName(NpcRole.Resident);
+                    for (var tries = 0; tries < 20 && NameTaken(world, name); tries++) name = names.NextFullName(NpcRole.Resident);
+                    if (named + 1 > s.Population) break; // named people are a subset of the population, never more
+                    var npc = new NpcData { NpcId = id, Name = name, HomeSettlementId = s.SettlementId, FactionId = s.FactionId, Role = NpcRole.Resident, MetPlayerOn = default(WorldDate) };
+                    world.Npcs.Add(npc);
+                    named++;
+                    added.Add(npc);
+                }
+            }
+
+            return added;
+        }
+
         private static bool NameTaken(WorldData world, string name)
         {
             foreach (var n in world.Npcs) if (string.Equals(n.Name, name, StringComparison.Ordinal)) return true;

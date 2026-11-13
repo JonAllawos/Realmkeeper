@@ -186,7 +186,70 @@ namespace Realmkeeper.Exploration.Presentation
             Lights(v, root.transform, palette);
             Dress(v, root.transform, materials, palette);
             Dress14(v, root.transform, materials, palette, catalog);
+            if (v.Category == PlaceCategory.Interior) Furnish(v, root.transform, catalog); // Phase 21 (ADR-0108)
             return root;
+        }
+
+        /// <summary>
+        /// Phase 21 (ADR-0108): a building's rooms furnished by their kind (beds, tables and chairs, workbenches, barrels),
+        /// from the deterministic plan, with the kit's models; a warm light in each furnished room. Scenery only: it is
+        /// rebuilt the same each visit from the place's own ID and never saved.
+        /// </summary>
+        public static int Furnish(PlaceSceneView v, Transform root, ArtCatalog catalog)
+        {
+            if (catalog == null) return 0;
+            var rooms = new List<FurnishRoom>();
+            var floorOf = new Dictionary<string, int>(System.StringComparer.Ordinal);
+            foreach (var r in v.Rooms)
+            {
+                floorOf[r.Id] = r.Floor;
+                if (!r.Secret) rooms.Add(new FurnishRoom(r.Id, r.Floor, r.Rect, r.Kind));
+            }
+
+            var doors = new List<(int, CellRect)>();
+            foreach (var p in v.Passages)
+            {
+                if (p.A != null && floorOf.TryGetValue(p.A, out var fa)) doors.Add((fa, p.Rect));
+                if (p.B != null && floorOf.TryGetValue(p.B, out var fb))
+                {
+                    doors.Add((fb, p.Rect));
+                    if (p.Kind == ConnectionKind.Stairs || p.Kind == ConnectionKind.Ladder) doors.Add((fb, new CellRect(p.ToX, p.ToZ, 1, 1)));
+                }
+            }
+
+            var features = new List<(int, int, int)>();
+            foreach (var f in v.Features) features.Add((f.Room != null && floorOf.TryGetValue(f.Room, out var ff) ? ff : 0, f.X, f.Z));
+            var blocked = InteriorFurnishing.Blocked(doors, features);
+            var plan = InteriorFurnishing.Plan(rooms, blocked, Realmkeeper.Domain.Randomness.SeedMixer.HashString(v.PlaceId ?? v.Name ?? "place"));
+
+            var parent = new GameObject("Furnishings").transform;
+            parent.SetParent(root, false);
+            var lit = new HashSet<string>(System.StringComparer.Ordinal);
+            var placed = 0;
+            foreach (var piece in plan)
+            {
+                var at = CellCentre(v, piece.Floor, piece.X, piece.Z);
+                // Against a wall: back from the cell's centre toward the wall it faces away from.
+                if (piece.AgainstWall) at -= Quaternion.Euler(0f, piece.Yaw, 0f) * Vector3.forward * (Cell / 2f - 0.42f);
+                if (piece.Kind == "lantern") at.y += 1.8f;
+                if (KitProps.Place(parent, catalog, piece.Prop, at, piece.Yaw, piece.Size, piece.Solid) == null) continue;
+                placed++;
+                if (lit.Add(piece.Room) && lit.Count <= 10)
+                {
+                    var room = v.Room(piece.Room);
+                    var light = new GameObject("Room light").AddComponent<Light>();
+                    light.transform.SetParent(parent, false);
+                    var r = room.Rect;
+                    light.transform.localPosition = new Vector3((r.X + r.W / 2f) * Cell, Elevation(v, room.Floor) + Mathf.Min(room.Ceiling, 3.2f) - 0.5f, (r.Z + r.D / 2f) * Cell);
+                    light.type = LightType.Point;
+                    light.color = new Color(1f, 0.78f, 0.52f); // candle and lamp light
+                    light.range = Mathf.Max(r.W, r.D) * Cell + 1.5f;
+                    light.intensity = 1.1f;
+                    light.shadows = LightShadows.None;
+                }
+            }
+
+            return placed;
         }
 
         private static float Height(PlaceSceneView v, string owner)

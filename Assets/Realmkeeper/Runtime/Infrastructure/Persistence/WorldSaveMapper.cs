@@ -271,6 +271,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WriteParty(w, dto); // Phase 15
             WriteAtlas(w, dto); // Phase 16
             WriteCampaigns(w, dto); // Phase 17
+            WriteEnvironment(w, dto); // Phase 21
             return dto;
         }
 
@@ -632,6 +633,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadParty(dto, world); // Phase 15
             ReadAtlas(dto, world); // Phase 16
             ReadCampaigns(dto, world); // Phase 17
+            ReadEnvironment(dto, world); // Phase 21
             return world;
         }
 

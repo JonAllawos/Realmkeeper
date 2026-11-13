@@ -75,7 +75,7 @@ namespace Realmkeeper.Tests.EditMode.Character
 
             var serializer = new JsonWorldSerializer();
             var json = serializer.Serialize(W);
-            Assert.That((int)JObject.Parse(json)["schemaVersion"], Is.EqualTo(22));
+            Assert.That((int)JObject.Parse(json)["schemaVersion"], Is.EqualTo(23)); // Phase 21 (v23)
             var back = serializer.Deserialize(json);
             Assert.That(back.IsSuccess, Is.True, string.Join("; ", back.Errors));
             Assert.That(back.World.Player.Appearance.EyeColour, Is.EqualTo(4));

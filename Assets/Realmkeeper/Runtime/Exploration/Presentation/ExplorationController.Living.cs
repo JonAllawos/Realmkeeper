@@ -65,12 +65,19 @@ namespace Realmkeeper.Exploration.Presentation
             return _assets;
         }
 
+        /// <summary>Phase 21: the weather shown in this settlement now (null before any is known).</summary>
+        public WeatherSummary Weather { get; private set; }
+
+        private string _weatherKey;
+
         private void SetupLiving(LocalEnvironmentLayout layout)
         {
             _planned.Clear();
             _inside.Clear();
             _lastAbsolute = -1;
+            _weatherKey = null;
             if (Catalog != null && _atmosphere != null) _atmosphere.PrepareNight(EnvironmentRoot.transform, layout, Catalog);
+            if (_atmosphere?.Weather != null && CameraRig != null) _atmosphere.Weather.Follow = CameraRig.Camera; // Phase 21
 
             // Shop interiors in the buildings the world says are shops.
             if (Catalog != null)
@@ -82,6 +89,11 @@ namespace Realmkeeper.Exploration.Presentation
                     if (b == null || b.Fit == ShopFit.None) continue;
                     var view = ShopInteriorView.Create(interiors, b, layout, shop.ShopId, Catalog, Assets());
                     view.TradeRequested += OpenTrade;
+                    foreach (var station in view.Stations) // Phase 21: work at the shop's station
+                    {
+                        station.WorkRequested += OpenStation;
+                        _detector.Register(station);
+                    }
                     _shops[b.Key] = view;
                     _detector.Register(view);
                 }
@@ -232,6 +244,16 @@ namespace Realmkeeper.Exploration.Presentation
             if (!IsExploring || _session == null || !_session.HasWorld) return;
             var time = _session.GetWorldTime();
             if (time == null) return;
+            // Phase 21: the simulated weather and the season's daylight, re-applied only when the weather's period changes.
+            Weather = _session.GetWeather();
+            var weatherKey = Weather == null ? string.Empty : $"{Weather.RegionId}:{time.Date}:{Weather.Until}:{Weather.Kind}:{Weather.GroundWetness}:{Weather.SnowCover}";
+            if (_atmosphere != null && _atmosphere.Sun != null && weatherKey != _weatherKey)
+            {
+                _weatherKey = weatherKey;
+                if (snap) _atmosphere.Weather?.Clear(); // after a jump in time the old rain or snow is not still falling
+                _atmosphere.SetWeather(Weather);
+            }
+
             if (_atmosphere != null && _atmosphere.Sun != null) _atmosphere.SetTime(time.MinuteOfDay);
             RefreshPresence(time, snap);
             RefreshShops();
@@ -370,7 +392,11 @@ namespace Realmkeeper.Exploration.Presentation
             _createButton?.EnableInClassList("xk-hidden", character?.NeedsCreation != true);
             _levelUpButton?.EnableInClassList("xk-hidden", character?.CanAdvance != true);
             if (_clock == null) return;
-            _clock.text = time.Clock + " · " + time.DayPart;
+            _clock.text = time.Clock + " · " + time.DayPart + (Weather != null ? " · " + Weather.Line : string.Empty);
+            // Phase 21: the outlook and what the weather changes, on hover.
+            _clock.tooltip = Weather == null ? null
+                : $"{Weather.RegionName}: {Weather.Name.ToLowerInvariant()}, {Weather.TemperatureC} °C, wind {Weather.WindKph} km/h. Sunrise {Weather.Sunrise / 60:00}:{Weather.Sunrise % 60:00}, sunset {Weather.Sunset / 60:00}:{Weather.Sunset % 60:00}.\n"
+                  + string.Join("\n", Weather.Effects) + "\nToday: " + string.Join(" · ", Weather.Outlook) + "\nClimate: " + Weather.Climate;
             var playback = _runtime?.Playback;
             if (_pauseButton != null) _pauseButton.text = playback != null && playback.IsPlaying ? "Pause (P)" : "Play (P)";
             if (_speedButton != null)
@@ -464,7 +490,17 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (HubWindow == null) return;
             if (HubWindow.IsOpen) { CloseWindows(); GameSounds.Play("book-close"); }
-            else { ShowHub(null, false); GameSounds.Play("book-open"); }
+            else { HubWindow.AtStation(default, null); ShowHub(null, false); GameSounds.Play("book-open"); }
+        }
+
+        /// <summary>Phase 21 (ADR-0107): crafting opened at a shop's work station; work started there names that shop.</summary>
+        public void OpenStation(WorkStationView station)
+        {
+            if (HubWindow == null || station == null) return;
+            HubWindow.AtStation(station.ShopId, $"At the {Realmkeeper.Domain.World.StationWords.Name(station.Station)} in {station.ShopName}: work here while the shop is open.");
+            ShowHub(null, false);
+            HubWindow.Select("Crafting & work");
+            GameSounds.Play("book-open");
         }
 
         private void ShowHub(string message, bool failed)

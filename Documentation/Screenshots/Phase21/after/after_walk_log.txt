@@ -1,0 +1,54 @@
+Town: Town, half extent 200 m, 71 buildings, 157 props, 12 residents shown, 6 shops.
+  Barn: 3
+  Civic: 1
+  Cottage: 6
+  Farmhouse: 3
+  Gatehouse: 2
+  Granary: 1
+  GuardPost: 1
+  Home: 21
+  Keep: 1
+  LargeHome: 6
+  MarketHall: 1
+  Mill: 1
+  Religious: 1
+  Shed: 10
+  Shop: 5
+  Smithy: 1
+  Stable: 1
+  Tavern: 1
+  Warehouse: 2
+  Workshop: 3
+after_01_town_overview_high: The whole town from above, morning.
+after_02_town_street_level: From the arrival point toward the centre, at eye height.
+after_03_shop_brookesoutfitters: Inside Brooke's Outfitters (General): 15 wares shown, 4 pieces of its trade's furniture.
+after_03_shop_brookesoutfitters_front: The same shop toward its door.
+after_04_shop_fairweatherssmithy: Inside Fairweather's Smithy (Smithy): 7 wares shown, 6 pieces of its trade's furniture.
+after_04_shop_fairweatherssmithy_front: The same shop toward its door.
+after_05_shop_stroudsleatherworks: Inside Stroud's Leatherworks (Leatherworks): 3 wares shown, 6 pieces of its trade's furniture.
+after_05_shop_stroudsleatherworks_front: The same shop toward its door.
+after_06_shop_redmaynesbakeryprovisions: Inside Redmayne's Bakery & Provisions (Provisions): 17 wares shown, 4 pieces of its trade's furniture.
+after_06_shop_redmaynesbakeryprovisions_front: The same shop toward its door.
+after_07_shop_fairweatherstailor: Inside Fairweather's Tailor (Tailor): 9 wares shown, 5 pieces of its trade's furniture.
+after_07_shop_fairweatherstailor_front: The same shop toward its door.
+after_08_shop_hartleysapothecary: Inside Hartley's Apothecary (Apothecary): 3 wares shown, 5 pieces of its trade's furniture.
+after_08_shop_hartleysapothecary_front: The same shop toward its door.
+after_09_tavern: Inside the tavern (Hall, fit None).
+after_10_tavern_outside: The tavern from the street.
+after_11_inside_Home: Inside an entered Home: (3.75, 0.00, 2.25).
+after_11_inside_Home_back: The same room looking back toward the door.
+after_12_inside_LargeHome: Inside an entered LargeHome: (5.25, 0.00, 2.25).
+after_12_inside_LargeHome_back: The same room looking back toward the door.
+after_13_inside_Cottage: Inside an entered Cottage: (3.75, 0.00, 2.25).
+after_13_inside_Cottage_back: The same room looking back toward the door.
+after_14_inside_Workshop: Inside an entered Workshop: (3.75, 0.00, 2.25).
+after_14_inside_Workshop_back: The same room looking back toward the door.
+after_15_inside_Religious: Inside an entered Religious: (3.75, 0.00, 2.25).
+after_15_inside_Religious_back: The same room looking back toward the door.
+after_16_inside_GuardPost: Inside an entered GuardPost: (3.75, 0.00, 2.25).
+after_16_inside_GuardPost_back: The same room looking back toward the door.
+after_17_inside_Warehouse: Inside an entered Warehouse: (5.25, 0.00, 2.25).
+after_17_inside_Warehouse_back: The same room looking back toward the door.
+after_18_street_dusk: The same street at dusk.
+after_19_street_night: The same street at night.
+after_20_smithy_night: The smithy at night.

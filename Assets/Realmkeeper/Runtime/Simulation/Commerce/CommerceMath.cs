@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Realmkeeper.Domain.Calendar;
 using Realmkeeper.Domain.Economy;
+using Realmkeeper.Domain.Identifiers;
 using Realmkeeper.Domain.World;
 using Realmkeeper.Simulation.Npcs;
 using Realmkeeper.Simulation.Systems;
@@ -29,6 +30,9 @@ namespace Realmkeeper.Simulation.Commerce
 
         /// <summary>Share of base value paid to the treasury for items with no modelled material (cloth; imported).</summary>
         public int ImportCostPercent { get; set; } = 40;
+
+        /// <summary>Phase 21: coin a keeper keeps back from restocking, to buy from customers (the till is never emptied on stock).</summary>
+        public int KeeperFloat { get; set; } = 10;
     }
 
     /// <summary>One factor of a price, for the UI's explanation ("Scarce stock +15%").</summary>
@@ -98,8 +102,56 @@ namespace Realmkeeper.Simulation.Commerce
 
         public static bool Sells(ShopData shop, ItemDefinition item)
         {
+            // Phase 21 (ADR-0106): a kind with its own list deals in exactly that; the Phase 5 kinds keep their categories.
+            var kind = ShopKinds.Find(shop.Kind);
+            if (kind != null && kind.Items.Length > 0) return kind.Deals(item);
             foreach (var c in item.SoldBy) if (shop.Categories.Contains(c)) return true;
             return false;
+        }
+
+        /// <summary>
+        /// Phase 21: the trade road goods come in by: a route from or to the settlement that is not suspended (the first by
+        /// ID, so the same state gives the same road), or null when it is cut off.
+        /// </summary>
+        public static TradeRouteData ImportRoute(WorldData world, SettlementId settlement)
+        {
+            TradeRouteData best = null;
+            foreach (var r in world.TradeRoutes)
+            {
+                if (r.Status == TradeRouteStatus.Suspended) continue;
+                if (r.OriginId != settlement && r.DestinationId != settlement) continue;
+                if (best == null || r.TradeRouteId.CompareTo(best.TradeRouteId) < 0) best = r;
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// Phase 21: why a shop has none of an item it deals in (null when it has some, or would have some tomorrow without
+        /// any obstacle). The same checks as <see cref="Restock"/>, in words.
+        /// </summary>
+        public static string Shortfall(WorldData world, ShopData shop, ItemDefinition item, CommerceRules rules = null)
+        {
+            rules = rules ?? new CommerceRules();
+            if (item == null || !Sells(shop, item) || shop.QuantityOf(item.Id) > 0) return null;
+            var keeper = world.FindNpc(shop.ShopkeeperNpcId);
+            var s = world.FindSettlement(shop.SettlementId);
+            if (keeper == null || keeper.IsDeceased) return "No one keeps the shop.";
+            if (s == null) return null;
+            if (s.Stability < rules.UnrestStability) return "Nothing is being made or brought in while " + s.Name + " is in unrest.";
+            if (item.Materials.Count == 0)
+            {
+                if (ImportRoute(world, s.SettlementId) == null) return "Not made here, and no trade road into " + s.Name + " is open to bring it in.";
+            }
+            else
+                foreach (var m in item.Materials)
+                {
+                    if (m.ResourceTypeId == ResourceTypes.Food && s.IsInFoodShortage) return "Food is short in " + s.Name + "; none is spared to make it.";
+                    if (s.ResourceInventory.Get(m.ResourceTypeId) < m.Quantity) return "The " + m.ResourceTypeId.Value + " in " + s.Name + "'s stores has run out.";
+                }
+
+            if (keeper.Condition.Wealth < MaterialCost(item, rules)) return keeper.Name + " cannot afford to make or buy in more.";
+            return "Sold out; " + keeper.Name + " makes or buys in up to " + rules.RestockPerItemPerDay + " a day.";
         }
 
         /// <summary>How many of an item the shop aims to hold, given the settlement's prosperity.</summary>
@@ -119,6 +171,9 @@ namespace Realmkeeper.Simulation.Commerce
             var prosperity = s?.Prosperity ?? 50;
             var scaled = baseTarget * (50 + prosperity) / 100; // 0.5× at 0 prosperity, 1.5× at 100
             if (s != null && s.SettlementType == SettlementType.Hamlet) scaled = scaled * 2 / 3;
+            // Phase 21 (ADR-0107): a workshop keeps of each input just what its smallest batch takes (its purse is its till).
+            var batch = ShopProduction.InputNeed(shop, item);
+            if (batch > 0) return batch; // a workshop keeps what one batch takes of its materials, no stockpile
             return Math.Max(1, scaled);
         }
 
@@ -229,14 +284,22 @@ namespace Realmkeeper.Simulation.Commerce
             var s = world.FindSettlement(shop.SettlementId);
             if (keeper == null || keeper.IsDeceased || s == null || s.Stability < rules.UnrestStability) return 0;
             var added = 0;
-            foreach (var item in ItemCatalog.Items)
+            var today = world.CurrentSimulationDate.IsValidDate ? world.CurrentSimulationDate.ToDayNumber() : 0;
+            // Phase 21 (ADR-0106): what has no modelled material is bought in, and only along an open trade road.
+            var road = ImportRoute(world, s.SettlementId);
+            var from = road == null ? null : world.FindSettlement(road.OriginId == s.SettlementId ? road.DestinationId : road.OriginId);
+            foreach (var item in RestockOrder(shop))
             {
                 var target = Target(world, shop, item);
                 if (target == 0) continue;
+                if (item.Materials.Count == 0 && road == null) continue;
+                // Phase 21 (ADR-0107): a workshop makes its own goods at its bench rather than buying them in.
+                if (item.Materials.Count == 0 && ShopProduction.MakesHere(shop, item)) continue;
+                var before = added;
                 for (var n = 0; n < rules.RestockPerItemPerDay && shop.QuantityOf(item.Id) < target; n++)
                 {
                     var cost = MaterialCost(item, rules);
-                    if (keeper.Condition.Wealth < cost) return added;
+                    if (keeper.Condition.Wealth - cost < rules.KeeperFloat) return added; // the purse is spent for today, but for its float (inputs came first)
                     var ok = true;
                     foreach (var m in item.Materials)
                     {
@@ -261,9 +324,37 @@ namespace Realmkeeper.Simulation.Commerce
                     AddStock(shop, item.Id, 1);
                     added++;
                 }
+
+                if (added > before)
+                {
+                    if (item.Materials.Count == 0)
+                        shop.RecordSupply(today, item.Id, added - before, SupplyOrigin.Imported, "brought in by the road from " + (from?.Name ?? "elsewhere"));
+                    else
+                    {
+                        var what = new List<string>();
+                        foreach (var m in item.Materials) what.Add(m.ResourceTypeId.Value);
+                        shop.RecordSupply(today, item.Id, added - before, SupplyOrigin.MadeLocally, "made from " + string.Join(" and ", what) + " in " + s.Name + "'s stores");
+                    }
+                }
             }
 
             return added;
+        }
+
+        /// <summary>
+        /// Phase 21 (ADR-0107): the order a shop restocks in: a workshop's inputs first (its bench needs them before its
+        /// shelves need bought-in wares), then the catalog's order, as before.
+        /// </summary>
+        public static IEnumerable<ItemDefinition> RestockOrder(ShopData shop)
+        {
+            var later = new List<ItemDefinition>();
+            foreach (var item in ItemCatalog.Items)
+            {
+                if (ShopProduction.InputNeed(shop, item) > 0) yield return item;
+                else later.Add(item);
+            }
+
+            foreach (var item in later) yield return item;
         }
 
         public static void AddStock(ShopData shop, string itemId, int quantity)

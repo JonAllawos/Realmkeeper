@@ -216,6 +216,7 @@ namespace Realmkeeper.Simulation.Systems
                 new ConsumptionSystem(rules),
                 new SettlementWellbeingSystem(rules),
                 new PopulationSystem(rules),
+                new Climate.WeatherSystem(), // Phase 21
                 new Npcs.NpcSystem(),
                 new Commerce.ShopSystem(),
                 new PoliticalSystem(politics),
@@ -233,7 +234,7 @@ namespace Realmkeeper.Simulation.Systems
 
         public static IReadOnlyList<string> AllIds => new[]
         {
-            LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, Atlas.GroupSystem.Id, ConsumptionSystem.Id,
+            Climate.WeatherSystem.Id, LabourSystem.Id, ProductionSystem.Id, TradeSystem.Id, Atlas.GroupSystem.Id, ConsumptionSystem.Id,
             SettlementWellbeingSystem.Id, PopulationSystem.Id, Npcs.NpcSystem.Id, Commerce.ShopSystem.Id, PoliticalSystem.Id, Atlas.FactionActivitySystem.Id, ChronicleSystem.Id, Fauna.FaunaSystem.Id, Items.GatheringSystem.Id, Atlas.WorldEventSystem.Id, Quests.QuestSystem.Id, Campaigns.CampaignSystem.Id, Party.PartySystem.Id,
         };
 

@@ -74,6 +74,10 @@ namespace Realmkeeper.Simulation.Npcs
             }
 
             var town = world.FindSettlement(npc.HomeSettlementId);
+            // Phase 21: today's weather where they live (other days' weather is not known yet, so it changes nothing there).
+            var weather = town != null && date == world.CurrentSimulationDate ? world.Environment?.Find(town.RegionId)?.At(m) : null;
+            var severe = weather != null && WeatherWords.IsSevere(weather.Kind);
+            var falling = weather != null && (WeatherWords.IsRain(weather.Kind) || WeatherWords.IsSnow(weather.Kind));
             if (npc.Role == NpcRole.Innkeeper)
             {
                 wake += 60;
@@ -115,10 +119,15 @@ namespace Realmkeeper.Simulation.Npcs
                 {
                     var lunch = 12 * 60 + NpcHash.Roll(NpcHash.Next(seed, 2), 30);
                     if (m >= lunch && m < lunch + 30 && npc.Role != NpcRole.Guard) return new NpcWhereabouts(npc.WorkplaceId, ActivityKind.Eating, "Midday meal at work.", lunch + 30);
+                    // Phase 21: open-air work stops in a storm or heavy snow (guards keep their posts); they wait it out at home
+                    // until the weather's period ends.
+                    if (severe && npc.Role != NpcRole.Guard && !home.IsEmpty && IsOpenAir(world, npc.WorkplaceId))
+                        return new NpcWhereabouts(home, ActivityKind.Sitting, $"Sheltering at home from the {WeatherWords.Name(weather.Kind).ToLowerInvariant()}.",
+                            Math.Min(workEnd, (m / RegionWeatherData.MinutesPerPeriod + 1) * RegionWeatherData.MinutesPerPeriod));
                     return new NpcWhereabouts(npc.WorkplaceId, WorkActivity(world, npc), "Working hours.", workEnd);
                 }
             }
-            else if (!workDay && !urgent && planned == scheduled && m < parts.EveningStarts && npc.Personality[NpcTrait.Curiosity] >= 65 &&
+            else if (!workDay && !urgent && !falling && planned == scheduled && m < parts.EveningStarts && npc.Personality[NpcTrait.Curiosity] >= 65 &&
                      NpcGenesis.FirstOf(world, npc.HomeSettlementId, LocationKind.Market) is LocationData market)
             {
                 // Phase 18: the curious spend a free day where the news is — the market.
@@ -133,7 +142,12 @@ namespace Realmkeeper.Simulation.Npcs
             }
             else if (planned == home && m < parts.EveningStarts)
             {
-                return new NpcWhereabouts(home, ActivityKind.Resting, "At home today.", parts.EveningStarts);
+                // Phase 21 (ADR-0108): a free afternoon's errand at one of the town's shops (one in two days, an hour, by
+                // seed), unless the weather keeps them in.
+                var errand = ErrandAt(world, npc, date, severe || falling);
+                if (errand.shop != null && m >= errand.start && m < errand.start + 60)
+                    return new NpcWhereabouts(errand.shop.LocationId, ActivityKind.Trading, "An errand at " + errand.shop.Name + ".", errand.start + 60);
+                return new NpcWhereabouts(home, ActivityKind.Resting, "At home today.", errand.shop != null && m < errand.start ? errand.start : parts.EveningStarts);
             }
 
             // Phase 18 (ADR-0094): the town's condition shows in the evening. In a hungry town the compassionate help hand out
@@ -150,7 +164,10 @@ namespace Realmkeeper.Simulation.Npcs
             // Evening: the sociable go to the tavern, others go home.
             var tavern = NpcGenesis.FirstOf(world, npc.HomeSettlementId, LocationKind.Tavern);
             var outgoing = town == null ? 55 : town.Prosperity >= 70 ? 45 : town.Prosperity <= 30 ? 70 : 55; // Phase 18: a prosperous town goes out more
+            if (severe) outgoing += 20; // Phase 21: only the most sociable go out in a storm
             var social = npc.Personality[NpcTrait.Sociability] >= outgoing || npc.Role == NpcRole.Innkeeper;
+            if (severe && !social && tavern != null && m < sleep - 60 && npc.Personality[NpcTrait.Sociability] >= outgoing - 20)
+                return new NpcWhereabouts(home, ActivityKind.Sitting, $"Staying in: {WeatherWords.Name(weather.Kind).ToLowerInvariant()} outside.", sleep);
             if (social && tavern != null && m < sleep - 60)
                 return new NpcWhereabouts(tavern.LocationId, npc.Role == NpcRole.Innkeeper ? ActivityKind.Working : ActivityKind.Socialising,
                     npc.Role == NpcRole.Innkeeper ? "Serving the evening trade." : "An evening at the tavern.", sleep - 60);
@@ -158,6 +175,34 @@ namespace Realmkeeper.Simulation.Npcs
         }
 
         public static NpcWhereabouts Now(WorldData world, NpcData npc) => At(world, npc, world.CurrentSimulationDate, world.MinuteOfDay);
+
+        /// <summary>
+        /// Phase 21 (ADR-0108): a person's errand on a free day: which shop of their town (not their own) and from when, or
+        /// none. Deterministic from the seed, the person and the day; only within the shop's hours.
+        /// </summary>
+        public static (ShopData shop, int start) ErrandAt(WorldData world, NpcData npc, WorldDate date, bool stayIn)
+        {
+            if (stayIn || npc.Role == NpcRole.Guard || !date.IsValidDate) return (null, 0);
+            var seed = NpcHash.Of(world.Seed, "errand", npc.NpcId.ToString(), date.ToDayNumber());
+            if (NpcHash.Roll(seed, 2) != 0) return (null, 0);
+            var shops = new System.Collections.Generic.List<ShopData>();
+            foreach (var s in world.Shops)
+                if (s.SettlementId == npc.HomeSettlementId && s.ShopkeeperNpcId != npc.NpcId) shops.Add(s);
+            if (shops.Count == 0) return (null, 0);
+            shops.Sort((a, b) => a.ShopId.CompareTo(b.ShopId));
+            var shop = shops[NpcHash.Roll(NpcHash.Next(seed, 1), shops.Count)];
+            var start = 13 * 60 + 30 * NpcHash.Roll(NpcHash.Next(seed, 2), 6); // 13:00–15:30
+            if (start < shop.OpensAt || start + 60 > shop.ClosesAt) return (null, 0);
+            return (shop, start);
+        }
+
+        /// <summary>Phase 21: places whose work is done in the open (the market and the square).</summary>
+        public static bool IsOpenAir(WorldData world, LocationId id)
+        {
+            foreach (var l in world.Locations)
+                if (l.LocationId == id) return l.Kind == LocationKind.Market || l.Kind == LocationKind.Square;
+            return false;
+        }
 
         public static readonly DayPartRules DefaultParts = new DayPartRules();
 

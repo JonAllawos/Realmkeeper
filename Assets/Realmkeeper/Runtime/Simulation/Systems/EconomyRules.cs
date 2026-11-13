@@ -99,6 +99,13 @@ namespace Realmkeeper.Simulation.Systems
         /// </summary>
         public Func<Domain.Calendar.WorldDate, ProductionSourceType, int> SeasonalModifierPercent { get; set; } = (date, source) => 100;
 
+        /// <summary>
+        /// Phase 21: the game's rules — these defaults with the seasons plugged into the hook above (farms yield at harvest,
+        /// little in winter; each source averages 100 % over a year). Plain <c>new EconomyRules()</c> keeps every season at
+        /// 100, so the economy's own arithmetic stays testable on its own.
+        /// </summary>
+        public static EconomyRules WithSeasons() => new EconomyRules { SeasonalModifierPercent = Climate.SeasonalProduction.Percent };
+
         // ----- Consumption ----------------------------------------------------------------
 
         public int PeoplePerTimberUnit { get; set; } = 80;

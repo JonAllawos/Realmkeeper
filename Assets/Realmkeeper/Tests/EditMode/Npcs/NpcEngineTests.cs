@@ -39,7 +39,7 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         public void FreshWorld_InitialisesEveryNamedPerson_FromPresentFactsOnly()
         {
             var w = Phase2Worlds.Generated(4242);
-            Assert.That(w.Npcs.Count, Is.EqualTo(15 + 4 + 5), "15 by role; Phase 13 adds the watch fort's garrison of five; Phase 10 adds the posts the places call for (captain, guard, priest, warden).");
+            Assert.That(w.Npcs.Count - Weather.Phase21Trades.Count(w), Is.EqualTo(15 + 4 + 5), /* Phase 21: and the specialists' keepers */ "15 by role; Phase 13 adds the watch fort's garrison of five; Phase 10 adds the posts the places call for (captain, guard, priest, warden).");
             Assert.That(WorldValidator.Validate(w).IsValid, Is.True, string.Join("; ", WorldValidator.Validate(w).Errors));
             var leaders = new HashSet<NpcId>(w.Factions.Where(f => !f.LeaderNpcId.IsEmpty).Select(f => f.LeaderNpcId));
             foreach (var n in w.Npcs)
@@ -74,6 +74,9 @@ namespace Realmkeeper.Tests.EditMode.Npcs
             {
                 var layout = LocalEnvironmentGenerator.Generate(w.Seed, s.SettlementId, s.RegionId, s.SettlementType, Array.Empty<ResidentInput>());
                 var sites = new HashSet<string>(layout.Buildings.Select(b => b.Key)) { SettlementSites.Plaza, SettlementSites.Gate };
+                // Phase 21: a specialist shop stands on a shop building of the settlement's own plan, which it marks as a site.
+                var plan = w.FindLayout(s.SettlementId);
+                if (plan != null) foreach (var b in plan.Buildings) if (b.IsSite) sites.Add(b.Key);
                 var mine = w.Locations.Where(l => l.SettlementId == s.SettlementId).ToList();
                 Assert.That(mine.Select(l => l.Kind), Has.Member(LocationKind.Tavern).And.Member(LocationKind.Market).And.Member(LocationKind.Square));
                 foreach (var l in mine) Assert.That(sites, Has.Member(l.LayoutKey), $"{s.Name}: {l.Name} is on a site the layout builds.");

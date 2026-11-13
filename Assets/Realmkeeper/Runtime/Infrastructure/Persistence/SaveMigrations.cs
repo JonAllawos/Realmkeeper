@@ -97,6 +97,25 @@ namespace Realmkeeper.Infrastructure.Persistence
     }
 
     /// <summary>
+    /// v22 → v23 (Phase 21, ADR-0105). The world gains an optional <c>environment</c> (absent: no weather simulated yet;
+    /// the session works today's weather out from the seed when the world is loaded). The weather system joins the day,
+    /// first, before labour, as in a new world.
+    /// </summary>
+    public sealed class MigrationV22ToV23 : ISaveMigration
+    {
+        public int SourceVersion => 22;
+
+        public void Migrate(JObject document)
+        {
+            if (!(document["world"] is JObject world)) return;
+            if (!(world["settings"] is JObject settings) || !(settings["enabledSimulationSystems"] is JArray systems)) return;
+            foreach (var t in systems)
+                if (t.Type == JTokenType.String && (string)t == Simulation.Climate.WeatherSystem.Id) return;
+            systems.Insert(0, Simulation.Climate.WeatherSystem.Id);
+        }
+    }
+
+    /// <summary>
     /// v21 → v22 (Phase 20A, ADR-0104). Structural, writes nothing: the player's appearance gains an optional
     /// <c>eyeColour</c> (absent reads as 0, the eye texture's own brown, which is what every earlier character had), and a
     /// combatant's turn gains an optional <c>lastHitBoonUsed</c> (absent reads as false: no giant-ancestry boon used yet).

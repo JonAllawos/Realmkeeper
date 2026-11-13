@@ -371,6 +371,39 @@ namespace Realmkeeper.Domain.World
 
         public static bool IsNight(int minuteOfDay) => minuteOfDay < DayStartsAt || minuteOfDay >= NightFallsAt;
 
+        /// <summary>
+        /// Phase 21: how the weather slows walking on a segment (1 = not at all), and why. Heavy rain and storms make the
+        /// going slow and muddy; snow slower, and lying snow slower still; a pass in snow is hardest. Fog slows a little.
+        /// </summary>
+        public static double WeatherFactor(RouteSegmentData r, WeatherPeriodData w, int snowCover, out string why)
+        {
+            why = null;
+            if (w == null) return 1.0;
+            var f = 1.0;
+            switch (w.Kind)
+            {
+                case WeatherKind.HeavyRain: f = 0.8; why = "heavy rain"; break;
+                case WeatherKind.Thunderstorm: f = 0.7; why = "a thunderstorm"; break;
+                case WeatherKind.LightSnow: f = 0.85; why = "falling snow"; break;
+                case WeatherKind.HeavySnow: f = 0.6; why = "heavy snow"; break;
+                case WeatherKind.Fog: f = 0.9; why = "fog"; break;
+            }
+
+            if (snowCover >= 40)
+            {
+                f *= 0.85;
+                why = why == null ? "lying snow" : why + " on lying snow";
+            }
+
+            if (r != null && r.Kind == RouteKind.Pass && (WeatherWords.IsSnow(w.Kind) || snowCover >= 40))
+            {
+                f *= 0.75;
+                why += " in the pass";
+            }
+
+            return f;
+        }
+
         public static string Clock(long absoluteMinute)
         {
             if (absoluteMinute < 0) return "-";

@@ -1,0 +1,15 @@
+Simulated weather here now: Light rain, 4 °C · Spring; Farms yield 85 % of their usual this season (growing).
+01_simulated_now: The weather the world simulated here now: Light rain, 4 °C · Spring rain True/True 572/s 543, snow False/False 0/s 0 at (160.36, 9.30, -94.15); sun 0.38, fog 0.0087.
+02_clear_noon: Clear, spring noon. rain True/True 0/s 0, snow False/False 0/s 0 at (174.36, 9.30, -89.35); sun 1.54, fog 0.0048.
+03_partly_cloudy: Partly cloudy. rain True/True 0/s 0, snow False/False 0/s 0 at (171.25, 9.30, -90.41); sun 1.22, fog 0.0051.
+04_overcast: Overcast: flat grey light, soft shadows. rain True/True 0/s 0, snow False/False 0/s 0 at (172.41, 9.30, -90.01); sun 0.52, fog 0.0058.
+05_light_rain: Light rain, wet ground. rain True/True 910/s 865, snow False/False 0/s 0 at (172.41, 9.30, -90.01); sun 0.44, fog 0.0099.
+06_heavy_rain: Heavy rain, haze, darker wet ground. rain True/True 2080/s 1976, snow False/False 0/s 0 at (166.58, 9.30, -92.01); sun 0.34, fog 0.0151.
+07_thunderstorm: Thunderstorm: dark, lamps on early. rain True/True 2340/s 2223, snow False/False 0/s 0 at (160.75, 9.30, -94.01); sun 0.34, fog 0.0163.
+08_fog_morning: Autumn morning fog. rain True/True 0/s 0, snow False/False 0/s 0 at (177.08, 9.30, -88.41); sun 0.00, fog 0.0236.
+09_light_snow: Light snow, a thin cover. rain True/True 0/s 0, snow True/True 315/s 1260 at (175.13, 9.30, -89.08); sun 0.44, fog 0.0099.
+10_heavy_snow: Heavy snow lying on ground and roofs. rain True/True 0/s 0, snow True/True 720/s 2880 at (168.52, 9.30, -91.35); sun 0.34, fog 0.0151.
+11_winter_dusk: Midwinter: the sun is down by half past four. rain True/True 0/s 0, snow True/True 0/s 0 at (176.30, 9.30, -88.68); sun 0.63, fog 0.0053.
+12_summer_evening: Midsummer: still light at half past seven. rain True/True 0/s 0, snow True/True 0/s 0 at (176.30, 9.30, -88.68); sun 1.54, fog 0.0048.
+13_clear_night: A clear night: stars and the moon. rain True/True 0/s 0, snow True/True 0/s 0 at (176.69, 9.30, -88.55); sun 0.00, fog 0.0062.
+14_rainy_night: A rainy night: no stars, lamps in the wet. rain True/True 1950/s 1852, snow True/True 0/s 0 at (168.52, 9.30, -91.35); sun 0.00, fog 0.0188.

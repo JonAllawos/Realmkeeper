@@ -60,7 +60,7 @@ namespace Realmkeeper.Tests.PlayMode
 
             var town = bootstrap.Session.GetSettlementsInView().First(s => s.SettlementType == SettlementType.Town);
             hud.SetPeopleFilter(settlement: town.SettlementId);
-            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(9)); // Phase 10: the town gains its captain, a guard and a priest (6 → 9)
+            Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(9 + Phase21Keepers.Count(bootstrap.Session, town.SettlementId))); // Phase 10: the town gains its captain, a guard and a priest (6 → 9); Phase 21: and the specialists' keepers
             hud.SetPeopleFilter(role: NpcRole.Elder);
             Assert.That(hud.PeopleList.Query<Button>().ToList().Count, Is.EqualTo(1));
             hud.SetPeopleFilter(settlement: default(SettlementId), clearRole: true);
@@ -94,7 +94,7 @@ namespace Realmkeeper.Tests.PlayMode
             bootstrap.Selection.Select(town.SettlementId);
             yield return null;
             var links = bootstrap.Hud.SettlementResidents.Query<Button>().ToList();
-            Assert.That(links.Count, Is.EqualTo(9)); // Phase 10: the town gains its captain, a guard and a priest (6 → 9)
+            Assert.That(links.Count, Is.EqualTo(9 + Phase21Keepers.Count(bootstrap.Session, town.SettlementId))); // Phase 10: the town gains its captain, a guard and a priest (6 → 9); Phase 21: and the specialists' keepers
             var first = links[0];
             using (var click = NavigationSubmitEvent.GetPooled()) { click.target = first; first.SendEvent(click); }
             yield return null;

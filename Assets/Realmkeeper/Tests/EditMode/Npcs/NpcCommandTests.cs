@@ -54,9 +54,9 @@ namespace Realmkeeper.Tests.EditMode.Npcs
         public void Queries_ListFilterAndInspectWithAllTenSections()
         {
             var all = _s.GetNpcs();
-            Assert.That(all.Count, Is.EqualTo(15 + 4 + 5), "15 by role, (Phase 13) the watch fort's garrison of five, and (Phase 10) the people the places call for: a captain, a guard and a priest in the town, a warden in the hamlet.");
+            Assert.That(all.Count - Weather.Phase21Trades.Count(_s.CurrentWorldSnapshotForTests()), Is.EqualTo(15 + 4 + 5), /* Phase 21: and the specialists' keepers */ "15 by role, (Phase 13) the watch fort's garrison of five, and (Phase 10) the people the places call for: a captain, a guard and a priest in the town, a warden in the hamlet.");
             var town = _s.GetSettlements().First(x => x.SettlementType == SettlementType.Town);
-            Assert.That(_s.GetNpcs(new NpcFilter { Settlement = town.SettlementId }).Count, Is.EqualTo(6 + 3));
+            Assert.That(_s.GetNpcs(new NpcFilter { Settlement = town.SettlementId }).Count - Weather.Phase21Trades.Count(_s.CurrentWorldSnapshotForTests(), town.SettlementId), Is.EqualTo(6 + 3));
             Assert.That(_s.GetNpcs(new NpcFilter { Role = NpcRole.Elder }).All(n => n.Role == NpcRole.Elder), Is.True);
             Assert.That(_s.GetNpcs(new NpcFilter { Tier = NpcTier.Notable }).All(n => n.Tier == NpcTier.Notable), Is.True);
             Assert.That(_s.GetNpcs(new NpcFilter { NameContains = all[0].Name.Substring(0, 3) }), Has.Some.Matches<NpcListItem>(n => n.NpcId == all[0].NpcId));

@@ -80,6 +80,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                     TotalSales = s.TotalSales,
                     TotalPurchases = s.TotalPurchases,
                     Goods = s.Goods.ConvertAll(StackDto),
+                    Kind = s.Kind == ShopKind.Unspecified ? null : s.Kind.ToString(), // Phase 21
+                    Supply = (s.Supply ?? new List<SupplyRecordData>()).ConvertAll(r => new SupplyRecordDto { Day = r.Day, ItemId = r.ItemId, Quantity = r.Quantity, Origin = r.Origin.ToString(), Detail = r.Detail }),
                 });
             }
 
@@ -163,6 +165,12 @@ namespace Realmkeeper.Infrastructure.Persistence
                 items.Sort(string.CompareOrdinal);
                 foreach (var item in items) shop.Stock.Add(new ShopStockData { ItemId = item, Quantity = sd.Stock[item] });
                 foreach (var g in sd.Goods ?? new List<ItemStackDto>()) shop.Goods.Add(Stack(g, "shop goods"));
+                if (!string.IsNullOrEmpty(sd.Kind)) shop.Kind = ParseEnum<ShopKind>(sd.Kind, "shop kind"); // Phase 21
+                foreach (var r in sd.Supply ?? new List<SupplyRecordDto>())
+                {
+                    if (r == null || string.IsNullOrEmpty(r.ItemId)) throw new SaveDataException("A shop supply record is empty.");
+                    shop.Supply.Add(new SupplyRecordData { Day = r.Day, ItemId = r.ItemId, Quantity = r.Quantity, Origin = ParseEnum<SupplyOrigin>(r.Origin, "supply origin"), Detail = r.Detail });
+                }
                 world.Shops.Add(shop);
             }
 

@@ -17,7 +17,7 @@ namespace Realmkeeper.Infrastructure.Composition
         public static WorldSession CreateSession(string saveDirectory, RegionGeneratorSettings generatorSettings = null, EconomyRules rules = null)
         {
             var randomFactory = new Xoshiro256RandomFactory();
-            rules = rules ?? new EconomyRules();
+            rules = rules ?? EconomyRules.WithSeasons(); // Phase 21: the game runs with the seasons
             rules.Validate();
             var scheduler = StandardSimulationSystems.CreateScheduler(randomFactory, rules);
             var generator = new RegionGenerator(randomFactory, generatorSettings, rules);
