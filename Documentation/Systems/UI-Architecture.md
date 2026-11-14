@@ -96,3 +96,13 @@ World (after any command, a day on the map, a fight)
 | Crafting | `PlayerHubWindow.Crafting.cs`: the recipe browser and inspector over the existing `WorkshopView` |
 | Codex | `PlayerHubWindow.Codex.cs` over `WorldSession.GetCodex` (ADR-0117) |
 | Measured (editor, batch mode; `Phase26PlayModeTests`) | Hub section renders 0.6–25 ms (inventory with 66 rows: 25 ms, 759 elements). First hub open 282 ms (it builds the 3D preview); later open–close cycles about 35 ms including two frames. Trade open 7 ms. Codex search 1.8 ms. Repeated open and close do not accumulate elements |
+
+## Phase 26.1 additions
+
+| Addition | What it is |
+|---|---|
+| `RkTyping` (`Realmkeeper.UI`) | Whether any interface document has a text field focused (all `UIDocument`s; the list is refreshed at most twice a second). The strategic camera reads no input while it is true, and `ExplorationController.Typing()` uses it |
+| Number keys | `ExplorationController.NumberPressed`: 1–9 from the top row or the keypad, 0 for 10. Street topics pick from the buttons as shown (`_shownTopics`); dialogue responses take 1–9 |
+| Local HUD map | `LocalHudMap` (UI Toolkit, inside the exploration HUD root) fed by `ExplorationController.LocalMap.cs` from existing records; geometry and labels in `Application/Interface/LocalMapQueries.cs` (ADR-0118, `Phase26.1-Local-HUD-Map.md`) |
+| Visibility by class | The map is shown or hidden with `xk-hidden`, never an inline `display`, so the stylesheet's "hidden behind windows" rule still wins (a defect found by the Phase 26.1 PlayMode test) |
+| Rebuilt HUD tree | When the exploration HUD's tree is rebuilt after the first entry, the map moves itself to the live tree (found in the Phase 26.1 captures) |

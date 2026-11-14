@@ -389,6 +389,8 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 
 ### Phase 27: Navigation, discovery and exploration HUD (workstream F)
 
+> **Partly delivered (Phase 26.1, 2026-11-14).** A compact heading-up local map in the exploration HUD is in (ADR-0118). It is drawn from existing records only: no hidden people, unfound landmarks or unseen outlaws. Still to come from this plan: a compass, discovery cues in the world, and marker selection.
+
 **Kind:** UX, Func.
 
 **Purpose:** let the player find their way with the HUD and the world itself, without constant atlas use and without a permanent GPS line.

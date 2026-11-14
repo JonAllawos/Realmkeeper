@@ -100,3 +100,17 @@
 - **Response icons in dialogue.** One icon per kind, always beside the unchanged words.
 - **Outcome banner in combat.** A word badge: good for victory, bad for defeat, info otherwise.
 - **The region map key and scale**, in the shared small and hint styles. Map labels no longer go below 12 px.
+
+## Phase 26.1 additions
+
+- **The local HUD map** (`.xk-localmap`, `-clip`, `-label`, `-north`, `-range`):
+  - a rounded-square instrument at the bottom right;
+  - ink frame and bronze line;
+  - the ground drawn as a plan;
+  - marks drawn as shapes (dot, ringed dot, square, diamond, bar, ring, triangles), each kind with its own colour from the existing palette;
+  - labels on ink chips at `--rk-fs-12`, at most five, never overlapping each other, the player, the range or the N;
+  - 184 / 158 / 136 px by width class;
+  - hidden behind windows;
+  - high contrast makes the frame and chips opaque;
+  - Reduce motion turns it without easing.
+- **Rule reaffirmed:** components hide with a class, never an inline `display`, so window rules in the stylesheet keep working.
