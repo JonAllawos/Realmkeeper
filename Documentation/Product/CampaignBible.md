@@ -443,7 +443,7 @@ Campaign writing and quests must not assume these deferred abilities are playabl
 **Phase 22 commits:** `746ff3c` (implementation) and `760f6f8` (adds the hash to the report)
 **Phase 21 asset closeout commit:** `30b5681`
 **Push status:** Pushed to `origin/feature/phase-0-1-foundation` on 2026-11-13 (up to `ce79054`, which also holds this document).
-**Phase 23 (added later):** implemented and committed locally. The ancient world exists only as a realm with one unnamed prototype region of geography and a dormant prototype gateway, which the campaign opens through `SetGatewayStateCommand`. No names, cultures, inhabitants or lore were invented (ADR-0111).
+**Phase 23 (added later):** implemented, and pushed to origin on 2026-11-13 at the owner's instruction (up to `3ab344f`). The ancient world exists only as a realm with one unnamed prototype region of geography and a dormant prototype gateway, which the campaign opens through `SetGatewayStateCommand`. No names, cultures, inhabitants or lore were invented (ADR-0111).
 
 ### Reported tests
 

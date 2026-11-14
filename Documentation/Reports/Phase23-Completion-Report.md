@@ -3,7 +3,7 @@
 **Phase:** Overland World Foundation, Expanded World Scale, Realm Architecture & Traversal.
 **Date:** 2026-11-13.
 **Branch:** `feature/phase-0-1-foundation`.
-**Commits:** `ea1422b` (the phase), `9746185`, `a818a74` (the follow-up round), `6023069`, `f39f97e` (the full Unity checkpoint) and `b8e9cf3`. All local, none pushed (the brief).
+**Commits:** `ea1422b` (the phase), `9746185`, `a818a74` (the follow-up round), `6023069`, `f39f97e` (the full Unity checkpoint) and `b8e9cf3`. Committed locally per the brief, then pushed to origin on 2026-11-13 at the owner's instruction (up to `3ab344f`).
 
 **Decisions:** ADR-0110 (scale and terrain), ADR-0111 (realms, gateways, location, save v25), ADR-0112 (transitions and streaming).
 **System doc:** `Systems/Overland.md`.
@@ -376,9 +376,9 @@ Captures are in `Documentation/Screenshots/Phase23/`, with notes in `p23_log.txt
 
 - **Branch:** `feature/phase-0-1-foundation`.
 - **Before:** `de66388`, the same as origin.
-- **Commits:** `ea1422b` (Phase 23), `9746185` (its hash recorded), `a818a74` (the follow-up round), `6023069` (its hash recorded), `f39f97e` (the full Unity checkpoint) and a last commit recording that hash. All local.
+- **Commits:** `ea1422b` (Phase 23), `9746185` (its hash recorded), `a818a74` (the follow-up round), `6023069` (its hash recorded), `f39f97e` (the full Unity checkpoint) and a last commit recording that hash. Pushed to origin on 2026-11-13 at the owner's instruction, after the report was complete.
 - **Working tree after the commit:** clean except for Unity's untracked `Assets/InitTestScene*` files, which are deliberately left out as in every phase.
-- **Nothing was pushed or uploaded.**
+- **Push:** the brief said not to push, so everything was committed locally first. On 2026-11-13, after reading the report, the owner asked for a push: `de66388..3ab344f` went to `origin/feature/phase-0-1-foundation`. Nothing else was published or uploaded.
 
 ## I. Recommendations for Phase 24
 
