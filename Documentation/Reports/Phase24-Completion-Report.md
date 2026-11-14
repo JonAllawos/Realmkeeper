@@ -4,7 +4,7 @@
 
 **Date:** 2026-11-13.
 
-**Baseline:** `f46634d` (Phase 23, pushed). Phase 24 is committed locally only. **Nothing was pushed.**
+**Baseline:** `f46634d` (Phase 23, pushed). Phase 24 was committed locally as `e0df4dd` per the brief, then pushed to origin on 2026-11-14 at the owner's instruction.
 
 ## 1. Executive summary
 
@@ -325,7 +325,7 @@ All are in `Documentation/Screenshots/Phase24/`, written by `Phase24PlayModeTest
 - **Left out on purpose:**
   - `ProjectSettings/GraphicsSettings.asset` and the untracked `Assets/InitTestScene*` files, which stay untracked and were not deleted;
   - `M_LampGlow.mat`, which batch runs re-save; it was restored and not committed.
-- **Push:** **nothing was pushed to GitHub.**
+- **Push:** nothing was pushed under the brief. On 2026-11-14 the owner asked for the push, and `e0df4dd` was pushed to origin.
 
 ## 19. Deferred work
 
