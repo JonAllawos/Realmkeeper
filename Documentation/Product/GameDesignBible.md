@@ -11,6 +11,8 @@ Two parts are maintained:
 
 The phase-by-phase plan from Phase 21 onward is in [`FutureRoadmap.md`](FutureRoadmap.md).
 
+The campaign, world, mythology and narrative direction (established canon, proposed development and open questions) are in [`CampaignBible.md`](CampaignBible.md).
+
 > **Relationship to `ProductFoundation.md`.** The binding product foundation describes "a persistent
 > fantasy world simulation and exploration platform". The Bible extends this into a full RPG
 > (combat, magic, companions, campaign). The two agree on persistence, determinism, local play and
