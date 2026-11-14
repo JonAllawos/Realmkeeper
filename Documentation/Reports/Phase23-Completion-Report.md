@@ -376,7 +376,7 @@ Captures are in `Documentation/Screenshots/Phase23/`, with notes in `p23_log.txt
 
 - **Branch:** `feature/phase-0-1-foundation`.
 - **Before:** `de66388`, the same as origin.
-- **Commits:** `ea1422b` (Phase 23), `9746185` (its hash recorded), `a818a74` (the follow-up round), and a last commit recording this hash. All local.
+- **Commits:** `ea1422b` (Phase 23), `9746185` (its hash recorded), `a818a74` (the follow-up round), `6023069` (its hash recorded), `f39f97e` (the full Unity checkpoint) and a last commit recording that hash. All local.
 - **Working tree after the commit:** clean except for Unity's untracked `Assets/InitTestScene*` files, which are deliberately left out as in every phase.
 - **Nothing was pushed or uploaded.**
 
