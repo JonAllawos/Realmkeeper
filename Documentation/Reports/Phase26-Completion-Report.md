@@ -355,7 +355,7 @@ Suggestions only; the next brief decides.
 
 ## 28. Fixes after the owner's first play (2026-11-14)
 
-The owner played a new world after the push and reported four defects. All four were reproduced or traced in code and fixed. They are committed locally after `3f8ded4`; **nothing was pushed.**
+The owner played a new world after the push and reported four defects. All four were reproduced or traced in code and fixed. They are committed locally in `ba3d333` (after `3f8ded4`); **nothing was pushed.**
 
 | # | Owner report | Cause | Fix |
 |---|---|---|---|
