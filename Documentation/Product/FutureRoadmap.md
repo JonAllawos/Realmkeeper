@@ -283,6 +283,8 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 
 ### Phase 25: Overworld geography generation (workstream D)
 
+> **Done differently (2026-11-14).** The Phase 25 brief replaced this plan with "Complete UI/UX Overhaul, Interface Architecture, Visual Identity & Third-Party Asset Integration" (the interface work this roadmap had planned later, under visual identity and the interface overhaul). See `../Reports/Phase25-Completion-Report.md`. Overworld geography generation is still to be scheduled.
+
 **Kind:** Content, Func.
 
 **Purpose:** fill the world with coherent geography that the simulation already implies.

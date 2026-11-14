@@ -441,8 +441,42 @@ namespace Realmkeeper.Exploration.Presentation
                 // Combat Overhaul: a compact chip in the top strip; the rest of the line is its tooltip (and the card shows it all).
                 row.text = $"{(c.IsActive ? "▶ " : string.Empty)}{c.Name}\n{hp}{(c.Conditions.Count > 0 ? " · " + c.Conditions.Count + " cond." : string.Empty)}";
                 row.tooltip = $"Initiative {c.Initiative} · {hp} · AC {c.ArmorClass}{state}{conditions}{magic}{cover}";
+                HealthLine(row, c.State == VitalState.Conscious && c.MaxHp > 0 ? (float)c.Hp / c.MaxHp : 0f); // Phase 25: health at a glance (the numbers stay in the text)
                 _order.Add(row);
             }
+        }
+
+        /// <summary>
+        /// Phase 25: a thin health line along the bottom of a turn-order card, painted (a child element would stop the
+        /// button measuring its text). Above half it is green, above a quarter ochre, below that red; the card's text
+        /// gives the numbers, so colour is never the only signal.
+        /// </summary>
+        private static void HealthLine(VisualElement row, float share)
+        {
+            share = UnityEngine.Mathf.Clamp01(share);
+            var tone = share > 0.5f ? Realmkeeper.UI.RkIcons.Tone("good") : share > 0.25f ? Realmkeeper.UI.RkIcons.Tone("warn") : Realmkeeper.UI.RkIcons.Tone("bad");
+            row.generateVisualContent += ctx =>
+            {
+                var w = ctx.visualElement.layout.width;
+                var h = ctx.visualElement.layout.height;
+                if (float.IsNaN(w) || w < 12f) return;
+                var p = ctx.painter2D;
+                Bar(p, 5f, h - 5f, w - 10f, 3f, new UnityEngine.Color(0f, 0f, 0f, 0.55f));
+                if (share > 0f) Bar(p, 5f, h - 5f, (w - 10f) * share, 3f, tone);
+            };
+            row.MarkDirtyRepaint();
+        }
+
+        private static void Bar(Painter2D p, float x, float y, float w, float h, UnityEngine.Color c)
+        {
+            p.fillColor = c;
+            p.BeginPath();
+            p.MoveTo(new UnityEngine.Vector2(x, y));
+            p.LineTo(new UnityEngine.Vector2(x + w, y));
+            p.LineTo(new UnityEngine.Vector2(x + w, y + h));
+            p.LineTo(new UnityEngine.Vector2(x, y + h));
+            p.ClosePath();
+            p.Fill();
         }
 
         private void FillGrid(EncounterSnapshot s)

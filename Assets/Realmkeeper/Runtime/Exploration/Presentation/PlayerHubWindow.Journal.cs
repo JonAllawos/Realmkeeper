@@ -23,6 +23,21 @@ namespace Realmkeeper.Exploration.Presentation
 
         public static readonly IReadOnlyList<string> JournalTabs = new[] { "Campaign", "Active", "Available", "Completed", "Failed", "Abandoned", "Rumours", "Discoveries", "Decisions", "Events", "Places", "Crimes", "Reputation" }; // Phase 14: Crimes; Phase 17: Campaign
 
+        /// <summary>Phase 25: the journal's headings and the pages under each (every page keeps its name).</summary>
+        public static readonly IReadOnlyList<(string Group, string[] Pages, string Icon)> JournalGroups = new[]
+        {
+            ("Quests", new[] { "Active", "Available", "Campaign", "Completed", "Failed", "Abandoned" }, "quest"),
+            ("Knowledge", new[] { "Discoveries", "Rumours", "Places" }, "discovery"),
+            ("Deeds", new[] { "Decisions", "Events", "Crimes" }, "decision"),
+            ("Standing", new[] { "Reputation" }, "reputation"),
+        };
+
+        public static string JournalGroupOf(string tab)
+        {
+            foreach (var (group, pages, _) in JournalGroups) if (Array.IndexOf(pages, tab) >= 0) return group;
+            return "Quests";
+        }
+
         private string _journalTab = "Active";
         private string _selectedQuest;
 
@@ -46,9 +61,25 @@ namespace Realmkeeper.Exploration.Presentation
                 return;
             }
 
+            // Phase 25: the thirteen pages under four headings, so the journal reads as one book, not a row of tabs.
+            var groups = Row("rk-tabs");
+            groups.name = "xk-journal-groups";
+            var current = JournalGroupOf(_journalTab);
+            foreach (var (group, pages, icon) in JournalGroups)
+            {
+                var first = pages[0];
+                var g = new Button(() => { _journalTab = JournalGroupOf(_journalTab) == group ? _journalTab : first; Render(); }) { text = group, name = "xk-journal-group-" + group };
+                g.AddToClassList("rk-tab");
+                g.EnableInClassList("rk-tab--active", group == current);
+                Realmkeeper.UI.RkIcons.Lead(g, icon, "s");
+                groups.Add(g);
+            }
+
+            _content.Add(groups);
             var tabs = Row("xk-inv-groups");
             foreach (var t in JournalTabs)
             {
+                if (JournalGroupOf(t) != current) continue;
                 var tab = t;
                 var count = t == "Active" ? j.Active.Count : t == "Available" ? j.Available.Count : t == "Completed" ? j.Completed.Count : t == "Failed" ? j.Failed.Count
                     : t == "Abandoned" ? j.Abandoned.Count : t == "Rumours" ? j.Rumors.Count : t == "Discoveries" ? j.Discoveries.Count : t == "Decisions" ? j.Decisions.Count : -1;

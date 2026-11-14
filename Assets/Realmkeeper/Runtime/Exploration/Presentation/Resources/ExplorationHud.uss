@@ -4,7 +4,7 @@
     flex-grow: 1;
     flex-direction: column;
     padding: 12px;
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     color: var(--rk-text);
 }
 
@@ -34,7 +34,7 @@
 }
 
 .xk-settlement {
-    font-size: 19px;
+    font-size: var(--rk-fs-19);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
@@ -44,7 +44,7 @@
 }
 
 .xk-date {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text-3);
 }
 
@@ -125,7 +125,7 @@
 
 .xk-response-title {
     flex-grow: 1;
-    font-size: 16px;
+    font-size: var(--rk-fs-16);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
@@ -164,7 +164,7 @@
 /* Informational interactions only read the world; state-changing ones are recorded in it. */
 .xk-kind {
     padding: 1px 6px;
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     border-radius: 3px;
     background-color: var(--rk-info-bg);
     color: rgb(236, 240, 242);
@@ -184,7 +184,7 @@
 }
 
 .xk-help {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: rgba(232, 223, 204, 0.75);
     background-color: rgba(22, 20, 17, 0.6);
     padding: 2px 8px;
@@ -201,7 +201,7 @@
 .xk-topic {
     margin: 2px 4px 2px 0;
     padding: 2px 8px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
 }
 
 /* Phase 5: clock and time controls */
@@ -212,7 +212,7 @@
 }
 
 .xk-clock {
-    font-size: 17px;
+    font-size: var(--rk-fs-17);
     -unity-font-style: bold;
     color: var(--rk-heading);
     margin-right: 8px;
@@ -222,7 +222,7 @@
 .xk-time-button {
     height: 24px;
     padding: 0 8px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
 }
 
 /* Phase 5: game windows (trade, player hub) */
@@ -260,7 +260,7 @@
 }
 
 .xk-w-title {
-    font-size: 24px;
+    font-size: var(--rk-fs-24);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
@@ -270,7 +270,7 @@
 }
 
 .xk-w-purse {
-    font-size: 16px;
+    font-size: var(--rk-fs-16);
     -unity-font-style: bold;
     color: var(--rk-heading);
     margin: 0 14px;
@@ -299,7 +299,7 @@
 }
 
 .xk-w-heading {
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     -unity-font-style: bold;
     color: var(--rk-bronze-hi);
     margin: 6px 0 4px 0;
@@ -364,7 +364,7 @@
 .xk-w-act {
     height: 24px;
     padding: 0 8px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
 }
 
 .xk-w-detail {
@@ -382,7 +382,7 @@
 }
 
 .xk-w-ledger-line {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text-2);
 }
 
@@ -393,14 +393,14 @@
 
 .xk-w-note {
     white-space: normal;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text-2);
     margin: 6px 0;
 }
 
 .xk-w-desc {
     white-space: normal;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: var(--rk-text-3);
     margin: 0 6px 4px 6px;
 }
@@ -459,7 +459,7 @@
     margin: 2px 0;
     -unity-text-align: middle-left;
     padding-left: 12px;
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     border-width: 1px;
     border-radius: 4px;
     border-color: var(--rk-line-soft);
@@ -499,7 +499,7 @@
 }
 
 .xk-hub-preview-hint {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: rgba(232, 223, 204, 0.7);
     margin-bottom: 6px;
 }
@@ -526,7 +526,7 @@
     height: 30px;
     margin: 0 4px 4px 0;
     padding: 0 10px;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     border-width: 1px;
     border-radius: 4px;
     border-color: var(--rk-line-soft);
@@ -561,7 +561,7 @@
 .xk-cc-placeholder {
     margin-top: 8px;
     padding: 2px 8px;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     border-radius: 3px;
     background-color: rgba(150, 118, 52, 0.85);
     color: rgb(250, 240, 220);
@@ -619,21 +619,21 @@
 }
 
 .xk-cc-name {
-    font-size: 22px;
+    font-size: var(--rk-fs-22);
     -unity-font-style: bold;
     color: var(--rk-heading);
     white-space: normal;
 }
 
 .xk-cc-source {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: var(--rk-text-3);
     margin-bottom: 4px;
 }
 
 .xk-cc-warn {
     white-space: normal;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     padding: 4px 8px;
     margin: 4px 0;
     border-radius: 3px;
@@ -676,13 +676,13 @@
 }
 
 .xk-cc-card-value {
-    font-size: 20px;
+    font-size: var(--rk-fs-20);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
 
 .xk-cc-card-label {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: var(--rk-text-2);
 }
 
@@ -725,7 +725,7 @@
 }
 
 .xk-combat-turn {
-    font-size: 16px;
+    font-size: var(--rk-fs-16);
     -unity-font-style: bold;
     margin: 0 12px;
     color: var(--rk-text);
@@ -775,7 +775,7 @@
 .xk-combat-row {
     -unity-text-align: middle-left;
     white-space: normal;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     margin: 1px 0;
     padding: 3px 6px;
     background-color: var(--rk-card);
@@ -807,7 +807,7 @@
     height: 24px;
     margin: 0;
     padding: 0;
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     border-width: 1px;
@@ -851,7 +851,7 @@
 }
 
 .xk-combat-economy {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text);
     margin-bottom: 4px;
     white-space: normal;
@@ -864,19 +864,19 @@
 .xk-combat-act {
     -unity-text-align: middle-left;
     white-space: normal;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     margin: 0;
 }
 
 .xk-combat-why {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: rgb(200, 160, 100);
     white-space: normal;
     margin: 0 0 2px 8px;
 }
 
 .xk-combat-result {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     white-space: normal;
     color: var(--rk-text);
     background-color: var(--rk-card);
@@ -890,7 +890,7 @@
 }
 
 .xk-combat-inspect-line {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     white-space: normal;
     color: var(--rk-text);
     margin-bottom: 2px;
@@ -901,7 +901,7 @@
 }
 
 .xk-combat-log-line {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     white-space: normal;
     color: var(--rk-text);
     margin-bottom: 1px;
@@ -939,7 +939,7 @@
 .xk-combat-fold > .unity-foldout__toggle {
     color: var(--rk-bronze-hi);
     -unity-font-style: bold;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     margin: 2px 0;
 }
 
@@ -954,7 +954,7 @@
 }
 
 .xk-combat-feature-row > .xk-button {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     margin: 1px 2px 1px 0;
 }
 
@@ -969,7 +969,7 @@
 }
 
 .xk-sp-slot {
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     margin-right: 18px;
     color: var(--rk-heading);
 }
@@ -986,7 +986,7 @@
 .xk-sp-row {
     -unity-text-align: middle-left;
     white-space: normal;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     margin: 1px 0;
     padding: 3px 6px;
     background-color: var(--rk-card);
@@ -1057,13 +1057,13 @@
 }
 
 .xk-combat-prompt-title {
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     -unity-font-style: bold;
     color: rgb(250, 225, 160);
 }
 
 .xk-combat-prompt-body {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     white-space: normal;
     color: var(--rk-text);
 }
@@ -1096,15 +1096,15 @@
 .xk-dialogue-quest { color: var(--rk-heading); margin: 2px 0 6px 0; }
 .xk-dialogue-transcript { max-height: 160px; margin-bottom: 6px; }
 .xk-dialogue-said { color: rgb(170, 164, 150); white-space: normal; margin: 1px 0; }
-.xk-dialogue-check { color: var(--rk-info); font-size: 12px; margin: 1px 0 3px 0; }
-.xk-dialogue-line { color: rgb(240, 232, 212); font-size: 17px; white-space: normal; margin: 6px 0 10px 0; }
+.xk-dialogue-check { color: var(--rk-info); font-size: var(--rk-fs-12); margin: 1px 0 3px 0; }
+.xk-dialogue-line { color: rgb(240, 232, 212); font-size: var(--rk-fs-17); white-space: normal; margin: 6px 0 10px 0; }
 .xk-dialogue-responses { margin-bottom: 4px; }
 .xk-dialogue-response { -unity-text-align: middle-left; white-space: normal; margin: 2px 0; padding: 5px 10px; }
 .xk-dialogue-response--quest { border-left-width: 3px; border-color: var(--rk-heading); }
 .xk-dialogue-response--social { color: rgb(170, 200, 240); }
 .xk-dialogue-response--decision { color: rgb(240, 210, 140); border-left-width: 3px; border-left-color: rgb(200, 160, 80); }
 .xk-dialogue-response:disabled { opacity: 0.55; }
-.xk-dialogue-why { font-size: 12px; color: rgb(190, 170, 150); -unity-font-style: italic; margin-bottom: 4px; white-space: normal; }
+.xk-dialogue-why { font-size: var(--rk-fs-12); color: rgb(190, 170, 150); -unity-font-style: italic; margin-bottom: 4px; white-space: normal; }
 .xk-journal-objective { white-space: normal; margin: 2px 0 2px 6px; }
 .xk-journal-objective--done { color: var(--rk-good); }
 .xk-journal-objective--locked { color: rgb(130, 126, 116); }
@@ -1117,28 +1117,28 @@
 .xk-combat-cell--cover { background-color: rgba(120, 110, 80, 0.55); border-bottom-width: 3px; border-bottom-color: rgb(170, 150, 100); }
 .xk-combat-cell--hidden { opacity: 0.45; }
 .xk-place { position: absolute; left: 18px; bottom: 120px; max-width: 460px; padding: 8px 12px; background-color: var(--rk-panel); border-radius: 4px; }
-.xk-place-name { color: var(--rk-text); font-size: 18px; -unity-font-style: bold; }
-.xk-place-where { color: rgb(214, 200, 168); font-size: 14px; }
-.xk-place-status { color: rgb(226, 170, 110); font-size: 13px; white-space: normal; }
-.xk-place-hint { color: var(--rk-text-2); font-size: 12px; }
+.xk-place-name { color: var(--rk-text); font-size: var(--rk-fs-18); -unity-font-style: bold; }
+.xk-place-where { color: rgb(214, 200, 168); font-size: var(--rk-fs-14); }
+.xk-place-status { color: rgb(226, 170, 110); font-size: var(--rk-fs-13); white-space: normal; }
+.xk-place-hint { color: var(--rk-text-2); font-size: var(--rk-fs-12); }
 .xk-place-map { position: absolute; right: 24px; top: 120px; width: 420px; padding: 10px; background-color: rgba(14, 12, 10, 0.9); border-radius: 6px; border-width: 1px; border-color: rgb(110, 92, 60); }
-.xk-place-map-title { color: var(--rk-text); font-size: 16px; -unity-font-style: bold; margin-bottom: 6px; }
-.xk-place-map-floor { color: rgb(200, 186, 150); font-size: 13px; margin-top: 4px; }
+.xk-place-map-title { color: var(--rk-text); font-size: var(--rk-fs-16); -unity-font-style: bold; margin-bottom: 6px; }
+.xk-place-map-floor { color: rgb(200, 186, 150); font-size: var(--rk-fs-13); margin-top: 4px; }
 .xk-place-map-canvas { position: relative; height: 260px; margin-top: 4px; background-color: rgba(30, 26, 20, 0.9); }
 .xk-place-map-room { position: absolute; background-color: rgba(150, 128, 92, 0.85); border-width: 1px; border-color: rgb(60, 48, 32); }
 .xk-place-map-room--here { background-color: rgba(214, 170, 92, 0.95); }
 .xk-place-map-room--secret { background-color: rgba(120, 96, 150, 0.85); }
 .xk-place-map-passage { position: absolute; background-color: rgba(110, 96, 70, 0.85); }
-.xk-place-map-legend { color: var(--rk-text-2); font-size: 11px; margin-top: 6px; white-space: normal; }
+.xk-place-map-legend { color: var(--rk-text-2); font-size: var(--rk-fs-11); margin-top: 6px; white-space: normal; }
 
 /* Phase 14 (ADR-0068 … ADR-0070): lasting conditions, followers, where you can rest. */
 .xk-conditions { position: absolute; left: 18px; top: 176px; max-width: 360px; padding: 6px 10px; background-color: rgba(30, 14, 12, 0.78); border-radius: 4px; border-left-width: 3px; border-left-color: rgb(196, 92, 60); }
-.xk-condition-name { color: rgb(246, 196, 150); font-size: 14px; -unity-font-style: bold; }
-.xk-condition-effect { color: var(--rk-text); font-size: 12px; white-space: normal; }
-.xk-condition-end { color: rgb(184, 172, 150); font-size: 11px; white-space: normal; -unity-font-style: italic; margin-bottom: 4px; }
-.xk-condition-button { font-size: 12px; margin: 2px 0 4px 0; padding: 2px 8px; background-color: rgb(92, 52, 38); color: rgb(246, 226, 196); border-width: 0; border-radius: 3px; align-self: flex-start; }
-.xk-followers { color: rgb(196, 214, 170); font-size: 12px; white-space: normal; margin-top: 4px; }
-.xk-rest { color: rgb(170, 186, 200); font-size: 12px; white-space: normal; margin-top: 2px; }
+.xk-condition-name { color: rgb(246, 196, 150); font-size: var(--rk-fs-14); -unity-font-style: bold; }
+.xk-condition-effect { color: var(--rk-text); font-size: var(--rk-fs-12); white-space: normal; }
+.xk-condition-end { color: rgb(184, 172, 150); font-size: var(--rk-fs-11); white-space: normal; -unity-font-style: italic; margin-bottom: 4px; }
+.xk-condition-button { font-size: var(--rk-fs-12); margin: 2px 0 4px 0; padding: 2px 8px; background-color: rgb(92, 52, 38); color: rgb(246, 226, 196); border-width: 0; border-radius: 3px; align-self: flex-start; }
+.xk-followers { color: rgb(196, 214, 170); font-size: var(--rk-fs-12); white-space: normal; margin-top: 4px; }
+.xk-rest { color: rgb(170, 186, 200); font-size: var(--rk-fs-12); white-space: normal; margin-top: 2px; }
 .xk-place-map-bridge { position: absolute; background-color: rgba(176, 140, 82, 0.95); }
 .xk-place-map-bridge--damaged { background-color: rgba(214, 160, 70, 0.95); border-width: 1px; border-color: rgb(196, 80, 50); }
 .xk-place-map-bridge--destroyed { background-color: rgba(60, 40, 30, 0.6); border-width: 1px; border-color: rgb(196, 60, 40); }
@@ -1174,11 +1174,11 @@
 }
 
 .xk-cbt-head .xk-w-title {
-    font-size: 15px;
+    font-size: var(--rk-fs-15);
 }
 
 .xk-cbt-head .xk-w-subtitle {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
 }
 
 .xk-cbt-order {
@@ -1194,7 +1194,7 @@
     min-width: 118px;
     margin: 0 4px 0 0;
     padding: 3px 6px;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     white-space: normal;
 }
 
@@ -1212,7 +1212,7 @@
 }
 
 .xk-cbt-card-name {
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
@@ -1235,12 +1235,12 @@
 }
 
 .xk-cbt-card-line {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     white-space: normal;
 }
 
 .xk-cbt-card .xk-combat-result {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     max-height: 64px;
     overflow: hidden;
     margin-top: 4px;
@@ -1251,7 +1251,7 @@
 }
 
 .xk-cbt-small {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     padding: 1px 8px;
     margin: 2px 0;
     align-self: flex-start;
@@ -1284,7 +1284,7 @@
     padding: 2px 10px;
     margin: 2px 3px;
     border-radius: 10px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     -unity-font-style: bold;
     color: rgb(20, 18, 14);
 }
@@ -1300,7 +1300,7 @@
 
 .xk-cbt-move {
     margin-left: 10px;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
@@ -1357,7 +1357,7 @@
 }
 
 .xk-cbt-log .xk-combat-log-line {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
 }
 
 .xk-cbt-grid-panel {
@@ -1376,7 +1376,7 @@
     max-width: 300px;
     padding: 4px 8px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     white-space: normal;
     background-color: var(--rk-window);
     border-width: 1px;
@@ -1422,15 +1422,15 @@
 .xk-party-row { flex-direction: column; align-items: stretch; margin: 2px 0; padding: 3px 6px; background-color: rgba(40, 52, 40, 0.55); border-width: 0; border-radius: 3px; }
 .xk-party-row:hover { background-color: rgba(70, 92, 66, 0.75); }
 .xk-party-row--reserve { opacity: 0.6; }
-.xk-party-name { color: rgb(232, 236, 214); font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-left; }
+.xk-party-name { color: rgb(232, 236, 214); font-size: var(--rk-fs-13); -unity-font-style: bold; -unity-text-align: middle-left; }
 .xk-party-hp { height: 5px; margin: 2px 0; background-color: rgba(0, 0, 0, 0.5); border-radius: 2px; }
 .xk-party-hp-fill { height: 5px; background-color: rgb(112, 178, 92); border-radius: 2px; }
 .xk-party-hp-fill--low { background-color: rgb(206, 84, 60); }
-.xk-party-info { color: rgb(196, 204, 182); font-size: 11px; -unity-text-align: middle-left; }
+.xk-party-info { color: rgb(196, 204, 182); font-size: var(--rk-fs-11); -unity-text-align: middle-left; }
 .xk-party-card { margin: 4px 0; padding: 6px 8px; background-color: rgba(255, 255, 255, 0.04); border-radius: 4px; border-left-width: 3px; border-left-color: rgba(118, 168, 104, 0.5); }
 .xk-party-card--selected { border-left-color: rgb(214, 186, 112); background-color: rgba(255, 240, 200, 0.07); }
 .xk-party-detail { margin-top: 10px; padding: 8px; background-color: rgba(0, 0, 0, 0.18); border-radius: 4px; }
-.xk-combat-log--reason { color: rgb(160, 204, 150); -unity-font-style: italic; font-size: 11px; }
+.xk-combat-log--reason { color: rgb(160, 204, 150); -unity-font-style: italic; font-size: var(--rk-fs-11); }
 
 /* ----- Phase 19: the shared visual language (tokens in RealmkeeperTokens.uss) ------------- */
 
@@ -1454,11 +1454,11 @@
 }
 
 .xk-w-title {
-    font-size: 26px;
+    font-size: var(--rk-fs-26);
 }
 
 .xk-settlement {
-    font-size: 23px;
+    font-size: var(--rk-fs-23);
 }
 
 .xk-w-heading {
@@ -1494,7 +1494,7 @@
 
 .xk-dialogue-line {
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Italic.ttf");
-    font-size: 21px;
+    font-size: var(--rk-fs-21);
 }
 
 /* Controls with an icon keep their full width; the panels grow to fit them. */
@@ -1527,7 +1527,7 @@
 
 .xk-cc-step {
     height: 34px;
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     border-radius: 17px;
     margin-right: 6px;
 }
@@ -1590,14 +1590,14 @@
     margin-top: 8px;
     padding: 6px 10px;
     white-space: normal;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     color: var(--rk-warn);
     background-color: var(--rk-warn-bg);
     border-radius: 3px;
 }
 
 .xk-cc-build-name {
-    font-size: 22px;
+    font-size: var(--rk-fs-22);
     color: var(--rk-heading);
     white-space: normal;
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
@@ -1606,7 +1606,7 @@
 .xk-cc-build-what {
     color: var(--rk-text-2);
     white-space: normal;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
 }
 
 .xk-cc-build-concept {
@@ -1619,7 +1619,7 @@
 .xk-cc-build-head {
     margin-top: 12px;
     margin-bottom: 3px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     letter-spacing: 1px;
     color: var(--rk-text-3);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Medium.ttf");
@@ -1633,31 +1633,31 @@
 .xk-cc-build-key {
     flex-grow: 1;
     color: var(--rk-text-2);
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
 }
 
 .xk-cc-build-value {
     color: var(--rk-text);
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     -unity-text-align: middle-right;
 }
 
 .xk-cc-build-list {
     white-space: normal;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     color: var(--rk-text-2);
 }
 
 .xk-cc-build-problem {
     white-space: normal;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     color: var(--rk-warn);
     margin-bottom: 2px;
 }
 
 .xk-cc-build-ok {
     color: var(--rk-good);
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
 }
 
 .xk-cc-abilities {
@@ -1678,19 +1678,19 @@
 }
 
 .xk-cc-ability-name {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     letter-spacing: 1px;
     color: var(--rk-text-3);
 }
 
 .xk-cc-ability-score {
-    font-size: 22px;
+    font-size: var(--rk-fs-22);
     color: var(--rk-text);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
 }
 
 .xk-cc-ability-mod {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-bronze-hi);
 }
 
@@ -1706,7 +1706,7 @@
     padding-bottom: 6px;
     white-space: normal;
     -unity-text-align: middle-left;
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     border-color: var(--rk-line);
     background-color: var(--rk-control);
 }
@@ -1721,7 +1721,7 @@
 }
 
 .xk-cc-detail .xk-cc-name {
-    font-size: 26px;
+    font-size: var(--rk-fs-26);
     color: var(--rk-heading);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
     -unity-font-style: normal;
@@ -1730,7 +1730,7 @@
 /* ----- Phase 20: the character sheet ---------------------------------------------------------------------------- */
 
 .xk-sheet-name {
-    font-size: 30px;
+    font-size: var(--rk-fs-30);
 }
 
 .xk-sheet-abilities {
@@ -1755,14 +1755,14 @@
 }
 
 .xk-sheet-ability-score {
-    font-size: 30px;
+    font-size: var(--rk-fs-30);
     color: var(--rk-text);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
 }
 
 .xk-sheet-ability-save {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text-2);
 }
 
@@ -1815,7 +1815,7 @@
 /* ----- Phase 22 (ADR-0109): level-up notice, pending indicator, XP progress ----- */
 
 .xk-w-subheading {
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     -unity-font-style: bold;
     color: var(--rk-bronze);
     margin: 4px 0 2px 0;
@@ -1874,4 +1874,88 @@
     border-width: 2px;
     color: var(--rk-heading);
     -unity-font-style: bold;
+}
+
+/* ----- Phase 25: the HUD's layout (left column, bottom action bar), windows over the HUD, narrow screens ---------- */
+
+.xk-left-col {
+    flex-direction: column;
+    align-items: flex-start;
+    flex-shrink: 1;
+    max-width: 620px;
+}
+
+.xk-left-col > .rk-vitals {
+    position: relative;
+    left: 0;
+    bottom: 0;
+    margin-top: 8px;
+}
+
+.xk-actionbar {
+    position: relative;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    max-width: 96%;
+}
+
+.rk-actionbar-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 8px;
+    background-color: var(--rk-panel);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: var(--rk-radius);
+}
+
+.rk-actionbar-row > Button {
+    flex-shrink: 0;
+    margin: 2px 3px;
+}
+
+/* A window covers the screen: the HUD's own panels step aside, so nothing shows through it. Toasts stay. */
+.xk-root--window .xk-left-col,
+.xk-root--window .xk-actions,
+.xk-root--window .xk-actionbar,
+.xk-root--window .xk-help,
+.xk-root--window .xk-prompt {
+    display: none;
+}
+
+/* Narrow and short screens: the standing actions wrap, the controls line goes (the settings list the controls). */
+.rk-w-compact .xk-actions {
+    height: auto;
+    flex-wrap: wrap;
+    max-width: 46%;
+    padding: 4px 8px;
+}
+
+.rk-w-compact .xk-left-col {
+    max-width: 50%;
+}
+
+.rk-w-narrow .xk-help,
+.rk-h-short .xk-help {
+    display: none;
+}
+
+.rk-w-narrow .xk-perspective {
+    display: none;
+}
+
+/* Phase 25: notices under the wrapped standing actions on compact screens, and at the bottom right over a window. */
+.rk-w-compact .rk-toasts {
+    top: 112px;
+}
+
+.xk-root--window .rk-toasts {
+    top: auto;
+    bottom: 18px;
+    right: 18px;
 }

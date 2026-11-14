@@ -103,6 +103,21 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// is regenerated: settlements, people, routes and every change the player made are kept as they were.
     /// </summary>
     /// <summary>
+    /// v26 → v27 (Phase 25, ADR-0116). The player gains an optional <c>knownCreatures</c> list for the bestiary. Nothing
+    /// is rewritten: an absent list is seeded on load from the fights the save still holds
+    /// (<see cref="Realmkeeper.Domain.World.CreatureKnowledge.SeedFromHistory"/>).
+    /// </summary>
+    public sealed class MigrationV26ToV27 : ISaveMigration
+    {
+        public int SourceVersion => 26;
+
+        public void Migrate(JObject document)
+        {
+            // Optional field, seeded on load: nothing to rewrite.
+        }
+    }
+
+    /// <summary>
     /// v25 → v26 (Phase 24, ADR-0113, ADR-0114). The world gains an optional <c>overland</c> (landmark states, overland
     /// encounters, the encounter clock) and the player an optional <c>waypoint</c>. Absent means none found, none met, no
     /// mark: exactly what a v25 world had. Landmarks are regenerated, never saved; nothing is rewritten.

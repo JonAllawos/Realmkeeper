@@ -148,6 +148,7 @@ namespace Realmkeeper.Exploration.Presentation
                 HubWindow.CompareSource = (id, slot) => _session?.CompareItem(id, slot);
                 HubWindow.WorkshopSource = () => _session?.GetWorkshop();
                 HubWindow.StorageSource = () => _session?.GetReachableContainers();
+                HubWindow.BestiarySource = () => _session?.GetBestiary(); // Phase 25
                 HubWindow.ItemActionRequested += act => ItemAction(act);
                 HubWindow.FinishWorkRequested += key => FinishWork(key);
                 Advancement = new CharacterAdvancementWindow(Hud.Root);
@@ -171,10 +172,13 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             RefreshLiving(snap: true);
+            ResetNotices(); // Phase 25: what is known on arrival is not news
+            RefreshVitals();
         }
 
         private void TeardownLiving()
         {
+            ClosePauseMenu(); // Phase 25
             var playback = _runtime?.Playback;
             if (playback != null && playback.LivingWorld)
             {
@@ -207,11 +211,19 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var panel = Hud.Root.Q<VisualElement>(className: "xk-location");
             if (panel == null) return;
-            var row = new VisualElement { name = "xk-clock-row" };
-            row.AddToClassList("xk-clock-row");
+            // Phase 25: the clock stays with the place's name; the actions move to the bottom action bar, which wraps
+            // instead of running off the screen on narrow displays.
+            Hud.Root.Q<VisualElement>("xk-clock-line")?.RemoveFromHierarchy();
+            Hud.Root.Q<VisualElement>("xk-clock-row")?.RemoveFromHierarchy();
+            var line = new VisualElement { name = "xk-clock-line" };
+            line.AddToClassList("xk-clock-row");
             _clock = new Label("--:--") { name = "xk-clock" };
             _clock.AddToClassList("xk-clock");
-            row.Add(_clock);
+            line.Add(_clock);
+            panel.Add(line);
+            var row = new VisualElement { name = "xk-clock-row" };
+            row.AddToClassList("rk-actionbar-row");
+            (Hud.ActionBar ?? panel).Add(row);
             _pauseButton = TimeButton(row, "Pause (P)", "xk-time-pause", TogglePause);
             _speedButton = TimeButton(row, "×1", "xk-time-speed", CycleSpeed);
             TimeButton(row, "Wait 1 h (T)", "xk-time-wait", () => WaitHour());
@@ -222,7 +234,6 @@ namespace Realmkeeper.Exploration.Presentation
             _levelUpButton = TimeButton(row, "Level up (L)", "xk-open-levelup", () => OpenAdvancement());
             _levelUpButton.AddToClassList("xk-button--primary");
             _countryButton = TimeButton(row, "Out to the country (O)", "xk-open-country", () => GoOutIntoCountry()); // Phase 23
-            panel.Add(row);
         }
 
         private static Button TimeButton(VisualElement row, string text, string name, Action act)

@@ -458,6 +458,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         /// <summary>Phase 24 (v26): the compass's mark (absent: none).</summary>
         public string Waypoint { get; set; }
 
+        /// <summary>Phase 25 (v27, ADR-0116): the creature kinds met in fights (absent: seeded from the fights the save holds).</summary>
+        public List<KnownCreatureDto> KnownCreatures { get; set; }
+
         // Schema v7 (Phase 5). Absent in older saves.
         public string Species { get; set; }
         public int Age { get; set; }
@@ -1290,5 +1293,17 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string Text { get; set; }
         public long At { get; set; }
         public string QuestInstanceId { get; set; }
+    }
+}
+
+namespace Realmkeeper.Infrastructure.Persistence
+{
+    /// <summary>Phase 25 (v27, ADR-0116): one creature kind the player has met in a fight.</summary>
+    public sealed class KnownCreatureDto
+    {
+        public string CreatureId { get; set; }
+        public long FirstMetAt { get; set; } = -1;
+        public int Met { get; set; }
+        public int Defeated { get; set; }
     }
 }

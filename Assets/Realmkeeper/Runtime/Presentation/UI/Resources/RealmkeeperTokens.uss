@@ -78,8 +78,88 @@
     --rk-fast: 0.12s;
     --rk-slow: 0.18s;
 
+    /*
+     * Phase 25: every font size in the screen sheets goes through these (one per size the screens used), so the
+     * Text size setting reaches every screen. The smallest text is 12 px at 1080p: the old 10 and 11 px sizes are
+     * raised to 12.
+     */
+    --rk-fs-10: 12px;
+    --rk-fs-11: 12px;
+    --rk-fs-12: 12px;
+    --rk-fs-13: 13px;
+    --rk-fs-14: 14px;
+    --rk-fs-15: 15px;
+    --rk-fs-16: 16px;
+    --rk-fs-17: 17px;
+    --rk-fs-18: 18px;
+    --rk-fs-19: 19px;
+    --rk-fs-20: 20px;
+    --rk-fs-21: 21px;
+    --rk-fs-22: 22px;
+    --rk-fs-23: 23px;
+    --rk-fs-24: 24px;
+    --rk-fs-26: 26px;
+    --rk-fs-28: 28px;
+    --rk-fs-30: 30px;
+
+    /* Phase 25: item quality (always shown with its word as well as its colour). */
+    --rk-quality-poor: rgb(150, 138, 118);
+    --rk-quality-common: rgb(236, 226, 204);
+    --rk-quality-good: rgb(140, 182, 112);
+    --rk-quality-fine: rgb(140, 170, 222);
+    --rk-quality-rare: rgb(170, 140, 214);
+
+    /* Phase 25: the keyboard focus ring and toast surfaces. */
+    --rk-focus: rgb(221, 176, 108);
+    --rk-toast: rgba(26, 21, 16, 0.96);
+
     /* Base type: Alegreya Sans for body and controls (OFL 1.1, owner-approved). */
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/AlegreyaSans/AlegreyaSans-Regular.ttf");
     font-size: 15px;
     color: var(--rk-text);
+}
+
+/*
+ * Phase 25: accessibility variants. RkAccess puts these classes on every document's root, so the overrides reach
+ * every screen through the tokens above (custom properties inherit).
+ */
+
+/* Text size: Large (115 %). */
+.rk-text-115 {
+    --rk-size-title: 32px; --rk-size-h1: 25px; --rk-size-h2: 21px; --rk-size-h3: 18px; --rk-size-body: 17px; --rk-size-small: 15px; --rk-size-micro: 14px;
+    --rk-fs-10: 14px; --rk-fs-11: 14px; --rk-fs-12: 14px; --rk-fs-13: 15px; --rk-fs-14: 16px; --rk-fs-15: 17px; --rk-fs-16: 18px; --rk-fs-17: 20px;
+    --rk-fs-18: 21px; --rk-fs-19: 22px; --rk-fs-20: 23px; --rk-fs-21: 24px; --rk-fs-22: 25px; --rk-fs-23: 26px; --rk-fs-24: 28px; --rk-fs-26: 30px;
+    --rk-fs-28: 32px; --rk-fs-30: 34px;
+    font-size: 17px;
+}
+
+/* Text size: Largest (130 %). */
+.rk-text-130 {
+    --rk-size-title: 36px; --rk-size-h1: 29px; --rk-size-h2: 23px; --rk-size-h3: 21px; --rk-size-body: 20px; --rk-size-small: 17px; --rk-size-micro: 16px;
+    --rk-fs-10: 16px; --rk-fs-11: 16px; --rk-fs-12: 16px; --rk-fs-13: 17px; --rk-fs-14: 18px; --rk-fs-15: 20px; --rk-fs-16: 21px; --rk-fs-17: 22px;
+    --rk-fs-18: 23px; --rk-fs-19: 25px; --rk-fs-20: 26px; --rk-fs-21: 27px; --rk-fs-22: 29px; --rk-fs-23: 30px; --rk-fs-24: 31px; --rk-fs-26: 34px;
+    --rk-fs-28: 36px; --rk-fs-30: 39px;
+    font-size: 20px;
+}
+
+/* High contrast: brighter secondary text, stronger lines, opaque surfaces. */
+.rk-contrast {
+    --rk-text: rgb(250, 244, 230);
+    --rk-text-2: rgb(232, 222, 200);
+    --rk-text-3: rgb(206, 194, 170);
+    --rk-line: rgb(150, 124, 92);
+    --rk-line-soft: rgb(120, 99, 74);
+    --rk-line-strong: rgb(200, 164, 112);
+    --rk-window: rgb(18, 15, 11);
+    --rk-panel: rgb(22, 18, 14);
+    --rk-card: rgb(34, 28, 22);
+    --rk-control: rgb(44, 36, 28);
+    --rk-scrim: rgba(8, 6, 4, 0.88);
+    --rk-toast: rgb(18, 15, 11);
+    color: rgb(250, 244, 230);
+}
+
+/* Reduced motion: no transitions anywhere. */
+.rk-reduced-motion * {
+    transition-duration: 0s;
 }

@@ -51,9 +51,10 @@ namespace Realmkeeper.Application
             ("\"Boar\", via Poly Pizza (poly.pizza/m/57fSWum6F1P); converted to FBX and rescaled", "Poly by Google", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
             ("\"Goat\", via Poly Pizza (poly.pizza/m/d7dImmjtF8E); converted to FBX and rescaled", "Poly by Google", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
             // Phase 19: the interface
-            ("Interface icons (142), available on game-icons.net; rendered white and tinted", "Icons made by Lorc, Delapouite, sbed, Skoll, Guard13007, Carl Olsen, Willdabeast, DarkZaitzev, Faithtoken, Lucas and Zeromancer", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
+            ("Interface icons (153), available on game-icons.net; rendered white and tinted", "Icons made by Lorc, Delapouite, sbed, Skoll, Guard13007, Carl Olsen, Willdabeast, DarkZaitzev, Faithtoken, Lucas and Zeromancer", "CC BY 3.0 (creativecommons.org/licenses/by/3.0)"),
             ("Fantasy UI Borders: window frames and dividers", "Kenney (kenney.nl)", "CC0 1.0 Universal"),
             ("Cartography Pack: map symbols, compass rose and parchment", "Kenney (kenney.nl)", "CC0 1.0 Universal"),
+            ("Interface Sounds: 10 of its sounds (clicks, tabs, confirmations, notices)", "Kenney (kenney.nl)", "CC0 1.0 Universal"), // Phase 25
             ("EB Garamond (headings and dialogue)", "The EB Garamond Project Authors (github.com/octaviopardo/EBGaramond12)", "SIL Open Font License 1.1 (openfontlicense.org)"),
             ("Alegreya Sans (text)", "The Alegreya Sans Project Authors (github.com/huertatipografica/Alegreya-Sans)", "SIL Open Font License 1.1 (openfontlicense.org)"),
         };

@@ -594,6 +594,7 @@ namespace Realmkeeper.Application
             if (world != null && world.CurrentSimulationDate.IsValidDate) WeatherModel.AdvanceTo(world, world.CurrentSimulationDate.ToDayNumber());
             if (world != null) Simulation.Commerce.CommerceGenesis.EnsureKinds(world); // Phase 21 (ADR-0106): shop kinds; specialists in unused shop buildings
             _world = world;
+            ReplaceCount++; // Phase 25: a new, loaded or reconnected world (notices start afresh)
             _maps.Clear();
             _realmMaps.Clear(); // Phase 23
             _terrains.Clear();

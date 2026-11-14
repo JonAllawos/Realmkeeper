@@ -116,6 +116,8 @@ namespace Realmkeeper.Presentation
             Root.style.backgroundColor = new Color(0.06f, 0.05f, 0.04f, 0.62f);
             doc.Add(Root);
             RkTooltips.Attach(doc);
+            RkRoot.Attach(doc); // Phase 25: text size, contrast, motion, width classes
+            RkUiSound.Attach(doc);
 
             // Left: the wordmark and the menu, on a darker band so the text reads over any scenery.
             var left = new VisualElement { name = "title-menu" };
@@ -127,6 +129,14 @@ namespace Realmkeeper.Presentation
             left.style.borderRightWidth = 1;
             left.style.borderRightColor = new Color(0.42f, 0.35f, 0.26f, 0.6f);
             Root.Add(left);
+            doc.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                var narrow = doc.resolvedStyle.width < RkRoot.CompactWidth;
+                left.style.width = narrow ? 340 : 420;
+                left.style.paddingLeft = narrow ? 36 : 64;
+                var wordmark = left.Q<Label>("title-wordmark");
+                if (wordmark != null) { wordmark.style.fontSize = narrow ? 34 : 44; wordmark.style.letterSpacing = narrow ? 3 : 6; }
+            }); // Phase 25: narrow screens keep room for the page
 
             var mark = new Label("REALMKEEPER") { name = "title-wordmark" };
             mark.AddToClassList("rk-title");
@@ -234,8 +244,13 @@ namespace Realmkeeper.Presentation
 
         private void OnExit()
         {
-            if (UnityEngine.Application.isEditor) { Say("Exit closes the built game; in the editor, stop Play mode instead."); return; }
-            UnityEngine.Application.Quit();
+            // Phase 25: leaving asks first, and in a game says what would be lost.
+            var body = _launch ? "Realmkeeper will close." : "Realmkeeper will close. Anything since your last save will be lost: save first (Resume, then Save) to keep it.";
+            RkModal.Confirm(_document.rootVisualElement, "Exit to desktop?", body, "Exit to desktop", () =>
+            {
+                if (UnityEngine.Application.isEditor) { Say("Exit closes the built game; in the editor, stop Play mode instead."); return; }
+                UnityEngine.Application.Quit();
+            }, true);
         }
 
         private void OpenSettings()

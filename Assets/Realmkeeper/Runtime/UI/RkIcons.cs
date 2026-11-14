@@ -171,6 +171,22 @@ namespace Realmkeeper.UI
             { "credits", "papers" },
             { "companion", "team-idea" },
             { "dm", "cog-lock" },
+            // Phase 25: the bestiary, notifications, the pause menu, comparison and sound.
+            { "bestiary", "paw-print" },
+            { "undead", "skull-crossed-bones" },
+            { "livestock", "cow" },
+            { "wildlife", "deer-track" },
+            { "humanoid", "person" },
+            { "dangerous", "fanged-skull" },
+            { "threat", "fangs-circle" },
+            { "boar", "boar-tusks" },
+            { "sheep", "sheep" },
+            { "notify", "ringing-bell" },
+            { "sound", "speaker" },
+            { "compare", "scales" },
+            { "menu", "hamburger-menu" },
+            { "codex", "open-book" },
+            { "goblin", "goblin-head" },
         };
 
         private static readonly Dictionary<string, Texture2D> Cache = new Dictionary<string, Texture2D>();

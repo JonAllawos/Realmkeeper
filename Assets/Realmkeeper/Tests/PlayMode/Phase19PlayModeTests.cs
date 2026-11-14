@@ -132,7 +132,8 @@ namespace Realmkeeper.Tests.PlayMode
             Click(settings.CloseButton);
             yield return null;
             Assert.That(settings.IsOpen, Is.False);
-            Assert.That(RkSettingsWindow.NotYet.Any(t => t.StartsWith("Audio", System.StringComparison.Ordinal)), Is.True, "What does not exist is stated, not faked.");
+            Assert.That(RkSettingsWindow.NotYet.Any(t => t.StartsWith("Game controllers", System.StringComparison.Ordinal)), Is.True, "What does not exist is stated, not faked."); // Phase 25: the stale "no sound yet" line was removed (sound exists since Phase 20A)
+            Assert.That(RkSettingsWindow.NotYet.Any(t => t.StartsWith("Audio", System.StringComparison.Ordinal)), Is.False, "Sound exists, so it is not listed as missing.");
         }
 
         [Test]

@@ -214,6 +214,7 @@ namespace Realmkeeper.Exploration.Presentation
                 row.AddToClassList("xk-sp-row");
                 row.EnableInClassList("xk-sp-row--selected", id == _inspected);
                 row.EnableInClassList("xk-sp-row--inactive", !s.Definition.Castable);
+                Realmkeeper.UI.RkIcons.Lead(row, TypeIcon(TypeOf(s.Definition)), "m", s.Prepared || s.Always || s.Level == 0 ? "accent" : null); // Phase 25: the kind of spell at a glance (also written in the filter)
                 box.Add(row);
                 shown++;
             }
@@ -221,6 +222,9 @@ namespace Realmkeeper.Exploration.Presentation
             if (shown == 0) box.Add(Text("No spells match.", "xk-w-empty"));
             _content.Add(box);
         }
+
+        /// <summary>Phase 25: an icon for each kind of spell.</summary>
+        public static string TypeIcon(string type) => type switch { "Damage" => "fire", "Healing" => "heal", "Control" => "concentration", "Support" => "ac", _ => "spell" };
 
         public static string TypeOf(SpellDefinition s)
         {

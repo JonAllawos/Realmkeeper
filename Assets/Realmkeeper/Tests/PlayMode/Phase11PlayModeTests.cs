@@ -70,6 +70,16 @@ namespace Realmkeeper.Tests.PlayMode
 
         public static VisualElement ItemRow(PlayerHubWindow hub, string itemId) => hub.Content.Q<VisualElement>("xk-hub-item-" + itemId);
 
+        /// <summary>
+        /// Phase 25: an action the inventory keeps in the item inspector (the row holds only Inspect and the main use): select
+        /// the item from its row, then press the action in the inspector.
+        /// </summary>
+        public static void InspectorAction(PlayerHubWindow hub, string itemId, string text)
+        {
+            ClickText(ItemRow(hub, itemId), "Inspect");
+            ClickText(hub.Content.Q<VisualElement>("xk-inv-details"), text);
+        }
+
         public static string Texts(VisualElement root) => string.Join(" | ", root.Query<Label>().ToList().Select(l => l.text));
     }
 
@@ -173,12 +183,12 @@ namespace Realmkeeper.Tests.PlayMode
             // 8. Rings on both hands; a dagger in the off hand gives an off-hand attack.
             ItemDriver.ClickText(ItemDriver.ItemRow(hub, "gold_ring"), "Equip");
             yield return null;
-            ItemDriver.ClickText(ItemDriver.ItemRow(hub, "gold_ring"), "Right hand");
+            ItemDriver.InspectorAction(hub, "gold_ring", "Right hand"); // Phase 25: in the inspector
             yield return null;
             var eq = session.GetInventory().Equipped;
             Assert.That(eq.ContainsKey(EquipmentSlot.RingLeft) && eq.ContainsKey(EquipmentSlot.RingRight), Is.True, "A ring on each hand.");
             Assert.That(ItemDriver.ItemRow(hub, "dagger_iron"), Is.Not.Null);
-            ItemDriver.ClickText(ItemDriver.ItemRow(hub, "dagger_iron"), "Off hand");
+            ItemDriver.InspectorAction(hub, "dagger_iron", "Off hand"); // Phase 25: in the inspector
             yield return null;
             Assert.That(session.GetInventory().Equipped[EquipmentSlot.OffHand].ItemId, Is.EqualTo("dagger_iron"));
             hub.Select("Equipment");
@@ -260,7 +270,7 @@ namespace Realmkeeper.Tests.PlayMode
             // 13. Store potions from the inventory, then take them back from Storage.
             var hub = OpenHub(c, "Inventory");
             yield return null;
-            ItemDriver.ClickText(ItemDriver.ItemRow(hub, "potion_healing"), "Store");
+            ItemDriver.InspectorAction(hub, "potion_healing", "Store"); // Phase 25: in the inspector
             yield return null;
             Assert.That(session.GetContainer(chest.Key).Rows.Single(r => r.ItemId == "potion_healing").Quantity, Is.EqualTo(3), hub.LastMessage);
             hub.Select("Storage");

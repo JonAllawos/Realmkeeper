@@ -102,6 +102,7 @@ namespace Realmkeeper.Presentation
             Realmkeeper.UI.RkSettings.ApplyStored();
             Title = TitleScreen.Create(this);
             Hud.MenuRequested += () => Title.Open(false);
+            Realmkeeper.UI.RkHooks.OpenMainMenu = () => Title.Open(false); // Phase 25: the exploration pause menu's "Main menu"
             CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
 
             // Follow every session the runtime starts, not just the first (restart, start from a save).
@@ -151,6 +152,7 @@ namespace Realmkeeper.Presentation
 
         private void OnDestroy()
         {
+            Realmkeeper.UI.RkHooks.OpenMainMenu = null; // Phase 25
             _binding?.Dispose();
             if (Runtime != null)
             {

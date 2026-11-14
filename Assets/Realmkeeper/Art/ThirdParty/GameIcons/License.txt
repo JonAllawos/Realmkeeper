@@ -11,8 +11,8 @@ Required credit (shown in the game: Player Hub > Info, and in CREDITS.md):
   Icons made by Lorc, Delapouite, sbed, Skoll, Guard13007, Carl Olsen, Willdabeast, DarkZaitzev,
   Faithtoken, Lucas and Zeromancer. Available on https://game-icons.net. Licensed under CC BY 3.0.
 
-Icons per author (142 icons):
-  Lorc 70, Delapouite 54, sbed 4, Skoll 4, Guard13007 2, Carl Olsen 2, Willdabeast 2,
+Icons per author (153 icons; Phase 25 added 11: Lorc 5, Delapouite 6, downloaded 2026-11-14):
+  Lorc 75, Delapouite 60, sbed 4, Skoll 4, Guard13007 2, Carl Olsen 2, Willdabeast 2,
   DarkZaitzev 1, Faithtoken 1, Lucas (lucasms) 1, Zeromancer 1.
 
 Files:

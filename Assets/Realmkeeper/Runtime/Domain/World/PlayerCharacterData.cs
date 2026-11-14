@@ -131,6 +131,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>Phase 12: faction standing, settlement reputation, notoriety, the reputation ledger, discoveries, rumours and decisions.</summary>
         public Realmkeeper.Domain.Quests.PlayerSocialData Social { get; set; } = new Realmkeeper.Domain.Quests.PlayerSocialData();
 
+        /// <summary>Phase 25 (ADR-0116): the creature kinds the player has met in fights, for the bestiary.</summary>
+        public List<KnownCreatureData> KnownCreatures { get; set; } = new List<KnownCreatureData>();
+
         public ItemStackData Equipped(EquipmentSlot slot) => Equipment.TryGetValue(slot, out var s) ? s : null;
 
         public PlayerCharacterData Clone()
@@ -164,6 +167,7 @@ namespace Realmkeeper.Domain.World
             };
             foreach (var s in Inventory) c.Inventory.Add(s.Clone());
             foreach (var pair in Equipment) c.Equipment[pair.Key] = pair.Value.Clone();
+            if (KnownCreatures != null) foreach (var k in KnownCreatures) c.KnownCreatures.Add(k.Clone()); // Phase 25
             return c;
         }
     }

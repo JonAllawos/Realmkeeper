@@ -117,5 +117,6 @@
 | [0113](ADR-0113-one-travel-state-road-and-country-waypoints.md) | One travel state for the road and the country; the map position; waypoints | Accepted (Phase 24) |
 | [0114](ADR-0114-landmarks-visible-travellers-overland-encounters.md) | Landmarks, visible travellers, and overland encounters | Accepted (Phase 24) |
 | [0115](ADR-0115-ground-weather-from-the-existing-weather.md) | Ground weather derived from the existing weather | Accepted (Phase 24) |
+| [0116](ADR-0116-bestiary-knowledge-and-derived-notices.md) | Bestiary knowledge as player state (save v27), and notices derived from the world | Accepted (Phase 25) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

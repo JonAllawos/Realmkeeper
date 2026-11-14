@@ -443,7 +443,7 @@ namespace Realmkeeper.Tests.EditMode.World
             ((JObject)doc["world"]["player"]).Remove("waypoint");
             File.WriteAllText(Path.Combine(_dir, "old" + JsonWorldStore.Extension), doc.ToString());
             Assert.That(_s.Execute(new LoadWorldCommand("old")).IsSuccess, Is.True);
-            Assert.That(W.SchemaVersion, Is.EqualTo(26));
+            Assert.That(W.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion)); // upgraded to the current schema (v27 since Phase 25)
             Assert.That(W.Overland.Landmarks, Is.Empty, "A v25 world has found nothing yet.");
             Assert.That(W.Overland.Encounters, Is.Empty);
             Assert.That(P.Waypoint, Is.Null);

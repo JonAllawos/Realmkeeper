@@ -493,6 +493,14 @@ namespace Realmkeeper.Exploration.Presentation
         private void Update()
         {
             if (!IsExploring || Player == null) return;
+            UpdatePhase25(); // Phase 25: notices, vitals, the HUD stepping aside for windows
+            if (PauseOpen) UpdatePauseKeys();
+            if (PauseOpen || HandlePauseKey()) // Phase 25: the pause menu holds the game while it is open
+            {
+                if (CameraRig != null) CameraRig.LookEnabled = false;
+                return;
+            }
+
             HandleCursor();
             if (CameraRig != null) CameraRig.LookEnabled = !_cursorFree || !ManageCursor;
 

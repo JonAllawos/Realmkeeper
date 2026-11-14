@@ -359,7 +359,7 @@ namespace Realmkeeper.Tests.EditMode.Campaigns
             Assert.That(result.IsSuccess, Is.True, string.Join("; ", result.Errors ?? new string[0]));
             var loaded = result.World;
             Assert.That(loaded.SchemaVersion, Is.EqualTo(WorldData.CurrentSchemaVersion));
-            Assert.That(WorldData.CurrentSchemaVersion, Is.EqualTo(26)); // Phase 24 (v26)
+            Assert.That(WorldData.CurrentSchemaVersion, Is.EqualTo(27)); // Phase 25 (v27)
             Assert.That(loaded.Campaigns, Is.Empty, "An old world is a sandbox until a campaign is begun.");
             Assert.That(loaded.WorldSettings.EnabledSimulationSystems, Does.Contain(CampaignSystem.Id), "The campaign pass runs in it from now on.");
             Assert.That(WorldValidator.Validate(loaded).IsValid, Is.True);

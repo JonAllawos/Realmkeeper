@@ -38,7 +38,7 @@ namespace Realmkeeper.UI
                 ("W A S D", "Walk"), ("Shift", "Sprint"), ("Space", "Jump"), ("Mouse", "Look"), ("V", "First or third person"),
                 ("E", "Interact with what you look at"), ("H", "Player hub"), ("K", "Party"), ("P", "Pause or resume time"),
                 ("T", "Wait one hour"), ("F5", "Save"), ("M", "Return to the world map"), ("N", "Map of the place"),
-                ("R", "Search the room"), ("1–9", "Choose a numbered option"), ("Esc", "Close a window, or free the cursor"),
+                ("R", "Search the room"), ("1–9", "Choose a numbered option"), ("Esc", "Close a window, or open the menu (Resume, Save, Settings, Main menu)"),
             }),
             ("Combat", new[]
             {
@@ -48,14 +48,20 @@ namespace Realmkeeper.UI
             }),
         };
 
-        /// <summary>Not available yet: stated, not faked.</summary>
+        /// <summary>Not available yet: stated, not faked (Phase 25: the stale sound and text-size entries were removed).</summary>
         public static readonly string[] NotYet =
         {
-            "Audio: the game has no sound yet, so there is no volume control.",
             "Key rebinding: the controls are fixed for now (listed above).",
-            "Colour-blind palettes: states always carry an icon or words as well as colour.",
-            "Separate text size: use Interface scale, which enlarges text and panels together.",
+            "Game controllers: the game is played with keyboard and mouse; controllers are not supported yet.",
+            "Colour-blind palettes: not needed for meaning, because states always carry an icon or words as well as colour.",
+            "Music volume: the game has no music yet.",
+            "Languages: the game is in English only.",
         };
+
+        public DropdownField TextSize { get; private set; }
+        public Toggle Contrast { get; private set; }
+        public Toggle ReducedMotion { get; private set; }
+        public Slider UiVolume { get; private set; }
 
         public RkSettingsWindow(VisualElement host, System.Action onClose = null)
         {
@@ -118,7 +124,10 @@ namespace Realmkeeper.UI
             scroll.Add(Section("Sound"));
             Volume = new Slider("Sound volume", 0f, 1f) { name = "settings-volume", value = RkSettings.SoundVolume, showInputField = false };
             Volume.RegisterValueChangedCallback(e => { RkSettings.SoundVolume = e.newValue; Say("Sound volume: " + Mathf.RoundToInt(e.newValue * 100f) + " %."); });
-            scroll.Add(Row(Volume, "Footsteps, doors, coins and pages. 0 is silent."));
+            scroll.Add(Row(Volume, "Every sound the game makes: footsteps, doors, coins, pages and the interface. 0 is silent."));
+            UiVolume = new Slider("Interface sounds", 0f, 1f) { name = "settings-ui-volume", value = RkSettings.UiSoundVolume, showInputField = false };
+            UiVolume.RegisterValueChangedCallback(e => { RkSettings.UiSoundVolume = e.newValue; RkUiSound.Play("toggle"); Say(e.newValue <= 0f ? "Interface sounds off." : "Interface sounds: " + Mathf.RoundToInt(e.newValue * 100f) + " % of the sound volume."); });
+            scroll.Add(Row(UiVolume, "Clicks, tabs, notifications and menus, under the sound volume. 0 turns them off; nothing is said by sound alone."));
 
             // Interface
             scroll.Add(Section("Interface"));
@@ -130,6 +139,19 @@ namespace Realmkeeper.UI
                 Say($"Interface scale: {UiScale.value} (in effect: {Mathf.RoundToInt(RkSettings.EffectiveUiScale * 100f)} %).");
             });
             scroll.Add(Row(UiScale, "Enlarges all text and panels together. Auto enlarges them on screens shorter than 1000 pixels."));
+
+            // Accessibility (Phase 25)
+            scroll.Add(Section("Accessibility"));
+            var sizes = RkSettings.TextSizes.Select(RkSettings.TextSizeLabel).ToList();
+            TextSize = new DropdownField("Text size", sizes, Mathf.Max(0, System.Array.IndexOf(RkSettings.TextSizes, RkSettings.TextSize))) { name = "settings-text-size" };
+            TextSize.RegisterValueChangedCallback(_ => { RkSettings.TextSize = RkSettings.TextSizes[TextSize.index]; Say("Text size: " + TextSize.value + "."); });
+            scroll.Add(Row(TextSize, "Enlarges text only; panels keep their size and wrap. Combine with Interface scale for larger panels too."));
+            Contrast = new Toggle("High contrast") { name = "settings-contrast", value = RkSettings.HighContrast };
+            Contrast.RegisterValueChangedCallback(e => { RkSettings.HighContrast = e.newValue; Say(e.newValue ? "High contrast on: brighter secondary text, stronger lines, solid panels." : "High contrast off."); });
+            scroll.Add(Row(Contrast, "Brighter secondary text, stronger borders and solid panels behind text."));
+            ReducedMotion = new Toggle("Reduce motion") { name = "settings-reduced-motion", value = RkSettings.ReducedMotion };
+            ReducedMotion.RegisterValueChangedCallback(e => { RkSettings.ReducedMotion = e.newValue; Say(e.newValue ? "Motion reduced: no transitions or sliding notices." : "Motion as designed."); });
+            scroll.Add(Row(ReducedMotion, "Turns off interface transitions and sliding notifications."));
 
             // Controls
             scroll.Add(Section("Controls"));

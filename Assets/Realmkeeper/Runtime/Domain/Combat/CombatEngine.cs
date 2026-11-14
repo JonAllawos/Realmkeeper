@@ -202,6 +202,7 @@ namespace Realmkeeper.Domain.Combat
             var e = Encounter;
             e.Round = 1;
             Log(CombatLogKind.Started, default, default, $"{e.Name} begins ({e.Lethality.ToString().ToLowerInvariant()}).");
+            CreatureKnowledge.Met(_world, e); // Phase 25 (ADR-0116): the bestiary learns what the player faces
             foreach (var c in e.Combatants) RollInitiative(c);
             e.Order.Clear();
             var ordered = new List<CombatantData>(e.Combatants);
@@ -1025,6 +1026,7 @@ namespace Realmkeeper.Domain.Combat
             e.WinningSide = winner;
             e.EndedOn = _world.CurrentSimulationDate;
             FinishOffRegenerators(); // Phase 10
+            CreatureKnowledge.Ended(_world, e); // Phase 25 (ADR-0116): those that fell or fled are known better
             e.PendingReaction = null; // Phase 10: the question's window closes with the fight
             EndAllEffects(); // Phase 9: spell and feature effects are encounter time only
             ReturnLasting(); // Phase 14: before the encounter's conditions are left behind

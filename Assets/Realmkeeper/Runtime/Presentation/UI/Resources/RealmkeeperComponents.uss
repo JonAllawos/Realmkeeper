@@ -169,7 +169,7 @@
     margin: 4px 0;
     justify-content: flex-start;
     padding: 0 18px;
-    font-size: 18px;
+    font-size: var(--rk-fs-18);
     background-color: rgba(28, 23, 18, 0.75);
     border-color: var(--rk-line-soft);
 }
@@ -320,7 +320,7 @@
     -unity-text-align: middle-center;
     white-space: normal;
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-Italic.ttf");
-    font-size: 16px;
+    font-size: var(--rk-fs-16);
 }
 
 .rk-field-label {
@@ -434,3 +434,162 @@
     font-size: var(--rk-size-small);
     white-space: normal;
 }
+
+/* ===================================================================================================================
+ * Phase 25 components: focus, toasts, the pause menu, the inspector, master-detail lists, vitals, the action bar.
+ * Tokens only (no literal colours).
+ * =================================================================================================================== */
+
+/* A visible keyboard focus on every control (the bronze ring), not only on .rk-btn. */
+.unity-button:focus, .rk-chip:focus, .rk-tab:focus, .xk-button:focus, .xk-hub-tab:focus {
+    border-color: var(--rk-focus);
+    border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px;
+}
+
+/* ----- Toasts -------------------------------------------------------------------------------------------------- */
+.rk-toasts {
+    position: absolute;
+    right: 16px;
+    top: 76px;
+    width: 360px;
+    flex-direction: column;
+    align-items: stretch;
+}
+.rk-toast {
+    flex-direction: row;
+    align-items: flex-start;
+    background-color: var(--rk-toast);
+    border-left-width: 3px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;
+    border-left-color: var(--rk-bronze);
+    border-top-color: var(--rk-line); border-right-color: var(--rk-line); border-bottom-color: var(--rk-line);
+    border-radius: var(--rk-radius);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    opacity: 1;
+    translate: 0 0;
+    transition-property: opacity, translate;
+    transition-duration: var(--rk-slow);
+}
+.rk-toast--enter { opacity: 0; translate: 24px 0; }
+.rk-toast > .rk-icon { margin-right: 10px; margin-top: 2px; flex-shrink: 0; }
+.rk-toast-text { flex-grow: 1; flex-shrink: 1; }
+.rk-toast-title { color: var(--rk-heading); -unity-font-style: bold; white-space: normal; font-size: var(--rk-size-body); }
+.rk-toast-body { color: var(--rk-text-2); white-space: normal; font-size: var(--rk-size-small); margin-top: 2px; }
+.rk-toast--important { border-left-color: var(--rk-bronze-hi); border-left-width: 5px; }
+.rk-toast--encounter, .rk-toast--error, .rk-toast--reputation-down { border-left-color: var(--rk-bad); }
+.rk-toast--discovery, .rk-toast--bestiary { border-left-color: var(--rk-info); }
+.rk-toast--reputation, .rk-toast--saved { border-left-color: var(--rk-good); }
+.rk-toast--world { border-left-color: var(--rk-warn); }
+.rk-w-narrow .rk-toasts { width: 300px; right: 10px; }
+
+/* ----- Pause menu ------------------------------------------------------------------------------------------------ */
+.rk-pause { justify-content: center; align-items: center; }
+.rk-pause-body { flex-direction: row; align-items: flex-start; max-height: 92%; }
+.rk-pause-menu { width: 400px; padding: 24px 26px; }
+.rk-pause-menu > .rk-btn--menu { margin-top: 6px; }
+.rk-pause-why { margin-left: 6px; margin-bottom: 4px; white-space: normal; }
+.rk-pause-recent { width: 380px; max-height: 560px; margin-left: 16px; padding: 18px 18px; }
+.rk-pause-recent-list { flex-shrink: 1; }
+.rk-pause-notice { flex-direction: row; align-items: flex-start; padding: 6px 0; border-bottom-width: 1px; border-bottom-color: var(--rk-line-soft); }
+.rk-pause-notice > .rk-icon { margin-right: 8px; margin-top: 2px; flex-shrink: 0; }
+.rk-pause-notice > Label { flex-shrink: 1; }
+.rk-w-narrow .rk-pause-recent { display: none; }
+.rk-h-short .rk-pause-menu { padding: 14px 18px; }
+
+/* ----- Inspector ------------------------------------------------------------------------------------------------- */
+.rk-inspector {
+    background-color: var(--rk-card);
+    border-width: 1px;
+    border-color: var(--rk-line);
+    border-radius: var(--rk-radius);
+    padding: 14px 16px;
+    flex-shrink: 0;
+}
+.rk-inspector--empty { justify-content: center; min-height: 160px; }
+.rk-inspector-head { flex-direction: row; align-items: center; margin-bottom: 10px; }
+.rk-inspector-icon {
+    width: 64px; height: 64px; margin-right: 12px;
+    background-color: var(--rk-ink-900);
+    border-width: 1px; border-color: var(--rk-line-strong); border-radius: var(--rk-radius);
+    justify-content: center; align-items: center; flex-shrink: 0;
+}
+.rk-inspector-titles { flex-grow: 1; flex-shrink: 1; }
+.rk-inspector-title {
+    font-size: var(--rk-size-h1); color: var(--rk-heading); white-space: normal;
+    -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
+}
+.rk-inspector-subtitle { color: var(--rk-text-2); white-space: normal; font-size: var(--rk-size-small); }
+.rk-inspector-badges { flex-direction: row; flex-wrap: wrap; margin-bottom: 8px; }
+.rk-inspector-badges > .rk-badge { margin-right: 6px; margin-bottom: 4px; }
+.rk-inspector-stat, .rk-inspector-compare {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    min-height: 26px; border-bottom-width: 1px; border-bottom-color: var(--rk-line-soft);
+}
+.rk-inspector-key { color: var(--rk-text-2); flex-shrink: 0; margin-right: 12px; }
+.rk-inspector-value { color: var(--rk-text); -unity-text-align: middle-right; white-space: normal; flex-shrink: 1; }
+.rk-compare--better { color: var(--rk-good); }
+.rk-compare--worse { color: var(--rk-bad); }
+.rk-compare--same { color: var(--rk-text-2); }
+.rk-inspector-section {
+    margin-top: 12px; margin-bottom: 4px; color: var(--rk-bronze-hi);
+    font-size: var(--rk-size-micro); letter-spacing: 1px;
+}
+.rk-inspector-text { white-space: normal; color: var(--rk-text); margin-bottom: 4px; }
+.rk-inspector-note { white-space: normal; margin-top: 6px; padding: 6px 8px; border-radius: var(--rk-radius); color: var(--rk-text-2); background-color: var(--rk-ink-800); }
+.rk-inspector-note--warn { color: var(--rk-warn); background-color: var(--rk-warn-bg); }
+.rk-inspector-note--bad { color: var(--rk-bad); background-color: var(--rk-bad-bg); }
+.rk-inspector-note--good { color: var(--rk-good); background-color: var(--rk-good-bg); }
+.rk-inspector-note--info { color: var(--rk-info); background-color: var(--rk-info-bg); }
+.rk-inspector-actions { flex-direction: row; flex-wrap: wrap; margin-top: 12px; }
+.rk-inspector-actions > .rk-btn { margin-right: 6px; margin-bottom: 6px; }
+.rk-inspector-why { white-space: normal; color: var(--rk-text-3); font-size: var(--rk-size-small); }
+
+/* ----- Master-detail lists (hub inventory, equipment, bestiary, journal) ------------------------------------------ */
+.rk-md { flex-direction: row; align-items: flex-start; flex-grow: 1; }
+.rk-md-list { flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 300px; }
+.rk-md-detail { width: 400px; flex-shrink: 0; margin-left: 14px; }
+.rk-w-compact .rk-md-detail { width: 340px; }
+.rk-w-narrow .rk-md { flex-direction: column; }
+.rk-w-narrow .rk-md-detail { width: auto; margin-left: 0; margin-top: 12px; align-self: stretch; }
+.rk-row {
+    flex-direction: row; align-items: center; min-height: 40px; padding: 4px 8px;
+    border-width: 1px; border-color: rgba(0, 0, 0, 0); border-bottom-color: var(--rk-line-soft);
+    border-radius: var(--rk-radius); background-color: rgba(0, 0, 0, 0);
+}
+.rk-row:hover { background-color: var(--rk-control); border-color: var(--rk-line); }
+.rk-row--selected { background-color: var(--rk-control-hover); border-color: var(--rk-bronze); }
+.rk-row-icon {
+    width: 32px; height: 32px; margin-right: 10px; flex-shrink: 0;
+    background-color: var(--rk-ink-900); border-width: 1px; border-color: var(--rk-line); border-radius: var(--rk-radius);
+    justify-content: center; align-items: center;
+}
+.rk-row-main { flex-grow: 1; flex-shrink: 1; }
+.rk-row-name { color: var(--rk-text); white-space: normal; }
+.rk-row-sub { color: var(--rk-text-3); font-size: var(--rk-size-micro); white-space: normal; }
+.rk-row-cell { color: var(--rk-text-2); -unity-text-align: middle-right; margin-left: 10px; flex-shrink: 0; min-width: 44px; }
+.rk-row-tag { margin-left: 8px; flex-shrink: 0; }
+.rk-w-narrow .rk-row-cell--wide { display: none; }
+.rk-quality--poor { color: var(--rk-quality-poor); }
+.rk-quality--good { color: var(--rk-quality-good); }
+.rk-quality--fine { color: var(--rk-quality-fine); }
+.rk-quality--rare { color: var(--rk-quality-rare); }
+
+/* ----- Exploration vitals and action bar ----------------------------------------------------------------------- */
+.rk-vitals {
+    position: absolute; left: 16px; bottom: 44px; width: 320px;
+    background-color: var(--rk-panel); border-width: 1px; border-color: var(--rk-line); border-radius: var(--rk-radius);
+    padding: 10px 12px;
+}
+.rk-vitals-name { color: var(--rk-heading); font-size: var(--rk-size-h3); -unity-font-style: bold; }
+.rk-vitals-line { color: var(--rk-text-2); font-size: var(--rk-size-small); white-space: normal; }
+.rk-vitals-hp { margin-top: 6px; margin-bottom: 4px; height: 10px; }
+.rk-vitals-conditions { flex-direction: row; flex-wrap: wrap; margin-top: 4px; }
+.rk-vitals-conditions > .rk-badge { margin-right: 4px; margin-bottom: 3px; }
+.rk-w-narrow .rk-vitals { width: 260px; }
+.rk-actionbar {
+    position: absolute; left: 352px; right: 352px; bottom: 30px;
+    flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center;
+}
+.rk-actionbar > .xk-button { margin: 2px 3px; }
+.rk-w-compact .rk-actionbar { left: 344px; right: 16px; justify-content: flex-start; }
+.rk-w-narrow .rk-actionbar { left: 284px; right: 10px; }

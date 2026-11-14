@@ -110,7 +110,7 @@ this project. No campaign canon is established; The Waystone Count remains provi
 
 Icons made by Lorc, Delapouite, sbed, Skoll, Guard13007, Carl Olsen, Willdabeast, DarkZaitzev, Faithtoken, Lucas and
 Zeromancer. Available on https://game-icons.net. Licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/).
-142 icons. Changes: rendered as white silhouettes on transparent (game-icons.net's own PNG export) and tinted in the
+153 icons (142 since Phase 19, 11 added in Phase 25). Changes: rendered as white silhouettes on transparent (game-icons.net's own PNG export) and tinted in the
 interface; the shapes are unchanged. Licence record and per-author counts:
 `Assets/Realmkeeper/Art/ThirdParty/GameIcons/License.txt`. The original SVGs are kept in `…/GameIcons/Source/`.
 
@@ -152,3 +152,12 @@ CC0 1.0: the purchase gives the files; the licence asks nothing of the game.
 | Medieval Village MegaKit (Pro version): all 304 models and 20 textures (doors, windows, signs, furniture, the building modules) | Quaternius (quaternius.com) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Quaternius/MedievalVillageMegaKit/License.txt` |
 | Fantasy Props MegaKit (Pro version): all 211 models and 23 textures (beds, desks, bellows, racks, farm crates, rugs, shop signs) | Quaternius | CC0 1.0 | `…/Quaternius/FantasyPropsMegaKit/License.txt` |
 | Stylized Nature MegaKit (Source version): all 116 models and 33 textures (pines, birches, tall broadleaves, cherry trees, the white leaf textures used for the seasons). The Source version's engine projects and shaders were not imported | Quaternius | CC0 1.0 | `…/Quaternius/StylizedNatureMegaKit/License.txt` |
+
+## Added in Phase 25 (2026-11-14): the interface overhaul
+
+| Work | Author | Licence | Licence file |
+|---|---|---|---|
+| Interface Sounds 1.0: 10 of its 100 sounds (click, select, confirmation, back, open, close, error, bong, drop, switch), unmodified | Kenney (www.kenney.nl) | CC0 1.0 (bundled `License.txt`; downloaded from the OpenGameArt mirror opengameart.org/content/interface-sounds) | `Assets/Realmkeeper/Art/ThirdParty/Kenney/InterfaceSounds/License.txt` |
+| 11 more game-icons.net icons (paw print, cow, deer track, fanged skull, fangs circle, boar tusks, sheep, ringing bell, speaker, hamburger menu, goblin head) by Lorc and Delapouite | Lorc, Delapouite (game-icons.net) | CC BY 3.0 | `Assets/Realmkeeper/Art/ThirdParty/GameIcons/License.txt` |
+
+The full register, with evaluations and rejected candidates, is `Documentation/Assets/Phase25-Asset-Register.md`.

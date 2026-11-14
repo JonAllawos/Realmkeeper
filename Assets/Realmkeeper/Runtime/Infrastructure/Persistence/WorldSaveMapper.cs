@@ -60,6 +60,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     RealmId = string.IsNullOrEmpty(w.Player.RealmId) ? null : w.Player.RealmId, // schema v25
                     ReturnToOverland = w.Player.ReturnToOverland,
                     Waypoint = w.Player.Waypoint, // Phase 24
+                    KnownCreatures = KnownCreaturesOut(w.Player), // Phase 25
                 },
             };
 
@@ -423,6 +424,7 @@ namespace Realmkeeper.Infrastructure.Persistence
                     ReturnToOverland = pd.ReturnToOverland,
                     Waypoint = pd.Waypoint, // Phase 24
                 };
+                KnownCreaturesIn(pd, world.Player); // Phase 25
             }
 
             foreach (var sd in dto.Settlements ?? new List<SettlementDto>())
@@ -644,6 +646,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadEnvironment(dto, world); // Phase 21
             ReadRealms(dto, world); // Phase 23
             ReadOverland(dto, world); // Phase 24
+            if (dto.Player != null && dto.Player.KnownCreatures == null) CreatureKnowledge.SeedFromHistory(world); // Phase 25: a v26 save learns from the fights it holds
             return world;
         }
 

@@ -23,8 +23,11 @@ namespace Realmkeeper.Exploration.Presentation
     {
         public static readonly IReadOnlyList<string> Sections = new[]
         {
-            "Character", "Party", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Journal", "Currency & possessions", "Info",
+            "Character", "Party", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Journal", "Bestiary", "Currency & possessions", "Info",
         };
+
+        /// <summary>Phase 25: the sections where the 3D figure helps (looks and what is worn). Elsewhere the list gets the room.</summary>
+        public static readonly IReadOnlyList<string> PreviewSections = new[] { "Character", "Appearance", "Equipment", "Clothing & armour" };
 
         private readonly Dictionary<string, Button> _tabs = new Dictionary<string, Button>(StringComparer.Ordinal);
         private readonly VisualElement _content;
@@ -111,7 +114,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             "Character" => "character", "Party" => "party", "Spells & rest" => "spells", "Appearance" => "appearance",
             "Inventory" => "inventory", "Equipment" => "equipment", "Weapons" => "weapons", "Clothing & armour" => "clothing",
-            "Crafting & work" => "crafting", "Storage" => "storage", "Journal" => "journal", "Currency & possessions" => "currency",
+            "Crafting & work" => "crafting", "Storage" => "storage", "Journal" => "journal", "Bestiary" => "bestiary", "Currency & possessions" => "currency",
             _ => "info",
         };
         public bool IsOpen => !Root.ClassListContains("xk-hidden");
@@ -165,6 +168,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             foreach (var pair in _tabs) pair.Value.EnableInClassList("xk-hub-tab--active", pair.Key == Section);
             Root.Q<Label>("xk-hub-title").text = Section;
+            _preview.EnableInClassList("xk-hidden", !PreviewSections.Contains(Section)); // Phase 25
             _content.Clear();
             var h = Hub;
             if (h == null) return;
@@ -182,6 +186,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Crafting & work": Workshop(); break;
                 case "Storage": Storage(); break;
                 case "Journal": Journal(); break; // Phase 12
+                case "Bestiary": Bestiary(); break; // Phase 25
                 case "Currency & possessions": Possessions(h); break;
                 default: Info(h); break;
             }
@@ -655,7 +660,7 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var k in h.KnownBy) _content.Add(Pair(k.Name, $"{k.Role} · familiarity {k.Familiarity}, regard {k.Affinity} · {k.Why}"));
             _content.Add(Text("How regard grows: once a day per person, from talking (+2 familiarity) and trading (+3 familiarity, +1 regard). Repeating it the same day adds nothing.", "xk-w-note"));
             _content.Add(Text("Controls", "xk-w-heading"));
-            _content.Add(Text("H hub · E talk / trade at a counter · F practice fight · T wait an hour · P pause time · Esc free the cursor or close a window", "xk-w-note"));
+            _content.Add(Text("H hub · E talk / trade at a counter · F practice fight · T wait an hour · P pause time · Esc close a window, or open the menu", "xk-w-note"));
             ShowCredits();
         }
 

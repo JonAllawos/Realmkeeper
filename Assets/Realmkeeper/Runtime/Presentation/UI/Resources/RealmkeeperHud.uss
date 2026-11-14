@@ -5,7 +5,7 @@
     flex-direction: column;
     justify-content: space-between;
     padding: 10px;
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     color: var(--rk-text);
 }
 
@@ -37,7 +37,7 @@
 }
 
 .rk-wordmark {
-    font-size: 17px;
+    font-size: var(--rk-fs-17);
     -unity-font-style: bold;
     letter-spacing: 3px;
     color: var(--rk-bronze-hi);
@@ -145,7 +145,7 @@
 .rk-tag {
     margin-left: auto;
     padding: 1px 6px;
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     border-radius: 3px;
     background-color: rgba(255, 255, 255, 0.06);
     color: rgb(140, 133, 120);
@@ -186,7 +186,7 @@
 
 .rk-settlement-type {
     margin-left: auto;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: var(--rk-text-3);
 }
 
@@ -202,7 +202,7 @@
 }
 
 .rk-insp-name {
-    font-size: 20px;
+    font-size: var(--rk-fs-20);
     -unity-font-style: bold;
     color: var(--rk-heading);
 }
@@ -217,7 +217,7 @@
     padding: 0;
     border-width: 0;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: var(--rk-fs-16);
     background-color: var(--rk-control);
     color: var(--rk-text);
 }
@@ -227,7 +227,7 @@
     margin: 2px 0 8px 0;
     padding: 2px 8px;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     -unity-font-style: bold;
 }
 
@@ -239,7 +239,7 @@
 .rk-section {
     margin-top: 12px;
     margin-bottom: 4px;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     letter-spacing: 1px;
     -unity-font-style: bold;
     color: var(--rk-bronze);
@@ -304,7 +304,7 @@
     right: 6px;
     top: 0;
     bottom: 0;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     -unity-text-align: middle-right;
     color: rgb(240, 232, 214);
 }
@@ -371,7 +371,7 @@
 }
 
 .rk-sim-state {
-    font-size: 16px;
+    font-size: var(--rk-fs-16);
     -unity-font-style: bold;
     margin-bottom: 2px;
 }
@@ -475,12 +475,12 @@
     border-color: rgb(214, 120, 90);
     background-color: rgba(150, 52, 40, 0.25);
     color: rgb(244, 210, 196);
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     white-space: normal;
 }
 
 .rk-trend {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: var(--rk-text-2);
 }
 
@@ -499,7 +499,7 @@
 }
 
 .rk-table-head > Label {
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     color: var(--rk-text-3);
 }
 
@@ -530,7 +530,7 @@
 .rk-col-num {
     width: 35px;
     -unity-text-align: middle-right;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
 }
 
 .rk-col-stock {
@@ -538,7 +538,7 @@
 }
 
 .rk-trade-line {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     white-space: normal;
     margin: 1px 0;
     color: var(--rk-text);
@@ -563,7 +563,7 @@
 .rk-insp-region {
     flex-grow: 1;
     flex-shrink: 1;
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text-2);
 }
 
@@ -574,7 +574,7 @@
 /* ----- Phase 2 completion: reasons, route toggles ------------------------------------------ */
 
 .rk-why {
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     white-space: normal;
     margin: 1px 0 2px 0;
     color: var(--rk-text-2);
@@ -595,7 +595,7 @@
     min-width: 0;
     margin: 0 0 0 4px;
     padding: 0 6px;
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
 }
 
 .rk-trade-line--suspended {
@@ -631,7 +631,7 @@
 .rk-faction-detail {
     margin: 0;
     padding: 0;
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     color: var(--rk-text-3);
     -unity-text-align: middle-left;
 }
@@ -735,12 +735,12 @@
 .rk-people-filters > DropdownField,
 .rk-people-filters > TextField {
     margin: 1px 0;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
 }
 
 .rk-people-filters .unity-base-field__label {
     min-width: 54px;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     color: var(--rk-text-2);
 }
 
@@ -754,7 +754,7 @@
 }
 
 .rk-person-sub {
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     color: rgb(160, 150, 130);
     margin: 0;
     padding: 0;
@@ -762,7 +762,7 @@
 }
 
 .rk-npc-explain {
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     color: rgb(165, 155, 135);
     -unity-font-style: italic;
     white-space: normal;
@@ -782,7 +782,7 @@
     min-width: 96px;
     max-width: 150px;
     color: rgb(190, 180, 160);
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     white-space: normal;
     margin: 0;
     padding: 0;
@@ -792,14 +792,14 @@
     flex-grow: 1;
     flex-shrink: 1;
     color: var(--rk-text);
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     white-space: normal;
     margin: 0;
     padding: 0;
 }
 
 .rk-npc-line-why {
-    font-size: 10px;
+    font-size: var(--rk-fs-10);
     color: var(--rk-text-3);
     white-space: normal;
     margin: 0 0 0 96px;
@@ -825,13 +825,13 @@
     flex-grow: 1;
     flex-shrink: 1;
     margin: 0 2px;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
 }
 
 .rk-resident-link {
     height: 22px;
     margin: 1px 0;
-    font-size: 11px;
+    font-size: var(--rk-fs-11);
     -unity-text-align: middle-left;
 }
 
@@ -872,22 +872,22 @@
 
 /* Phase 13: places on the map */
 .rk-place-row { padding: 4px 6px; margin-bottom: 4px; border-bottom-width: 1px; border-color: rgba(120, 100, 70, 0.4); }
-.rk-place-name { color: var(--rk-text); -unity-font-style: bold; font-size: 13px; }
-.rk-place-line { color: rgb(196, 182, 150); font-size: 11px; white-space: normal; }
-.rk-muted { color: var(--rk-text-2); font-size: 12px; white-space: normal; }
+.rk-place-name { color: var(--rk-text); -unity-font-style: bold; font-size: var(--rk-fs-13); }
+.rk-place-line { color: rgb(196, 182, 150); font-size: var(--rk-fs-11); white-space: normal; }
+.rk-muted { color: var(--rk-text-2); font-size: var(--rk-fs-12); white-space: normal; }
 
 /* ----- Phase 16: the world atlas ----- */
 .rk-atlas { position: absolute; left: 236px; right: 16px; top: 64px; bottom: 16px; padding: 8px; flex-direction: column; background-color: rgb(26, 23, 20); border-width: 1px; border-color: var(--rk-line); border-radius: 6px; }
 .rk-atlas-head { flex-direction: row; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
-.rk-atlas-title { color: rgb(230, 206, 150); font-size: 16px; -unity-font-style: bold; margin-right: 10px; }
-.rk-atlas-layer { font-size: 11px; padding: 2px 6px; margin: 1px 2px; background-color: rgba(60, 54, 44, 0.8); color: rgb(150, 140, 120); border-width: 1px; border-color: var(--rk-line-soft); border-radius: 3px; }
+.rk-atlas-title { color: rgb(230, 206, 150); font-size: var(--rk-fs-16); -unity-font-style: bold; margin-right: 10px; }
+.rk-atlas-layer { font-size: var(--rk-fs-11); padding: 2px 6px; margin: 1px 2px; background-color: rgba(60, 54, 44, 0.8); color: rgb(150, 140, 120); border-width: 1px; border-color: var(--rk-line-soft); border-radius: 3px; }
 .rk-atlas-layer--on { color: var(--rk-heading); border-color: rgba(201, 164, 101, 0.7); background-color: rgba(96, 80, 52, 0.9); }
 .rk-atlas-body { flex-direction: row; flex-grow: 1; }
 .rk-atlas-map { flex-grow: 1; background-color: rgb(14, 13, 12); border-radius: 4px; overflow: hidden; }
 .rk-atlas-marks { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
-.rk-atlas-mark { position: absolute; translate: -50% -50%; font-size: 11px; padding: 1px 4px; margin: 0; border-width: 0; border-radius: 3px; background-color: rgba(20, 18, 16, 0.75); color: var(--rk-text); }
+.rk-atlas-mark { position: absolute; translate: -50% -50%; font-size: var(--rk-fs-11); padding: 1px 4px; margin: 0; border-width: 0; border-radius: 3px; background-color: rgba(20, 18, 16, 0.75); color: var(--rk-text); }
 .rk-atlas-mark--selected { background-color: rgb(150, 112, 50); color: rgb(255, 245, 220); }
-.rk-atlas-region { translate: 0 0; background-color: rgba(0, 0, 0, 0); color: rgb(220, 205, 160); font-size: 13px; -unity-font-style: bold; }
+.rk-atlas-region { translate: 0 0; background-color: rgba(0, 0, 0, 0); color: rgb(220, 205, 160); font-size: var(--rk-fs-13); -unity-font-style: bold; }
 .rk-atlas-settlement { border-width: 1px; border-color: rgba(230, 210, 160, 0.6); }
 .rk-atlas-settlement--short { border-color: rgb(210, 70, 50); color: rgb(255, 170, 150); }
 .rk-atlas-settlement--here { border-color: rgb(240, 200, 90); border-width: 2px; }
@@ -896,16 +896,16 @@
 .rk-atlas-event { width: 16px; -unity-text-align: middle-center; background-color: rgba(170, 40, 30, 0.9); color: rgb(255, 230, 210); -unity-font-style: bold; }
 .rk-atlas-player { background-color: rgb(214, 170, 70); color: rgb(30, 22, 10); -unity-font-style: bold; }
 .rk-atlas-side { width: 360px; margin-left: 8px; }
-.rk-atlas-heading { color: rgb(236, 210, 150); font-size: 15px; -unity-font-style: bold; white-space: normal; margin-top: 4px; }
-.rk-atlas-subheading { color: rgb(220, 196, 140); font-size: 13px; margin-top: 6px; }
-.rk-atlas-line { color: rgb(220, 210, 188); font-size: 12px; white-space: normal; margin: 1px 0; }
-.rk-atlas-option { color: var(--rk-text); font-size: 12px; white-space: normal; margin-top: 4px; }
-.rk-atlas-econ, .rk-atlas-faction { color: rgb(200, 214, 180); font-size: 12px; white-space: normal; }
-.rk-atlas-warn { color: rgb(240, 140, 110); font-size: 12px; white-space: normal; }
-.rk-atlas-act { font-size: 12px; margin: 2px 0; -unity-text-align: middle-left; white-space: normal; height: auto; min-height: 26px; padding: 4px 10px; flex-shrink: 0; }
+.rk-atlas-heading { color: rgb(236, 210, 150); font-size: var(--rk-fs-15); -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.rk-atlas-subheading { color: rgb(220, 196, 140); font-size: var(--rk-fs-13); margin-top: 6px; }
+.rk-atlas-line { color: rgb(220, 210, 188); font-size: var(--rk-fs-12); white-space: normal; margin: 1px 0; }
+.rk-atlas-option { color: var(--rk-text); font-size: var(--rk-fs-12); white-space: normal; margin-top: 4px; }
+.rk-atlas-econ, .rk-atlas-faction { color: rgb(200, 214, 180); font-size: var(--rk-fs-12); white-space: normal; }
+.rk-atlas-warn { color: rgb(240, 140, 110); font-size: var(--rk-fs-12); white-space: normal; }
+.rk-atlas-act { font-size: var(--rk-fs-12); margin: 2px 0; -unity-text-align: middle-left; white-space: normal; height: auto; min-height: 26px; padding: 4px 10px; flex-shrink: 0; }
 .rk-atlas-travel { flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 6px; }
-.rk-atlas-travel-status { color: rgb(236, 220, 180); font-size: 13px; white-space: normal; flex-grow: 1; flex-shrink: 1; min-width: 300px; }
-.rk-atlas-legend { color: var(--rk-text-2); font-size: 11px; white-space: normal; margin-top: 4px; }
+.rk-atlas-travel-status { color: rgb(236, 220, 180); font-size: var(--rk-fs-13); white-space: normal; flex-grow: 1; flex-shrink: 1; min-width: 300px; }
+.rk-atlas-legend { color: var(--rk-text-2); font-size: var(--rk-fs-11); white-space: normal; margin-top: 4px; }
 .rk-atlas-act--over { opacity: 0.6; }
 
 /* ----- Phase 19: the shared visual language (tokens in RealmkeeperTokens.uss) ------------- */
@@ -924,13 +924,13 @@
 }
 
 .rk-wordmark {
-    font-size: 20px;
+    font-size: var(--rk-fs-20);
     letter-spacing: 4px;
     color: var(--rk-heading);
 }
 
 .rk-world-name {
-    font-size: 17px;
+    font-size: var(--rk-fs-17);
 }
 
 .rk-speed > Label {
@@ -939,7 +939,7 @@
 }
 
 .rk-insp-name {
-    font-size: 24px;
+    font-size: var(--rk-fs-24);
 }
 
 .rk-section {
@@ -964,14 +964,14 @@
 }
 
 .rk-atlas-title {
-    font-size: 22px;
+    font-size: var(--rk-fs-22);
     color: var(--rk-heading);
     -unity-font-style: normal;
 }
 
 .rk-atlas-layer {
     height: 26px;
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     padding: 0 9px;
     margin: 0 4px 0 0;
     border-radius: 13px;
@@ -1002,7 +1002,7 @@
 }
 
 .rk-atlas-mark {
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
     background-color: rgba(0, 0, 0, 0);
     color: var(--rk-paper-ink);
 }
@@ -1017,7 +1017,7 @@
 }
 
 .rk-atlas-region {
-    font-size: 18px;
+    font-size: var(--rk-fs-18);
     letter-spacing: 1px;
     color: rgb(70, 50, 30);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
@@ -1031,7 +1031,7 @@
 
 .rk-atlas-settlement {
     border-width: 0;
-    font-size: 14px;
+    font-size: var(--rk-fs-14);
     color: rgb(40, 28, 18);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
     -unity-font-style: normal;
@@ -1066,7 +1066,7 @@
 }
 
 .rk-atlas-heading {
-    font-size: 20px;
+    font-size: var(--rk-fs-20);
     -unity-font-definition: url("project://database/Assets/Realmkeeper/Art/ThirdParty/Fonts/EBGaramond/EBGaramond-SemiBold.ttf");
     -unity-font-style: normal;
     color: var(--rk-heading);
@@ -1077,11 +1077,11 @@
 .rk-atlas-econ,
 .rk-atlas-faction,
 .rk-atlas-warn {
-    font-size: 13px;
+    font-size: var(--rk-fs-13);
 }
 
 .rk-atlas-legend {
-    font-size: 12px;
+    font-size: var(--rk-fs-12);
     color: var(--rk-text-3);
 }
 

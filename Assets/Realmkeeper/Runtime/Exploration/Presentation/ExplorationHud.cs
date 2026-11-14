@@ -23,6 +23,9 @@ namespace Realmkeeper.Exploration.Presentation
         private float _responseTimer;
 
         public VisualElement Root { get; private set; }
+
+        /// <summary>Phase 25: the document's root, which carries the accessibility and width classes.</summary>
+        public VisualElement DocumentRoot => _document != null ? _document.rootVisualElement : null;
         public Label SettlementLabel { get; private set; }
         public Label RegionLabel { get; private set; }
         public Label DateLabel { get; private set; }
@@ -100,6 +103,113 @@ namespace Realmkeeper.Exploration.Presentation
 
             ReturnButton.clicked += () => ReturnRequested?.Invoke();
             SaveButton.clicked += () => SaveRequested?.Invoke();
+            BuildPhase25(documentRoot);
+        }
+
+        // ----- Phase 25: accessibility and width classes, interface sounds, toasts, vitals, the action bar -----------
+
+        /// <summary>Phase 25: the notification toasts (top right, under the standing actions).</summary>
+        public Realmkeeper.UI.RkToasts Toasts { get; private set; }
+
+        /// <summary>Phase 25: the bottom action bar: time, the hub, the party, practice and the way out.</summary>
+        public VisualElement ActionBar { get; private set; }
+
+        /// <summary>Phase 25: the player's vitals (bottom left): name, hit points, armour, hunger and lasting conditions.</summary>
+        public VisualElement Vitals { get; private set; }
+
+        public Label VitalsName { get; private set; }
+        public Label VitalsLine { get; private set; }
+        public VisualElement VitalsHp { get; private set; }
+        public VisualElement VitalsHpFill { get; private set; }
+        public VisualElement VitalsConditions { get; private set; }
+
+        /// <summary>True while a window covers the screen: the HUD's panels step aside (Phase 25: no HUD showing through a window).</summary>
+        public bool WindowOpen => Root != null && Root.ClassListContains("xk-root--window");
+
+        private void BuildPhase25(VisualElement documentRoot)
+        {
+            Realmkeeper.UI.RkRoot.Attach(documentRoot);
+            Realmkeeper.UI.RkUiSound.Attach(documentRoot);
+
+            // The action bar sits in the bottom stack, above the controls line: the prompt and responses rise above it,
+            // and it wraps on narrow screens instead of running off the edge.
+            ActionBar = new VisualElement { name = "xk-actionbar", pickingMode = PickingMode.Ignore };
+            ActionBar.AddToClassList("rk-actionbar");
+            ActionBar.AddToClassList("xk-actionbar");
+            var bottom = Root.Q<VisualElement>(className: "xk-bottom");
+            var help = Root.Q<Label>("xk-help");
+            if (bottom != null && help != null) bottom.Insert(bottom.IndexOf(help), ActionBar);
+            else Root.Add(ActionBar);
+
+            Vitals = new VisualElement { name = "xk-vitals" };
+            Vitals.AddToClassList("rk-vitals");
+            Vitals.AddToClassList("xk-hidden");
+            VitalsName = new Label("-") { name = "xk-vitals-name" };
+            VitalsName.AddToClassList("rk-vitals-name");
+            Vitals.Add(VitalsName);
+            VitalsHp = new VisualElement { name = "xk-vitals-hp" };
+            VitalsHp.AddToClassList("rk-meter");
+            VitalsHp.AddToClassList("rk-vitals-hp");
+            VitalsHpFill = new VisualElement();
+            VitalsHpFill.AddToClassList("rk-meter-fill");
+            VitalsHp.Add(VitalsHpFill);
+            Vitals.Add(VitalsHp);
+            VitalsLine = new Label("-") { name = "xk-vitals-line" };
+            VitalsLine.AddToClassList("rk-vitals-line");
+            Vitals.Add(VitalsLine);
+            VitalsConditions = new VisualElement { name = "xk-vitals-conditions" };
+            VitalsConditions.AddToClassList("rk-vitals-conditions");
+            Vitals.Add(VitalsConditions);
+            // The vitals stand under the place's name, in one left column, so nothing at the bottom can cover them.
+            var location = Root.Q<VisualElement>(className: "xk-location");
+            if (location != null && location.parent != null)
+            {
+                var column = new VisualElement { name = "xk-left", pickingMode = PickingMode.Ignore };
+                column.AddToClassList("xk-left-col");
+                var parent = location.parent;
+                parent.Insert(parent.IndexOf(location), column);
+                column.Add(location);
+                column.Add(Vitals);
+            }
+            else Root.Add(Vitals);
+
+            Toasts = new Realmkeeper.UI.RkToasts(Root);
+        }
+
+        /// <summary>
+        /// Phase 25: shows the player's state. <paramref name="conditions"/> are words with a tone ("good", "warn", "bad");
+        /// the hit-point bar is backed by its numbers in the line, so colour never stands alone.
+        /// </summary>
+        public void SetVitals(string name, int hp, int maxHp, string line, IReadOnlyList<(string text, string tone)> conditions)
+        {
+            if (Vitals == null) return;
+            Vitals.EnableInClassList("xk-hidden", name == null);
+            if (name == null) return;
+            VitalsName.text = name;
+            var share = maxHp > 0 ? Mathf.Clamp01(hp / (float)maxHp) : 0f;
+            VitalsHpFill.style.width = new StyleLength(new Length(share * 100f, LengthUnit.Percent));
+            VitalsHpFill.EnableInClassList("rk-meter-fill--good", share > 0.5f);
+            VitalsHpFill.EnableInClassList("rk-meter-fill--warn", share > 0.25f && share <= 0.5f);
+            VitalsHpFill.EnableInClassList("rk-meter-fill--bad", share <= 0.25f);
+            VitalsHp.tooltip = $"Hit points {hp} of {maxHp}.";
+            VitalsLine.text = line;
+            VitalsConditions.Clear();
+            if (conditions == null) return;
+            foreach (var (text, tone) in conditions)
+            {
+                var b = new Label(text);
+                b.AddToClassList("rk-badge");
+                if (!string.IsNullOrEmpty(tone)) b.AddToClassList("rk-badge--" + tone);
+                VitalsConditions.Add(b);
+            }
+        }
+
+        /// <summary>Phase 25: hides the HUD's panels behind an open window (the toasts stay).</summary>
+        public void SetWindowOpen(bool open)
+        {
+            if (Root == null || Root.ClassListContains("xk-root--window") == open) return;
+            Root.EnableInClassList("xk-root--window", open);
+            Toasts?.Stack.BringToFront(); // notices stay readable over a window (moved to the bottom right by the style sheet)
         }
 
         public void SetLocation(string settlement, string region, string date)

@@ -242,6 +242,7 @@ namespace Realmkeeper.Presentation
             // control may suggest a feature that does not exist. The roadmap lists them.
             Root.Q<VisualElement>("nav-later")?.RemoveFromHierarchy();
             DressPhase19();
+            DressPhase25(); // Phase 25
         }
 
         // ----- Commands --------------------------------------------------------------------

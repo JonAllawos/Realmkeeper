@@ -107,6 +107,70 @@ namespace Realmkeeper.UI
             }
         }
 
+        // ----- Phase 25: accessibility and interface sounds ---------------------------------------------------------
+
+        private const string TextSizeKey = "rk.ui.text";
+        private const string ContrastKey = "rk.ui.contrast";
+        private const string MotionKey = "rk.ui.reducedMotion";
+        private const string UiSoundKey = "rk.audio.ui";
+
+        /// <summary>Text size choices: normal, large, largest (multipliers of the type tokens).</summary>
+        public static readonly float[] TextSizes = { 1f, 1.15f, 1.3f };
+
+        public static string TextSizeLabel(float size) => size >= 1.3f ? "Largest (130 %)" : size >= 1.15f ? "Large (115 %)" : "Normal";
+
+        /// <summary>Phase 25: the text size, separate from the interface scale (panels keep their size; text grows).</summary>
+        public static float TextSize
+        {
+            get
+            {
+                var v = PlayerPrefs.GetFloat(TextSizeKey, 1f);
+                return TextSizes.Contains(v) ? v : 1f;
+            }
+            set
+            {
+                PlayerPrefs.SetFloat(TextSizeKey, TextSizes.Contains(value) ? value : 1f);
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
+        /// <summary>Phase 25: high contrast (brighter secondary text, stronger lines, opaque panels).</summary>
+        public static bool HighContrast
+        {
+            get => PlayerPrefs.GetInt(ContrastKey, 0) == 1;
+            set
+            {
+                PlayerPrefs.SetInt(ContrastKey, value ? 1 : 0);
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
+        /// <summary>Phase 25: reduced motion (no transitions, toasts appear and leave without fading).</summary>
+        public static bool ReducedMotion
+        {
+            get => PlayerPrefs.GetInt(MotionKey, 0) == 1;
+            set
+            {
+                PlayerPrefs.SetInt(MotionKey, value ? 1 : 0);
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
+        /// <summary>Phase 25: the volume of interface sounds (clicks, tabs, notifications), 0 (off) to 1, under the sound volume. Default 0.6.</summary>
+        public static float UiSoundVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(UiSoundKey, 0.6f));
+            set
+            {
+                PlayerPrefs.SetFloat(UiSoundKey, Mathf.Clamp01(value));
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
         public static bool VSync
         {
             get => PlayerPrefs.GetInt(VSyncKey, QualitySettings.vSyncCount > 0 ? 1 : 0) == 1;
