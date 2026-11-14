@@ -4,7 +4,7 @@
 
 **Date:** 2026-11-14.
 
-**Baseline:** `9360330` (Phase 24, pushed; branch even with origin). Phase 25 is committed locally only. **Nothing was pushed.**
+**Baseline:** `9360330` (Phase 24, pushed; branch even with origin). Phase 25 was committed locally as `5e2629a` per the brief, then pushed to origin on 2026-11-14 at the owner's instruction (together with Phase 26).
 
 **Status words:**
 - **Completed:** built, tested and captured.
@@ -363,7 +363,7 @@ The Phase 24 PlayMode test itself is unchanged.
 - **Left out on purpose:**
   - `ProjectSettings/GraphicsSettings.asset` and the untracked `Assets/InitTestScene*` files, which stay untracked and were not deleted;
   - `M_LampGlow.mat`, which batch runs re-save; it was restored and not committed.
-- **Push:** **nothing was pushed to GitHub.**
+- **Push:** nothing was pushed under the brief. On 2026-11-14 the owner asked for the push, and the branch was pushed to origin up to `6562066`.
 
 ## 27. Known limitations
 

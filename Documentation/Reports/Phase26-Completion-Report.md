@@ -6,7 +6,7 @@
 
 **Baseline:** `5e2629a` (Phase 25, local only).
 
-**Commit:** Phase 26 is committed locally only. **Nothing was pushed.**
+**Commit:** `6562066`, committed locally per the brief, then pushed to origin on 2026-11-14 at the owner's instruction.
 
 **Status words used throughout:**
 - **Complete:** the layout and interaction were redesigned, tested and captured.
@@ -321,7 +321,7 @@ Captured at 1920, 1280×800 and 1024×768 (creation), and at 1920 and 1366 (adva
 - **Left out on purpose:**
   - the untracked `Assets/InitTestScene*` files, which stay untracked and were not deleted;
   - `M_LampGlow.mat`, which batch runs re-save; it was restored and not committed.
-- **Push:** **nothing was pushed to GitHub.**
+- **Push:** nothing was pushed under the brief. On 2026-11-14 the owner asked for the push, and the branch was pushed to origin up to `6562066`.
 
 ## 25. Known limitations
 
