@@ -3,7 +3,7 @@
 **Phase:** Overland World Foundation, Expanded World Scale, Realm Architecture & Traversal.
 **Date:** 2026-11-13.
 **Branch:** `feature/phase-0-1-foundation`.
-**Commits:** `ea1422b` (the phase), `9746185` (records the hash) and `a818a74` (the follow-up round below). All local, none pushed (the brief).
+**Commits:** `ea1422b` (the phase), `9746185`, `a818a74` (the follow-up round), `6023069`, `f39f97e` (the full Unity checkpoint) and `b8e9cf3`. All local, none pushed (the brief).
 
 **Decisions:** ADR-0110 (scale and terrain), ADR-0111 (realms, gateways, location, save v25), ADR-0112 (transitions and streaming).
 **System doc:** `Systems/Overland.md`.
@@ -26,7 +26,7 @@ Walking advances the one clock at the travel scale's own rate. The player can:
 
 Each of these is a loading transition with a loading screen. A new game has 9 regions: 236 km² of walkable surface, and 262 km² with the ancient prototype region. Before this phase, the walkable area was under 2 km².
 
-Not hand-played. The full Unity suites were not run (section F).
+Not hand-played. The full Unity EditMode and PlayMode suites were run at the end (section F): the four failures were stale tests, now fixed and green.
 
 ### Follow-up round (owner request, 2026-11-13)
 
