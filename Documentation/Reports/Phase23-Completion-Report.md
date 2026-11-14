@@ -317,12 +317,32 @@ Measured by the Phase 23 PlayMode test: Unity 6000.0.47f1 editor in batch mode, 
 
 **Unity compilation:** clean on every batch run.
 
-**Not run:**
-- the full Unity EditMode suite;
-- the full Unity PlayMode suite;
-- the Phase 22 and Phase 20A targeted PlayMode tests.
+**Full Unity checkpoint (owner request, 2026-11-13, after the follow-up).** These were the first full Unity runs since Phase 21.
 
-The last full Unity suites were before Phase 22. **A full checkpoint run is due**, and is the next thing worth doing before Phase 24. This round changed shared pieces: `VertexColorLit` (unchanged when its texture strength is 0), `ModularEnvironmentBuilder`, the practice-button rule and the map HUD.
+| Suite | Result | Time |
+|---|---|---|
+| Unity EditMode, full | **927 passed, 1 failed** of 928 | 42.6 min |
+| Unity PlayMode, full | **129 passed, 3 failed, 33 skipped** of 165 | 12.8 min |
+
+The 33 skipped are the capture-only tests, which run only when a capture folder (`RK_CAPTURE_DIR`) is set. That is by design, as in every phase.
+
+**The four failures.** None was a fault in the game. Each was a test that had not run since a later phase changed what it checks:
+
+1. **`Phase18PerformanceTests.ThePhase18Content_IsMeasured`** (EditMode): 3.18 ms against a 3 ms bound for "findings a person would care about".
+   - **Cause.** The timing loop read `W`, which deep-copies the whole world on every read. Phase 23's bigger world made that copy slower, so the test was timing itself.
+   - **Fix.** The test now takes one snapshot before timing, as its save and load timing already did. **The bound is unchanged at 3 ms.** Measured after the fix: 0.0026 ms per person in Unity.
+   - **Also.** `DiscoveryRules.Offerable` now scores each discovery once instead of on every sort comparison. Its results are identical; this is a small real speed-up.
+2. **`Phase16AtlasPlayModeTests.TheAtlas_ShowsTheConnectedWorld…`**: expected 6 regions, found 9 (Phase 23, ADR-0110). The pin is now 9.
+3. **`Phase17PlayModeTests.TheAtlasChecklist…`**: the same pin, now 9.
+4. **`Phase20PlayModeTests.ATiefling_MadeInTheCreator…`**: the creator's "Legacy Spellcasting Ability" choice (Phase 22, rules 10) was not made. Phase 22 updated the Phase 20A test for it but missed this one. The test now chooses Charisma, which keeps its original assumptions.
+
+**After the fixes:**
+- Unity EditMode `Phase18PerformanceTests`: **3 passed of 3**.
+- Unity PlayMode Phase 16 atlas, Phase 17 and Phase 20 classes: **9 passed of 9**.
+- .NET full: **928 passed of 928**.
+- The full Unity suites were not run a second time. The brief asks not to repeat full runs within a round, and the fixes were test-only apart from `DiscoveryRules`, which the .NET suite and the Unity Phase 18 tests cover.
+
+**A known quirk.** A Unity batch run re-saves `Art/Materials/M_LampGlow.mat` without its `_EMISSION` keyword. The game re-enables emission at runtime, and the file is restored and not committed.
 
 **Remaining failures:** none known.
 
@@ -362,7 +382,7 @@ Captures are in `Documentation/Screenshots/Phase23/`, with notes in `p23_log.txt
 
 ## I. Recommendations for Phase 24
 
-1. **A full Unity EditMode and PlayMode checkpoint run first.** Last run before Phase 22.
+1. **The next full Unity checkpoint** in two or three phases (this one ran at the end of Phase 23).
 2. **Roadside life and landmarks.** Waystones, cairns and camps; travellers and caravans walking the roads (groups already move on the route graph).
 3. **The world map and the country together.** Show the player's overland position on the atlas; allow stepping off a journey into the country.
 4. **Overland encounters and hazards,** if the owner wants them before groups walk the roads.

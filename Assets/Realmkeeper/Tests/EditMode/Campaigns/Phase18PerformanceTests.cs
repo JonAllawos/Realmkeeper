@@ -45,20 +45,23 @@ namespace Realmkeeper.Tests.EditMode.Campaigns
             sw.Stop();
             var layoutMs = sw.Elapsed.TotalMilliseconds / layouts;
 
+            // One snapshot for the timings below: W copies the whole world on every read, and timing that copy (which grew with
+            // Phase 23's nine regions) measured the test, not the game. The save and load timings already did this.
+            var world = W;
             sw.Restart();
-            for (var i = 0; i < 200; i++) StorySynthesis.Run(W, null);
+            for (var i = 0; i < 200; i++) StorySynthesis.Run(world, null);
             sw.Stop();
             var storyMs = sw.Elapsed.TotalMilliseconds / 200;
 
-            var town = W.Player.SettlementId;
+            var town = world.Player.SettlementId;
             sw.Restart();
-            for (var i = 0; i < 200; i++) NpcExchanges.Now(W, town);
+            for (var i = 0; i < 200; i++) NpcExchanges.Now(world, town);
             sw.Stop();
             var exchangeMs = sw.Elapsed.TotalMilliseconds / 200;
 
-            var people = W.Npcs.Where(n => n.HomeSettlementId == town).Take(20).ToList();
+            var people = world.Npcs.Where(n => n.HomeSettlementId == town).Take(20).ToList();
             sw.Restart();
-            for (var i = 0; i < 20; i++) foreach (var n in people) DiscoveryRules.Offerable(W, n);
+            for (var i = 0; i < 20; i++) foreach (var n in people) DiscoveryRules.Offerable(world, n);
             sw.Stop();
             var offerMs = sw.Elapsed.TotalMilliseconds / (20 * people.Count);
 

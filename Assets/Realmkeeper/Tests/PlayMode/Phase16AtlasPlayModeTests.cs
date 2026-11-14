@@ -161,9 +161,9 @@ namespace Realmkeeper.Tests.PlayMode
             yield return CombatDriver.EnterTownAsFighter(Bootstrap, Runtime, c);
             yield return AtlasDriver.ToAtlas(Bootstrap, c);
 
-            // The connected world: six regions, every settlement and road drawn, layers that switch.
+            // The connected world: nine regions (six before Phase 23), every settlement and road drawn, layers that switch.
             var v = hud.AtlasSnapshot;
-            Assert.That(v.Regions.Count, Is.EqualTo(6));
+            Assert.That(v.Regions.Count, Is.EqualTo(9)); // Phase 23: a new game is the whole 3 × 3 atlas (ADR-0110)
             Assert.That(v.Routes.Any(r => r.Crossing), Is.True, "Roads cross the borders.");
             foreach (var x in v.Settlements) Assert.That(AtlasDriver.Has(hud, "rk-atlas-mark-settlement:" + x.SettlementId), Is.True, x.Name + " is on the atlas.");
             Assert.That(AtlasDriver.Has(hud, "rk-atlas-mark-player"), Is.True);

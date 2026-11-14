@@ -210,7 +210,7 @@ namespace Realmkeeper.Tests.PlayMode
             hud.ToggleAtlas(true);
             yield return null;
             var v = hud.AtlasSnapshot;
-            Assert.That(v.Regions.Count, Is.EqualTo(6), "Six regions.");
+            Assert.That(v.Regions.Count, Is.EqualTo(9), "Nine regions (Phase 23, ADR-0110).");
             foreach (var r in v.Regions)
             {
                 AtlasDriver.Click(hud, "rk-atlas-mark-region:" + r.RegionId);

@@ -19,10 +19,14 @@ namespace Realmkeeper.Application
         public const int MaxOffered = 2;
 
         /// <summary>How much this person cares to hear it (0: not at all).</summary>
-        public static int Interest(WorldData w, NpcData npc, DiscoveryData d)
+        public static int Interest(WorldData w, NpcData npc, DiscoveryData d) =>
+            npc == null ? 0 : Interest(npc, d, npc.HomeSettlementId.ToString());
+
+        /// <summary>As <see cref="Interest(WorldData, NpcData, DiscoveryData)"/>, with the person's home already formatted (called per discovery).</summary>
+        private static int Interest(NpcData npc, DiscoveryData d, string home)
         {
             if (npc == null || d == null || npc.IsDeceased || npc.HomeSettlementId.IsEmpty) return 0;
-            if (d.SharedIn.Contains(npc.HomeSettlementId.ToString())) return 0;
+            if (d.SharedIn.Contains(home)) return 0;
             if (d.Certainty == DiscoveryCertainty.Unverified && !d.Major) return 0; // a guess is not worth passing on
             switch (d.Category)
             {
@@ -56,10 +60,21 @@ namespace Realmkeeper.Application
             var list = new List<DiscoveryData>();
             var social = w.Player?.Social;
             if (social == null || npc == null || npc.HomeSettlementId != w.Player.SettlementId) return list;
-            foreach (var d in social.Discoveries) if (Interest(w, npc, d) > 0) list.Add(d);
+            // Each discovery is scored once (the sort compared them again and again, formatting the home each time: Phase 23's
+            // larger world made that measurable).
+            var home = npc.HomeSettlementId.ToString();
+            var score = new Dictionary<DiscoveryData, int>();
+            foreach (var d in social.Discoveries)
+            {
+                var s = Interest(npc, d, home);
+                if (s <= 0) continue;
+                score[d] = s;
+                list.Add(d);
+            }
+
             list.Sort((a, b) =>
             {
-                var i = Interest(w, npc, b).CompareTo(Interest(w, npc, a));
+                var i = score[b].CompareTo(score[a]);
                 if (i != 0) return i;
                 if (a.Major != b.Major) return a.Major ? -1 : 1;
                 return b.At != a.At ? b.At.CompareTo(a.At) : string.CompareOrdinal(a.Key, b.Key);

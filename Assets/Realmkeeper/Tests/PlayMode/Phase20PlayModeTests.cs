@@ -126,6 +126,7 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(creator.Problems, Does.Contain("Fiendish Legacy"), "The legacy must be chosen.");
             yield return Shoot("p20_02_species_selection", "Species as cards; a tiefling selected, its legacy not yet chosen (the problem is named).", cam);
             Click(root, "xk-cc-species-fiendish_legacy-chthonic");
+            Click(root, "xk-cc-species-legacy_ability-charisma"); // Phase 22 (rules 10): the legacy's ability is chosen too
             Assert.That(creator.Problems, Does.StartWith("✓"));
             yield return Shoot("p20_03_species_detail", "Species detail: traits, lore, the chosen chthonic legacy.", cam);
 
