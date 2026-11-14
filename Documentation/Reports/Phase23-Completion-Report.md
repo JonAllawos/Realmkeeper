@@ -3,7 +3,7 @@
 **Phase:** Overland World Foundation, Expanded World Scale, Realm Architecture & Traversal.
 **Date:** 2026-11-13.
 **Branch:** `feature/phase-0-1-foundation`.
-**Commits:** `ea1422b` (the phase) and `9746185` (records the hash), then the follow-up round below. All local, none pushed (the brief).
+**Commits:** `ea1422b` (the phase), `9746185` (records the hash) and `a818a74` (the follow-up round below). All local, none pushed (the brief).
 
 **Decisions:** ADR-0110 (scale and terrain), ADR-0111 (realms, gateways, location, save v25), ADR-0112 (transitions and streaming).
 **System doc:** `Systems/Overland.md`.
@@ -356,7 +356,7 @@ Captures are in `Documentation/Screenshots/Phase23/`, with notes in `p23_log.txt
 
 - **Branch:** `feature/phase-0-1-foundation`.
 - **Before:** `de66388`, the same as origin.
-- **Commits:** `ea1422b` (Phase 23) and `9746185` (its hash recorded), then the follow-up commit. All local.
+- **Commits:** `ea1422b` (Phase 23), `9746185` (its hash recorded), `a818a74` (the follow-up round), and a last commit recording this hash. All local.
 - **Working tree after the commit:** clean except for Unity's untracked `Assets/InitTestScene*` files, which are deliberately left out as in every phase.
 - **Nothing was pushed or uploaded.**
 
