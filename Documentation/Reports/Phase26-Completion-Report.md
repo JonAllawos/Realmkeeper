@@ -38,6 +38,8 @@ Phase 26 finished the screens Phase 25 had only restyled, and added a codex.
 
 **Not hand-played.**
 
+**Fixes after the owner's first play (§28):** roads draped on the walked ground, fences kept off the roads with reachable gates, map keys ignored while typing, and the conversation number keys matched to the buttons shown.
+
 ## 2. Preflight findings
 
 `Systems/Phase26-Preflight-Audit.md` has the full audit.
@@ -339,7 +341,7 @@ Captured at 1920, 1280×800 and 1024×768 (creation), and at 1920 and 1366 (adva
 
 ## 26. Manual owner playtest checklist
 
-`Systems/Phase26-Owner-Playtest-Checklist.md` has 21 checks. It separates automated tests and automated visual checks from your manual testing, and lists the feedback still outstanding from Phases 24 and 25.
+`Systems/Phase26-Owner-Playtest-Checklist.md` has 25 checks (22–25 added for the §28 fixes). It separates automated tests and automated visual checks from your manual testing, and lists the feedback still outstanding from Phases 24 and 25.
 
 ## 27. Recommended Phase 27 priorities
 
@@ -350,3 +352,30 @@ Suggestions only; the next brief decides.
 3. Finish the string table: settings, title, strategic HUD, the remaining hub sections, notices and command messages.
 4. Pool inventory rows (the measured allocation), and profile a development build.
 5. Physical traversal and destination integration (the old Phase 26 plan).
+
+## 28. Fixes after the owner's first play (2026-11-14)
+
+The owner played a new world after the push and reported four defects. All four were reproduced or traced in code and fixed. They are committed locally after `3f8ded4`; **nothing was pushed.**
+
+| # | Owner report | Cause | Fix |
+|---|---|---|---|
+| 1 | "The roads sit above the ground… the stone walkway appears to go through the player's body" | The road strip was laid on the plan's smooth height, not the 2 m terrain mesh the player walks on. Each row had only two points, and the downhill edge was raised to clear the ground under it, so on a side slope the paving stood up to tens of centimetres above the walked surface. Roads have no collider, so the feet stayed on the grass below the slab | Roads are draped on the meshed ground itself (`GroundAt`, the same two triangles per cell as the terrain mesh): a row every metre, five points across, 3 cm up. Bridge decks stay level. Fields and fences use the same height |
+| 2 | "The fence blocks me in… there's no gates" | Fenced plots were placed with incomplete checks. The farm yard had no road check at all; a garden checked only its centre against the lanes, so its fence could stand across one; and every gate was put on the plot's front side, even when that side was against a house (gardens) or another plot | `AddFenced` (settlement generator): a fenced plot is raised only if its whole fence line keeps clear of every road and no road runs inside it. Its gate goes on whichever side opens onto free ground and is nearest a road. If no side is open, the plot is not raised. The gate is drawn as a clear 3.2 m opening between two taller posts, matching the collider gap |
+| 3 | "Keys that rotate or zoom adjust the overview map while typing to create a new world" | The strategic camera read W A S D, the arrows, Q/E and the wheel with no check for text entry; only the exploration hotkeys had one | `RkTyping` (shared UI): true while any interface document has a text field focused. The strategic camera ignores its input then, and the exploration hotkeys use the same check |
+| 4 | "The numbered conversations when you interact with someone do not function" | The topic list shows "1 Talk…" first and "Trade" last, but the number keys indexed the bare topic table: 1 asked "About you", every number was one off, and "Trade" and the later topics had no key | The keys pick from the buttons as shown (1–9, 0 for 10, top row or keypad). Dialogue responses also accept the keypad |
+
+**New regression tests** (`SettlementFenceAccessTests`, 3 tests over 18 generated settlements in six worlds):
+- the arrival is never inside a fenced plot;
+- no road runs through a fence;
+- from the arrival the square and every gate can be walked to (a 0.5 m grid with fences and buildings blocking), and each gate opens into its plot.
+
+Before the fix, two failed: a garden fence across `lane-roadside-2`, and a garden whose gate could not be reached.
+
+**Existing plans.** Settlement plans are saved once and never regenerated, so a world created before this fix keeps its plots as they were. The road and gate drawing fixes (1, and the visible gate) apply to every world; the plot placement fix (2) applies to new worlds.
+
+**Tests after the fixes:**
+- .NET: **954 passed, 0 failed** (951 + the 3 new).
+- Unity PlayMode, targeted, in batch mode: `Phase10PlayModeTests`, `Phase12PlayModeTests` and `Phase26PlayModeTests`, **8 passed, 0 failed** (towns built from their plans, dialogue, and the Phase 26 screens; Unity compiled every change).
+- **The full Unity EditMode and PlayMode suites were still not run,** at the owner's instruction for this round.
+
+**Not checked by hand:** the roads on slopes, the gates and the keys. See checks 22–25 in the playtest checklist.

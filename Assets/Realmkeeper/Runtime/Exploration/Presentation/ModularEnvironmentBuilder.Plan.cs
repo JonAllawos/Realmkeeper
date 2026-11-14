@@ -128,12 +128,48 @@ namespace Realmkeeper.Exploration.Presentation
                 if (d <= br.Width) return br.DeckHeight + 0.06f;
             }
 
-            return plan.HeightAt(x, z) + 0.05f;
+            return GroundAt(plan, x, z) + RoadLift;
         }
 
-        /// <summary>A road as a strip that follows the ground, a metre and a half at a time.</summary>
+        /// <summary>How far a road's surface lies above the walked ground: only enough not to flicker into it.</summary>
+        private const float RoadLift = 0.03f;
+
+        /// <summary>
+        /// The height of the ground exactly as it is meshed and walked on: the plan's height at the 2 m grid's corners,
+        /// interpolated across the same two triangles per cell (a,c,b and b,c,d). The plan's own <c>HeightAt</c> is the
+        /// smooth surface the mesh approximates; laying a road on that left it floating above (or sunk into) the mesh.
+        /// </summary>
+        private static float GroundAt(SettlementLayoutData plan, float x, float z)
+        {
+            var extent = plan.HalfExtent + 60f;
+            var gx = (x + extent) / TerrainStep;
+            var gz = (z + extent) / TerrainStep;
+            var i = Mathf.FloorToInt(gx);
+            var j = Mathf.FloorToInt(gz);
+            var fx = gx - i;
+            var fz = gz - j;
+            var x0 = -extent + i * TerrainStep;
+            var z0 = -extent + j * TerrainStep;
+            var hb = plan.HeightAt(x0 + TerrainStep, z0);
+            var hc = plan.HeightAt(x0, z0 + TerrainStep);
+            if (fx + fz <= 1f)
+            {
+                var ha = plan.HeightAt(x0, z0);
+                return ha + (hb - ha) * fx + (hc - ha) * fz;
+            }
+
+            var hd = plan.HeightAt(x0 + TerrainStep, z0 + TerrainStep);
+            return hd + (hc - hd) * (1f - fx) + (hb - hd) * (1f - fz);
+        }
+
+        /// <summary>
+        /// A road as a strip draped on the walked ground: a row every metre, five points across, each just above the
+        /// meshed terrain under it, so the surface neither floats beside a traveller's feet nor cuts through them on a
+        /// slope (owner report, 2026-11-14). Over a bridge the row is the deck's, level across.
+        /// </summary>
         private static void BuildRoad(Context ctx, RoadData road)
         {
+            const int across = 5;
             var plan = ctx.Layout.Plan;
             if (road.Line.Count < 2) return;
             var samples = new List<Vector2>();
@@ -141,7 +177,7 @@ namespace Realmkeeper.Exploration.Presentation
             {
                 var a = road.Line[i];
                 var b = road.Line[i + 1];
-                var n = Math.Max(1, Mathf.CeilToInt(a.DistanceTo(b) / 1.5f));
+                var n = Math.Max(1, Mathf.CeilToInt(a.DistanceTo(b) / 1f));
                 for (var k = 0; k < n; k++) samples.Add(new Vector2(a.X + (b.X - a.X) * k / n, a.Z + (b.Z - a.Z) * k / n));
             }
 
@@ -159,19 +195,22 @@ namespace Realmkeeper.Exploration.Presentation
                 if (dir.sqrMagnitude < 1e-6f) dir = Vector2.up;
                 var side = new Vector2(-dir.y, dir.x) * half;
                 if (i > 0) along += (samples[i] - samples[i - 1]).magnitude;
-                var l = samples[i] + side;
-                var r = samples[i] - side;
                 var y = RoadHeight(plan, road.Key, samples[i].x, samples[i].y);
-                var yl = Math.Max(y, plan.HeightAt(l.x, l.y) + 0.04f);
-                var yr = Math.Max(y, plan.HeightAt(r.x, r.y) + 0.04f);
-                if (y > plan.HeightAt(samples[i].x, samples[i].y) + 0.3f) yl = yr = y; // on a deck: level across
-                verts.Add(new Vector3(l.x, yl, l.y));
-                verts.Add(new Vector3(r.x, yr, r.y));
-                uvs.Add(new Vector2(0f, along));
-                uvs.Add(new Vector2(road.Width, along));
+                var onDeck = y > GroundAt(plan, samples[i].x, samples[i].y) + 0.3f;
+                for (var k = 0; k < across; k++)
+                {
+                    var t = k / (float)(across - 1); // 0 = left edge, 1 = right edge
+                    var p = samples[i] + side * (1f - 2f * t);
+                    var py = onDeck ? y : GroundAt(plan, p.x, p.y) + RoadLift;
+                    verts.Add(new Vector3(p.x, py, p.y));
+                    uvs.Add(new Vector2(road.Width * t, along));
+                }
+
                 if (i == 0) continue;
-                var v = verts.Count - 4;
-                tris.AddRange(new[] { v, v + 2, v + 1, v + 1, v + 2, v + 3 });
+                var row = verts.Count - across;
+                var last = row - across;
+                for (var k = 0; k + 1 < across; k++)
+                    tris.AddRange(new[] { last + k, row + k, last + k + 1, last + k + 1, row + k, row + k + 1 });
             }
 
             var mesh = ctx.Assets.Track(new Mesh { name = "Road " + road.Key, indexFormat = verts.Count > 60000 ? IndexFormat.UInt32 : IndexFormat.UInt16 });
@@ -302,7 +341,7 @@ namespace Realmkeeper.Exploration.Presentation
         private static Vector3 FieldPoint(SettlementLayoutData plan, FieldData f, float lx, float lz, float lift)
         {
             var p = SettlementLayoutGenerator.Local(f.Center, f.Yaw, lx, lz);
-            return new Vector3(p.X, plan.HeightAt(p.X, p.Z) + lift, p.Z);
+            return new Vector3(p.X, GroundAt(plan, p.X, p.Z) + lift, p.Z);
         }
 
         /// <summary>A field as a grid draped over the ground, with rows for crops, trees for an orchard, a fence when it has one.</summary>
@@ -384,15 +423,23 @@ namespace Realmkeeper.Exploration.Presentation
                 var (bx, bz) = corners[(s + 1) % 4];
                 var a = new Vector2(ax * f.Width, az * f.Depth);
                 var b = new Vector2(bx * f.Width, bz * f.Depth);
-                var length = (b - a).magnitude;
+                // The gate side is two runs either side of a 3.2 m opening, marked by two taller posts.
+                var runs = s == 0
+                    ? new[] { (a, new Vector2(-1.6f, a.y)), (new Vector2(1.6f, a.y), b) }
+                    : new[] { (a, b) };
+                if (s == 0)
+                    foreach (var gx in new[] { -1.6f, 1.6f })
+                        Mesh(ctx, ctx.Static, "Gate post", Shared(ctx, "GatePost", () => MetreMeshes.Box(new Vector3(0.2f, 1.6f, 0.2f), ctx.Assets)), ctx.Mat("Bark"), FieldPoint(plan, f, gx, a.y, 0f) + Vector3.up * 0.8f);
+                foreach (var (ra, rb) in runs)
+                {
+                var length = (rb - ra).magnitude;
                 var n = Math.Max(1, Mathf.CeilToInt(length / 2.5f));
                 for (var k = 0; k < n; k++)
                 {
                     var t0 = k / (float)n;
                     var t1 = (k + 1) / (float)n;
-                    if (s == 0 && Math.Abs((t0 + t1) / 2f - 0.5f) < 1.6f / length) continue; // the gate
-                    var p0 = Vector2.Lerp(a, b, t0);
-                    var p1 = Vector2.Lerp(a, b, t1);
+                    var p0 = Vector2.Lerp(ra, rb, t0);
+                    var p1 = Vector2.Lerp(ra, rb, t1);
                     var w0 = FieldPoint(plan, f, p0.x, p0.y, 0f);
                     var w1 = FieldPoint(plan, f, p1.x, p1.y, 0f);
                     Mesh(ctx, ctx.Static, "Fence post", Shared(ctx, "FencePost", () => MetreMeshes.Box(new Vector3(0.14f, 1.2f, 0.14f), ctx.Assets)), ctx.Mat("Bark"), w0 + Vector3.up * 0.6f);
@@ -404,6 +451,7 @@ namespace Realmkeeper.Exploration.Presentation
                         var rail = Mesh(ctx, ctx.Static, "Fence rail", MetreMeshes.Box(new Vector3(0.06f, 0.1f, span.magnitude), ctx.Assets), ctx.Mat("Wood"), mid + Vector3.up * h);
                         rail.transform.localRotation = rot;
                     }
+                }
                 }
 
                 // One collider along the side (the gate side split round its gap).

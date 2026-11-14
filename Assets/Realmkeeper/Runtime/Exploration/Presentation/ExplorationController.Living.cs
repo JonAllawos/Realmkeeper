@@ -811,7 +811,7 @@ namespace Realmkeeper.Exploration.Presentation
         private bool Typing()
         {
             var focused = Hud?.Root?.panel?.focusController?.focusedElement as VisualElement;
-            return focused != null && (focused is TextField || focused is IntegerField || focused.GetFirstAncestorOfType<TextField>() != null || focused.GetFirstAncestorOfType<IntegerField>() != null);
+            return Realmkeeper.UI.RkTyping.IsTextEntry(focused) || Realmkeeper.UI.RkTyping.Active();
         }
 
         /// <summary>Phase 5 keys: H hub, T wait an hour, P pause, Esc closes a window.</summary>

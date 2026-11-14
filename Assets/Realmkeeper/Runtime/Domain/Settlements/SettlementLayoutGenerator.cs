@@ -1090,7 +1090,7 @@ namespace Realmkeeper.Domain.Settlements
                 var shedAt = Local(c, yaw, -8f, 4f);
                 if (Fits(ctx, shedAt, 4f, 4f, yaw, 1.4f, 0.5f)) Place(ctx, farm + "-shed", BuildingFunction.Shed, house.DistrictKey, shedAt, 4f, 4f, 2.8f, yaw);
                 var yardAt = Local(c, yaw, 3f, 13f);
-                if (!SettlementTerrain.InWater(p, yardAt.X, yardAt.Z, 6f)) p.Fields.Add(new FieldData { Key = farm + "-yard", Kind = FieldKind.Yard, Center = yardAt, Width = 22f, Depth = 9f, Yaw = yaw, Crop = "chickens", OwnerKey = farm, Fenced = true });
+                if (!SettlementTerrain.InWater(p, yardAt.X, yardAt.Z, 6f)) AddFenced(ctx, new FieldData { Key = farm + "-yard", Kind = FieldKind.Yard, Center = yardAt, Width = 22f, Depth = 9f, Yaw = yaw, Crop = "chickens", OwnerKey = farm, Fenced = true });
 
                 // Its land: crops on the level, a pasture on the slope, sometimes an orchard.
                 var fields = 2 + ctx.Rng.Int(2);
@@ -1107,8 +1107,13 @@ namespace Realmkeeper.Domain.Settlements
                     var step = kind == FieldKind.Pasture ? 7f : kind == FieldKind.Orchard ? 5f : 3.2f;
                     if (!FieldFits(ctx, fc, fw, fd, fyaw, step)) continue;
                     var crop = kind == FieldKind.Pasture ? stock[(made + f) % stock.Count] : kind == FieldKind.Orchard ? "apples" : kind == FieldKind.Fallow ? "fallow" : crops[ctx.Rng.Int(crops.Length)];
-                    p.Fields.Add(new FieldData { Key = ctx.Key("field"), Kind = kind, Center = fc, Width = fw, Depth = fd, Yaw = fyaw, Crop = crop, OwnerKey = farm, Fenced = kind == FieldKind.Pasture || kind == FieldKind.Orchard });
-                    ctx.Footprints.Add((fc, fw, fd, fyaw));
+                    var field = new FieldData { Key = ctx.Key("field"), Kind = kind, Center = fc, Width = fw, Depth = fd, Yaw = fyaw, Crop = crop, OwnerKey = farm, Fenced = kind == FieldKind.Pasture || kind == FieldKind.Orchard };
+                    if (field.Fenced) AddFenced(ctx, field);
+                    else
+                    {
+                        p.Fields.Add(field);
+                        ctx.Footprints.Add((fc, fw, fd, fyaw));
+                    }
                 }
 
                 made++;
@@ -1167,9 +1172,82 @@ namespace Realmkeeper.Domain.Settlements
                 var c = Local(b.Center, b.Yaw, 0, b.Depth / 2 + 5f);
                 var w = b.Width + 1f;
                 if (!FieldFits(ctx, c, w, 8f, b.Yaw, 1.6f) && !GardenFits(ctx, c, w, 8f, b.Yaw)) continue;
-                p.Fields.Add(new FieldData { Key = ctx.Key("garden"), Kind = FieldKind.Garden, Center = c, Width = w, Depth = 8f, Yaw = b.Yaw, Crop = ctx.Rng.Next01() < 0.5 ? "vegetables" : "herbs", OwnerKey = b.Key, Fenced = true });
-                ctx.Footprints.Add((c, w, 8f, b.Yaw));
+                AddFenced(ctx, new FieldData { Key = ctx.Key("garden"), Kind = FieldKind.Garden, Center = c, Width = w, Depth = 8f, Yaw = b.Yaw, Crop = ctx.Rng.Next01() < 0.5 ? "vegetables" : "herbs", OwnerKey = b.Key, Fenced = true });
             }
+        }
+
+        /// <summary>
+        /// A fenced field is raised only where its fence keeps clear of every road and its gate opens onto free ground:
+        /// the gate goes on whichever side of the same plot is open and nearest a road (owner report, 2026-11-14: fences
+        /// across the lanes and gardens with no way in).
+        /// </summary>
+        private static bool AddFenced(Context ctx, FieldData f)
+        {
+            var p = ctx.Plan;
+            float hw = f.Width / 2f, hd = f.Depth / 2f;
+            var corners = new[] { Local(f.Center, f.Yaw, -hw, -hd), Local(f.Center, f.Yaw, hw, -hd), Local(f.Center, f.Yaw, hw, hd), Local(f.Center, f.Yaw, -hw, hd) };
+            for (var s = 0; s < 4; s++)
+            {
+                var a = corners[s];
+                var b = corners[(s + 1) % 4];
+                var len = a.DistanceTo(b);
+                for (var t = 0f; t <= len; t += 1f)
+                {
+                    var k = len > 0 ? t / len : 0f;
+                    var x = a.X + (b.X - a.X) * k;
+                    var z = a.Z + (b.Z - a.Z) * k;
+                    foreach (var (sa, sb, half) in ctx.Segments)
+                        if (SettlementTerrain.SegmentDistance(sa.X, sa.Z, sb.X, sb.Z, x, z, out _, out _) < half + 0.8f) return false;
+                }
+            }
+
+            // No road may run inside the fence either.
+            foreach (var (sa, _, _) in ctx.Segments)
+                if (InRect(f.Center, f.Width, f.Depth, f.Yaw, sa, 0f)) return false;
+
+            var near = Nearest(ctx, f.Center, out _);
+            var best = -1;
+            var bestDistance = float.MaxValue;
+            for (var r = 0; r < 4; r++)
+            {
+                var yaw = f.Yaw + 90f * r;
+                var depth = r % 2 == 0 ? f.Depth : f.Width;
+                var outside = Local(f.Center, yaw, 0f, -depth / 2f - 1.5f);
+                var inside = Local(f.Center, yaw, 0f, -depth / 2f + 1.2f);
+                if (Math.Abs(outside.X) > p.HalfExtent - 2f || Math.Abs(outside.Z) > p.HalfExtent - 2f) continue;
+                if (SettlementTerrain.InWater(p, outside.X, outside.Z, 1f) || Blocked(ctx, outside, f.Center) || Blocked(ctx, inside, f.Center)) continue;
+                var d = outside.DistanceTo(near);
+                if (d < bestDistance) { bestDistance = d; best = r; }
+            }
+
+            if (best < 0) return false;
+            if (best % 2 == 1) { var w = f.Width; f.Width = f.Depth; f.Depth = w; }
+            f.Yaw += 90f * best;
+            if (f.Yaw >= 360f) f.Yaw -= 360f;
+            p.Fields.Add(f);
+            ctx.Footprints.Add((f.Center, f.Width, f.Depth, f.Yaw));
+            return true;
+        }
+
+        private static bool Blocked(Context ctx, PlanPoint at, PlanPoint self)
+        {
+            foreach (var (oc, ow, od, oyaw) in ctx.Footprints)
+                if (oc.DistanceTo(self) > 0.01f && InRect(oc, ow, od, oyaw, at, 0.8f)) return true;
+            foreach (var b in ctx.Plan.Buildings)
+                if (InRect(b.Center, b.Width, b.Depth, b.Yaw, at, 0.8f)) return true;
+            foreach (var other in ctx.Plan.Fields)
+                if (other.Fenced && InRect(other.Center, other.Width, other.Depth, other.Yaw, at, 0.8f)) return true;
+            return false;
+        }
+
+        private static bool InRect(PlanPoint c, float w, float d, float yaw, PlanPoint at, float margin)
+        {
+            var r = yaw * Math.PI / 180.0;
+            var cos = (float)Math.Cos(r);
+            var sin = (float)Math.Sin(r);
+            var dx = at.X - c.X;
+            var dz = at.Z - c.Z;
+            return Math.Abs(dx * cos + dz * sin) < w / 2f + margin && Math.Abs(-dx * sin + dz * cos) < d / 2f + margin;
         }
 
         private static bool GardenFits(Context ctx, PlanPoint c, float w, float d, float yaw)

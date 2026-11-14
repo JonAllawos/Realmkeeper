@@ -86,7 +86,7 @@ namespace Realmkeeper.Presentation
         {
             if (Motion == null) return;
             _reader.EdgePanEnabled = _edgePan;
-            var input = _readInput ? _reader.Read() : CameraInput.None;
+            var input = _readInput && !Realmkeeper.UI.RkTyping.Active() ? _reader.Read() : CameraInput.None; // not while a text field is being typed in
             var mouse = UnityEngine.InputSystem.Mouse.current;
             if (_readInput && mouse != null && IsPointerOverUi != null && IsPointerOverUi(mouse.position.ReadValue()))
             {

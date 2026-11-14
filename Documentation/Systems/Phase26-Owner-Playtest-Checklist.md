@@ -62,6 +62,13 @@ Each check says what to do and what you should see.
 20. **Reduce motion**, and **Interface sounds 0:** no sliding, no clicks.
 21. **Windowed sizes:** try 1280×800 and a tall narrow window (around 700×1000). The trade window and the hub stack their inspector under the list when narrow.
 
+## Fixes after your first play (report §28)
+
+22. **Start a new world.** The roads lie on the ground: walking across a sloping road, the stones stay at your feet and never pass through your legs.
+23. **Fences.** Nothing fences you in at the start. Every fenced garden, yard and pasture has a visible gate between two taller posts, which you can walk through.
+24. **Name a new world** while the map is behind the title screen: typing W, A, S, D, Q or E puts the letters in the name and does not move, turn or zoom the map.
+25. **Talk to a resident.** Each number key (top row or keypad) does what its button says: 1 is "Talk…", and the last ones (including "Trade") work too. In a full conversation, the numbers choose the responses.
+
 ## Owner feedback still outstanding
 
 - Hand-play notes from Phases 24, 25 and 26.

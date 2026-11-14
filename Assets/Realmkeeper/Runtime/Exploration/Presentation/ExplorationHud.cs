@@ -272,6 +272,9 @@ namespace Realmkeeper.Exploration.Presentation
             _responseTimer = ResponseSeconds * 2f;
         }
 
+        /// <summary>A topic was chosen by its number key: the answer stays up as long as after a click.</summary>
+        public void KeepResponse() => _responseTimer = ResponseSeconds;
+
         /// <summary>Dismisses the last interaction response and its topics (a window opened, or time moved on).</summary>
         public void HideResponse()
         {

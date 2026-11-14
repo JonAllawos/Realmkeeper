@@ -384,7 +384,8 @@ namespace Realmkeeper.Exploration.Presentation
 
             Hud?.ShowResponse(LastResponse);
             TalkingTo = LastResponse != null && LastResponse.Succeeded ? CurrentTarget as ResidentView : null;
-            Hud?.ShowTopics(TalkingTo == null ? null : TopicButtons());
+            _shownTopics = TalkingTo == null ? null : TopicButtons();
+            Hud?.ShowTopics(_shownTopics);
             RefreshHud();
             return LastResponse;
         }
@@ -407,6 +408,21 @@ namespace Realmkeeper.Exploration.Presentation
             (ConversationTopic.Prices, "Prices"),
             (ConversationTopic.Factions, "The factions"),
         };
+
+        /// <summary>The topic buttons as last shown, in their numbered order; the number keys pick from these.</summary>
+        private IReadOnlyList<(string, Action)> _shownTopics;
+
+        /// <summary>
+        /// The number key pressed this frame: 1 to 9 on the top row or the keypad, 0 for 10; zero when none.
+        /// </summary>
+        public static int NumberPressed(UnityEngine.InputSystem.Keyboard keys)
+        {
+            if (keys == null) return 0;
+            for (var i = 0; i < 9; i++)
+                if (keys[UnityEngine.InputSystem.Key.Digit1 + i].wasPressedThisFrame || keys[UnityEngine.InputSystem.Key.Numpad1 + i].wasPressedThisFrame) return i + 1;
+            if (keys[UnityEngine.InputSystem.Key.Digit0].wasPressedThisFrame || keys[UnityEngine.InputSystem.Key.Numpad0].wasPressedThisFrame) return 10;
+            return 0;
+        }
 
         private IReadOnlyList<(string, Action)> TopicButtons()
         {
@@ -523,14 +539,22 @@ namespace Realmkeeper.Exploration.Presentation
             if (TalkingTo != null && !ReferenceEquals(CurrentTarget, TalkingTo))
             {
                 TalkingTo = null; // walked away: the conversation ends
+                _shownTopics = null;
                 Hud?.ShowTopics(null);
             }
 
             var keys = UnityEngine.InputSystem.Keyboard.current;
-            if (TalkingTo != null && keys != null)
+            if (TalkingTo != null && keys != null && _shownTopics != null && !Typing())
             {
-                for (var i = 0; i < Topics.Count && i < 9; i++)
-                    if (keys[UnityEngine.InputSystem.Key.Digit1 + i].wasPressedThisFrame) AskResident(Topics[i].topic);
+                // The number pressed is the number shown: the list begins with "Talk…" and ends with "Trade" (owner
+                // report, 2026-11-14: the keys were one off, asking the topic below the one numbered).
+                var n = NumberPressed(keys);
+                if (n >= 1 && n <= _shownTopics.Count)
+                {
+                    var (_, ask) = _shownTopics[n - 1];
+                    ask();
+                    Hud?.KeepResponse();
+                }
             }
 
             if (_input == null) return;

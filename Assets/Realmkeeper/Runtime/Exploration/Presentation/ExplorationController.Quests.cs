@@ -193,14 +193,8 @@ namespace Realmkeeper.Exploration.Presentation
                 return true;
             }
 
-            var digits = new[] { keys.digit1Key, keys.digit2Key, keys.digit3Key, keys.digit4Key, keys.digit5Key, keys.digit6Key, keys.digit7Key, keys.digit8Key, keys.digit9Key };
-            for (var i = 0; i < digits.Length; i++)
-                if (digits[i].wasPressedThisFrame)
-                {
-                    Dialogue.PickNumber(i + 1);
-                    return true;
-                }
-
+            var n = NumberPressed(keys); // the top row or the keypad
+            if (n > 0 && n <= 9) Dialogue.PickNumber(n); // responses are numbered 1 to 9
             return true;
         }
     }
