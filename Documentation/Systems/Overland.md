@@ -104,11 +104,23 @@ A place entered from the country returns the player there when they leave it.
   - Return to World Map (M) leaves.
 - **`LoadingScreen`:** covers every transition. A refusal shows its reason and leaves the player where they were.
 
+## Follow-up (owner request, 2026-11-13)
+
+- **Look.**
+  - Textured ground: the owned ambientCG grass and ground, and the village kit's rock, blended by biome and slope.
+  - Grass, ferns and flowers from the owned nature kit near the player.
+  - Settlements from their own kit buildings.
+- **Collisions.** Trunks and rocks are solid near the player (pooled colliders within 45 m).
+- **From the map.** "Walk the country" on the map's settlement inspector.
+- **HUD.** The location panel shows region · in the country · ground. The settlement-edge practice fights and outings are hidden in the country.
+- **More to find.** Each further region gains a hollow, a fallen steading, a barrow and old workings, once, named after the settlement they lie near.
+- **Weather.** Fronts scale with the atlas's rows, so nine-region worlds are not drier than six-region ones.
+
 ## Known limits (Phase 23)
 
-- Outside the home region, a region has about 7 destinations in 26 km². Landmarks and minor sites are later work.
-- Trees have no colliders.
-- The strategic map does not drop the player into the country directly; the way in is through a settlement.
+- Roadside landmarks (waystones, cairns, camps) are later work. The further regions now have four ordinary wild places each besides their settlements and quest places.
+- Settlements beyond 1.4 km are block shapes under the haze; nearer ones are built from the village kit (33–157 ms each, one at a time).
+- Entering from the map is by a settlement of the player's region ("Walk the country"); not from mid-journey.
 - No mounts, fast travel, overland encounters or hazards.
 - Weather does not yet change the ground (mud, snow depth, flooded fords).
 - The ancient realm's content is undecided (Campaign Bible); its region is geography only.

@@ -208,6 +208,8 @@ namespace Realmkeeper.Presentation
             MessageLabel = Root.Q<Label>("message");
             EnterSettlementButton = Root.Q<Button>("insp-enter");
             EnterSettlementButton.clicked += () => EnterSelectedSettlement();
+            CountryButton = Root.Q<Button>("insp-country"); // Phase 23
+            if (CountryButton != null) CountryButton.clicked += () => WalkCountryBySelected();
             BindPolitics();
             BindPeople();
             BindPlaces(); // Phase 13
@@ -262,6 +264,23 @@ namespace Realmkeeper.Presentation
             if (_session == null) return NoSession();
             var result = _selection.HasSelection
                 ? _session.Dispatch(new EnterSettlementCommand(_selection.SelectedId))
+                : CommandResult.Invalid("Select a settlement first.");
+            if (!result.IsSuccess) ShowMessage(result);
+            return result;
+        }
+
+        /// <summary>Phase 23: the "Walk the country" button on the map.</summary>
+        public Button CountryButton { get; private set; }
+
+        /// <summary>
+        /// Phase 23: out into the country by the selected settlement, straight from the map (the same rules as entering it:
+        /// the player's region, no journey under way). The exploration view loads it behind its loading screen.
+        /// </summary>
+        public CommandResult WalkCountryBySelected()
+        {
+            if (_session == null) return NoSession();
+            var result = _selection.HasSelection
+                ? _session.Dispatch(new Realmkeeper.Application.Overland.EnterOverlandCommand(_selection.SelectedId))
                 : CommandResult.Invalid("Select a settlement first.");
             if (!result.IsSuccess) ShowMessage(result);
             return result;

@@ -55,7 +55,12 @@ namespace Realmkeeper.Exploration.Presentation
             view.Site = site;
             switch (site.Kind)
             {
-                case OverlandSiteKind.Settlement: Settlement(go.transform, site, terrain, layout, wood, roof, stone); break;
+                case OverlandSiteKind.Settlement:
+                    view._blocks = Settlement(go.transform, site, terrain, layout, wood, roof, stone);
+                    view._layout = layout;
+                    view._terrain = terrain;
+                    view._catalog = catalog;
+                    break;
                 case OverlandSiteKind.Place: Entrance(go.transform, catalog, stone, wood); break;
                 case OverlandSiteKind.Gateway: Gateway(go.transform, site, stone, glow); break;
                 default: Signpost(go.transform, wood, stone); break;
@@ -81,12 +86,13 @@ namespace Realmkeeper.Exploration.Presentation
         /// The settlement as seen from the country: each building of its real layout as a block with a roof, at its true
         /// place and size, on the ground (a low-detail silhouette; entering loads the town itself), and a banner at the way in.
         /// </summary>
-        private static void Settlement(Transform root, OverlandSite site, OverlandTerrain terrain, LocalEnvironmentLayout layout, Material walls, Material roof, Material stone)
+        private static Transform Settlement(Transform root, OverlandSite site, OverlandTerrain terrain, LocalEnvironmentLayout layout, Material walls, Material roof, Material stone)
         {
             var centre = OverlandScale.CellCentre(site.Cell);
+            Transform town = null;
             if (layout != null)
             {
-                var town = new GameObject("Silhouette").transform;
+                town = new GameObject("Silhouette").transform;
                 town.SetParent(root.parent, false);
                 foreach (var b in layout.Buildings)
                 {
@@ -121,8 +127,42 @@ namespace Realmkeeper.Exploration.Presentation
                 }
             }
 
-            Box(root, new Vector3(0, 4f, 0), new Vector3(0.3f, 8f, 0.3f), walls, "Banner pole");
-            Box(root, new Vector3(0.9f, 6.6f, 0), new Vector3(1.6f, 2.2f, 0.06f), roof, "Banner");
+            Box(root, new Vector3(3f, 4f, 0), new Vector3(0.3f, 8f, 0.3f), walls, "Banner pole"); // beside the way in, not on it: the player arrives here
+            Box(root, new Vector3(3.9f, 6.6f, 0), new Vector3(1.6f, 2.2f, 0.06f), roof, "Banner");
+            return town;
+        }
+
+        private Transform _blocks;
+        private LocalEnvironmentLayout _layout;
+        private OverlandTerrain _terrain;
+        private ArtCatalog _catalog;
+
+        /// <summary>Whether the settlement is shown with its own kit buildings yet (see <see cref="UpgradeSilhouette"/>).</summary>
+        public bool KitShown { get; private set; }
+
+        /// <summary>Whether a kit silhouette can still be built for it.</summary>
+        public bool CanUpgrade => !KitShown && _blocks != null && _layout != null && _catalog != null;
+
+        /// <summary>
+        /// Phase 23 follow-up: replaces the block silhouette with the town's own buildings from the village kit (the plan the town
+        /// is built from, merged, without colliders). It costs a town's build, so the controller does it for one settlement at a
+        /// time: the nearest on arrival, the rest as the player comes near. Returns the milliseconds it took.
+        /// </summary>
+        public float UpgradeSilhouette()
+        {
+            if (!CanUpgrade) return 0f;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var centre = OverlandScale.CellCentre(Site.Cell);
+            var kit = ModularEnvironmentBuilder.BuildSilhouette(_layout, _catalog, _terrain.HeightAt, new Vector3(centre.x, 0f, centre.z), new Vector2(Site.X, Site.Z), 8f);
+            kit.transform.SetParent(_blocks, true);
+            for (var i = _blocks.childCount - 1; i >= 0; i--)
+            {
+                var child = _blocks.GetChild(i);
+                if (child.name == "Building") UnityEngine.Object.Destroy(child.gameObject); // the blocks give way; the palisade stays
+            }
+
+            KitShown = true;
+            return (float)clock.Elapsed.TotalMilliseconds;
         }
 
         private static void Entrance(Transform root, ArtCatalog catalog, Material stone, Material wood)

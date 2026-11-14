@@ -15,6 +15,13 @@ namespace Realmkeeper.Application.Overland
     /// </summary>
     public sealed class EnterOverlandCommand : ICommand
     {
+        public EnterOverlandCommand() { }
+
+        /// <summary>From the world map: out into the country by <paramref name="by"/>, a settlement of the player's region (as entering one from the map).</summary>
+        public EnterOverlandCommand(SettlementId by) { By = by; }
+
+        /// <summary>The settlement to walk out by; empty means the one the player is in or last visited.</summary>
+        public SettlementId By { get; }
     }
 
     /// <summary>Phase 23: leave the country for the world map (the surface only; the region is kept for the map and journeys).</summary>
@@ -119,7 +126,21 @@ namespace Realmkeeper.Application.Overland
                 if (journey != null && journey.Status != JourneyStatus.Arrived && journey.Status != JourneyStatus.Abandoned)
                     return CommandResult.InvalidState($"{player.Name} is on a journey: arrive or give it up first.");
 
-                var settlement = world.FindSettlement(player.IsInSettlement ? player.SettlementId : player.LastSettlementId);
+                SettlementData settlement;
+                if (!command.By.IsEmpty)
+                {
+                    settlement = world.FindSettlement(command.By);
+                    if (settlement == null) return CommandResult.Invalid("No such settlement.");
+                    if (player.IsInSettlement && player.SettlementId != command.By)
+                        return CommandResult.InvalidState($"{player.Name} must leave {world.FindSettlement(player.SettlementId)?.Name} first.");
+                    // As entering a settlement from the map (ADR-0078): another region is reached by travelling there.
+                    if (world.Regions.Count > 1 && settlement.RegionId != Realmkeeper.Simulation.Atlas.SimulationTiers.PlayersRegion(world))
+                        return CommandResult.InvalidState(settlement.Name + " lies in " + world.FindRegion(settlement.RegionId)?.Name + ": travel there first.");
+                    if (journey != null && journey.Status == JourneyStatus.Abandoned && journey.SegmentIndex < journey.Segments.Count && (journey.MetresIntoSegment > 0 || journey.Nodes[journey.SegmentIndex] != settlement.SettlementId))
+                        return CommandResult.InvalidState(player.Name + " is out on the road: travel to " + settlement.Name + " first.");
+                }
+                else settlement = world.FindSettlement(player.IsInSettlement ? player.SettlementId : player.LastSettlementId);
+
                 if (settlement == null)
                 {
                     var region = world.Regions.Count > 0 ? world.Regions[0].RegionId : default;

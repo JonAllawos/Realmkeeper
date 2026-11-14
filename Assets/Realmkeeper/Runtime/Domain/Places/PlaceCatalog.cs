@@ -688,6 +688,16 @@ namespace Realmkeeper.Domain.Places
         public const string Cave = "wild_cave";
         public const string Ruin = "old_ruin";
 
+        // Phase 23 follow-up: the country's ordinary wild places, one of each per further region, named after the settlement
+        // they lie near ("The hollow near Mossholm"). Generic on purpose: no lore is invented for them.
+        public const string Hollow = "country_hollow";
+        public const string Steading = "country_steading";
+        public const string Barrow = "country_barrow";
+        public const string Workings = "country_workings";
+
+        /// <summary>Phase 23 follow-up: the country places, in the order they are sited.</summary>
+        public static readonly string[] Country = { Hollow, Steading, Barrow, Workings };
+
         private static readonly Dictionary<string, PlaceDefinition> ById = new Dictionary<string, PlaceDefinition>(StringComparer.Ordinal);
 
         public static IEnumerable<PlaceDefinition> All => ById.Values;
@@ -722,6 +732,10 @@ namespace Realmkeeper.Domain.Places
             });
             Add(new PlaceDefinition { Id = Cave, Name = "Bramble Cave", ArchetypeId = "cave", Description = "A cave mouth behind brambles, known to hunters and avoided by them." });
             Add(new PlaceDefinition { Id = Ruin, Name = "The Broken Hall", ArchetypeId = "ruin", Description = "The shell of an old hall, roofless in places, older than any town nearby." });
+            Add(new PlaceDefinition { Id = Hollow, Name = "The hollow", ArchetypeId = "cave", Description = "A cave in the hillside, its mouth half hidden by scrub. Animals have used it; perhaps worse." });
+            Add(new PlaceDefinition { Id = Steading, Name = "The fallen steading", ArchetypeId = "ruin", Description = "What is left of a farmstead or hall, its roof gone, its walls tumbling. Someone may be squatting in it." });
+            Add(new PlaceDefinition { Id = Barrow, Name = "The barrow", ArchetypeId = "crypt", Description = "A grassed-over burial mound with a stone-lined way in. The locals leave it alone." });
+            Add(new PlaceDefinition { Id = Workings, Name = "The old workings", ArchetypeId = "mine", Description = "Disused diggings, timbered and dark, abandoned when they stopped paying." });
             foreach (var d in Phase14Places.Definitions()) Add(d);
             foreach (var d in Phase18Places.Definitions()) Add(d);
 

@@ -70,10 +70,14 @@ namespace Realmkeeper.Infrastructure.Generation
             for (var i = 1; i < world.Regions.Count; i++)
             {
                 var region = world.Regions[i];
-                if (PlaceGenesis.HasPhase18(world, region.RegionId) || !world.Settlements.Exists(s => s.RegionId == region.RegionId)) continue;
+                if (!world.Settlements.Exists(s => s.RegionId == region.RegionId)) continue;
+                var needs18 = !PlaceGenesis.HasPhase18(world, region.RegionId);
+                var needsCountry = !PlaceGenesis.HasCountryPlaces(world, region.RegionId);
+                if (!needs18 && !needsCountry) continue;
                 if (!maps.TryGetValue(region.RegionId, out var m)) maps[region.RegionId] = m = generator.RegenerateRegion(world, region);
                 m.RegionId = region.RegionId;
-                if (PlaceGenesis.EnsurePhase18(world, m)) changed = true;
+                if (needs18 && PlaceGenesis.EnsurePhase18(world, m)) changed = true;
+                if (needsCountry && PlaceGenesis.EnsureCountryPlaces(world, m)) changed = true; // Phase 23 follow-up: more to find in the further regions
             }
 
             if (changed) Simulation.Quests.QuestGenesis.Ensure(world); // the further regions' own emergent quests, as a reload would find them

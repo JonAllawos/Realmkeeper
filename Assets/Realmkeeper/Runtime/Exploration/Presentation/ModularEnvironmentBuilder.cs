@@ -41,6 +41,53 @@ namespace Realmkeeper.Exploration.Presentation
             return root;
         }
 
+        /// <summary>
+        /// Phase 23 follow-up: a settlement as seen from the country — each of its buildings from the kit, exactly as the town
+        /// itself is built (<see cref="BuildingKitPlanner"/>), stood on the country's ground (<paramref name="groundAt"/>, in
+        /// world metres) around <paramref name="origin"/>, merged into a few draws, with no colliders (entering loads the town).
+        /// Buildings within <paramref name="clearRadius"/> of <paramref name="keepClear"/> are left out, so the way in is open.
+        /// </summary>
+        public static GameObject BuildSilhouette(LocalEnvironmentLayout layout, ArtCatalog catalog, Func<float, float, float> groundAt, Vector3 origin, Vector2 keepClear, float clearRadius)
+        {
+            var root = new GameObject("Silhouette " + layout.EnvironmentKey);
+            root.transform.position = new Vector3(origin.x, 0f, origin.z);
+            var assets = root.AddComponent<GeneratedAssets>();
+            var ctx = new Context(root.transform, layout, catalog, assets);
+            foreach (var b in layout.Buildings)
+            {
+                var wx = origin.x + b.Center.X;
+                var wz = origin.z + b.Center.Z;
+                if ((wx - keepClear.x) * (wx - keepClear.x) + (wz - keepClear.y) * (wz - keepClear.y) < clearRadius * clearRadius) continue;
+                var before = ctx.Static.childCount;
+                BuildBuilding(ctx, b);
+                // Stand the building on the country's ground: the lowest of its corners, so it never floats.
+                var half = Mathf.Max(b.Width, b.Depth) * 0.5f;
+                var y = Mathf.Min(Mathf.Min(groundAt(wx - half, wz - half), groundAt(wx + half, wz - half)), Mathf.Min(groundAt(wx - half, wz + half), groundAt(wx + half, wz + half)));
+                for (var i = before; i < ctx.Static.childCount; i++)
+                {
+                    var t = ctx.Static.GetChild(i);
+                    t.localPosition = new Vector3(t.localPosition.x, y - b.FloorHeight + t.localPosition.y, t.localPosition.z);
+                }
+
+                // A plinth down into the slope beneath it.
+                var plinth = Mesh(ctx, ctx.Static, "Plinth", MetreMeshes.Box(new Vector3(b.Width + 0.4f, 4f, b.Depth + 0.4f), ctx.Assets), ctx.Mat("WallStone"), new Vector3(b.Center.X, y - 1.95f, b.Center.Z));
+                plinth.transform.localRotation = Quaternion.Euler(0f, -b.Yaw, 0f);
+            }
+
+            Object.Destroy(ctx.Colliders.gameObject);
+            foreach (var c in root.GetComponentsInChildren<Collider>(true)) Object.Destroy(c);
+            foreach (var l in root.GetComponentsInChildren<Light>(true)) Object.Destroy(l.gameObject); // a lantern's glow is not seen from the country
+            MeshMerger.Merge(ctx.Static, assets);
+            // Only the merged meshes are kept: the thousands of emptied piece transforms go.
+            for (var i = ctx.Static.childCount - 1; i >= 0; i--)
+            {
+                var child = ctx.Static.GetChild(i);
+                if (child.name != "Merged") Object.Destroy(child.gameObject);
+            }
+
+            return root;
+        }
+
         /// <summary>Build-time state shared by the steps.</summary>
         private sealed class Context
         {

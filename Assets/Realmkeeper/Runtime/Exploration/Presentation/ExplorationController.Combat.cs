@@ -245,7 +245,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (_practiceButton == null) return;
             var character = _session?.GetCharacter();
-            var hide = character == null || character.NeedsCreation || character.IsDead || _fightOpen || RoadStage != null; // Phase 17: not on the road
+            var hide = character == null || character.NeedsCreation || character.IsDead || _fightOpen || RoadStage != null || InOverland; // Phase 17: not on the road; Phase 23: not in the country
             _practiceButton.EnableInClassList("xk-hidden", hide);
             _casterPracticeButton?.EnableInClassList("xk-hidden", hide);
             _outingButton?.EnableInClassList("xk-hidden", hide);
@@ -280,8 +280,8 @@ namespace Realmkeeper.Exploration.Presentation
             UpdateCombatWorld(); // Combat Overhaul: hover, click to move, walking, keys
 
             var keys = Keyboard.current;
-            if (keys != null && !WindowOpen && !Typing() && !InPlace && RoadStage == null && keys.fKey.wasPressedThisFrame) StartPracticeFight(); // Phase 13: not inside places; Phase 17: not on the road
-            if (keys != null && !WindowOpen && !Typing() && RoadStage == null && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
+            if (keys != null && !WindowOpen && !Typing() && !InPlace && !InOverland && RoadStage == null && keys.fKey.wasPressedThisFrame) StartPracticeFight(); // Phase 13: not inside places; Phase 17: not on the road
+            if (keys != null && !WindowOpen && !Typing() && !InPlace && !InOverland && RoadStage == null && keys.gKey.wasPressedThisFrame) StartPracticeFight(true, true);
         }
 
         // ----- Placeholder ground markers --------------------------------------------------------------

@@ -54,8 +54,8 @@
 
 **Consequences.**
 - **Geography is still regenerated from the seed, never saved.** `RegionGenerator.GenerateGeography` rebuilds a region's map without touching the world. The overland adds no save data beyond the player's position (schema v25, ADR-0111).
-- **Density is now the gap.** Outside the home region, a region has about 7 destinations in 26 km². Landmarks and minor sites are later work, and empty markers were not added to pad the count.
-- **Weather is drier in the far east.** Fronts weaken as they drift east (Phase 21), so on the wider atlas the far-east regions are drier. The Phase 21 year test's floor for wet days moved from 30 to 20.
+- **Density.** Outside the home region, a region first had about 7 destinations in 26 km². The Phase 23 follow-up (owner request, 2026-11-13) gives each further region the country's ordinary wild places once (`PlaceGenesis.EnsureCountryPlaces`): a hollow, a fallen steading, a barrow and old workings on the existing cave, ruin, crypt and mine archetypes. Each is named after the settlement it lies near (no lore invented), sited like every place, and found by walking. Older saves gain them once on load, the Phase 18 pattern. Roadside landmarks are still later work.
+- **Weather on a taller atlas.** Phase 21's fronts are born on the west edge at a fixed rate and spread over the atlas's rows. With three rows instead of two, each region saw fewer of them (one region had 26 wet days a year). The follow-up scales the birth rate and the cap on fronts by the number of rows (`WeatherModel.StepDay`), which leaves two-row (six-region) worlds exactly as before. The Phase 21 year test keeps its floor of 30 wet days.
 - **Concealment and the sight bonus are recorded, but nothing reads them yet.** They are for later stealth and scouting.
 
 **Alternatives considered.**

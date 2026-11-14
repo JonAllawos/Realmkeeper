@@ -225,7 +225,7 @@ namespace Realmkeeper.Tests.EditMode.World
         public void TheWayOn_CrossesIntoTheNeighbour_AndBack_WithEverythingKept()
         {
             Ok(new EnterOverlandCommand());
-            var home = P.RegionId;
+            var home = Realmkeeper.Simulation.Atlas.SimulationTiers.PlayersRegion(W);
             var purse = P.Purse;
             var stacks = P.Inventory.Count;
             var exit = _s.GetOverland().Sites.First(s => s.Kind == OverlandSiteKind.RegionExit && s.Usable);
@@ -304,6 +304,53 @@ namespace Realmkeeper.Tests.EditMode.World
             Assert.That(W.Npcs.Count, Is.EqualTo(npcs));
             SaveAndLoad("again");
             Assert.That(W.Realms.Count, Is.EqualTo(2), "Made once.");
+        }
+
+        // ----- Follow-up: density, and the country from the map ---------------------------------------------
+
+        [Test]
+        public void TheFurtherRegions_HaveCountryPlaces_NamedByWhereTheyLie_MadeOnce()
+        {
+            var home = W.Regions[0].RegionId;
+            var before = W.Places.Count;
+            foreach (var region in W.Regions.Where(r => r.RegionId != home))
+            {
+                var country = W.Places.Where(p => p.RegionId == region.RegionId && PlaceCatalog.Country.Contains(p.DefinitionId)).ToList();
+                Assert.That(country.Count, Is.GreaterThanOrEqualTo(3), region.Name + ": a hollow, a steading, a barrow or workings to find.");
+                var t = _s.GetOverlandTerrain(RealmIds.Surface, region.RegionId);
+                foreach (var p in country)
+                {
+                    StringAssert.Contains(" near ", p.Name, "Named after the settlement it lies near.");
+                    Assert.That(p.Discovery, Is.EqualTo(PlaceDiscovery.Unknown), p.Name + " is found by walking, not given.");
+                    var (x, z) = OverlandQueries.Approach(t, p.Cell, 2);
+                    Assert.That(t.Walkable(x, z), Is.True, p.Name + " can be walked up to.");
+                    Assert.That(p.Layout, Is.Not.Null, p.Name + " has its own layout to explore.");
+                }
+
+                var survey = WorldScaleSurvey.Measure(_s).First(r => r.Name == region.Name);
+                Assert.That(survey.Destinations, Is.GreaterThanOrEqualTo(9), region.Name + ": more to walk to than its settlements and quest places.");
+            }
+
+            SaveAndLoad("density");
+            Assert.That(W.Places.Count, Is.EqualTo(before), "Made once: loading adds nothing.");
+        }
+
+        [Test]
+        public void TheCountry_IsEnteredFromTheMap_ByASettlementOfThePlayersRegion_AndNoOther()
+        {
+            var home = Realmkeeper.Simulation.Atlas.SimulationTiers.PlayersRegion(W);
+            var here = W.Settlements.Where(s => s.RegionId == home).OrderBy(s => s.SettlementId).Last();
+            var away = W.Settlements.First(s => s.RegionId != home);
+            var refused = _s.Dispatch(new EnterOverlandCommand(away.SettlementId));
+            Assert.That(refused.IsSuccess, Is.False, "Another region is reached by travelling there.");
+            StringAssert.Contains("travel there first", refused.Message);
+            Assert.That(P.LocationKind, Is.Not.EqualTo(CharacterLocationKind.Overland), "A refusal changes nothing.");
+            Ok(new EnterOverlandCommand(here.SettlementId));
+            Assert.That(P.LocationKind, Is.EqualTo(CharacterLocationKind.Overland));
+            Assert.That(P.RegionId, Is.EqualTo(home));
+            var t = _s.GetOverlandTerrain(RealmIds.Surface, home);
+            var gate = OverlandQueries.Gate(t, here.Position);
+            Assert.That(Math.Abs(P.Pose.X - gate.x) + Math.Abs(P.Pose.Z - gate.z), Is.LessThan(0.01f), "Out by the chosen settlement's way in.");
         }
 
         private readonly struct SettlementIdParse

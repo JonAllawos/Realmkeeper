@@ -22,6 +22,7 @@ Nobody has hand-played Phase 23. These are the checks only a person at the keybo
 4. **Barriers.**
    - Try to walk into a mountain, a lake or a river away from a bridge. An invisible wall should stop you at the edge.
    - Find a **bridge** (planks where a road crosses water) and a **ford** (shallow water on a river's course, every few hundred metres) and cross both.
+   - Walk into a **tree trunk** or a **big rock**: it stops you. Grass, ferns, flowers and bushes do not.
 5. **Compass, location line and map.**
    - The compass strip shows directions and known sites.
    - The line under it names the region, the ground you stand on and the nearest known site with its distance.
@@ -43,6 +44,8 @@ Nobody has hand-played Phase 23. These are the checks only a person at the keybo
    - If a crossing is closed (for example, a bridge is out), the signpost should say why and refuse.
 9. **Saving in the country.** Save (F5) in the country, quit to the menu and load. You should be where you saved, in the country.
 10. **Back to the map.** Return to World Map (**M**) works from the country.
+   - On the map, select a settlement of your region and click **Walk the country**. A loading screen, then you are at its gate (beside its banner, not inside it).
+   - Select a settlement in another region and click it: it refuses ("travel there first").
 
 ## The gateway (only through the campaign hook for now)
 
@@ -58,11 +61,10 @@ Nobody has hand-played Phase 23. These are the checks only a person at the keybo
 ## Things to judge (owner calls)
 
 13. **The scale.** Does 40 m a cell feel right? A region takes about 14 minutes to cross at a run. (D1; ADR-0110.)
-14. **Emptiness.** Outside the home region, there is a lot of land between destinations. This is the main Phase 24 item.
-15. **The far east is drier.** Weather fronts weaken eastward, so the easternmost regions see fewer wet days. Keep this, or tune it?
-16. **The look.**
-    - The ground is untextured colour.
-    - Towns are block silhouettes from outside.
-    - "Go out: outskirts" still shows in the country.
-
-    See the asset options in the closing message.
+14. **More to find.** In a region other than your home, walk the hills and woods. You should come across a hollow, a fallen steading, a barrow or old workings, each named after a nearby settlement ("The hollow near …"). Is it still too empty?
+15. **The look.** Judge:
+    - the textured ground: grain, not flat colour; rock on steep and rocky ground; dirt on heath and shore;
+    - grass and flowers around you;
+    - the towns: as you come within about 1.4 km, a town appears in its own kit buildings, with a brief hitch (up to about 0.15 s) as it does;
+    - the location panel (region · in the country · ground), and no practice-fight or outing buttons in the country.
+16. **Weather.** The far-east regions should now be about as wet as the rest.

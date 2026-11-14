@@ -55,11 +55,22 @@ namespace Realmkeeper.Exploration.Presentation
             public MeshRenderer Coarse;
             public GameObject Detail;
             public readonly List<(int kind, Matrix4x4 m)> Trees = new List<(int, Matrix4x4)>();
+
+            /// <summary>Grass, ferns and flowers: made only near the player (they are many), dropped when far.</summary>
+            public readonly List<(int kind, Matrix4x4 m)> Grass = new List<(int, Matrix4x4)>();
+
+            public bool GrassBuilt;
         }
 
         private sealed class TreeKind
         {
             public string Id;
+
+            /// <summary>Trunks and rocks stop the player; bushes, flowers and grass do not.</summary>
+            public bool Solid;
+
+            /// <summary>The collider's radius at scale 1 (a trunk, or a rock's body).</summary>
+            public float Radius;
             public readonly List<(Mesh mesh, int sub, int material, Matrix4x4 local)> Parts = new List<(Mesh, int, int, Matrix4x4)>();
         }
 
@@ -74,6 +85,15 @@ namespace Realmkeeper.Exploration.Presentation
             w._terrain = view.Terrain;
             var vc = Shader.Find("Realmkeeper/VertexColorLit") ?? Shader.Find("Universal Render Pipeline/Particles/Simple Lit");
             w._ground = new Material(vc) { name = "Overland ground", enableInstancing = true };
+            if (catalog != null && w._ground.HasProperty("_TexStrength"))
+            {
+                // The owned ambientCG grass and ground, and the village kit's rock, as the ground's grain (Phase 23 follow-up).
+                w._ground.SetTexture("_GrassTex", catalog.Material("Grass")?.mainTexture);
+                w._ground.SetTexture("_DirtTex", catalog.Material("Dirt")?.mainTexture);
+                w._ground.SetTexture("_RockTex", catalog.Material("RockTrim")?.mainTexture ?? catalog.Material("Gravel")?.mainTexture);
+                w._ground.SetFloat("_TexStrength", 0.85f);
+                w._ground.SetFloat("_TexScale", 0.25f);
+            }
             var water = Shader.Find("Realmkeeper/Water");
             w._water = water != null ? new Material(water) { name = "Overland water" } : new Material(vc) { name = "Overland water" };
             if (view.Profile == RealmProfiles.AncientPrototype && w._water.HasProperty("_ShallowColor")) w._water.SetColor("_ShallowColor", new Color(0.32f, 0.22f, 0.42f, 0.8f));
@@ -123,6 +143,7 @@ namespace Realmkeeper.Exploration.Presentation
             var oz = cz * cells * OverlandScale.MetresPerCell;
             var verts = new Vector3[n * n];
             var colours = new Color[n * n];
+            var weights = new Vector2[n * n];
             for (var z = 0; z < n; z++)
                 for (var x = 0; x < n; x++)
                 {
@@ -131,6 +152,7 @@ namespace Realmkeeper.Exploration.Presentation
                     var h = perCell == 1 ? _terrain.HeightAt(px, pz) - 0.6f : _terrain.HeightAt(px, pz); // the coarse ground sits just below the detail
                     verts[z * n + x] = new Vector3(px, h, pz);
                     colours[z * n + x] = ColourAt(px, pz, h);
+                    weights[z * n + x] = WeightsAt(px, pz, h);
                 }
 
             var tris = new int[(n - 1) * (n - 1) * 6];
@@ -146,11 +168,44 @@ namespace Realmkeeper.Exploration.Presentation
             var mesh = new Mesh { name = $"Overland {cx},{cz} ×{perCell}", indexFormat = verts.Length > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.vertices = verts;
             mesh.colors = colours;
+            mesh.SetUVs(1, weights);
             mesh.triangles = tris;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             _meshes.Add(mesh);
             return mesh;
+        }
+
+        /// <summary>The ground texture blend at a point (uv1): x = dirt (heath, shore, beds), y = rock (rocky ground, mountains, steep slopes).</summary>
+        private Vector2 WeightsAt(float x, float z, float h)
+        {
+            Vector2 Of(Biome b)
+            {
+                switch (b)
+                {
+                    case Biome.Rocky: return new Vector2(0.3f, 0.75f);
+                    case Biome.Mountain: return new Vector2(0.1f, 1f);
+                    case Biome.Heath: return new Vector2(0.6f, 0.1f);
+                    case Biome.Shore: case Biome.Desert: return new Vector2(0.9f, 0f);
+                    case Biome.Marsh: return new Vector2(0.45f, 0f);
+                    case Biome.Hills: return new Vector2(0.15f, 0.15f);
+                    case Biome.Lake: case Biome.River: case Biome.Shallows: return new Vector2(0.8f, 0.2f);
+                    default: return Vector2.zero;
+                }
+            }
+
+            var fx = x / OverlandScale.MetresPerCell - 0.5f;
+            var fz = z / OverlandScale.MetresPerCell - 0.5f;
+            var ix = Mathf.FloorToInt(fx);
+            var iz = Mathf.FloorToInt(fz);
+            var tx = fx - ix;
+            var tz = fz - iz;
+            var w = Vector2.Lerp(Vector2.Lerp(Of(_terrain.Cell(ix, iz).Biome), Of(_terrain.Cell(ix + 1, iz).Biome), tx),
+                Vector2.Lerp(Of(_terrain.Cell(ix, iz + 1).Biome), Of(_terrain.Cell(ix + 1, iz + 1).Biome), tx), tz);
+            // Steep ground shows rock whatever grows around it.
+            var slope = Mathf.Abs(_terrain.HeightAt(x + 2f, z) - _terrain.HeightAt(x - 2f, z)) + Mathf.Abs(_terrain.HeightAt(x, z + 2f) - _terrain.HeightAt(x, z - 2f));
+            w.y = Mathf.Max(w.y, Mathf.Clamp01((slope - 2.4f) / 3f));
+            return w;
         }
 
         private static Color BiomeColour(Biome b)
@@ -211,6 +266,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var verts = new List<Vector3>();
             var colours = new List<Color>();
+            var roadWeights = new List<Vector2>();
             var tris = new List<int>();
             var dirt = (ancient ? new Color(0.42f, 0.36f, 0.42f) : new Color(0.68f, 0.56f, 0.38f)).linear;
             var planks = new Color(0.42f, 0.31f, 0.20f).linear;
@@ -244,6 +300,7 @@ namespace Realmkeeper.Exploration.Presentation
                         var h = Mathf.Max(_terrain.HeightAt(q.x, q.y), over ? _terrain.WaterHeight + 0.6f : float.MinValue) + 0.18f;
                         verts.Add(new Vector3(q.x, h, q.y));
                         colours.Add(over ? planks : dirt);
+                        roadWeights.Add(new Vector2(1f, 0f)); // the dirt texture's grain
                     }
 
                     if (i > 0)
@@ -260,6 +317,7 @@ namespace Realmkeeper.Exploration.Presentation
             var mesh = new Mesh { name = "Overland roads", indexFormat = IndexFormat.UInt32 };
             mesh.SetVertices(verts);
             mesh.SetColors(colours);
+            mesh.SetUVs(1, roadWeights);
             mesh.SetTriangles(tris, 0);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
@@ -338,13 +396,17 @@ namespace Realmkeeper.Exploration.Presentation
             for (var n = 1; n <= 5; n++) ids.Add(ModularEnvironmentBuilder.TreeFor(kind, n * 5 + 0)); // the region's own species
             for (var n = 1; n <= 5; n++) ids.Add(ModularEnvironmentBuilder.TreeFor(kind, n * 5 + 35));
             ids.AddRange(new[] { "DeadTree_1", "DeadTree_3", "Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3", "Bush_Common", "Bush_Common_Flowers" });
+            ids.AddRange(GrassIds); // the owned nature kit's ground cover (Phase 23 follow-up)
             foreach (var id in ids)
             {
                 if (_trees.Exists(t => t.Id == id)) continue;
                 var prefab = catalog.SceneryModel(id);
                 if (prefab == null) continue;
-                var kindDef = new TreeKind { Id = id };
-                var root = prefab.transform.worldToLocalMatrix;
+                var isRock = id.StartsWith("Rock_");
+                var kindDef = new TreeKind { Id = id, Solid = !IsCover(id), Radius = isRock ? 1.1f : 0.75f };
+                // Each part relative to the model's pivot, keeping the root's own rotation and scale (the kit's Blender export frame, as
+                // ModularEnvironmentBuilder.Module keeps it): only the root's position is taken away.
+                var root = Matrix4x4.Translate(-prefab.transform.position);
                 foreach (var mf in prefab.GetComponentsInChildren<MeshFilter>(true))
                 {
                     var r = mf.GetComponent<MeshRenderer>();
@@ -425,6 +487,110 @@ namespace Realmkeeper.Exploration.Presentation
                 }
         }
 
+        // ----- Ground cover (Phase 23 follow-up) ---------------------------------------------------------------
+
+        private const float GrassBuildMetres = 200f;
+        private const float GrassDrawMetres = 95f;
+
+        private static readonly string[] GrassIds =
+        {
+            "Grass_Common_Short", "Grass_Common_Tall", "Grass_Wispy_Short", "Grass_Wide_Short", "Grass_Wispy_Tall",
+            "Fern_1", "Fern_2", "Flower_1_Group", "Flower_3_Group", "Flower_4_Group", "Plant_2",
+        };
+
+        private static bool IsCover(string id) => id.StartsWith("Bush_") || id.StartsWith("Grass_") || id.StartsWith("Fern_") || id.StartsWith("Flower_") || id.StartsWith("Plant_");
+
+        /// <summary>Instances of ground cover drawn now (rebuilt each streaming tick).</summary>
+        public int GrassDrawn { get; private set; }
+
+        /// <summary>
+        /// A chunk's grass, ferns and flowers, deterministic from the cells: open ground is grassy with flowers in meadows;
+        /// forest floors carry ferns; marsh has tall grass; nothing grows on roads, water or bare rock.
+        /// </summary>
+        private void PlantGrass(Chunk c)
+        {
+            c.Grass.Clear();
+            c.GrassBuilt = true;
+            int K(string id) => KindIndex(id);
+            int shortGrass = K("Grass_Common_Short"), tallGrass = K("Grass_Common_Tall"), wispy = K("Grass_Wispy_Short"), wide = K("Grass_Wide_Short"), wispyTall = K("Grass_Wispy_Tall");
+            int fern1 = K("Fern_1"), fern2 = K("Fern_2"), flower1 = K("Flower_1_Group"), flower3 = K("Flower_3_Group"), flower4 = K("Flower_4_Group"), plant = K("Plant_2");
+            if (shortGrass < 0) return;
+            for (var z = c.Z * ChunkCells; z < Mathf.Min(_terrain.Map.Depth, (c.Z + 1) * ChunkCells); z++)
+                for (var x = c.X * ChunkCells; x < Mathf.Min(_terrain.Map.Width, (c.X + 1) * ChunkCells); x++)
+                {
+                    var cell = _terrain.Cell(x, z);
+                    if (!cell.Passable || cell.Road) continue;
+                    int count;
+                    switch (cell.Biome)
+                    {
+                        case Biome.Grassland: case Biome.Valley: count = 60; break;
+                        case Biome.Meadow: count = 70; break;
+                        case Biome.Hills: count = 36; break;
+                        case Biome.Marsh: count = 48; break;
+                        case Biome.Heath: count = 26; break;
+                        case Biome.Forest: count = 26; break;
+                        case Biome.DenseForest: count = 16; break;
+                        case Biome.Shore: count = 8; break;
+                        default: count = 0; break;
+                    }
+
+                    for (var i = 0; i < count; i++)
+                    {
+                        var px = (x + _terrain.Random01(x, z, 300 + i)) * OverlandScale.MetresPerCell;
+                        var pz = (z + _terrain.Random01(x, z, 400 + i)) * OverlandScale.MetresPerCell;
+                        var r = _terrain.Random01(x, z, 500 + i);
+                        int k;
+                        switch (cell.Biome)
+                        {
+                            case Biome.Forest: case Biome.DenseForest: k = r < 0.55f ? (r < 0.3f ? fern1 : fern2) : r < 0.8f ? wispy : plant; break;
+                            case Biome.Marsh: k = r < 0.6f ? wispyTall : tallGrass; break;
+                            case Biome.Meadow: k = r < 0.22f ? (r < 0.08f ? flower1 : r < 0.15f ? flower3 : flower4) : r < 0.6f ? shortGrass : r < 0.8f ? wide : tallGrass; break;
+                            case Biome.Heath: k = r < 0.5f ? wispy : wispyTall; break;
+                            default: k = r < 0.05f ? flower3 : r < 0.55f ? shortGrass : r < 0.75f ? wide : r < 0.9f ? wispy : tallGrass; break;
+                        }
+
+                        if (k < 0) k = shortGrass;
+                        var scale = 1.0f + 0.8f * _terrain.Random01(x, z, 600 + i);
+                        c.Grass.Add((k, Matrix4x4.TRS(new Vector3(px, _terrain.HeightAt(px, pz) - 0.05f, pz), Quaternion.Euler(0, 360f * r * 7f, 0), Vector3.one * scale)));
+                    }
+                }
+        }
+
+        private readonly Dictionary<int, List<Matrix4x4>> _grassByKind = new Dictionary<int, List<Matrix4x4>>();
+
+        /// <summary>Each streaming tick: grass made for chunks coming near, dropped for those left behind, and the instances to draw chosen.</summary>
+        private void StreamGrass(Vector3 at)
+        {
+            if (_trees.Count == 0) return;
+            var built = false;
+            foreach (var c in _chunks)
+            {
+                var d = Distance(c, at);
+                if (!c.GrassBuilt && d < GrassBuildMetres && !built) { PlantGrass(c); built = true; } // one a tick
+                else if (c.GrassBuilt && d > GrassBuildMetres + 150f) { c.Grass.Clear(); c.GrassBuilt = false; }
+            }
+
+            foreach (var l in _grassByKind.Values) l.Clear();
+            var drawn = 0;
+            var r2 = GrassDrawMetres * GrassDrawMetres;
+            foreach (var c in _chunks)
+            {
+                if (!c.GrassBuilt || Distance(c, at) > GrassDrawMetres) continue;
+                foreach (var (kind, m) in c.Grass)
+                {
+                    var p = m.GetColumn(3);
+                    var dx = p.x - at.x;
+                    var dz = p.z - at.z;
+                    if (dx * dx + dz * dz > r2) continue;
+                    if (!_grassByKind.TryGetValue(kind, out var list)) _grassByKind[kind] = list = new List<Matrix4x4>();
+                    list.Add(m);
+                    drawn++;
+                }
+            }
+
+            GrassDrawn = drawn;
+        }
+
         // ----- Streaming ----------------------------------------------------------------------------------------
 
         /// <summary>Builds every detailed chunk within the radius now (on arrival: the ground under the player exists before they stand on it).</summary>
@@ -432,6 +598,8 @@ namespace Realmkeeper.Exploration.Presentation
         {
             foreach (var c in _chunks)
                 if (Distance(c, at) < DetailRadiusMetres && c.Detail == null) BuildDetail(c);
+            PlaceSolidColliders(at); // trunks and rocks are solid from the first step
+            for (var i = 0; i < 9; i++) StreamGrass(at); // the grass around the arrival point, before the screen lifts
         }
 
         private float Distance(Chunk c, Vector3 at)
@@ -504,9 +672,88 @@ namespace Realmkeeper.Exploration.Presentation
                 }
 
                 if (nearestMissing != null) BuildDetail(nearestMissing); // one a tick: no hitch
+                PlaceSolidColliders(Follow.position);
+                StreamGrass(Follow.position);
             }
 
             DrawTrees();
+        }
+
+        // ----- Trunks and rocks the player cannot walk through ----------------------------------------------------
+
+        private const float SolidRadiusMetres = 45f;
+        private readonly List<CapsuleCollider> _solidPool = new List<CapsuleCollider>();
+        private Transform _solidRoot;
+
+        /// <summary>Colliders in use around the player (trunks and rocks within <see cref="SolidRadiusMetres"/>).</summary>
+        public int SolidColliders { get; private set; }
+
+        /// <summary>The nearest tree trunk (not a rock or ground cover) to a point among the detailed chunks, or null (tests, diagnostics).</summary>
+        public Vector3? NearestTrunk(Vector3 at)
+        {
+            Vector3? best = null;
+            var bestD = float.MaxValue;
+            foreach (var c in _chunks)
+            {
+                if (c.Detail == null) continue;
+                foreach (var (k, m) in c.Trees)
+                {
+                    var kind = _trees[k];
+                    if (!kind.Solid || kind.Id.StartsWith("Rock_")) continue;
+                    Vector3 p = m.GetColumn(3);
+                    var d = (p.x - at.x) * (p.x - at.x) + (p.z - at.z) * (p.z - at.z);
+                    if (d < bestD) { bestD = d; best = p; }
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// A pooled set of capsules moved onto the trunks and rocks near the player each streaming tick: the forest is solid
+        /// where it can be touched, without a collider for each of the region's tens of thousands of trees.
+        /// </summary>
+        private void PlaceSolidColliders(Vector3 at)
+        {
+            if (_trees.Count == 0) return;
+            if (_solidRoot == null)
+            {
+                _solidRoot = new GameObject("Trunks and rocks (colliders)").transform;
+                _solidRoot.SetParent(transform, false);
+            }
+
+            var used = 0;
+            var r2 = SolidRadiusMetres * SolidRadiusMetres;
+            foreach (var c in _chunks)
+            {
+                if (c.Detail == null || Distance(c, at) > SolidRadiusMetres) continue;
+                foreach (var (k, m) in c.Trees)
+                {
+                    var kind = _trees[k];
+                    if (!kind.Solid) continue;
+                    var p = m.GetColumn(3);
+                    var dx = p.x - at.x;
+                    var dz = p.z - at.z;
+                    if (dx * dx + dz * dz > r2) continue;
+                    if (used == _solidPool.Count)
+                    {
+                        var go = new GameObject("Solid");
+                        go.transform.SetParent(_solidRoot, false);
+                        _solidPool.Add(go.AddComponent<CapsuleCollider>());
+                    }
+
+                    var col = _solidPool[used++];
+                    var scale = m.lossyScale.x;
+                    col.enabled = true;
+                    col.transform.position = new Vector3(p.x, p.y, p.z);
+                    col.radius = kind.Radius * scale;
+                    col.height = kind.Id.StartsWith("Rock_") ? 2.4f * scale : 8f;
+                    col.center = new Vector3(0f, col.height / 2f, 0f);
+                }
+            }
+
+            for (var i = used; i < _solidPool.Count; i++) _solidPool[i].enabled = false;
+            SolidColliders = used;
         }
 
         private readonly Dictionary<int, List<Matrix4x4>> _byKind = new Dictionary<int, List<Matrix4x4>>();
@@ -528,23 +775,44 @@ namespace Realmkeeper.Exploration.Presentation
                 }
             }
 
+            _drawAt = at; // drawn per camera, as each renders (OnBeginCamera)
+            TreesDrawn = drawn;
+        }
+
+        private Vector3 _drawAt;
+
+        private void OnEnable() => RenderPipelineManager.beginCameraRendering += OnBeginCamera;
+
+        private void OnDisable() => RenderPipelineManager.beginCameraRendering -= OnBeginCamera;
+
+        /// <summary>
+        /// The vegetation is submitted for each camera as it renders — the game's, and any other (a capture, a second view) —
+        /// rather than once a frame, which a camera rendered by hand would not see.
+        /// </summary>
+        private void OnBeginCamera(ScriptableRenderContext context, Camera camera)
+        {
+            if (_carrier == null || _trees.Count == 0 || camera.cameraType == CameraType.Preview) return;
             var materials = _carrier.sharedMaterials; // the atmosphere's seasonal copies, once it has adopted them
-            foreach (var pair in _byKind)
+            Draw(_byKind, materials, _drawAt, TreeRadiusMetres, ShadowCastingMode.On, camera);
+            Draw(_grassByKind, materials, _drawAt, GrassDrawMetres, ShadowCastingMode.Off, camera); // ground cover casts no shadow: cheap
+        }
+
+        private void Draw(Dictionary<int, List<Matrix4x4>> byKind, Material[] materials, Vector3 at, float radius, ShadowCastingMode shadows, Camera camera)
+        {
+            foreach (var pair in byKind)
             {
                 if (pair.Value.Count == 0) continue;
                 var kind = _trees[pair.Key];
                 foreach (var (mesh, sub, mi, local) in kind.Parts)
                 {
                     if (mi >= materials.Length || materials[mi] == null) continue;
-                    var rp = new RenderParams(materials[mi]) { shadowCastingMode = ShadowCastingMode.On, receiveShadows = true, layer = gameObject.layer, worldBounds = new Bounds(at, Vector3.one * TreeRadiusMetres * 2.2f) };
+                    var rp = new RenderParams(materials[mi]) { camera = camera, shadowCastingMode = shadows, receiveShadows = true, layer = gameObject.layer, worldBounds = new Bounds(at, Vector3.one * radius * 2.2f) };
                     var buffer = Scratch(pair.Value.Count);
                     for (var i = 0; i < pair.Value.Count; i++) buffer[i] = pair.Value[i] * local;
                     for (var start = 0; start < pair.Value.Count; start += 1023)
                         Graphics.RenderMeshInstanced(rp, mesh, sub, buffer, Mathf.Min(1023, pair.Value.Count - start), start);
                 }
             }
-
-            TreesDrawn = drawn;
         }
 
         private Matrix4x4[] _scratch = new Matrix4x4[1024];

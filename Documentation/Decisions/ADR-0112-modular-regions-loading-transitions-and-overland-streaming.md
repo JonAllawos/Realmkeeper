@@ -48,14 +48,20 @@
 **Consequences.**
 - **No floating origin is needed.** A region is 5.12 km, within float precision for the player's movement.
 - **Measured (PlayMode, editor, batch).**
-  - Transitions take 230–670 ms.
+  - Transitions take 230–760 ms (after the follow-up, which builds the nearest town from the kit during loading).
   - Walking: median frame 1.3 ms, 95th percentile 1.9 ms.
   - A detailed chunk builds in 3–4 ms.
   - Across repeated transitions, objects stay flat and memory does not grow.
 
   Full figures are in the Phase 23 completion report.
-- **Trees have no colliders yet.** Only barriers, the ground and the site models collide.
-- **The strategic map does not drop the player into the country directly.** The way in is through a settlement.
+- **Follow-up (owner request, 2026-11-13).**
+  - **Trunks and rocks are solid.** A pooled set of capsules is moved onto the trunks and rocks within 45 m on each streaming tick (`OverlandWorld.PlaceSolidColliders`). Ground cover is not solid.
+  - **Entry from the map.** "Walk the country" on the map's settlement inspector dispatches `EnterOverlandCommand(settlement)`, under the same rules as entering it (the player's region, no journey under way). The exploration view builds the country behind the loading screen (`ArriveFromMap`).
+  - **Ground textures.** `Realmkeeper/VertexColorLit` gains optional world-space ground textures: the owned ambientCG grass and ground, and the village kit's rock. Each is divided by its own average, so the biome colour keeps its hue and the texture adds grain, blended per vertex (dirt, rock and slope). Other meshes are unchanged (strength 0).
+  - **Ground cover.** Grass, ferns and flowers from the owned nature kit, made per chunk within 200 m, drawn within 95 m, casting no shadow.
+  - **Kit silhouettes.** A settlement seen from the country is built from its own plan with the village kit (`ModularEnvironmentBuilder.BuildSilhouette`): merged, with no colliders, and its emptied pieces destroyed. To keep transitions fast, the nearest town is upgraded during loading and the others one at a time as the player comes within 1.4 km (33–157 ms each). Further towns stay block shapes under the haze.
+  - **Vegetation drawn per camera.** Draws are submitted from `RenderPipelineManager.beginCameraRendering`, so every camera, captures included, sees them.
+  - **A bug fixed.** The kit models were drawn without their root rotation and scale (the Blender export frame), so trees and grass lay flat, half underground. They are now upright, as the town's scenery places them.
 
 **Alternatives considered.**
 - **Additive, seamless region streaming.** Rejected: it needs a floating origin and seam stitching, and would run two environments at once, against the streamer's rule.

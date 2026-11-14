@@ -98,6 +98,8 @@ namespace Realmkeeper.Tests.PlayMode
             c.CameraRig.SetView(yaw, 8f);
             c.CameraRig.Snap();
             yield return Settle(6);
+            var step = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - step < 0.7f) yield return null; // a walking step: the nearby town is shown in its own buildings
         }
 
         /// <summary>Waits (game time) for the morning when the test's teleports have run the clock into the dark, so a capture shows the place.</summary>
@@ -139,7 +141,8 @@ namespace Realmkeeper.Tests.PlayMode
             yield return WaitTravel(c);
             Assert.That(c.InOverland, Is.True);
             Assert.That(session.GetPlayer().IsOverland, Is.True);
-            Log.Add($"Out into the country: {c.LastTransitionMs:0} ms; {c.Overland.DetailChunks} detailed chunks ready, {c.Overland.BarrierColliders} barrier colliders, {c.Overland.RoadKm:0.0} km of road drawn.");
+            Log.Add($"Out into the country: {c.LastTransitionMs:0} ms; {c.Overland.DetailChunks} detailed chunks ready, {c.Overland.BarrierColliders} barrier colliders, {c.Overland.RoadKm:0.0} km of road drawn; {c.KitSilhouettes} settlement shown in its kit buildings ({c.LastSilhouetteMs:0} ms).");
+            Assert.That(c.KitSilhouettes, Is.GreaterThanOrEqualTo(1), "The town beside the arrival is shown in its own buildings.");
             var view = c.OverlandView;
             Assert.That(view.Terrain.Walkable(c.Player.transform.position.x, c.Player.transform.position.z), Is.True);
             Assert.That(c.Player.transform.position.y, Is.EqualTo(view.Terrain.HeightAt(c.Player.transform.position.x, c.Player.transform.position.z)).Within(2.5f), "On the ground, not under or over it.");
@@ -164,7 +167,42 @@ namespace Realmkeeper.Tests.PlayMode
             frames.Sort();
             Log.Add($"Walking 4 s ({frames.Count} frames): {walked:0.0} m; frame time median {frames[frames.Count / 2]:0.0} ms, 95th {frames[(int)(frames.Count * 0.95f)]:0.0} ms, worst {frames[frames.Count - 1]:0.0} ms; {c.Overland.TreesDrawn} trees and rocks drawn, {c.Overland.DetailChunks} detailed chunks, last chunk built in {c.Overland.LastChunkBuildMs:0.0} ms; clock {start.Clock} → {session.GetWorldTime().Clock}, {c.OwedMinutes:0.00} min owed.");
             Assert.That(walked, Is.GreaterThan(5f), "The player walked.");
-            yield return Shot(c, "p23_04_player_in_the_country", "The player walking the country (third person): ground, trees, the compass and the location line.");
+            yield return Shot(c, "p23_04_player_in_the_country", "The player walking the country (third person): textured ground, grass, trees, the compass and the location line.");
+            Log.Add($"Ground cover: {c.Overland.GrassDrawn} grass, fern and flower instances drawn around the player; {c.Overland.SolidColliders} trunk and rock colliders near them.");
+            Assert.That(c.Overland.GrassDrawn, Is.GreaterThan(0), "Ground cover grows around the player.");
+
+            // ----- A tree trunk stops the player (follow-up: the forest is solid where it can be touched) -----
+            var trunk = c.Overland.NearestTrunk(c.Player.transform.position);
+            Assert.That(trunk.HasValue, Is.True, "A tree near enough to walk into.");
+            var tp = trunk.Value;
+            var away = Vector3.zero;
+            for (var i = 0; i < 16; i++)
+            {
+                var a = i * 22.5f * Mathf.Deg2Rad;
+                var d = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                var probe = tp + d * 6f;
+                if (view.Terrain.Walkable(probe.x, probe.z) && view.Terrain.Walkable(tp.x + d.x * 3f, tp.z + d.z * 3f)) { away = d; break; }
+            }
+
+            Assert.That(away, Is.Not.EqualTo(Vector3.zero), "Open ground beside the tree.");
+            var faceYaw = Mathf.Atan2(-away.x, -away.z) * Mathf.Rad2Deg;
+            Place(c, tp.x + away.x * 6f, tp.z + away.z * 6f, faceYaw);
+            c.CameraRig.SetView(faceYaw, 8f);
+            c.CameraRig.Snap();
+            var waitColliders = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - waitColliders < 0.5f) yield return null; // a streaming tick places the trunks' colliders
+            var from = c.Player.transform.position;
+            input.Move = new Vector2(0f, 1f);
+            var push = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - push < 3f) yield return null;
+            input.Move = Vector2.zero;
+            yield return Settle(10);
+            var progress = Vector3.Dot(c.Player.transform.position - from, -away);
+            var sideways = Vector3.Distance(new Vector3(c.Player.transform.position.x, 0, c.Player.transform.position.z), new Vector3(tp.x, 0, tp.z));
+            Log.Add($"Walking into a trunk from 6 m for 3 s: {progress:0.0} m forward, {sideways:0.0} m from the trunk's centre at the end; {c.Overland.SolidColliders} colliders near.");
+            Assert.That(progress, Is.LessThan(5.9f), "The trunk stopped the player (or turned them aside): they did not walk through it.");
+            Assert.That(sideways, Is.GreaterThan(0.3f), "Not standing inside the trunk.");
+            yield return Shot(c, "p23_12_grass_and_trees", "Close to the ground: grass and ferns from the owned nature kit, the textured ground, a solid trunk ahead.");
 
             // ----- The region map -----
             c.ToggleRegionMap();
@@ -278,6 +316,23 @@ namespace Realmkeeper.Tests.PlayMode
             yield return WaitTravel(c);
             Assert.That(c.IsExploring, Is.False, "On the map: no environment loaded.");
             Assert.That(session.GetPlayer().LocationKind, Is.EqualTo(CharacterLocationKind.WorldMap));
+
+            // ----- Straight from the map into the country (follow-up), behind the loading screen -----
+            yield return Settle(6);
+            bootstrap.Selection.Select(town.SettlementId);
+            yield return Settle(2);
+            var screens = c.Loading.Shown;
+            var fromMap = bootstrap.Hud.WalkCountryBySelected();
+            Assert.That(fromMap.IsSuccess, Is.True, fromMap.Message);
+            for (var i = 0; i < 600 && !(c.InOverland && !c.Travelling); i++) yield return null;
+            Assert.That(c.InOverland, Is.True, "Into the country from the map.");
+            Assert.That(c.Loading.Shown, Is.GreaterThan(screens), "Behind the loading screen.");
+            Log.Add($"From the map into the country by {town.Name}: {c.LastTransitionMs:0} ms.");
+            yield return Settle(10);
+            yield return Shot(c, "p23_13_from_the_map", $"Out into the country by {town.Name}, straight from the world map's \"Walk the country\".");
+            c.ReturnToWorldMap();
+            yield return WaitTravel(c);
+            Assert.That(c.IsExploring, Is.False);
         }
 
         // ----- Captures ---------------------------------------------------------------------------------------

@@ -93,6 +93,50 @@ namespace Realmkeeper.Infrastructure.Generation
             return true;
         }
 
+        /// <summary>Phase 23 follow-up: whether a region already has its country places (made once per region).</summary>
+        public static bool HasCountryPlaces(WorldData world, RegionId region)
+        {
+            foreach (var p in world.Places)
+                if (p != null && p.ParentKind == PlaceParentKind.Region && p.RegionId == region && Array.IndexOf(PlaceCatalog.Country, p.DefinitionId) >= 0) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Phase 23 follow-up (ADR-0110): the further regions get the country's ordinary wild places, once — a hollow in the
+        /// hills or woods, a fallen steading in the open, a barrow near a village, old workings in the hills — so that walking
+        /// them finds more than their settlements. Sited like every place (off roads, apart from the others, in reach of a
+        /// settlement), each named after the settlement it lies near; their contents and lairs come from their archetypes.
+        /// Deterministic from the world seed and the region. Older saves gain them once on load, as with Phase 18.
+        /// </summary>
+        public static bool EnsureCountryPlaces(WorldData world, RegionMap map)
+        {
+            if (world == null || map == null || world.Settlements.Count == 0) return false;
+            var region = RegionOf(world, map);
+            if (HasCountryPlaces(world, region)) return false;
+            bool InRegion(SettlementData s) => s.RegionId == region;
+            if (!world.Settlements.Exists(InRegion)) return false;
+            var suffix = "@" + region;
+            var made = new List<PlaceData>();
+            foreach (var p in world.Places) if (p != null && p.ParentKind == PlaceParentKind.Region && p.RegionId == region) made.Add(p);
+            var start = made.Count;
+            Make(world, map, made, PlaceCatalog.Hollow, InRegion, t => t == TerrainType.Hills || t == TerrainType.Forest, near: false, idSuffix: suffix);
+            Make(world, map, made, PlaceCatalog.Steading, InRegion, t => t == TerrainType.Plains || t == TerrainType.Forest, near: false, idSuffix: suffix);
+            Make(world, map, made, PlaceCatalog.Barrow, s => InRegion(s) && s.SettlementType != SettlementType.Town, t => t == TerrainType.Plains || t == TerrainType.Hills, near: true, idSuffix: suffix);
+            Make(world, map, made, PlaceCatalog.Workings, InRegion, t => t == TerrainType.Hills || t == TerrainType.Mountain, near: false, idSuffix: suffix);
+            if (made.Count == start) return false;
+            for (var i = start; i < made.Count; i++)
+            {
+                var p = made[i];
+                var near = world.FindSettlement(p.SettlementId);
+                if (near != null) p.Name += " near " + near.Name; // "The hollow near Mossholm": found by where it is
+                world.Places.Add(p);
+                PlaceContents.Ensure(world, p);
+                p.Threat = PlaceThreat.Of(p);
+            }
+
+            return true;
+        }
+
         private static bool Has(WorldData world, IEnumerable<string> definitions)
         {
             var ids = new HashSet<string>(definitions, StringComparer.Ordinal);

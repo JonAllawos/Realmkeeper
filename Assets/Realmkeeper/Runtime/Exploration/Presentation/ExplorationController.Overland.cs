@@ -63,6 +63,14 @@ namespace Realmkeeper.Exploration.Presentation
         private void SyncOverland(PlayerSummary player, bool forceReload)
         {
             var key = OverlandKey(player);
+            if (_arriving) return; // the country is being built behind the loading screen
+            if (_streamer.Current == null && !_travelling && isActiveAndEnabled)
+            {
+                // Arriving from the world map (or a loaded save): the same loading screen as every other transition.
+                StartCoroutine(ArriveFromMap(key));
+                return;
+            }
+
             if (forceReload || _streamer.Current == null || _streamer.Current.PlaceKey != key)
             {
                 UnloadEnvironment();
@@ -75,6 +83,61 @@ namespace Realmkeeper.Exploration.Presentation
                 CameraRig.SetPerspective(player.Perspective);
                 Hud?.SetPerspective(player.Perspective);
             }
+        }
+
+        private bool _arriving;
+        private Transform _sitesRoot;
+
+        /// <summary>Distance within which a settlement is shown in its own kit buildings (beyond it, blocks under the haze).</summary>
+        private const float KitSilhouetteMetres = 1400f;
+
+        /// <summary>Milliseconds the last kit silhouette took to build (diagnostics).</summary>
+        public float LastSilhouetteMs { get; private set; }
+
+        /// <summary>Settlements shown in their own kit buildings now.</summary>
+        public int KitSilhouettes { get { var n = 0; foreach (var v in _siteViews) if (v != null && v.KitShown) n++; return n; } }
+
+        private void UpgradeNearestSilhouette(Vector3 at)
+        {
+            OverlandSiteView best = null;
+            var bestD = KitSilhouetteMetres * KitSilhouetteMetres;
+            foreach (var v in _siteViews)
+            {
+                if (v == null || !v.CanUpgrade) continue;
+                var d = (v.Site.X - at.x) * (v.Site.X - at.x) + (v.Site.Z - at.z) * (v.Site.Z - at.z);
+                if (d < bestD) { bestD = d; best = v; }
+            }
+
+            if (best == null) return;
+            LastSilhouetteMs = best.UpgradeSilhouette();
+            Debug.Log($"Realmkeeper: {best.Site.Name} shown in its own buildings from the country ({LastSilhouetteMs:0} ms).");
+        }
+
+        private IEnumerator ArriveFromMap(string key)
+        {
+            _arriving = true;
+            _travelling = true;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            if (_loading == null) _loading = LoadingScreen.Create(transform);
+            var region = _session.FindRegion(_session.GetPlayer().RegionId);
+            _loading.Show(region != null ? region.Name : "The country", "Going out into the country…");
+            yield return null;
+            yield return null; // the screen is drawn before the work starts
+            _loading.Progress(0.4f, "Laying out the land…");
+            var player = _session != null && _session.HasWorld ? _session.GetPlayer() : null;
+            _arriving = false;
+            if (player != null && player.IsOverland)
+            {
+                UnloadEnvironment();
+                LoadOverland(player, OverlandKey(player));
+            }
+
+            LastTransitionMs = (float)clock.Elapsed.TotalMilliseconds;
+            _loading.Progress(1f, null);
+            yield return null;
+            _loading.Hide();
+            _travelling = false;
+            Debug.Log($"Realmkeeper: into the country from the map in {LastTransitionMs:0} ms.");
         }
 
         private void LoadOverland(PlayerSummary player, string key)
@@ -125,12 +188,15 @@ namespace Realmkeeper.Exploration.Presentation
             _detector.Clear();
             _detector.Range = 9f; // landmarks, not doors
             BuildSites(view);
+            UpgradeNearestSilhouette(new Vector3(player.Pose.X, 0f, player.Pose.Z)); // the town beside the arrival, in its own buildings before the screen lifts
             Hud = ExplorationHud.Create(null);
             Hud.ReturnRequested += OnReturnRequested;
             Hud.SaveRequested += OnSaveRequested;
             Hud.SetPerspective(player.Perspective);
             SetupLiving(layout);
             SetupOverlandHud();
+            RefreshPracticeButton(); // the settlement-edge fights are not offered in the country
+            _hudGround = null;
             RefreshOverlandHud();
             _input?.Enable();
             SetCursorFree(false);
@@ -145,8 +211,10 @@ namespace Realmkeeper.Exploration.Presentation
             var wood = _materials.Get(new Color(0.45f, 0.33f, 0.22f));
             var roof = _materials.Get(new Color(0.55f, 0.28f, 0.20f));
             var glow = _materials.Get(new Color(0.62f, 0.45f, 0.95f));
+            if (_sitesRoot != null) Destroy(_sitesRoot.gameObject); // a rebuild (a gateway opened) replaces the sites, never doubles them
             var root = new GameObject("Sites").transform;
             root.SetParent(EnvironmentRoot.transform, false);
+            _sitesRoot = root;
             foreach (var site in view.Sites)
             {
                 LocalEnvironmentLayout layout = null;
@@ -185,6 +253,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void TeardownOverland()
         {
             if (_overland == null) return;
+            _sitesRoot = null;
             foreach (var s in _siteViews) if (s != null) _detector.Unregister(s);
             _siteViews.Clear();
             _overland = null;
@@ -212,6 +281,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (moved < 0.5f) { _ambientSince = Time.unscaledTime; return; }
             StepClock(_lastStep, at);
             _lastStep = at;
+            UpgradeNearestSilhouette(at); // one town at a time, as the player comes near
             var result = _session.Dispatch(new WalkOverlandCommand(Player.CurrentPose));
             if (result.IsSuccess && !string.IsNullOrEmpty(result.Message)) Hud?.ShowMessage(result); // "Found: …"
         }
@@ -371,9 +441,18 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             var realm = _overlandView.RealmId == RealmIds.Surface ? string.Empty : " · " + _overlandView.RealmName;
+            var ground = cell.Road ? "on the road" : Words(cell.Biome);
+            if (ground != _hudGround) // the HUD's location panel: where, and the ground underfoot (set when it changes)
+            {
+                _hudGround = ground;
+                Hud?.SetLocation(_overlandView.RegionName, "In the country" + realm + " · " + ground, _session.GetOverview().Date.ToString());
+            }
+
             _whereLine.text = $"{_overlandView.RegionName}{realm} · {(cell.Road ? "on the road" : "the " + Words(cell.Biome))}" +
                               (nearest != null ? $" · {nearest.Name} {Distance(best)}" : string.Empty);
         }
+
+        private string _hudGround;
 
         private static string Distance(float m) => m < 1000f ? $"{m:0} m" : $"{m / 1000f:0.0} km";
 

@@ -38,7 +38,7 @@ namespace Realmkeeper.Tests.EditMode.Atlas
             for (var i = 0; i < w.Factions.Count; i++)
                 for (var j = i + 1; j < w.Factions.Count; j++)
                     Assert.That(w.FindRelation(w.Factions[i].FactionId, w.Factions[j].FactionId), Is.Not.Null, "Every pair of factions has one relationship.");
-            Assert.That(w.Places.Where(p => !Phase18Places.All.Contains(p.DefinitionId)).All(p => w.FindSettlement(p.SettlementId)?.RegionId == Home.RegionId || p.SettlementId.IsEmpty), Is.True,
+            Assert.That(w.Places.Where(p => !Phase18Places.All.Contains(p.DefinitionId) && !PlaceCatalog.Country.Contains(p.DefinitionId)) /* Phase 23: the country places belong to the further regions */.All(p => w.FindSettlement(p.SettlementId)?.RegionId == Home.RegionId || p.SettlementId.IsEmpty), Is.True,
                 "The Phase 13 and 14 places stay in the home vale.");
             foreach (var r in w.Regions)
             {

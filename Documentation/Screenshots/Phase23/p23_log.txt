@@ -1,21 +1,26 @@
 p23_01_loading_screen: The loading screen of a transition: destination, what is happening, progress.
-Out into the country: 378 ms; 12 detailed chunks ready, 10 barrier colliders, 9.6 km of road drawn.
+Out into the country: 666 ms; 12 detailed chunks ready, 10 barrier colliders, 9.6 km of road drawn; 1 settlement shown in its kit buildings (152 ms).
 p23_02_region_from_above: The whole region from above (5.12 km a side): ground by biome, lake and river, forests, mountains, roads (haze off for the shot).
 p23_03_roads_and_settlement: A settlement's silhouette from the country, with its roads leading out.
-Walking 4 s (2234 frames): 25.0 m; frame time median 1.3 ms, 95th 1.9 ms, worst 150.9 ms; 5091 trees and rocks drawn, 14 detailed chunks, last chunk built in 4.0 ms; clock 08:01 → 08:11, 0.61 min owed.
-p23_04_player_in_the_country: The player walking the country (third person): ground, trees, the compass and the location line.
+Walking 4 s (3592 frames): 23.6 m; frame time median 0.9 ms, 95th 1.1 ms, worst 61.5 ms; 5091 trees and rocks drawn, 14 detailed chunks, last chunk built in 7.5 ms; clock 08:02 → 08:11, 0.16 min owed.
+p23_04_player_in_the_country: The player walking the country (third person): textured ground, grass, trees, the compass and the location line.
+Ground cover: 654 grass, fern and flower instances drawn around the player; 0 trunk and rock colliders near them.
+Walking into a trunk from 6 m for 3 s: 4.8 m forward, 1.2 m from the trunk's centre at the end; 1 colliders near.
+p23_12_grass_and_trees: Close to the ground: grass and ferns from the owned nature kit, the textured ground, a solid trunk ahead.
 p23_05_region_map: The region map (N): the ground by biome, roads, water, known sites and the player.
 p23_06_settlement_approached: Westerthorpe approached from the country: its buildings at their true places, and the banner at the way in.
-Into Westerthorpe: 418 ms.
+Into Westerthorpe: 432 ms.
 p23_07_settlement_entered: Inside Westerthorpe, loaded as its own environment from the country.
-Back out: 281 ms; objects 1043 before entering, 1038 after coming back.
-Into Watch Fort: 232 ms.
+Back out: 525 ms; objects 1730 before entering, 1244 after coming back.
+Into Watch Fort: 241 ms.
 p23_08_place_interior: Watch Fort: a separately loaded environment entered from the country.
-Round 1: into Vale of Barrowfield in 671 ms.
+Round 1: into Vale of Barrowfield in 490 ms.
 p23_09_next_region: Arrived in Vale of Barrowfield by the road on: a region transition.
-Round 1 back home: 2 scenes loaded, 942 objects, 756 MB allocated.
-Round 2: into Vale of Barrowfield in 385 ms.
-Round 2 back home: 2 scenes loaded, 942 objects, 705 MB allocated.
+Round 1 back home: 2 scenes loaded, 947 objects, 724 MB allocated.
+Round 2: into Vale of Barrowfield in 338 ms.
+Round 2 back home: 2 scenes loaded, 948 objects, 622 MB allocated.
 p23_10_gateway_open: The prototype gateway, opened through the campaign's command: standing stones around a lit ring.
-Into the ancient realm: 428 ms.
+Into the ancient realm: 429 ms.
 p23_11_ancient_realm: The ancient realm's prototype region: its own geography and provisional light; no inhabitants (undecided).
+From the map into the country by Bramhaven: 468 ms.
+p23_13_from_the_map: Out into the country by Bramhaven, straight from the world map's "Walk the country".

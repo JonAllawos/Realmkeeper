@@ -110,9 +110,12 @@ namespace Realmkeeper.Domain.World
             env.Fronts.RemoveAll(f => f.Strength < 8 || f.X > maxX + 2.5f || f.Z < minZ - 3f || f.Z > maxZ + 3f);
 
             // 2. New fronts at the western edge; autumn and winter bring more.
-            var chance = season == Season.Autumn ? 0.55 : season == Season.Winter ? 0.5 : season == Season.Spring ? 0.42 : 0.3;
+            // Fronts are spread over the atlas's rows: a taller atlas (nine regions, Phase 23) gets proportionally more of
+            // them, so each region sees the same weather as on the two-row atlas the rates were tuned on (unchanged there).
+            var rows = Math.Max(2, maxZ - minZ + 1);
+            var chance = (season == Season.Autumn ? 0.55 : season == Season.Winter ? 0.5 : season == Season.Spring ? 0.42 : 0.3) * rows / 2.0;
             var roll = Seed(world, "front", day);
-            if (Unit(roll) < chance && env.Fronts.Count < 4)
+            if (Unit(roll) < chance && env.Fronts.Count < 2 * rows)
             {
                 var cold = Unit(SeedMixer.Combine(roll, 1)) < (season == Season.Winter ? 0.6 : season == Season.Autumn ? 0.4 : 0.2);
                 env.Fronts.Add(new WeatherFrontData
