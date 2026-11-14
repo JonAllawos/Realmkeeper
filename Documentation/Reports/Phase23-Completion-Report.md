@@ -3,7 +3,7 @@
 **Phase:** Overland World Foundation, Expanded World Scale, Realm Architecture & Traversal.
 **Date:** 2026-11-13.
 **Branch:** `feature/phase-0-1-foundation`.
-**Commit:** local only, not pushed (the brief). Section H gives the hash.
+**Commit:** `ea1422b`, local only, not pushed (the brief).
 
 **Decisions:** ADR-0110 (scale and terrain), ADR-0111 (realms, gateways, location, save v25), ADR-0112 (transitions and streaming).
 **System doc:** `Systems/Overland.md`.
@@ -317,8 +317,8 @@ Captures are in `Documentation/Screenshots/Phase23/`, with notes in `p23_log.txt
 
 - **Branch:** `feature/phase-0-1-foundation`.
 - **Before:** `de66388`, the same as origin.
-- **Phase 23 commit:** recorded in the Roadmap row and the commit log after committing (a local commit; see the closing message for the hash).
-- **Working tree after the commit:** clean except for Unity's `Assets/InitTestScene*` and `ProjectSettings/GraphicsSettings.asset`, which are deliberately left out as in every phase.
+- **Phase 23 commit:** `ea1422b` (implementation), and a follow-up local commit that records this hash. Both are local.
+- **Working tree after the commit:** clean except for Unity's untracked `Assets/InitTestScene*` files, which are deliberately left out as in every phase.
 - **Nothing was pushed or uploaded.**
 
 ## I. Recommendations for Phase 24
