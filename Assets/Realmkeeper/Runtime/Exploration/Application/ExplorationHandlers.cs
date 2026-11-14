@@ -26,6 +26,7 @@ namespace Realmkeeper.Exploration.Application
             commands.Register<SetCameraPerspectiveCommand>(new SetCameraPerspectiveHandler());
             commands.Register<TalkToResidentCommand>(new TalkToResidentHandler());
             commands.Register<PostLabourNoticeCommand>(new PostLabourNoticeHandler());
+            commands.Register<Realmkeeper.Application.Overland.EnterSettlementFromOverlandCommand>(new EnterSettlementFromOverlandHandler()); // Phase 23
         }
 
         /// <summary>The local environment of a settlement, derived from authoritative world data (never saved).</summary>

@@ -39,6 +39,10 @@ namespace Realmkeeper.Exploration.Presentation
         public CharacterAdvancementWindow Advancement { get; private set; }
 
         private Button _levelUpButton;
+        private Button _countryButton; // Phase 23
+
+        /// <summary>Phase 23: in a settlement's street (not a place, a road fight or the country): the country is a step away.</summary>
+        public bool IsInTownForCountry => IsExploring && !InPlace && !InOverland && RoadStage == null && _streamer.Current != null && !_streamer.Current.SettlementId.IsEmpty;
         private VisualElement _levelNotice; // Phase 22: the one-time "a new level is yours" notice
         private Label _levelNoticeText;
 
@@ -217,6 +221,7 @@ namespace Realmkeeper.Exploration.Presentation
             _createButton.AddToClassList("xk-button--primary");
             _levelUpButton = TimeButton(row, "Level up (L)", "xk-open-levelup", () => OpenAdvancement());
             _levelUpButton.AddToClassList("xk-button--primary");
+            _countryButton = TimeButton(row, "Out to the country (O)", "xk-open-country", () => GoOutIntoCountry()); // Phase 23
             panel.Add(row);
         }
 
@@ -272,6 +277,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// </summary>
         public void RefreshPresence(WorldTimeSummary time, bool snap)
         {
+            if (InOverland) { RefreshOverland(); return; } // Phase 23: the country shows its sites, not a town's people
             if (InPlace) { if (_session != null) RefreshPlace(_session.GetPlaceScene(), snap); return; } // Phase 13: a place shows its own people
             var layout = _streamer.Current;
             if (layout == null) return;
@@ -393,6 +399,7 @@ namespace Realmkeeper.Exploration.Presentation
             var character = _session?.GetCharacter();
             _createButton?.EnableInClassList("xk-hidden", character?.NeedsCreation != true);
             _levelUpButton?.EnableInClassList("xk-hidden", character?.CanAdvance != true);
+            _countryButton?.EnableInClassList("xk-hidden", !IsInTownForCountry); // Phase 23
             RefreshLevelUp(character); // Phase 22
             if (_clock == null) return;
             _clock.text = time.Clock + " · " + time.DayPart + (Weather != null ? " · " + Weather.Line : string.Empty);

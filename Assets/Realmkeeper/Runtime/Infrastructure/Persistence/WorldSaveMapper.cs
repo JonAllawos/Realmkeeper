@@ -57,6 +57,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                     PlaceId = w.Player.PlaceId,
                     PlaceFloor = w.Player.PlaceFloor,
                     PlaceRoom = w.Player.PlaceRoom,
+                    RealmId = string.IsNullOrEmpty(w.Player.RealmId) ? null : w.Player.RealmId, // schema v25
+                    ReturnToOverland = w.Player.ReturnToOverland,
                 },
             };
 
@@ -272,6 +274,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             WriteAtlas(w, dto); // Phase 16
             WriteCampaigns(w, dto); // Phase 17
             WriteEnvironment(w, dto); // Phase 21
+            WriteRealms(w, dto); // Phase 23
             return dto;
         }
 
@@ -414,6 +417,8 @@ namespace Realmkeeper.Infrastructure.Persistence
                     PlaceId = pd.PlaceId,
                     PlaceFloor = pd.PlaceFloor,
                     PlaceRoom = pd.PlaceRoom,
+                    RealmId = pd.RealmId ?? string.Empty, // schema v25
+                    ReturnToOverland = pd.ReturnToOverland,
                 };
             }
 
@@ -634,6 +639,7 @@ namespace Realmkeeper.Infrastructure.Persistence
             ReadAtlas(dto, world); // Phase 16
             ReadCampaigns(dto, world); // Phase 17
             ReadEnvironment(dto, world); // Phase 21
+            ReadRealms(dto, world); // Phase 23
             return world;
         }
 

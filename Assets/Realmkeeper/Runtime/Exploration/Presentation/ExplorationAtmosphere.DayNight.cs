@@ -159,6 +159,12 @@ namespace Realmkeeper.Exploration.Presentation
             return -110f + 220f * t;
         }
 
+        /// <summary>Phase 23: a multiplier on the haze's density (1 in a settlement; lower in the open country, which sees further).</summary>
+        public float FogScale { get; set; } = 1f;
+
+        /// <summary>Phase 23 (ADR-0111): a realm's provisional light (white: the surface's own).</summary>
+        public Color RealmTint { get; set; } = Color.white;
+
         /// <summary>Applies the lighting of a minute of the day (0–1439).</summary>
         public void SetTime(int minute)
         {
@@ -207,6 +213,14 @@ namespace Realmkeeper.Exploration.Presentation
             if (_sky != null && _sky.HasProperty("_Exposure")) _sky.SetFloat("_Exposure", Mathf.Lerp(0.18f, 1f, Mathf.Clamp01(day + golden * 0.3f)));
             if (_colour != null) _colour.postExposure.Override(Mathf.Lerp(0.2f, 0.35f, day));
             ApplyWeatherToLight(day, night); // Phase 21: cloud, rain, snow and fog over the hour's light (may light the lamps early)
+            // Phase 23 (ADR-0110, ADR-0111): the country sees further than a street; another realm has its own light.
+            RenderSettings.fogDensity *= FogScale;
+            if (RealmTint != Color.white)
+            {
+                RenderSettings.fogColor = Color.Lerp(RenderSettings.fogColor, RealmTint, 0.55f);
+                if (Sun != null) Sun.color = Color.Lerp(Sun.color, RealmTint, 0.45f);
+                RenderSettings.ambientEquatorColor = Color.Lerp(RenderSettings.ambientEquatorColor, RealmTint, 0.35f);
+            }
 
             foreach (var lamp in _lamps)
             {

@@ -14,6 +14,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 13: inside an explorable place (a mine, a crypt, a building's interior).</summary>
         Place = 2,
+
+        /// <summary>Phase 23 (ADR-0110): out in the walkable country of a region (<see cref="PlayerCharacterData.Pose"/> in region metres).</summary>
+        Overland = 3,
     }
 
     /// <summary>Exploration camera perspective. Persisted by name.</summary>
@@ -87,6 +90,15 @@ namespace Realmkeeper.Domain.World
 
         public bool IsInPlace => LocationKind == CharacterLocationKind.Place;
 
+        /// <summary>Phase 23 (ADR-0110): walking the country of <see cref="RegionId"/> (in <see cref="RealmId"/>).</summary>
+        public bool IsOverland => LocationKind == CharacterLocationKind.Overland;
+
+        /// <summary>Phase 23 (ADR-0111): the realm the character is in (empty: the surface).</summary>
+        public string RealmId { get; set; } = string.Empty;
+
+        /// <summary>Phase 23: the settlement or place was entered from the country, so leaving it returns there (not to the map).</summary>
+        public bool ReturnToOverland { get; set; }
+
         // ----- Phase 5: the player as a person with looks, belongings and standing -----------------
 
         public string Species { get; set; } = "Human";
@@ -133,6 +145,8 @@ namespace Realmkeeper.Domain.World
             PlaceId = PlaceId,
             PlaceFloor = PlaceFloor,
             PlaceRoom = PlaceRoom,
+            RealmId = RealmId, // Phase 23
+            ReturnToOverland = ReturnToOverland,
                 Species = Species,
                 Age = Age,
                 Background = Background,

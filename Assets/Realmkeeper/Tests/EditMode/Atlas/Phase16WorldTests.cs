@@ -18,18 +18,18 @@ namespace Realmkeeper.Tests.EditMode.Atlas
     public sealed class Phase16WorldTests : Phase16Fixture
     {
         [Test]
-        public void ANewGame_IsSixConnectedRegions_EachWithItsOwnSettlementsPeopleAndFactions()
+        public void ANewGame_IsNineConnectedRegions_EachWithItsOwnSettlementsPeopleAndFactions()
         {
             var w = W;
-            Assert.That(w.Regions.Count, Is.EqualTo(6));
-            Assert.That(w.Regions.Select(r => (r.AtlasX, r.AtlasZ)).Distinct().Count(), Is.EqualTo(6), "Each has its own place on the atlas.");
+            Assert.That(w.Regions.Count, Is.EqualTo(9)); // six until Phase 23 (ADR-0110): the whole 3 × 3 atlas
+            Assert.That(w.Regions.Select(r => (r.AtlasX, r.AtlasZ)).Distinct().Count(), Is.EqualTo(9), "Each has its own place on the atlas.");
             foreach (var r in w.Regions)
             {
                 var here = w.Settlements.Where(s => s.RegionId == r.RegionId).ToList();
                 Assert.That(here.Count, Is.EqualTo(3), r.Name + " has its own settlements.");
                 Assert.That(w.Npcs.Count(n => here.Any(s => s.SettlementId == n.HomeSettlementId)), Is.GreaterThan(10), r.Name + " has its own people.");
                 Assert.That(here.All(s => w.FindLayout(s.SettlementId) != null), Is.True, "Every settlement has its plan, for local exploration.");
-                Assert.That(r.Neighbours.Count, Is.InRange(2, 3), r.Name + " borders its neighbours on the atlas.");
+                Assert.That(r.Neighbours.Count, Is.InRange(2, 4), r.Name + " borders its neighbours on the atlas (the centre of the 3 × 3 atlas has four, since Phase 23).");
                 Assert.That(r.Seed, Is.Not.EqualTo(0));
             }
 

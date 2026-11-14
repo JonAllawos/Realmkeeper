@@ -77,6 +77,7 @@ namespace Realmkeeper.Infrastructure.Generation
             }
 
             if (changed) Simulation.Quests.QuestGenesis.Ensure(world); // the further regions' own emergent quests, as a reload would find them
+            if (RealmGenesis.Ensure(world, homeMap, generator)) changed = true; // Phase 23 (ADR-0111): the realms and the prototype gateway, once
             return changed;
         }
 

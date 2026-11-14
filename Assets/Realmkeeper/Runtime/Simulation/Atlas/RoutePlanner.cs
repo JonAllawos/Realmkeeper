@@ -207,7 +207,7 @@ namespace Realmkeeper.Simulation.Atlas
         {
             var p = world.Player;
             if (p == null) return world.Regions.Count > 0 ? world.Regions[0].RegionId : default;
-            if (!p.RegionId.IsEmpty) return p.RegionId;
+            if (!p.RegionId.IsEmpty && RealmIds.IsSurface(p.RealmId)) return p.RegionId; // Phase 23: in another realm, the surface is simulated from where the player left it
             var s = world.FindSettlement(p.SettlementId.IsEmpty ? p.LastSettlementId : p.SettlementId);
             return s?.RegionId ?? (world.Regions.Count > 0 ? world.Regions[0].RegionId : default);
         }

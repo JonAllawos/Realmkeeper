@@ -97,6 +97,22 @@ namespace Realmkeeper.Infrastructure.Persistence
     }
 
     /// <summary>
+    /// v24 → v25 (Phase 23, ADR-0110, ADR-0111). Structural, writes nothing: the world gains optional <c>realms</c> and
+    /// <c>gateways</c> (absent: made once on load, deterministically from the seed, by the atlas step), and the player an
+    /// optional <c>realmId</c> (absent: the surface) and the location kind <c>Overland</c>, which no older save uses. Nothing
+    /// is regenerated: settlements, people, routes and every change the player made are kept as they were.
+    /// </summary>
+    public sealed class MigrationV24ToV25 : ISaveMigration
+    {
+        public int SourceVersion => 24;
+
+        public void Migrate(JObject document)
+        {
+            // Optional fields, made on load: nothing to rewrite.
+        }
+    }
+
+    /// <summary>
     /// v23 → v24 (Phase 22, ADR-0109). A character sheet gains an optional <c>pendingAdvancement</c> (absent: no level-up
     /// in progress) and <c>levelUpNoticed</c> (absent reads as 0: no level announced yet, so a character who could already
     /// advance is told once after loading). Rules 10 adds the tiefling legacy's spellcasting ability: a player not yet created

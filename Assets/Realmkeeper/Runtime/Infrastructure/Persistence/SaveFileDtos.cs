@@ -102,6 +102,10 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         // Schema v23 (Phase 21): seasons and regional weather (null in older saves).
         public WorldEnvironmentDto Environment { get; set; }
+
+        // Schema v25 (Phase 23): realms and gateways (null in older saves: made on load).
+        public List<RealmDto> Realms { get; set; }
+        public List<GatewayDto> Gateways { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -443,6 +447,10 @@ namespace Realmkeeper.Infrastructure.Persistence
         public string PlaceId { get; set; }
         public int PlaceFloor { get; set; }
         public string PlaceRoom { get; set; }
+
+        // Schema v25 (Phase 23): the realm the player is in (null: the surface).
+        public string RealmId { get; set; }
+        public bool ReturnToOverland { get; set; }
 
         // Schema v7 (Phase 5). Absent in older saves.
         public string Species { get; set; }

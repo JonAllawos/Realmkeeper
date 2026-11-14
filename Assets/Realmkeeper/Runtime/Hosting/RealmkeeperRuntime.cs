@@ -179,7 +179,7 @@ namespace Realmkeeper.Hosting
         {
             var player = Host.IsActive ? Host.Session.GetPlayer() : null;
             var roadFight = Host.IsActive && Host.Session.GetRoadFight() != null; // Phase 17 (ADR-0086): a fight on the road is fought on the ground
-            SetMode(player != null && (player.IsInSettlement || player.LocationKind == Realmkeeper.Domain.World.CharacterLocationKind.Place || roadFight) ? ViewMode.Exploration : ViewMode.Strategic); // Phase 13: a place is explored too
+            SetMode(player != null && (player.IsInSettlement || player.LocationKind == Realmkeeper.Domain.World.CharacterLocationKind.Place || player.LocationKind == Realmkeeper.Domain.World.CharacterLocationKind.Overland || roadFight) ? ViewMode.Exploration : ViewMode.Strategic); // Phase 13: a place is explored too
         }
 
         private void SetMode(ViewMode mode)

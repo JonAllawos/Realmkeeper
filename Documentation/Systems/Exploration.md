@@ -195,3 +195,7 @@ elsewhere. People walk the plan's road graph (ADR-0049).
 
 Settlements without a plan keep the older two-street environment described above. Plan generation:
 `Documentation/Phase10/SettlementGeneration.md`.
+
+## The country as a third environment (Phase 23)
+
+Beside settlements and places, a region's walkable country is now an environment of its own, built by `OverlandWorld`. As before, only one environment is active at a time. Moving between environments (country, settlement, place, another region, another realm) is a loading transition behind `LoadingScreen`. See `Overland.md` and ADR-0112.

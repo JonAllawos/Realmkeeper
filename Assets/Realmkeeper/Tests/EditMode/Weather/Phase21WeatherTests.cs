@@ -131,7 +131,8 @@ namespace Realmkeeper.Tests.EditMode.Weather
                 double Mean(Season s) => mine.Where(x => SeasonRules.Of(x.date) == s).SelectMany(x => x.day.Periods).Average(p => p.TemperatureC);
                 Assert.That(Mean(Season.Summer), Is.GreaterThan(Mean(Season.Winter) + 8), $"{region.Name}: summer warmer than winter");
                 var wetDays = mine.Count(x => x.day.Periods.Any(p => WeatherWords.IsRain(p.Kind) || WeatherWords.IsSnow(p.Kind)));
-                Assert.That(wetDays, Is.InRange(30, 300), $"{region.Name}: {wetDays} wet days in a year");
+                const int fewest = 20; // fronts weaken as they drift east (Phase 21): on the wider nine-region atlas (Phase 23) the far east is drier
+                Assert.That(wetDays, Is.InRange(fewest, 300), $"{region.Name}: {wetDays} wet days in a year");
                 var dryDays = mine.Count(x => x.day.Periods.All(p => !WeatherWords.IsRain(p.Kind) && !WeatherWords.IsSnow(p.Kind)));
                 Assert.That(dryDays, Is.GreaterThan(30), $"{region.Name}: {dryDays} dry days in a year");
             }

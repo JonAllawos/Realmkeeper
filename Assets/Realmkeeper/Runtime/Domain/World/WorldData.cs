@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 24; // Phase 22 (ADR-0109): the level-up in progress and the level-up notice; Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
+        public const int CurrentSchemaVersion = 25; // Phase 23 (ADR-0110, ADR-0111): realms, gateways, the player in the country and the realm they are in; Phase 22 (ADR-0109): the level-up in progress and the level-up notice; Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -166,6 +166,16 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 21 (ADR-0105): seasons and regional weather. Null in a world never simulated since (filled on load).</summary>
         public WorldEnvironmentData Environment { get; set; }
+
+        /// <summary>Phase 23 (ADR-0111): the realms of the campaign world (the surface, the ancient world). Made once on load.</summary>
+        public List<RealmData> Realms { get; set; } = new List<RealmData>();
+
+        /// <summary>Phase 23 (ADR-0111): the gateways between realms, with their campaign state.</summary>
+        public List<GatewayData> Gateways { get; set; } = new List<GatewayData>();
+
+        public RealmData FindRealm(string id) => Realms.Find(r => r.RealmId == id);
+
+        public GatewayData FindGateway(string id) => Gateways.Find(g => g.GatewayId == id);
 
         public RouteSegmentData FindRoute(string id)
         {
@@ -342,6 +352,10 @@ namespace Realmkeeper.Domain.World
             copy.NextWorldEventNumber = NextWorldEventNumber;
             if (Campaigns != null) foreach (var c in Campaigns) copy.Campaigns.Add(c?.Clone());
             copy.Environment = Environment?.Clone(); // Phase 21
+            copy.Realms = new List<RealmData>();
+            if (Realms != null) foreach (var r in Realms) copy.Realms.Add(r?.Clone()); // Phase 23
+            copy.Gateways = new List<GatewayData>();
+            if (Gateways != null) foreach (var g in Gateways) copy.Gateways.Add(g?.Clone());
             return copy;
         }
 

@@ -98,5 +98,8 @@ namespace Realmkeeper.Application.Ports
         /// people and roads are never regenerated. True when anything was added.
         /// </summary>
         bool EnsureAtlas(WorldData world, RegionMap homeMap, int regions);
+
+        /// <summary>Phase 23 (ADR-0111): a region's geography alone (no settlements, roads or people), for a realm whose inhabitants are undecided.</summary>
+        RegionMap GenerateGeography(long seed, int mountainDirection, RegionId regionId);
     }
 }

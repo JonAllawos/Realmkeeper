@@ -106,7 +106,7 @@ These must be decided before or at the start of the named phase. The roadmap doe
 
 | ID | Decision | Needed by | Notes |
 |---|---|---|---|
-| D1 | **World scale for walking.** At the current scale (1.2 km a cell, 4.8 km/h), one region takes about 32 hours to walk across, and the full world is roughly 460 × 307 km, about ten times wider than large open-world RPGs. Options: (a) compress the walkable scale (for example 100–200 m a cell) and re-derive travel times; (b) keep the travel scale and generate the walkable world at reduced detail in a coarse outer zone; (c) shrink the region grid. | Start of Phase 23 | Changes `TravelRules`, groups, trade timing and save data. Needs an ADR that supersedes part of ADR-0076 and ADR-0077. |
+| D1 | **World scale for walking.** At the current scale (1.2 km a cell, 4.8 km/h), one region takes about 32 hours to walk across, and the full world is roughly 460 × 307 km, about ten times wider than large open-world RPGs. Options: (a) compress the walkable scale (for example 100–200 m a cell) and re-derive travel times; (b) keep the travel scale and generate the walkable world at reduced detail in a coarse outer zone; (c) shrink the region grid. | Start of Phase 23 | **Decided in Phase 23 under the brief (2026-11-13), owner review invited:** a hybrid of (a) and (b). The walkable country is the same region map at 40 m a cell (5.12 km a region), and the 1.2 km travel scale is kept, with one walked metre standing for 30 m of road. Nothing in `TravelRules`, groups or trade changed. New games have 9 regions (ADR-0110) |
 | D2 | **What "fast travel" is.** For example: carts between connected towns, a known-road auto-walk, or none. | Phase 29 | Physical travel stays the primary experience. |
 | D3 | **Ruleset identity.** The name and scope of the Realmkeeper ruleset (for example "Realmkeeper Rules 1.0"); which SRD content is kept as-is; what is adapted. | Phase 22 (baseline), Phase 30 (expansion) | See the Bible's ruleset section |
 | D4 | **Pending play before creation.** Should a new game require creation before play, or allow pending play but discard pre-creation experience and coin? | Phase 22 | **Decided 2026-11-13: "No XP before creation".** Experience awards are refused until the character exists, so every new character starts at 0. Pending play (walking, trading, talking) stays allowed, and coin earned before creation is kept. Old saves that already hold pre-creation experience keep it (ADR-0109) |
@@ -172,6 +172,8 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 ---
 
 ### Phase 23: Open-world architecture I — one world frame (workstream C)
+
+> **Done differently (2026-11-13).** The Phase 23 brief replaced this plan with "Overland World Foundation, Expanded World Scale, Realm Architecture & Traversal". It built walkable regions as modular environments (ADR-0110 to ADR-0112), not one coordinate frame, and also covered much of the geography and traversal planned below for later phases. See `../Reports/Phase23-Completion-Report.md`. The plans for Phase 24 and later should be re-read against it.
 
 **Kind:** Arch.
 

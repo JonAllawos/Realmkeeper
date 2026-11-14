@@ -143,6 +143,28 @@ namespace Realmkeeper.Infrastructure.Generation
             return new GeneratedWorld(world, map);
         }
 
+        /// <summary>
+        /// Phase 23 (ADR-0111): a region's geography alone — elevation, lake, river, terrain — from a seed and mountain side,
+        /// with no settlements, roads, people or economy. Used for a realm whose inhabitants are not yet decided. The same
+        /// stages and streams as <see cref="Generate"/>, stopped before the settlements.
+        /// </summary>
+        public RegionMap GenerateGeography(long seed, int mountainDirection, RegionId regionId)
+        {
+            var root = SeedMixer.FromWorldSeed(seed);
+            IRandomSource Stream(string stage) => _randomFactory.Create(SeedMixer.Combine(root, stage));
+            var map = new RegionMap(_settings.Width, _settings.Depth, _settings.CellSize, _settings.MaxElevation, _settings.WaterLevel);
+            var layout = ChooseLayout(Stream("layout"), mountainDirection >= 0 ? mountainDirection : (int?)null, out var mountainSide);
+            map.MountainDirection = mountainSide;
+            BuildElevation(map, root, layout);
+            CarveLake(map, root, layout);
+            var river = CarveRiver(map, Stream("river"), layout);
+            var riverSet = new HashSet<MapCoord>(river);
+            Classify(map, riverSet, new LatticeNoise(SeedMixer.Combine(root, "forest")), layout);
+            if (river.Count >= 2) map.AddRiver(river);
+            map.RegionId = regionId;
+            return map;
+        }
+
         // ----- Layout --------------------------------------------------------------------
 
         private struct Layout

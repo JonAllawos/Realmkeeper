@@ -20,7 +20,7 @@ The campaign, world, mythology and narrative direction (established canon, propo
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 22, 2026-11-13)
+## Implementation status (updated at the end of Phase 23, 2026-11-13)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -125,6 +125,7 @@ present but visibly temporary; **Not started**.
 | Level 1 start (amendment A2) | **Implemented (Phase 22)** | Every new character passes `LevelOneBaseline` before creation commits: level 1, 0 experience, proficiency +2, HP from the hit die, level 1 features, slots and spells only, resources full, the kit once. Proven over every class, species, lineage and background. No experience is earned before creation (owner decision D4); pending play (walking, trading, talking) remains, and coin and belongings carried before creation are kept. Old saves keep what they hold (ADR-0109) |
 | Player-driven level-up (Phase 22) | **Implemented** | A one-time, recorded level-up notice; a HUD button that stays bronze with the open choices; the window separates automatic benefits from the player's choices and shows what stays locked; picks are kept on closing and saving and resumed; confirming applies each level once; nothing is chosen for the player (ADR-0109) |
 | Realmkeeper ruleset document (amendment A3) | **Baseline written (Phase 22)** | `Ruleset-Baseline.md` classifies each rule area as implemented, from SRD 5.2.1 (as-is or adapted), Realmkeeper-specific, incomplete, planned or unsupported. The full ruleset document and its name (decision D3) are Phase 30 |
+| Walkable country, realms and transitions (Phase 23) | **Foundation** | 9 regions at 40 m a cell (236 km²), plus an ancient prototype region. Terrain with 14 biomes, passability, bridges, fords and passes; walking advances the one clock; discovery by sight; compass and region map; loading transitions between the country, settlements, places, regions and realms; save v25. Not hand-played (ADR-0110 to ADR-0112) |
 
 ### §19 Design principles: how Phases 6–7 respect them
 
@@ -275,7 +276,7 @@ states of ADR-0076 to the whole overworld.
 - is justified in the world (known roads, real services);
 - passes real time, so events and closures still apply.
 
-**Status:** Not started. Planned as Phases 23–29 in `FutureRoadmap.md`.
+**Status:** Foundation (Phase 23). The walkable country covers 9 regions at 40 m a cell, plus an ancient prototype region, with roads, terrain, crossings, discovery by sight, a compass, a region map and loading transitions (`Systems/Overland.md`, ADR-0110 to ADR-0112). Landmark density, mounts, encounters, hazards and fast travel are still to come.
 
 ### A2. Every new character starts at level 1
 

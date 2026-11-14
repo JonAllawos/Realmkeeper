@@ -442,6 +442,8 @@ namespace Realmkeeper.Application
             Pose = p.Pose;
             Perspective = p.Perspective;
             LastSettlementId = p.LastSettlementId;
+            RealmId = p.RealmId ?? string.Empty; // Phase 23
+            ReturnToOverland = p.ReturnToOverland;
         }
 
         public CharacterId CharacterId { get; }
@@ -454,6 +456,15 @@ namespace Realmkeeper.Application
         public LocalPose Pose { get; }
         public CameraPerspective Perspective { get; }
         public SettlementId LastSettlementId { get; }
+
+        /// <summary>Phase 23: in the walkable country (of <see cref="RegionId"/>, in <see cref="RealmId"/>).</summary>
+        public bool IsOverland => LocationKind == CharacterLocationKind.Overland;
+
+        /// <summary>Phase 23: the realm (empty: the surface).</summary>
+        public string RealmId { get; }
+
+        /// <summary>Phase 23: leaving the current settlement or place returns to the country.</summary>
+        public bool ReturnToOverland { get; }
     }
 
     public sealed class NpcSummary

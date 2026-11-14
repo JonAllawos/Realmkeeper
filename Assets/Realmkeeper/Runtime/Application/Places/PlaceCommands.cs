@@ -143,6 +143,7 @@ namespace Realmkeeper.Application.Places
             var first = place.Visits == 0;
             place.Visits++;
             place.LastVisitedAt = QuestClock.Now(w);
+            if (place.Category != PlaceCategory.Interior) p.ReturnToOverland = p.IsOverland; // Phase 23: from the country, back to it on leaving
             p.LocationKind = CharacterLocationKind.Place;
             p.PlaceId = place.PlaceId;
             if (!place.SettlementId.IsEmpty) p.LastSettlementId = place.SettlementId;
@@ -245,6 +246,17 @@ namespace Realmkeeper.Application.Places
                     where = w.FindSettlement(place.SettlementId)?.Name ?? "the street";
                     var home = PlaceRules.Arrive(context, w, place.SettlementId);
                     if (home.Count > 0) where += " — " + string.Join(", ", home) + " is home";
+                }
+                else if (p.ReturnToOverland && context.Session.GetOverlandTerrain(Realmkeeper.Domain.World.RealmIds.Surface, place.RegionId) is Realmkeeper.Domain.Geography.OverlandTerrain terrain)
+                {
+                    // Phase 23 (ADR-0110): entered from the country, so out into it again, beside the way in.
+                    var (x, z) = Realmkeeper.Application.Overland.OverlandQueries.Approach(terrain, place.Cell, 2);
+                    p.LocationKind = CharacterLocationKind.Overland;
+                    p.SettlementId = default;
+                    p.RegionId = place.RegionId;
+                    p.Pose = new LocalPose(x, terrain.HeightAt(x, z), z, p.Pose.Yaw);
+                    p.ReturnToOverland = false;
+                    where = "the country around it";
                 }
                 else
                 {

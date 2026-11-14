@@ -139,3 +139,7 @@ The view is built from queries (`AtlasQueries.View`). It shows only what the pla
 | Save | 112 ms, 5.0 MB |
 | Load | 371 ms |
 | Generation | 0.6 s |
+
+## The walkable country (Phase 23)
+
+The travel scale above is unchanged. Each region can also be walked at 40 m a cell, where one walked metre stands for 30 m of road, so a walked road cell takes the same 15 game minutes as a journey. Walking advances the same clock. New games have 9 regions. See `Overland.md`, ADR-0110 and ADR-0111.

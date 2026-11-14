@@ -129,6 +129,13 @@ namespace Realmkeeper.Exploration.Presentation
                 return;
             }
 
+            if (player != null && player.LocationKind == CharacterLocationKind.Overland)
+            {
+                SyncOverland(player, forceReload); // Phase 23: the walkable country
+                return;
+            }
+
+            if (InOverland) UnloadEnvironment(); // Phase 23: left the country
             if (InPlace) UnloadEnvironment(); // left a place: the settlement (or the map) is rebuilt
 
             // Phase 17 (ADR-0086): a fight on the road is staged on the open ground at the road's nearer end. The player
@@ -282,6 +289,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (!_streamer.IsLoaded) return;
             TeardownPlace(); // Phase 13
+            TeardownOverland(); // Phase 23
             TeardownLiving();
             ClearCompanions(); // Phase 15
             _input?.Disable();
@@ -327,6 +335,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (!IsExploring || Player == null || _session == null) return CommandResult.InvalidState("The character is not exploring.");
             if (RoadStage != null) return CommandResult.Ok(); // Phase 17: on the road the party has no place in a settlement to record
+            if (InOverland) return _session.Dispatch(new Realmkeeper.Application.Overland.WalkOverlandCommand(Player.CurrentPose)); // Phase 23
             if (InPlace) return _placeScene.PlayerRoom == null ? CommandResult.Ok() : _session.Dispatch(new Realmkeeper.Application.Places.MoveInPlaceCommand(_placeScene.PlayerRoom, Player.CurrentPose)); // Phase 13
             var layout = _streamer.Current;
             var pose = Player.CurrentPose;
@@ -435,6 +444,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
             if (InPlace) return LeavePlace(); // Phase 13: only by the way out
+            if (InOverland) { Travel("The world map", "Turning to the map…", () => _session.Dispatch(new Realmkeeper.Application.Overland.LeaveOverlandCommand())); return CommandResult.Ok(); } // Phase 23
             if (RoadStage != null) return LeaveRoadFight(); // Phase 17: back to the road (the journey halted where it was)
             RecordPose();
             var result = _session.Dispatch(new ExitSettlementCommand());
@@ -471,6 +481,8 @@ namespace Realmkeeper.Exploration.Presentation
             UpdateParty(); // Phase 15: companions walk with the player
             UpdateExchanges(); // Phase 18: people talking to each other
             if (InPlace) UpdatePlace(Keyboard.current); // Phase 13
+            if (InOverland) UpdateOverland(); // Phase 23
+            else if (IsInTownForCountry && _input != null && !WindowOpen && Keyboard.current != null && Keyboard.current.oKey.wasPressedThisFrame) GoOutIntoCountry();
             if (WindowOpen)
             {
                 Hud?.SetPrompt(null);
@@ -526,6 +538,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void RefreshHud()
         {
             if (InPlace) { RefreshPlaceHud(); RefreshConditionsHud(); return; } // Phase 13; Phase 14: conditions, followers, rest
+            if (InOverland) { RefreshOverlandHud(); return; } // Phase 23
             if (Hud == null || _session == null || !_session.HasWorld) return;
             var player = _session.GetPlayer();
             if (player != null && RoadStage != null) // Phase 17: where the party is, on the road

@@ -94,6 +94,7 @@ namespace Realmkeeper.Application
             Party.PartyCommandHandlers.Register(_commands); // Phase 15
             Atlas.TravelCommandHandlers.Register(_commands); // Phase 16
             Campaigns.CampaignCommandHandlers.Register(_commands); // Phase 17
+            Overland.OverlandCommandHandlers.Register(_commands); // Phase 23
         }
 
         /// <summary>Phase 17: the campaign journal (what could begin here, and every campaign begun), as the player may see it.</summary>
@@ -559,11 +560,11 @@ namespace Realmkeeper.Application
             return settings;
         }
 
-        /// <summary>Phase 16: the settings of a new game: the standard systems and a connected world of six regions.</summary>
+        /// <summary>Phase 16: the settings of a new game: the standard systems and a connected world; nine regions since Phase 23 (the atlas's full 3 × 3; six before, ADR-0110).</summary>
         public static WorldSettings NewGameSettings()
         {
             var settings = DefaultSettings();
-            settings.Regions = 6;
+            settings.Regions = 9; // Phase 23 (ADR-0110): the whole atlas grid
             return settings;
         }
 
@@ -594,6 +595,8 @@ namespace Realmkeeper.Application
             if (world != null) Simulation.Commerce.CommerceGenesis.EnsureKinds(world); // Phase 21 (ADR-0106): shop kinds; specialists in unused shop buildings
             _world = world;
             _maps.Clear();
+            _realmMaps.Clear(); // Phase 23
+            _terrains.Clear();
             if (map != null && world?.Regions.Count > 0) { if (map.RegionId.IsEmpty) map.RegionId = world.Regions[0].RegionId; _maps[map.RegionId] = map; }
             Map = MapOfPlayersRegion() ?? map;
             WorldChanged?.Invoke(new WorldChange(reason, null));

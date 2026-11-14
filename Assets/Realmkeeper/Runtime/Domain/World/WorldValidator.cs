@@ -53,6 +53,8 @@ namespace Realmkeeper.Domain.World
                 if (world.WorldSettings.EnabledSimulationSystems == null) result.AddError("EnabledSimulationSystems is null.");
             }
 
+            ValidateRealms(world, result); // Phase 23
+
             if (world.Settlements == null || world.Factions == null || world.Npcs == null || world.HistoricalEvents == null)
             {
                 result.AddError("World collections must not be null.");
@@ -401,6 +403,16 @@ namespace Realmkeeper.Domain.World
                 if (place != null && p.RegionId != place.RegionId) result.AddError("Player character's region does not match their place's region.");
                 if (place != null && p.SettlementId != (place.Category == Realmkeeper.Domain.Places.PlaceCategory.Interior ? place.SettlementId : default))
                     result.AddError("Player character in a place names the wrong settlement.");
+            }
+            else if (p.LocationKind == CharacterLocationKind.Overland)
+            {
+                // Phase 23 (ADR-0110, ADR-0111): walking a region of the surface or of another realm; never in a settlement.
+                if (!p.SettlementId.IsEmpty) result.AddError("Player character in the country must not be in a settlement.");
+                if (RealmIds.IsSurface(p.RealmId))
+                {
+                    if (world.FindRegion(p.RegionId) == null) result.AddError("Player character walks a region that does not exist.");
+                }
+                else if (world.FindRealm(p.RealmId)?.FindRegion(p.RegionId) == null) result.AddError("Player character walks a realm's region that does not exist.");
             }
             else if (!p.SettlementId.IsEmpty || !p.RegionId.IsEmpty && world.FindRegion(p.RegionId) == null)
             {
