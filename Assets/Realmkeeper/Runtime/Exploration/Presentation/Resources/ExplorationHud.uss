@@ -2071,3 +2071,124 @@
 .xk-party-detail {
     flex-shrink: 0;
 }
+
+/* ----- Phase 26.1: the compact local map (bottom right; heading-up; ADR-0118) ----------------------------------------- */
+.xk-localmap {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    width: 184px;
+    padding: 4px;
+    background-color: rgba(22, 20, 17, 0.82);
+    border-width: 1px;
+    border-color: rgba(184, 138, 74, 0.75);
+    border-radius: 10px;
+    flex-direction: column;
+}
+
+.xk-localmap-clip {
+    width: 176px;
+    height: 176px;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: rgb(43, 48, 33);
+}
+
+.xk-localmap-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.xk-localmap-label {
+    position: absolute;
+    height: auto;
+
+    font-size: var(--rk-fs-12);
+    -unity-font-style: normal;
+    color: rgb(240, 232, 214);
+    background-color: rgba(18, 16, 13, 0.72);
+    border-radius: 3px;
+    padding: 0 3px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    -unity-text-overflow-position: end;
+    text-overflow: ellipsis;
+}
+
+.xk-localmap-north {
+    position: absolute;
+    width: 12px;
+
+    font-size: var(--rk-fs-12);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(221, 186, 120);
+    padding: 0;
+    margin: 0;
+}
+
+.xk-localmap-range {
+    position: absolute;
+    left: 10px;
+    bottom: 8px;
+    font-size: var(--rk-fs-12);
+    color: rgba(240, 232, 214, 0.9);
+    background-color: rgba(18, 16, 13, 0.72);
+    border-radius: 3px;
+    padding: 0 4px;
+    margin: 0;
+}
+
+/* Behind a window, a menu or a fight the map steps aside with the rest of the HUD. */
+.xk-root--window .xk-localmap {
+    display: none;
+}
+
+/* Smaller screens: a smaller map; the bottom stack keeps clear of it so the action bar never runs under it. */
+.rk-w-compact .xk-localmap {
+    width: 158px;
+}
+
+.rk-w-compact .xk-localmap-clip {
+    width: 150px;
+    height: 150px;
+}
+
+.rk-w-compact .xk-bottom {
+    padding-left: 170px;
+    padding-right: 170px;
+}
+
+.rk-w-narrow .xk-localmap,
+.rk-h-short .xk-localmap {
+    width: 136px;
+    right: 8px;
+    bottom: 8px;
+}
+
+.rk-w-narrow .xk-localmap-clip,
+.rk-h-short .xk-localmap-clip {
+    width: 128px;
+    height: 128px;
+}
+
+.rk-w-narrow .xk-bottom {
+    padding-left: 0;
+    padding-right: 0;
+    padding-bottom: 148px;
+}
+
+.rk-contrast .xk-localmap {
+    background-color: rgb(12, 11, 9);
+    border-color: rgb(232, 196, 128);
+}
+
+.rk-contrast .xk-localmap-label,
+.rk-contrast .xk-localmap-range {
+    background-color: rgb(10, 9, 8);
+    color: rgb(255, 250, 238);
+}

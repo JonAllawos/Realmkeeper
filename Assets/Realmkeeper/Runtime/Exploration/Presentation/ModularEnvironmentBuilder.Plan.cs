@@ -169,8 +169,32 @@ namespace Realmkeeper.Exploration.Presentation
         /// </summary>
         private static void BuildRoad(Context ctx, RoadData road)
         {
-            const int across = 5;
             var plan = ctx.Layout.Plan;
+            if (road.Line.Count < 2) return;
+            var verts = new List<Vector3>();
+            var uvs = new List<Vector2>();
+            var tris = new List<int>();
+            RoadStrip(plan, road, verts, uvs, tris);
+            var mesh = ctx.Assets.Track(new Mesh { name = "Road " + road.Key, indexFormat = verts.Count > 60000 ? IndexFormat.UInt32 : IndexFormat.UInt16 });
+            mesh.SetVertices(verts);
+            mesh.SetUVs(0, uvs);
+            mesh.SetTriangles(tris, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            var go = Mesh(ctx, ctx.Static, "Road " + road.Key, mesh, RoadMaterial(ctx, road.Surface), Vector3.zero);
+            go.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+        }
+
+        /// <summary>Points across each road row (the strip's vertices are rows of this many, left to right).</summary>
+        public const int RoadPointsAcross = 5;
+
+        /// <summary>
+        /// The road's surface exactly as it is built (Phase 26.1: public so the running game's roads can be checked against
+        /// the terrain collider; the merged static geometry no longer keeps a road's own mesh).
+        /// </summary>
+        public static void RoadStrip(SettlementLayoutData plan, RoadData road, List<Vector3> verts, List<Vector2> uvs, List<int> tris)
+        {
+            const int across = RoadPointsAcross;
             if (road.Line.Count < 2) return;
             var samples = new List<Vector2>();
             for (var i = 0; i + 1 < road.Line.Count; i++)
@@ -182,9 +206,6 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             samples.Add(new Vector2(road.Line[road.Line.Count - 1].X, road.Line[road.Line.Count - 1].Z));
-            var verts = new List<Vector3>();
-            var uvs = new List<Vector2>();
-            var tris = new List<int>();
             var along = 0f;
             var half = road.Width / 2f;
             for (var i = 0; i < samples.Count; i++)
@@ -213,14 +234,6 @@ namespace Realmkeeper.Exploration.Presentation
                     tris.AddRange(new[] { last + k, row + k, last + k + 1, last + k + 1, row + k, row + k + 1 });
             }
 
-            var mesh = ctx.Assets.Track(new Mesh { name = "Road " + road.Key, indexFormat = verts.Count > 60000 ? IndexFormat.UInt32 : IndexFormat.UInt16 });
-            mesh.SetVertices(verts);
-            mesh.SetUVs(0, uvs);
-            mesh.SetTriangles(tris, 0);
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            var go = Mesh(ctx, ctx.Static, "Road " + road.Key, mesh, RoadMaterial(ctx, road.Surface), Vector3.zero);
-            go.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
         }
 
         /// <summary>The water: a ribbon at its surface along its course, a little wider than its channel.</summary>

@@ -510,6 +510,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (!IsExploring || Player == null) return;
             UpdatePhase25(); // Phase 25: notices, vitals, the HUD stepping aside for windows
+            UpdateLocalMap(); // Phase 26.1: the compact local map (does no work while a window hides it)
             if (PauseOpen) UpdatePauseKeys();
             if (PauseOpen || HandlePauseKey()) // Phase 25: the pause menu holds the game while it is open
             {
