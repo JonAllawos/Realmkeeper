@@ -102,6 +102,21 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// optional <c>realmId</c> (absent: the surface) and the location kind <c>Overland</c>, which no older save uses. Nothing
     /// is regenerated: settlements, people, routes and every change the player made are kept as they were.
     /// </summary>
+    /// <summary>
+    /// v25 → v26 (Phase 24, ADR-0113, ADR-0114). The world gains an optional <c>overland</c> (landmark states, overland
+    /// encounters, the encounter clock) and the player an optional <c>waypoint</c>. Absent means none found, none met, no
+    /// mark: exactly what a v25 world had. Landmarks are regenerated, never saved; nothing is rewritten.
+    /// </summary>
+    public sealed class MigrationV25ToV26 : ISaveMigration
+    {
+        public int SourceVersion => 25;
+
+        public void Migrate(JObject document)
+        {
+            // Optional fields: nothing to rewrite.
+        }
+    }
+
     public sealed class MigrationV24ToV25 : ISaveMigration
     {
         public int SourceVersion => 24;

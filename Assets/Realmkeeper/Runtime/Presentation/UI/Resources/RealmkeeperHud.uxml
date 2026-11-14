@@ -55,6 +55,7 @@
                     <ui:Label name="insp-region" text="-" class="rk-insp-region" />
                     <ui:Button name="insp-enter" text="Enter settlement" class="rk-button rk-button--primary rk-enter" />
                     <ui:Button name="insp-country" text="Walk the country" tooltip="Go out into the country around this settlement and walk it (Phase 23)." class="rk-button rk-enter" />
+                    <ui:Button name="insp-mark" text="Mark on compass" tooltip="Point the compass at this settlement when you walk the country (Phase 24)." class="rk-button rk-enter" />
                 </ui:VisualElement>
 
                 <ui:ScrollView name="insp-body" class="rk-insp-body" mode="Vertical" horizontal-scroller-visibility="Hidden">

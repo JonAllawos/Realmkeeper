@@ -269,6 +269,7 @@ namespace Realmkeeper.Application
             if (problem != null) return new RestResult { Message = problem };
             var where = Places.RestRules.Check(_world, kind); // Phase 14 (ADR-0068): where you rest matters
             if (where.Problem != null) return new RestResult { Message = where.Problem };
+            if (kind == RestKind.Long && where.Interrupter == null) where.Interrupter = Overland.OverlandEncounters.NightThreat(this, _world); // Phase 24: the open country at night
             var minutes = kind == RestKind.Short ? CharacterRest.ShortRestMinutes : CharacterRest.LongRestMinutes;
             if (kind == RestKind.Long && where.Interrupter != null)
             {

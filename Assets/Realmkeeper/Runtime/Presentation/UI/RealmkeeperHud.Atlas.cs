@@ -606,6 +606,9 @@ namespace Realmkeeper.Presentation
                 return;
             }
 
+            // Phase 24 (ADR-0113): step off the road here and walk on (the journey waits where it is).
+            Button("rk-atlas-walk", "Walk from here (on foot)", () => _session.Dispatch(new Realmkeeper.Application.Overland.EnterOverlandCommand()));
+
             if (j.Status == JourneyStatus.Travelling)
             {
                 Button("rk-atlas-travel-hour", "Travel 1 h", () => _session.Travel(1, true));

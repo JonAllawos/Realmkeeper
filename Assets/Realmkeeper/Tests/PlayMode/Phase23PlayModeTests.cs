@@ -322,7 +322,10 @@ namespace Realmkeeper.Tests.PlayMode
             bootstrap.Selection.Select(town.SettlementId);
             yield return Settle(2);
             var screens = c.Loading.Shown;
-            var fromMap = bootstrap.Hud.WalkCountryBySelected();
+            // Phase 24 (ADR-0113): turning to the map from far out in the country puts the player on the nearest road, so the
+            // way back out is from where they stand ("Walk from here"); by a town, the town's "Walk the country".
+            var onRoad = session.GetAtlas().Journey != null && session.GetPlayer().LocationKind == CharacterLocationKind.WorldMap;
+            var fromMap = onRoad ? session.Dispatch(new EnterOverlandCommand()) : bootstrap.Hud.WalkCountryBySelected();
             Assert.That(fromMap.IsSuccess, Is.True, fromMap.Message);
             for (var i = 0; i < 600 && !(c.InOverland && !c.Travelling); i++) yield return null;
             Assert.That(c.InOverland, Is.True, "Into the country from the map.");

@@ -343,7 +343,7 @@ namespace Realmkeeper.Domain.Geography
         /// <see cref="OverlandScale.TravelKmPerMetre"/> km of road at <see cref="TravelRules.FootKmPerHour"/>, times the ground's
         /// cost (sampled along the way). Night halves the pace, as on the roads.
         /// </summary>
-        public double WalkMinutes(float x0, float z0, float x1, float z1, bool night)
+        public double WalkMinutes(float x0, float z0, float x1, float z1, bool night, Realmkeeper.Domain.World.GroundConditions ground = null)
         {
             var dx = x1 - x0;
             var dz = z1 - z0;
@@ -355,7 +355,7 @@ namespace Realmkeeper.Domain.Geography
             {
                 var t = (i + 0.5f) / steps;
                 var c = CellAt(x0 + dx * t, z0 + dz * t);
-                cost += c.Passable ? c.Cost : 3f;
+                cost += (c.Passable ? c.Cost : 3f) * (ground?.FactorFor(c) ?? 1f); // Phase 24: mud, snow and ice (ADR-0115)
             }
 
             cost /= steps;

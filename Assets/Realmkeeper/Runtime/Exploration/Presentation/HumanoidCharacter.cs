@@ -198,6 +198,17 @@ namespace Realmkeeper.Exploration.Presentation
 
         private float _stride;
 
+        /// <summary>Which half of the walk cycle the last frame was in (-1: not walking).</summary>
+        private int _footHalf = -1;
+
+        /// <summary>Phase 24: footstep loudness (of the sound volume setting): walking, running. Was 0.4 and 0.55.</summary>
+        public const float FootstepWalkGain = 0.16f;
+
+        public const float FootstepRunGain = 0.24f;
+
+        /// <summary>Where in the walk loop a foot lands (fraction of the loop); the second foot lands half a loop later.</summary>
+        public const float FootfallPhase = 0.02f;
+
         public void Initialize(Animator animator)
         {
             _animator = animator;
@@ -252,17 +263,34 @@ namespace Realmkeeper.Exploration.Presentation
             _animator.SetBool(TalkingId, _talkTimer > 0f && Speed < 0.3f);
             if (_hasActivity) _animator.SetInteger(ActivityId, Speed < 0.3f && _talkTimer <= 0f ? Pose : 0);
 
-            // Phase 20A assets: the player's own footsteps, one per stride (faster when running), never while standing.
+            // The player's own footsteps, never while standing. Phase 24 (owner request): each step is tied to the walk cycle
+            // itself, two footfalls per loop of the locomotion animation (at the loop's start and middle, plus FootfallPhase), so
+            // the sound lands with the feet at any speed; and they are quieter. Without an animation cycle, a stride timer.
             if (Footsteps && Speed > 0.6f)
             {
-                _stride -= dt;
-                if (_stride <= 0f)
+                var gain = Speed > 3.2f ? FootstepRunGain : FootstepWalkGain;
+                if (_animator.runtimeAnimatorController != null && !_animator.IsInTransition(0))
                 {
-                    GameSounds.Play("footstep", Speed > 3.2f ? 0.55f : 0.4f);
-                    _stride = Mathf.Clamp(0.95f / Mathf.Max(1f, Speed), 0.26f, 0.6f);
+                    var phase = Mathf.Repeat(_animator.GetCurrentAnimatorStateInfo(0).normalizedTime - FootfallPhase, 1f);
+                    var half = phase < 0.5f ? 0 : 1;
+                    if (_footHalf >= 0 && half != _footHalf) GameSounds.Play("footstep", gain);
+                    _footHalf = half;
+                }
+                else
+                {
+                    _stride -= dt;
+                    if (_stride <= 0f)
+                    {
+                        GameSounds.Play("footstep", gain);
+                        _stride = Mathf.Clamp(0.95f / Mathf.Max(1f, Speed), 0.26f, 0.6f);
+                    }
                 }
             }
-            else _stride = 0.12f;
+            else
+            {
+                _stride = 0.12f;
+                _footHalf = -1;
+            }
         }
     }
 }

@@ -29,6 +29,18 @@ namespace Realmkeeper.Application.Overland
     {
     }
 
+    /// <summary>Phase 24 (ADR-0113): take the halted journey up again from where the player left the road (within <see cref="OverlandRoads.RejoinMetres"/>).</summary>
+    public sealed class RejoinJourneyCommand : ICommand
+    {
+    }
+
+    /// <summary>Phase 24 (ADR-0113): mark a known destination on the compass ("settlement:{id}", "place:{id}", "landmark:{id}", "gateway:{id}", "journey"); null clears it.</summary>
+    public sealed class SetWaypointCommand : ICommand
+    {
+        public SetWaypointCommand(string key) { Key = key; }
+        public string Key { get; }
+    }
+
     /// <summary>Phase 23: records where the player stands in the country (the clock is advanced separately, by the travel rules).</summary>
     public sealed class WalkOverlandCommand : ICommand
     {
@@ -83,6 +95,10 @@ namespace Realmkeeper.Application.Overland
             commands.Register<CrossRegionCommand>(new CrossHandler());
             commands.Register<UseGatewayCommand>(new GatewayHandler());
             commands.Register<SetGatewayStateCommand>(new GatewayStateHandler());
+            commands.Register<RejoinJourneyCommand>(new RejoinHandler());
+            commands.Register<SetWaypointCommand>(new WaypointHandler());
+            LandmarkCommandHandlers.Register(commands);
+            OverlandEncounters.Register(commands);
         }
 
         public static CommandResult Ready(CommandContext context, out PlayerCharacterData player)
@@ -123,7 +139,36 @@ namespace Realmkeeper.Application.Overland
                 if (player.IsInPlace) return CommandResult.InvalidState($"Leave {context.Committed.FindPlace(player.PlaceId)?.Name ?? "the place"} first.");
                 var world = context.Committed;
                 var journey = world.Journey;
-                if (journey != null && journey.Status != JourneyStatus.Arrived && journey.Status != JourneyStatus.Abandoned)
+
+                // Phase 24 (ADR-0113): on the road (a journey under way, halted, or a road position), the country is entered
+                // where the party stands on the road: the journey halts there (its time and place kept), and can be taken up again.
+                if (command.By.IsEmpty && Atlas.TravelCommandHandlers.OnTheRoad(world) && !player.IsInSettlement)
+                {
+                    if (journey.EncounterId != null && journey.EncounterId.StartsWith("threat:", StringComparison.Ordinal))
+                        return CommandResult.InvalidState("Outlaws bar the road: deal with them first.");
+                    var (seg, from, metres) = Atlas.TravelCommandHandlers.Position(world);
+                    if (seg != null && OverlandRoads.PointOf(context.Session, world, seg, from, metres, out var onRegion, out var rx, out var rz))
+                    {
+                        var rt = context.Session.GetOverlandTerrain(RealmIds.Surface, onRegion);
+                        var ew = context.Edit();
+                        var ep = ew.Player;
+                        if (ew.Journey.Status == JourneyStatus.Travelling) { ew.Journey.Status = JourneyStatus.Halted; ew.Journey.Reason = "you went on foot"; }
+                        ep.LocationKind = CharacterLocationKind.Overland;
+                        ep.RealmId = string.Empty;
+                        ep.RegionId = onRegion;
+                        ep.SettlementId = default;
+                        ep.ReturnToOverland = false;
+                        ep.Pose = PoseAt(rt, rx, rz, ep.Pose.Yaw);
+                        if (ew.Journey.Status == JourneyStatus.Halted || ew.Journey.Status == JourneyStatus.Interrupted) ep.Waypoint ??= "journey";
+                        Discover(context.Session, ew, ep, rt);
+                        var dest = ew.FindSettlement(ew.Journey.DestinationId)?.Name;
+                        return CommandResult.Ok(ew.Journey.Status == JourneyStatus.Abandoned
+                            ? $"{ep.Name} leaves the road on foot."
+                            : $"{ep.Name} leaves the road on foot. The journey to {dest} waits where you left it.");
+                    }
+                }
+
+                if (journey != null && journey.Status != JourneyStatus.Arrived && journey.Status != JourneyStatus.Abandoned && !player.IsInSettlement)
                     return CommandResult.InvalidState($"{player.Name} is on a journey: arrive or give it up first.");
 
                 SettlementData settlement;
@@ -160,7 +205,7 @@ namespace Realmkeeper.Application.Overland
                 p.LastSettlementId = settlement.SettlementId;
                 p.ReturnToOverland = false;
                 p.Pose = PoseAt(terrain, x, z, p.Pose.Yaw);
-                Discover(w, p, terrain);
+                Discover(context.Session, w, p, terrain);
                 return CommandResult.Ok($"{p.Name} goes out into the country by {settlement.Name}.");
             }
         }
@@ -173,10 +218,47 @@ namespace Realmkeeper.Application.Overland
                 if (refused != null) return refused;
                 if (!player.IsOverland) return CommandResult.InvalidState($"{player.Name} is not out in the country.");
                 if (!RealmIds.IsSurface(player.RealmId)) return CommandResult.InvalidState("There is no map of this realm: go back through the gateway.");
-                var p = context.Edit().Player;
+                var world = context.Committed;
+                var terrain = context.Session.GetOverlandTerrain(RealmIds.Surface, player.RegionId);
+                var target = MapPoint(context.Session, world, player, terrain);
+                var w = context.Edit();
+                var p = w.Player;
                 p.LocationKind = CharacterLocationKind.WorldMap;
                 p.ReturnToOverland = false;
-                return CommandResult.Ok($"{p.Name} turns to the map.");
+                if (p.Waypoint == "journey") p.Waypoint = null;
+
+                // Phase 24 (ADR-0113): the map shows only positions a journey can start from. Back at the halted journey's
+                // place, it waits there; by a town, the player is at the town; else at the nearest road, as a road position.
+                switch (target.Kind)
+                {
+                    case MapPointKind.Journey:
+                        return CommandResult.Ok($"{p.Name} is back on the road. The journey waits.");
+                    case MapPointKind.Settlement:
+                        p.LastSettlementId = target.Settlement;
+                        if (w.Journey != null && w.Journey.Status != JourneyStatus.Arrived)
+                        {
+                            w.Journey.Status = JourneyStatus.Abandoned;
+                            w.Journey.Reason = "you left the road";
+                            w.Journey.SegmentIndex = w.Journey.Segments.Count;
+                        }
+
+                        return CommandResult.Ok($"{p.Name} turns to the map, by {w.FindSettlement(target.Settlement)?.Name}.");
+                    default:
+                    {
+                        var now = QuestClock.Now(w);
+                        var other = target.Segment.Other(target.From);
+                        var j = new JourneyData
+                        {
+                            JourneyId = "journey:foot:" + now.ToString(System.Globalization.CultureInfo.InvariantCulture), OriginId = target.From, DestinationId = other,
+                            Mode = TravelMode.OnFoot, Status = JourneyStatus.Abandoned, StartedAt = now, Reason = "you came back to the road on foot", MetresIntoSegment = target.Metres,
+                        };
+                        j.Nodes.Add(target.From);
+                        j.Nodes.Add(other);
+                        j.Segments.Add(target.Segment.RouteId);
+                        w.Journey = j;
+                        return CommandResult.Ok($"{p.Name} makes for the road and turns to the map. Plan a journey from here, or walk on.");
+                    }
+                }
             }
         }
 
@@ -193,19 +275,41 @@ namespace Realmkeeper.Application.Overland
                 if (!OverlandScale.Inside(terrain.Map, command.Pose.X, command.Pose.Z)) return CommandResult.Invalid("That is outside the region: take a way on.");
                 // The ground decides; a position on impassable ground (a mountain, a lake) is refused and the old one kept.
                 if (!terrain.Walkable(command.Pose.X, command.Pose.Z)) return CommandResult.InvalidState("No one can stand there.");
+                // Phase 24 (ADR-0115): a ford in flood cannot be waded (a bridge still crosses).
+                var cell = terrain.CellAt(command.Pose.X, command.Pose.Z);
+                if (GroundConditions.IsFord(cell) && RealmIds.IsSurface(player.RealmId) && GroundConditions.Of(context.Committed, player.RegionId, context.Committed.MinuteOfDay).FordsFlooded)
+                    return CommandResult.InvalidState("The ford is in flood: the water is too high to wade. Cross by a bridge, or wait for it to fall.");
                 var w = context.Edit();
                 var p = w.Player;
                 p.Pose = command.Pose;
-                var found = Discover(w, p, terrain);
-                return CommandResult.Ok(found.Count == 0 ? null : "Found: " + string.Join(", ", found) + ".");
+                var found = Discover(context.Session, w, p, terrain);
+                var met = OverlandEncounters.Check(context.Session, w, p); // Phase 24 (ADR-0114): a half-hour bucket may bring an encounter
+                var said = found.Count == 0 ? null : "Found: " + string.Join(", ", found) + ".";
+                if (met != null) said = (said == null ? string.Empty : said + " ") + met.Text;
+                return CommandResult.Ok(said);
             }
         }
 
-        /// <summary>Unknown places and gateways within sight become known, as walking up to them finds them.</summary>
-        private static List<string> Discover(WorldData w, PlayerCharacterData p, OverlandTerrain terrain)
+        /// <summary>
+        /// Unknown places, gateways and landmarks within sight become known, as walking up to them finds them. Phase 24: sight
+        /// is shortened by fog, heavy rain and snow (<see cref="GroundConditions.SightFactor"/>) and by night.
+        /// </summary>
+        private static List<string> Discover(WorldSession session, WorldData w, PlayerCharacterData p, OverlandTerrain terrain)
         {
             var found = new List<string>();
-            var reach = OverlandQueries.NoticeMetres * (1f + terrain.CellAt(p.Pose.X, p.Pose.Z).SightBonus);
+            var weather = RealmIds.IsSurface(p.RealmId) ? GroundConditions.Of(w, p.RegionId, w.MinuteOfDay) : GroundConditions.Calm;
+            var reach = SightMetres(w, p, terrain, weather);
+            foreach (var l in Landmarks.InRegion(session, w, RealmIds.IsSurface(p.RealmId) ? RealmIds.Surface : p.RealmId, p.RegionId))
+            {
+                if (Landmarks.IsFound(w, l.Id)) continue;
+                var dx = l.X - p.Pose.X;
+                var dz = l.Z - p.Pose.Z;
+                if (dx * dx + dz * dz > reach * reach) continue;
+                var s = Landmarks.State(w, l.Id);
+                s.Found = true;
+                s.FoundAt = QuestClock.Now(w);
+                found.Add(l.Name.ToLowerInvariant());
+            }
             bool Near(MapCoord c)
             {
                 var (x, z) = OverlandScale.CellCentre(c);
@@ -244,6 +348,120 @@ namespace Realmkeeper.Application.Overland
             return found;
         }
 
+        /// <summary>
+        /// Phase 24: how far the player notices things now: <see cref="OverlandQueries.NoticeMetres"/>, more from high ground,
+        /// less in fog, heavy rain or snow, half at night.
+        /// </summary>
+        public static float SightMetres(WorldData w, PlayerCharacterData p, OverlandTerrain terrain, GroundConditions weather) =>
+            OverlandQueries.NoticeMetres * (1f + terrain.CellAt(p.Pose.X, p.Pose.Z).SightBonus) * (weather?.SightFactor ?? 1f) * (TravelRules.IsNight(w.MinuteOfDay) ? 0.5f : 1f);
+
+        public enum MapPointKind
+        {
+            /// <summary>At the halted journey's place on the road.</summary>
+            Journey = 0,
+
+            /// <summary>By a settlement (at its way in).</summary>
+            Settlement = 1,
+
+            /// <summary>On the nearest road, as a road position.</summary>
+            Road = 2,
+        }
+
+        public struct MapPointTarget
+        {
+            public MapPointKind Kind;
+            public SettlementId Settlement;
+            public RouteSegmentData Segment;
+            public SettlementId From;
+            public int Metres;
+            public float X;
+            public float Z;
+        }
+
+        /// <summary>Within this distance of a settlement's way in, turning to the map puts the player at that settlement.</summary>
+        public const float SettlementNearMetres = 400f;
+
+        /// <summary>
+        /// Phase 24 (ADR-0113): where turning to the map puts the player, and the point in the country they walk to first (the
+        /// presentation charges that walk's time): the halted journey's place when within <see cref="OverlandRoads.RejoinMetres"/>,
+        /// a settlement when its way in is nearer than any road (or within <see cref="SettlementNearMetres"/>), else the nearest road.
+        /// </summary>
+        public static MapPointTarget MapPoint(WorldSession session, WorldData w, PlayerCharacterData p, OverlandTerrain terrain)
+        {
+            var t = new MapPointTarget { Kind = MapPointKind.Settlement, Settlement = p.LastSettlementId, X = p.Pose.X, Z = p.Pose.Z };
+            if (terrain == null) return t;
+            if (OverlandRoads.HaltedPoint(session, w, out var hx, out var hz) && Dist(p, hx, hz) <= OverlandRoads.RejoinMetres)
+                return new MapPointTarget { Kind = MapPointKind.Journey, X = hx, Z = hz };
+            var bestSettle = float.MaxValue;
+            foreach (var s in w.Settlements)
+            {
+                if (s.RegionId != p.RegionId) continue;
+                var (gx, gz) = OverlandQueries.Gate(terrain, s.Position);
+                var d = Dist(p, gx, gz);
+                if (d < bestSettle) { bestSettle = d; t.Settlement = s.SettlementId; t.X = gx; t.Z = gz; }
+            }
+
+            if (OverlandRoads.NearestRoad(w, terrain, p.Pose.X, p.Pose.Z, out var seg, out var from, out var metres, out var rx, out var rz))
+            {
+                var roadDist = Dist(p, rx, rz);
+                if (roadDist < bestSettle && bestSettle > SettlementNearMetres)
+                    return new MapPointTarget { Kind = MapPointKind.Road, Segment = seg, From = from, Metres = metres, X = rx, Z = rz };
+            }
+
+            return t;
+        }
+
+        private static float Dist(PlayerCharacterData p, float x, float z) => (float)Math.Sqrt((x - p.Pose.X) * (x - p.Pose.X) + (z - p.Pose.Z) * (z - p.Pose.Z));
+
+        private sealed class RejoinHandler : ICommandHandler<RejoinJourneyCommand>
+        {
+            public CommandResult Handle(RejoinJourneyCommand command, CommandContext context)
+            {
+                var refused = Ready(context, out var player);
+                if (refused != null) return refused;
+                if (!player.IsOverland) return CommandResult.InvalidState($"{player.Name} is not out in the country.");
+                var world = context.Committed;
+                var j = world.Journey;
+                if (j == null || (j.Status != JourneyStatus.Halted && j.Status != JourneyStatus.Interrupted)) return CommandResult.InvalidState("There is no journey waiting on the road.");
+                if (j.EncounterId != null && j.EncounterId.StartsWith("threat:", StringComparison.Ordinal)) return CommandResult.InvalidState("Outlaws bar the road: deal with them first.");
+                if (!OverlandRoads.HaltedPoint(context.Session, world, out var hx, out var hz)) return CommandResult.InvalidState("The journey waits in another region.");
+                var d = Dist(player, hx, hz);
+                if (d > OverlandRoads.RejoinMetres) return CommandResult.InvalidState($"The place you left the road is {Waypoints.Distance(d)} away: walk back to it first.");
+                if (j.SegmentIndex < j.Segments.Count && !(j.Back && j.SegmentIndex == 0) && world.FindRoute(j.Segments[j.SegmentIndex]) is RouteSegmentData seg && !seg.Passable)
+                    return CommandResult.InvalidState("The road ahead is closed: choose another way from the map.");
+                var w = context.Edit();
+                var p = w.Player;
+                p.LocationKind = CharacterLocationKind.WorldMap;
+                p.ReturnToOverland = false;
+                if (p.Waypoint == "journey") p.Waypoint = null;
+                w.Journey.Status = JourneyStatus.Travelling;
+                w.Journey.Reason = null;
+                w.Journey.EncounterId = null;
+                return CommandResult.Ok($"{p.Name} takes to the road again, for {w.FindSettlement(w.Journey.DestinationId)?.Name}.");
+            }
+        }
+
+        private sealed class WaypointHandler : ICommandHandler<SetWaypointCommand>
+        {
+            public CommandResult Handle(SetWaypointCommand command, CommandContext context)
+            {
+                var refused = Ready(context, out var player);
+                if (refused != null) return refused;
+                if (string.IsNullOrEmpty(command.Key))
+                {
+                    if (player.Waypoint == null) return CommandResult.InvalidState("Nothing is marked.");
+                    context.Edit().Player.Waypoint = null;
+                    return CommandResult.Ok("The mark is cleared.");
+                }
+
+                // Only what the player knows can be marked: an undiscovered place is never revealed by trying.
+                var target = Waypoints.Resolve(context.Session, context.Committed, command.Key, out var why);
+                if (target == null) return CommandResult.InvalidState(why);
+                context.Edit().Player.Waypoint = command.Key;
+                return CommandResult.Ok($"Marked: {target.Value.name}.");
+            }
+        }
+
         private sealed class CrossHandler : ICommandHandler<CrossRegionCommand>
         {
             public CommandResult Handle(CrossRegionCommand command, CommandContext context)
@@ -264,9 +482,18 @@ namespace Realmkeeper.Application.Overland
                 var w = context.Edit();
                 var p = w.Player;
                 p.RegionId = to.RegionId;
+                // Phase 24 (ADR-0113): leaving the region on foot leaves a halted journey behind; plan anew from the map.
+                if (w.Journey != null && (w.Journey.Status == JourneyStatus.Halted || w.Journey.Status == JourneyStatus.Interrupted))
+                {
+                    w.Journey.Status = JourneyStatus.Abandoned;
+                    w.Journey.Reason = "you left the road for " + to.Name;
+                    w.Journey.SegmentIndex = w.Journey.Segments.Count;
+                }
+
+                if (p.Waypoint == "journey") p.Waypoint = null;
                 var inward = Inward(terrain, back.Cell);
                 p.Pose = PoseAt(terrain, inward.x, inward.z, p.Pose.Yaw);
-                Discover(w, p, terrain);
+                Discover(context.Session, w, p, terrain);
                 return CommandResult.Ok($"{p.Name} crosses from {from.Name} into {to.Name}.");
             }
         }
@@ -306,7 +533,7 @@ namespace Realmkeeper.Application.Overland
                 var (x, z) = OverlandQueries.Approach(terrain, other.Cell, 2);
                 p.Pose = PoseAt(terrain, x + 6f, z, p.Pose.Yaw);
                 if (!terrain.Walkable(p.Pose.X, p.Pose.Z)) p.Pose = PoseAt(terrain, x, z, p.Pose.Yaw);
-                Discover(w, p, terrain);
+                Discover(context.Session, w, p, terrain);
                 var realm = w.FindRealm(RealmIds.IsSurface(other.RealmId) ? RealmIds.Surface : other.RealmId);
                 return CommandResult.Ok($"{p.Name} passes through {g.Name} into {realm?.Name ?? "another world"}.");
             }

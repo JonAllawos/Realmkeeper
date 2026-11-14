@@ -14,6 +14,9 @@ Shader "Realmkeeper/VertexColorLit"
         _GrassTex ("Grass", 2D) = "grey" {}
         _DirtTex ("Dirt", 2D) = "grey" {}
         _RockTex ("Rock", 2D) = "grey" {}
+        // Phase 24: ground weather (ADR-0115): darker when wet, white on level ground under snow. 0 for every other mesh.
+        _Wet ("Ground Wetness", Range(0, 1)) = 0
+        _Snow ("Ground Snow", Range(0, 1)) = 0
     }
 
     SubShader
@@ -28,6 +31,8 @@ Shader "Realmkeeper/VertexColorLit"
             half _AmbientStrength;
             half _TexStrength;
             float _TexScale;
+            half _Wet;
+            half _Snow;
         CBUFFER_END
 
         TEXTURE2D(_GrassTex); SAMPLER(sampler_GrassTex);
@@ -141,6 +146,9 @@ Shader "Realmkeeper/VertexColorLit"
                     r /= max(SAMPLE_TEXTURE2D_LOD(_RockTex, sampler_RockTex, float2(0.5, 0.5), 12).rgb, 0.05);
                     half3 detail = lerp(lerp(g, d, saturate(input.weights.x)), r, saturate(input.weights.y));
                     albedo *= lerp(half3(1, 1, 1), clamp(detail, 0.35, 1.8), _TexStrength);
+                    albedo *= 1.0 - 0.38 * _Wet; // wet earth and grass read darker
+                    half level = saturate((normalWS.y - 0.55) * 3.0);
+                    albedo = lerp(albedo, half3(0.86, 0.88, 0.92), _Snow * level * (0.75 + 0.25 * saturate(g.r)));
                 }
 
                 half3 color = albedo * (direct + ambient);

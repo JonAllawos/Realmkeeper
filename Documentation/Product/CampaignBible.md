@@ -445,6 +445,13 @@ Campaign writing and quests must not assume these deferred abilities are playabl
 **Push status:** Pushed to `origin/feature/phase-0-1-foundation` on 2026-11-13 (up to `ce79054`, which also holds this document).
 **Phase 23 (added later):** implemented, and pushed to origin on 2026-11-13 at the owner's instruction (up to `3ab344f`). The ancient world exists only as a realm with one unnamed prototype region of geography and a dormant prototype gateway, which the campaign opens through `SetGatewayStateCommand`. No names, cultures, inhabitants or lore were invented (ADR-0111).
 
+**Phase 24 (added later):** no campaign content was added.
+- Landmarks are named only from their kind and the settlements their roads reach.
+- Travellers are the simulation's existing groups.
+- Encounters come only from existing creature populations and bandit bands.
+- Wrecks mark real `CaravanLost` events.
+- The ancient prototype region has no landmarks or encounters, because its content is undecided (ADR-0114).
+
 ### Reported tests
 
 | Suite | Result |

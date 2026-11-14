@@ -196,6 +196,7 @@ namespace Realmkeeper.Exploration.Presentation
             SetupLiving(layout);
             SetupOverlandHud();
             RefreshPracticeButton(); // the settlement-edge fights are not offered in the country
+            SetupOverlandLife(view); // Phase 24: landmarks, travellers, encounters, ground weather
             _hudGround = null;
             RefreshOverlandHud();
             _input?.Enable();
@@ -253,6 +254,7 @@ namespace Realmkeeper.Exploration.Presentation
         private void TeardownOverland()
         {
             if (_overland == null) return;
+            TeardownOverlandLife(); // Phase 24
             _sitesRoot = null;
             foreach (var s in _siteViews) if (s != null) _detector.Unregister(s);
             _siteViews.Clear();
@@ -273,6 +275,7 @@ namespace Realmkeeper.Exploration.Presentation
             var keys = Keyboard.current;
             if (keys != null && keys.nKey.wasPressedThisFrame && !WindowOpen) ToggleRegionMap();
             UpdateCompass();
+            UpdateOverlandLife(); // Phase 24
             _stepTimer -= Time.unscaledDeltaTime;
             if (_stepTimer > 0f) return;
             _stepTimer = 0.5f;
@@ -283,7 +286,11 @@ namespace Realmkeeper.Exploration.Presentation
             _lastStep = at;
             UpgradeNearestSilhouette(at); // one town at a time, as the player comes near
             var result = _session.Dispatch(new WalkOverlandCommand(Player.CurrentPose));
-            if (result.IsSuccess && !string.IsNullOrEmpty(result.Message)) Hud?.ShowMessage(result); // "Found: …"
+            if (result.IsSuccess && !string.IsNullOrEmpty(result.Message)) Hud?.ShowMessage(result); // "Found: …", or what was met
+            if (!result.IsSuccess && result.Message != null && result.Message.Contains("ford")) { Hud?.ShowMessage(result); Player.Teleport(_session.GetPlayer().Pose); } // Phase 24: a ford in flood turns the player back
+            var pending = _session.GetPendingOverlandEncounter();
+            if (pending != null && Vector2.Distance(new Vector2(pending.X, pending.Z), new Vector2(at.x, at.z)) > 200f) AnswerEncounter(OverlandChoice.BackOff); // walked away: left unresolved, as backing off
+            RefreshEncounterPanel();
         }
 
         /// <summary>
@@ -514,6 +521,19 @@ namespace Realmkeeper.Exploration.Presentation
                 var colour = s.Kind == OverlandSiteKind.Settlement ? new Color(0.95f, 0.8f, 0.55f) : s.Kind == OverlandSiteKind.Gateway ? new Color(0.75f, 0.6f, 1f) : s.Kind == OverlandSiteKind.RegionExit ? new Color(0.7f, 0.85f, 0.95f) : new Color(0.85f, 0.75f, 0.65f);
                 Mark(bearing, s.Kind == OverlandSiteKind.Settlement ? "◆" : s.Kind == OverlandSiteKind.RegionExit ? "➜" : "●", colour, 12);
             }
+
+            // Phase 24: found landmarks, and the waypoint (or the way on toward it) in gold.
+            foreach (var l in _landmarkStates)
+            {
+                if (!l.Found) continue;
+                Mark(Mathf.Atan2(l.Landmark.X - at.x, l.Landmark.Z - at.z) * Mathf.Rad2Deg, "·", new Color(0.8f, 0.78f, 0.7f), 16);
+            }
+
+            if (_waypoint != null)
+            {
+                var target = _waypoint.InThisRegion ? new Vector2(_waypoint.X, _waypoint.Z) : _overlandView.Sites.Find(s => s.Kind == OverlandSiteKind.RegionExit && s.Id == _waypoint.NextExitId) is OverlandSite exit ? new Vector2(exit.X, exit.Z) : (Vector2?)null;
+                if (target != null) Mark(Mathf.Atan2(target.Value.x - at.x, target.Value.y - at.z) * Mathf.Rad2Deg, "▼", new Color(1f, 0.78f, 0.25f), 16);
+            }
         }
 
         public bool RegionMapShown => _regionMap != null && _regionMap.style.display == DisplayStyle.Flex;
@@ -597,6 +617,8 @@ namespace Realmkeeper.Exploration.Presentation
                 Dot(s.X, s.Z, mark, s.Kind == OverlandSiteKind.Gateway ? new Color(0.75f, 0.6f, 1f) : new Color(1f, 0.92f, 0.75f), s.Kind == OverlandSiteKind.Settlement ? 11 : 13);
             }
 
+            foreach (var l in _landmarkStates) if (l.Found) Dot(l.Landmark.X, l.Landmark.Z, "·", new Color(0.92f, 0.9f, 0.82f), 18); // Phase 24
+            if (_waypoint != null && _waypoint.InThisRegion) Dot(_waypoint.X, _waypoint.Z, "▼", new Color(1f, 0.78f, 0.25f), 14);
             var p = Player.transform.position;
             Dot(p.x, p.z, "▲", new Color(1f, 0.35f, 0.25f), 16);
         }

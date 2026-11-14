@@ -2,6 +2,8 @@
 
 **Decisions.** ADR-0110 (scale and terrain), ADR-0111 (realms, gateways, location, save v25), ADR-0112 (transitions and streaming).
 
+**Continued in** `Overland-Living-Systems.md` (Phase 24): landmarks, travellers, waypoints, one travel state, encounters and ground weather.
+
 ## Scale
 
 | Measure | Value |

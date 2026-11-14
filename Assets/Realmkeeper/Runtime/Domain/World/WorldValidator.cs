@@ -54,6 +54,7 @@ namespace Realmkeeper.Domain.World
             }
 
             ValidateRealms(world, result); // Phase 23
+            ValidateOverland(world, result); // Phase 24
 
             if (world.Settlements == null || world.Factions == null || world.Npcs == null || world.HistoricalEvents == null)
             {

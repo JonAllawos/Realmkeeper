@@ -644,8 +644,10 @@ namespace Realmkeeper.Exploration.Presentation
             for (var z = c.Z * ChunkCells; z < Mathf.Min(_terrain.Map.Depth, (c.Z + 1) * ChunkCells); z++)
                 for (var x = c.X * ChunkCells; x < Mathf.Min(_terrain.Map.Width, (c.X + 1) * ChunkCells); x++)
                 {
-                    if (_terrain.Cell(x, z).Passable) continue;
-                    if (!(_terrain.Cell(x + 1, z).Passable || _terrain.Cell(x - 1, z).Passable || _terrain.Cell(x, z + 1).Passable || _terrain.Cell(x, z - 1).Passable)) continue;
+                    var here = _terrain.Cell(x, z);
+                    var floodedFord = _fordsFlooded && Realmkeeper.Domain.World.GroundConditions.IsFord(here); // Phase 24: a ford in flood is a barrier
+                    if (here.Passable && !floodedFord) continue;
+                    if (!floodedFord && !(_terrain.Cell(x + 1, z).Passable || _terrain.Cell(x - 1, z).Passable || _terrain.Cell(x, z + 1).Passable || _terrain.Cell(x, z - 1).Passable)) continue;
                     var (px, pz) = OverlandScale.CellCentre(new MapCoord(x, z));
                     var go = new GameObject("Barrier");
                     go.transform.SetParent(root, false);
@@ -653,6 +655,34 @@ namespace Realmkeeper.Exploration.Presentation
                     go.AddComponent<BoxCollider>().size = new Vector3(OverlandScale.MetresPerCell, 120f, OverlandScale.MetresPerCell);
                     BarrierColliders++;
                 }
+        }
+
+        // ----- Phase 24: ground weather (ADR-0115) -------------------------------------------------------------
+
+        private bool _fordsFlooded;
+
+        /// <summary>Whether fords are barred (in flood). Changing it rebuilds the barriers of the detailed chunks only.</summary>
+        public bool FordsFlooded => _fordsFlooded;
+
+        public void SetFordsFlooded(bool flooded)
+        {
+            if (flooded == _fordsFlooded || _chunks == null) return;
+            _fordsFlooded = flooded;
+            foreach (var c in _chunks)
+            {
+                if (c.Detail == null) continue;
+                var old = c.Detail.transform.Find("Barriers");
+                if (old != null) { BarrierColliders -= old.GetComponentsInChildren<BoxCollider>().Length; Destroy(old.gameObject); }
+                BuildBarriers(c);
+            }
+        }
+
+        /// <summary>The ground's wetness and snow (0..1) on its material: darker when wet, white on level ground under snow.</summary>
+        public void SetGroundWeather(float wet, float snow)
+        {
+            if (_ground == null) return;
+            if (_ground.HasProperty("_Wet")) _ground.SetFloat("_Wet", Mathf.Clamp01(wet));
+            if (_ground.HasProperty("_Snow")) _ground.SetFloat("_Snow", Mathf.Clamp01(snow));
         }
 
         private void Update()

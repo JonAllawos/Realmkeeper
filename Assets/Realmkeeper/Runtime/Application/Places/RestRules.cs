@@ -130,6 +130,7 @@ namespace Realmkeeper.Application.Places
             {
                 if (!context.HasWorld) return CommandResult.InvalidState("There is no active world.");
                 if (context.Committed.ActiveEncounter != null) return CommandResult.InvalidState("A fight is already going on.");
+                if (c.GroupId != null && c.GroupId.StartsWith("overland:", System.StringComparison.Ordinal)) return Overland.OverlandEncounters.NightFight(context, c.GroupId.Substring(9)); // Phase 24
                 var w = context.Edit();
                 var place = PlaceRules.Current(w);
                 var room = PlaceRules.CurrentRoom(w);

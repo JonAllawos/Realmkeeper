@@ -106,6 +106,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v25 (Phase 23): realms and gateways (null in older saves: made on load).
         public List<RealmDto> Realms { get; set; }
         public List<GatewayDto> Gateways { get; set; }
+
+        /// <summary>Phase 24 (v26): landmark states, overland encounters and the encounter clock (absent: none).</summary>
+        public OverlandDto Overland { get; set; }
     }
 
     public sealed class WorldSettingsDto
@@ -451,6 +454,9 @@ namespace Realmkeeper.Infrastructure.Persistence
         // Schema v25 (Phase 23): the realm the player is in (null: the surface).
         public string RealmId { get; set; }
         public bool ReturnToOverland { get; set; }
+
+        /// <summary>Phase 24 (v26): the compass's mark (absent: none).</summary>
+        public string Waypoint { get; set; }
 
         // Schema v7 (Phase 5). Absent in older saves.
         public string Species { get; set; }

@@ -99,6 +99,9 @@ namespace Realmkeeper.Domain.World
         /// <summary>Phase 23: the settlement or place was entered from the country, so leaving it returns there (not to the map).</summary>
         public bool ReturnToOverland { get; set; }
 
+        /// <summary>Phase 24 (ADR-0113): the destination the compass points to ("settlement:{id}", "place:{id}", "landmark:{id}", "gateway:{id}", "journey"), or null.</summary>
+        public string Waypoint { get; set; }
+
         // ----- Phase 5: the player as a person with looks, belongings and standing -----------------
 
         public string Species { get; set; } = "Human";
@@ -147,6 +150,7 @@ namespace Realmkeeper.Domain.World
             PlaceRoom = PlaceRoom,
             RealmId = RealmId, // Phase 23
             ReturnToOverland = ReturnToOverland,
+            Waypoint = Waypoint, // Phase 24
                 Species = Species,
                 Age = Age,
                 Background = Background,

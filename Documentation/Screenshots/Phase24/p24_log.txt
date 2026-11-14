@@ -1,0 +1,50 @@
+Out into the country: 831 ms; 12 landmarks built, 1 travelling groups near, living-country refresh 0.2 ms.
+p24_01_landmarks: A roadside landmark of the country: ruined steading, built from the owned kits.
+p24_03_roadside_interaction: Reading a waystone: where its roads go and how long on foot (found before: True).
+Searched Ruined steading: cache left.
+Travelling groups in this region now: 8 (Bandits, Bandits, Bandits, Bandits, Bandits, Bandits, Caravan, Caravan).
+p24_02_traveller: Mossholm caravan to Bramhaven, bound for Bramhaven: a group of the world's simulation (Caravan, led by Neville Brooke), where its journey has it now.
+Talked with Mossholm caravan to Bramhaven.
+Mossholm caravan to Bramhaven: 12.0 m along its road in the meantime.
+p24_05_waypoint: A waypoint: Mossholm: 2.9 km; the compass's gold mark points to it.
+On the atlas: the player at cell (12.0, 81.0) of Vale of Barrowwell; walked from (25.7, 72.7).
+p24_04_map_position: The atlas with the player's actual position (where they came out of the country).
+p24_06_stepped_off: Off the road on foot, mid-journey: the journey waits; "Back on the road (J)" and the compass mark show where it was left.
+Stepped off the journey: 512 ms.
+Met on the way: Outlaws on the road step out onto the road ahead. "Toll's due, friend." (backed off).
+Encounter encounter:3fa149e8-801a-4999-85b8-04a9dead4dfa:7105398 after the wait: pending encounter:3fa149e8-801a-4999-85b8-04a9dead4dfa:7105398; recorded as Pending (); panel shown True.
+p24_07_encounter: An overland encounter from a real population: "Something is moving in the deep woods: boars in the dark, and they have seen you." — fight, slip away, or back off.
+Encounter encounter:3fa149e8-801a-4999-85b8-04a9dead4dfa:7105398: fought on the overland ground: the fight is on.
+p24_07b_encounter_fight: The encounter fought with the one combat engine, on the overland terrain where the player stood.
+The ground: Muddy (wetness 100, snow 0); fords flooded True; walking off the road ×1.40; sight ×0.80; the player's pace ×1.00.
+p24_08_weather_ground: Weather on the ground: Muddy (Mud: off the road is much slower · fords in flood: cross by a bridge).
+Ford at (30, 32): fordable; the barriers: 214.
+p24_09_river_crossing: A ford on the river under today's conditions (Mud: off the road is much slower); in flood it would be barred.
+p24_10_after_load: After saving and loading in the country: 2 landmarks still found, 10 travelling groups unchanged, the waypoint kept.
+Round 1 back home: 1003 objects, 718 MB, 12 landmarks, 0 travellers drawn.
+Round 2 back home: 1003 objects, 719 MB, 12 landmarks, 0 travellers drawn.
+Out into the country: 699 ms; 12 landmarks built, 1 travelling groups near, living-country refresh 0.2 ms.
+p24_01_landmarks: A roadside landmark of the country: ruined steading, built from the owned kits.
+p24_03_roadside_interaction: Reading a waystone: where its roads go and how long on foot (found before: True).
+Searched Ruined steading: cache left.
+Travelling groups in this region now: 8 (Bandits, Bandits, Bandits, Bandits, Bandits, Bandits, Caravan, Caravan).
+p24_02_traveller: Mossholm caravan to Bramhaven, bound for Bramhaven: a group of the world's simulation (Caravan, led by Neville Brooke), where its journey has it now.
+Talked with Mossholm caravan to Bramhaven.
+Mossholm caravan to Bramhaven: 12.0 m along its road in the meantime.
+p24_05_waypoint: A waypoint: Mossholm: 2.9 km; the compass's gold mark points to it.
+On the atlas: the player at cell (12.0, 81.0) of Vale of Barrowwell; walked from (25.7, 72.7).
+p24_04_map_position: The atlas with the player's actual position (where they came out of the country).
+p24_06_stepped_off: Off the road on foot, mid-journey: the journey waits; "Back on the road (J)" and the compass mark show where it was left.
+Stepped off the journey: 467 ms.
+Met on the way: Outlaws on the road step out onto the road ahead. "Toll's due, friend." (backed off).
+Encounter encounter:3fa149e8-801a-4999-85b8-04a9dead4dfa:7105398 after the wait: pending encounter:3fa149e8-801a-4999-85b8-04a9dead4dfa:7105398; recorded as Pending (); panel shown True.
+p24_07_encounter: An overland encounter from a real population: "Something is moving in the deep woods: boars in the dark, and they have seen you." — fight, slip away, or back off.
+Encounter encounter:3fa149e8-801a-4999-85b8-04a9dead4dfa:7105398: fought on the overland ground: the fight is on.
+p24_07b_encounter_fight: The encounter fought with the one combat engine, on the overland terrain where the player stood.
+The ground: Muddy (wetness 100, snow 0); fords flooded True; walking off the road ×1.40; sight ×0.80; the player's pace ×1.00.
+p24_08_weather_ground: Weather on the ground: Muddy (Mud: off the road is much slower · fords in flood: cross by a bridge).
+Ford at (30, 32): fordable; the barriers: 214.
+p24_09_river_crossing: A ford on the river under today's conditions (Mud: off the road is much slower); in flood it would be barred.
+p24_10_after_load: After saving and loading in the country: 2 landmarks still found, 10 travelling groups unchanged, the waypoint kept.
+Round 1 back home: 1003 objects, 718 MB, 12 landmarks, 0 travellers drawn.
+Round 2 back home: 1003 objects, 718 MB, 12 landmarks, 0 travellers drawn.

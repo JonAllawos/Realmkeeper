@@ -20,7 +20,7 @@ The campaign, world, mythology and narrative direction (established canon, propo
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 23, 2026-11-13)
+## Implementation status (updated at the end of Phase 24, 2026-11-13)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -126,6 +126,7 @@ present but visibly temporary; **Not started**.
 | Player-driven level-up (Phase 22) | **Implemented** | A one-time, recorded level-up notice; a HUD button that stays bronze with the open choices; the window separates automatic benefits from the player's choices and shows what stays locked; picks are kept on closing and saving and resumed; confirming applies each level once; nothing is chosen for the player (ADR-0109) |
 | Realmkeeper ruleset document (amendment A3) | **Baseline written (Phase 22)** | `Ruleset-Baseline.md` classifies each rule area as implemented, from SRD 5.2.1 (as-is or adapted), Realmkeeper-specific, incomplete, planned or unsupported. The full ruleset document and its name (decision D3) are Phase 30 |
 | Walkable country, realms and transitions (Phase 23) | **Foundation** | 9 regions at 40 m a cell (236 km²), plus an ancient prototype region. Textured terrain with 14 biomes, grass and solid trees from the owned kits, towns in their own kit buildings, 11 destinations a further region, passability, bridges, fords and passes; walking advances the one clock; discovery by sight; compass and region map; loading transitions between the country, settlements, places, regions and realms; save v25. Not hand-played (ADR-0110 to ADR-0112) |
+| The living country (Phase 24) | **Foundation** | Landmarks generated from each region's seed and geography: waystones, cairns, travellers' camps, abandoned camps, ruined steadings, watch posts, and wrecks of real lost caravans. They are found by sight and saved as found or searched. The simulation's own travelling groups are drawn on their roads, with talk and help. Waypoints; the atlas marks the player's real position; one travel state (step off a journey and rejoin it). Encounters come only from real creature populations and bandit bands, and are fought with the one combat engine on the ground. Ground weather (wet, mud, snow, frozen, flooded fords, sight) comes from the saved weather. Save v26. Not hand-played (ADR-0113 to ADR-0115) |
 
 ### §19 Design principles: how Phases 6–7 respect them
 
@@ -276,7 +277,7 @@ states of ADR-0076 to the whole overworld.
 - is justified in the world (known roads, real services);
 - passes real time, so events and closures still apply.
 
-**Status:** Foundation (Phase 23). The walkable country covers 9 regions at 40 m a cell, plus an ancient prototype region, with roads, terrain, crossings, discovery by sight, a compass, a region map and loading transitions (`Systems/Overland.md`, ADR-0110 to ADR-0112). Landmark density, mounts, encounters, hazards and fast travel are still to come.
+**Status:** Foundation (Phase 23). The walkable country covers 9 regions at 40 m a cell, plus an ancient prototype region, with roads, terrain, crossings, discovery by sight, a compass, a region map and loading transitions (`Systems/Overland.md`, ADR-0110 to ADR-0112). Phase 24 added landmarks, visible travellers, waypoints, one travel state, overland encounters and ground weather (`Systems/Overland-Living-Systems.md`, ADR-0113 to ADR-0115). Mounts, fast travel and quests begun by encounters are still to come.
 
 ### A2. Every new character starts at level 1
 

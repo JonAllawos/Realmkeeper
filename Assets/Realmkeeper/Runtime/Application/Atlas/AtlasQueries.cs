@@ -407,6 +407,14 @@ namespace Realmkeeper.Application.Atlas
         {
             var p = w.Player;
             if (p == null) return (0, 0);
+
+            // Phase 24 (ADR-0113): the persistent position itself. In the country, the pose (40 m a cell) on the region's
+            // own cells; in a place, the place's cell. The atlas and the country share one grid of cells.
+            if (p.IsOverland && RealmIds.IsSurface(p.RealmId) && w.FindRegion(p.RegionId) is RegionData pr)
+                return (pr.AtlasX * RegionCells + p.Pose.X / Domain.Geography.OverlandScale.MetresPerCell, pr.AtlasZ * RegionCells + p.Pose.Z / Domain.Geography.OverlandScale.MetresPerCell);
+            if (p.IsOverland && w.FindSettlement(p.LastSettlementId) is SettlementData left) return At(w, left); // another realm: where they left the surface
+            if (p.IsInPlace && w.FindPlace(p.PlaceId) is Domain.Places.PlaceData place && place.ParentKind == Domain.Places.PlaceParentKind.Region && w.FindRegion(place.RegionId) is RegionData plr)
+                return (plr.AtlasX * RegionCells + place.Cell.X + 0.5f, plr.AtlasZ * RegionCells + place.Cell.Z + 0.5f);
             if (TravelCommandHandlers.OnTheRoad(w))
             {
                 var (seg, from, metres) = TravelCommandHandlers.Position(w);

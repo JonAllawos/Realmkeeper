@@ -597,6 +597,7 @@ namespace Realmkeeper.Application
             _maps.Clear();
             _realmMaps.Clear(); // Phase 23
             _terrains.Clear();
+            _landmarks.Clear(); // Phase 24
             if (map != null && world?.Regions.Count > 0) { if (map.RegionId.IsEmpty) map.RegionId = world.Regions[0].RegionId; _maps[map.RegionId] = map; }
             Map = MapOfPlayersRegion() ?? map;
             WorldChanged?.Invoke(new WorldChange(reason, null));

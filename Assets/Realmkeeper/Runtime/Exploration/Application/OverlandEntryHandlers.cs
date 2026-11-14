@@ -27,10 +27,22 @@ namespace Realmkeeper.Exploration.Application
             p.LastSettlementId = settlement.SettlementId;
             p.ReturnToOverland = true;
             p.Pose = layout.ArrivalPose;
+            // Phase 24 (ADR-0113): a journey ends where its walker arrives: at its destination it is done; elsewhere it is given up.
+            var arrived = string.Empty;
+            if (w.Journey != null && w.Journey.Status != JourneyStatus.Arrived)
+            {
+                var done = w.Journey.DestinationId == settlement.SettlementId;
+                if (done) arrived = " The journey is done.";
+                w.Journey.Status = done ? JourneyStatus.Arrived : JourneyStatus.Abandoned;
+                w.Journey.Reason = done ? "arrived on foot" : "you went elsewhere on foot";
+                w.Journey.SegmentIndex = w.Journey.Segments.Count;
+            }
+
+            if (p.Waypoint == "journey" || p.Waypoint == "settlement:" + settlement.SettlementId) p.Waypoint = null;
             QuestRuntime.Visit(w, settlement.SettlementId);
             context.Quest(new Realmkeeper.Simulation.Quests.QuestEvent { Kind = Realmkeeper.Simulation.Quests.QuestEventKind.ReachedSettlement, Subject = settlement.SettlementId.ToString(), Settlement = settlement.SettlementId });
             var home = Realmkeeper.Application.Places.PlaceRules.Arrive(context, w, settlement.SettlementId);
-            return CommandResult.Ok($"{p.Name} enters {settlement.Name} from the country." + (home.Count > 0 ? " " + string.Join(", ", home) + " is home at last." : string.Empty));
+            return CommandResult.Ok($"{p.Name} enters {settlement.Name} from the country." + arrived + (home.Count > 0 ? " " + string.Join(", ", home) + " is home at last." : string.Empty));
         }
     }
 }

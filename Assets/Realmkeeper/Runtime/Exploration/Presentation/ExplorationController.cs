@@ -444,7 +444,27 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (_session == null) return CommandResult.InvalidState("No world session is active.");
             if (InPlace) return LeavePlace(); // Phase 13: only by the way out
-            if (InOverland) { Travel("The world map", "Turning to the map…", () => _session.Dispatch(new Realmkeeper.Application.Overland.LeaveOverlandCommand())); return CommandResult.Ok(); } // Phase 23
+            if (InOverland)
+            {
+                // Phase 24 (ADR-0113): the map shows positions a journey can start from; the walk there (to the road, a town, or the
+                // waiting journey) is walked first, its time charged by the same rule as any walking.
+                RecordPose();
+                var point = _session.GetMapPoint();
+                Travel("The world map", point != null ? "Walking to " + point.Value.label + "…" : "Turning to the map…", () =>
+                {
+                    if (point != null && _overlandView?.Terrain is Realmkeeper.Domain.Geography.OverlandTerrain t && Player != null)
+                    {
+                        var pos = Player.transform.position;
+                        var night = Realmkeeper.Domain.World.TravelRules.IsNight(_session.GetWorldTime().MinuteOfDay);
+                        var minutes = (int)Math.Round(t.WalkMinutes(pos.x, pos.z, point.Value.x, point.Value.z, night, _session.GetGroundConditions()));
+                        if (minutes >= 1) { var walked = _session.Execute(new AdvanceTimeCommand(Math.Min(minutes, AdvanceTimeCommand.MaxMinutes))); if (!walked.IsSuccess) return walked; }
+                    }
+
+                    return _session.Dispatch(new Realmkeeper.Application.Overland.LeaveOverlandCommand());
+                });
+                return CommandResult.Ok();
+            } // Phase 23
+
             if (RoadStage != null) return LeaveRoadFight(); // Phase 17: back to the road (the journey halted where it was)
             RecordPose();
             var result = _session.Dispatch(new ExitSettlementCommand());

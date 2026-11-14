@@ -210,6 +210,8 @@ namespace Realmkeeper.Presentation
             EnterSettlementButton.clicked += () => EnterSelectedSettlement();
             CountryButton = Root.Q<Button>("insp-country"); // Phase 23
             if (CountryButton != null) CountryButton.clicked += () => WalkCountryBySelected();
+            var mark = Root.Q<Button>("insp-mark"); // Phase 24
+            if (mark != null) mark.clicked += () => ShowMessage(_session == null ? NoSession() : _selection.HasSelection ? _session.Dispatch(new Realmkeeper.Application.Overland.SetWaypointCommand("settlement:" + _selection.SelectedId)) : CommandResult.Invalid("Select a settlement first."));
             BindPolitics();
             BindPeople();
             BindPlaces(); // Phase 13

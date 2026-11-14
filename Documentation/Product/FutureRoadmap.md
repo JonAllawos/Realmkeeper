@@ -225,6 +225,14 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 
 ### Phase 24: Open-world architecture II — streaming, travel state and persistence (workstreams C and E)
 
+> **Done differently (2026-11-13).** The Phase 24 brief replaced this plan with "Overland World Living Systems, Navigation Integration, Encounters, Hazards & Ground Weather".
+> - Streaming within a region was already built in Phase 23.
+> - Phase 24 unified the travel state (ADR-0113).
+> - It added landmarks, visible travellers and encounters (ADR-0114), and ground weather (ADR-0115).
+> - It raised the save schema to v26.
+>
+> See `../Reports/Phase24-Completion-Report.md`. The plans for Phase 25 and later should be re-read against both reports.
+
 **Kind:** Arch, Perf.
 
 **Purpose:** make the world frame walkable in Unity, with chunks loading around the player and the player's world position as authoritative state.
