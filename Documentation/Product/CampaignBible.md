@@ -442,7 +442,7 @@ Campaign writing and quests must not assume these deferred abilities are playabl
 **Branch:** `feature/phase-0-1-foundation`
 **Phase 22 commits:** `746ff3c` (implementation) and `760f6f8` (adds the hash to the report)
 **Phase 21 asset closeout commit:** `30b5681`
-**Push status:** Nothing pushed.
+**Push status:** Pushed to `origin/feature/phase-0-1-foundation` on 2026-11-13 (up to `ce79054`, which also holds this document).
 **Phase 23:** Not started at the time of the report.
 
 ### Reported tests

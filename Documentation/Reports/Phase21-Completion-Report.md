@@ -243,7 +243,7 @@ These are covered by tests where they are rules. The owner checklist asks for th
 
 ## 22. Push
 
-No push was made. Phase 21 is committed locally only, as the brief requires. Phase 22 has not been started.
+No push was made during Phase 21: it was committed locally only, as the brief requires. Later, on 2026-11-13, at the owner's instruction ("is everything up to this point committed and pushed? if not lets do so"), Phase 21 (`68b3063`, `72c5916`) and its kit closeout (`30b5681`) were pushed to `origin/feature/phase-0-1-foundation` with Phase 22, up to `ce79054`.
 
 ## 23. Closeout: the purchased kits (2026-11-13, after this report)
 

@@ -238,4 +238,4 @@ No assertion was weakened.
 
 ## 15. Push
 
-Nothing was pushed. Phase 23 has not been started.
+Nothing was pushed during Phase 22. Later, on 2026-11-13, at the owner's instruction ("is everything up to this point committed and pushed? if not lets do so"), the branch was pushed to `origin/feature/phase-0-1-foundation` up to `ce79054`: Phase 21, the kit closeout, Phase 22 (`746ff3c`, `760f6f8`) and the Campaign Bible. Phase 23 has not been started.

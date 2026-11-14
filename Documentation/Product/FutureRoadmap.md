@@ -46,7 +46,7 @@ These were documented here and not fixed. **Phase 22 addressed them (2026-11-13)
 
 ## 2. Phase 21: Environment and settlement depth (workstream A, complete)
 
-**Status:** complete and committed locally (2026-11-13), not pushed. The detail below is the status written while it was in progress, kept as the record of that update; the outcome is in `../Reports/Phase21-Completion-Report.md`. The two later additions it made to the economy (specialist keepers named from the population; a keeper's float) are described there.
+**Status:** complete (2026-11-13); pushed 2026-11-13 at the owner's instruction. The detail below is the status written while it was in progress, kept as the record of that update; the outcome is in `../Reports/Phase21-Completion-Report.md`. The two later additions it made to the economy (specialist keepers named from the population; a keeper's float) are described there.
 
 **Brief:** `../Briefs/Phase21-Brief.md`. Its full title is "Environmental World, Living Settlements, Functional Shops, Crafting Workshops & Realistic Interiors".
 
@@ -120,7 +120,7 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 
 ### Phase 22: Character creation and level 1 integrity (workstream B)
 
-**Status:** complete and committed locally (2026-11-13), not pushed. Delivered with a player-driven level-up workflow on the existing advancement (ADR-0109). The outcome is in `../Reports/Phase22-Completion-Report.md`.
+**Status:** complete (2026-11-13); pushed 2026-11-13 at the owner's instruction. Delivered with a player-driven level-up workflow on the existing advancement (ADR-0109). The outcome is in `../Reports/Phase22-Completion-Report.md`.
 
 **Kind:** Func, Test.
 
