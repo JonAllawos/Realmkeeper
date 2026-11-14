@@ -111,6 +111,10 @@ namespace Realmkeeper.Exploration.Presentation
                 Trade = new TradeWindow(Hud.Root);
                 Trade.BuyRequested += (item, price) => Buy(item, price);
                 Trade.SellRequested += (stack, price) => Sell(stack, price);
+                Trade.BuyQuantityRequested += (item, qty, price) => Buy(item, price, qty); // Phase 26: several at once, through the same command
+                Trade.SellQuantityRequested += (stack, qty, price) => Sell(stack, price, qty);
+                Trade.CompareCatalogSource = id => _session?.CompareCatalogItem(id);
+                Trade.CompareOwnedSource = stack => _session?.CompareItem(stack);
                 Trade.BuyGoodsRequested += (stack, price) => { if (TradingAt != null) { var shop = TradingAt.ShopId; ItemAction(s => s.Dispatch(new BuyGoodsCommand(shop, stack, price))); } }; // Phase 11
                 Trade.RepairRequested += (stack, price) => { if (TradingAt != null) { var shop = TradingAt.ShopId; ItemAction(s => s.Dispatch(new RepairAtShopCommand(shop, stack, price))); } };
                 Trade.CloseRequested += CloseWindows;
@@ -149,6 +153,7 @@ namespace Realmkeeper.Exploration.Presentation
                 HubWindow.WorkshopSource = () => _session?.GetWorkshop();
                 HubWindow.StorageSource = () => _session?.GetReachableContainers();
                 HubWindow.BestiarySource = () => _session?.GetBestiary(); // Phase 25
+                HubWindow.CodexSource = (q, cat, recent) => _session?.GetCodex(q, cat, recent); // Phase 26
                 HubWindow.ItemActionRequested += act => ItemAction(act);
                 HubWindow.FinishWorkRequested += key => FinishWork(key);
                 Advancement = new CharacterAdvancementWindow(Hud.Root);
@@ -481,19 +486,19 @@ namespace Realmkeeper.Exploration.Presentation
                 if (view.ShopId == shopId) { OpenTrade(view); return; }
         }
 
-        public CommandResult Buy(string itemId, int unitPrice)
+        public CommandResult Buy(string itemId, int unitPrice, int quantity = 1)
         {
             if (TradingAt == null) return CommandResult.InvalidState("No shop is open.");
-            var result = _session.Dispatch(new BuyItemCommand(TradingAt.ShopId, itemId, 1, unitPrice));
+            var result = _session.Dispatch(new BuyItemCommand(TradingAt.ShopId, itemId, System.Math.Max(1, quantity), unitPrice));
             Trade?.Show(_session.GetShopDetail(TradingAt.ShopId), ResidentView.Describe(result), !result.IsSuccess);
             if (result.IsSuccess) { _residentKeeperTalk(TradingAt); GameSounds.Play("coins"); }
             return result;
         }
 
-        public CommandResult Sell(ItemStackId stack, int unitPrice)
+        public CommandResult Sell(ItemStackId stack, int unitPrice, int quantity = 1)
         {
             if (TradingAt == null) return CommandResult.InvalidState("No shop is open.");
-            var result = _session.Dispatch(new SellItemCommand(TradingAt.ShopId, stack, 1, unitPrice));
+            var result = _session.Dispatch(new SellItemCommand(TradingAt.ShopId, stack, System.Math.Max(1, quantity), unitPrice));
             Trade?.Show(_session.GetShopDetail(TradingAt.ShopId), ResidentView.Describe(result), !result.IsSuccess);
             if (result.IsSuccess) { _residentKeeperTalk(TradingAt); GameSounds.Play("coins"); }
             return result;

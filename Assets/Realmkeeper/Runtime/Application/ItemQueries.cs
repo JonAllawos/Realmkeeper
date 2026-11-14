@@ -420,7 +420,23 @@ namespace Realmkeeper.Application
             if (p == null || p.Rpg == null || p.Rpg.State != CreationState.Complete) return null;
             var i = PlayerCommandHandlers.IndexOf(p, id);
             if (i < 0) return null;
-            var s = p.Inventory[i];
+            return Compare(p, p.Inventory[i], slot, id);
+        }
+
+        /// <summary>
+        /// Phase 26: the same comparison for an item the player does not own yet, such as a shop's stock: a fresh item of that kind
+        /// (the given condition) worn on a copy of the character. Nothing in the world changes. Null when it cannot be worn.
+        /// </summary>
+        public ItemComparison CompareCatalogItem(string itemId, ItemCondition condition = ItemCondition.Good, EquipmentSlot slot = EquipmentSlot.None)
+        {
+            var p = _world?.Player;
+            if (p == null || p.Rpg == null || p.Rpg.State != CreationState.Complete || ItemCatalog.Find(itemId) == null) return null;
+            return Compare(p, new ItemStackData { ItemId = itemId, Quantity = 1, Condition = condition }, slot, default);
+        }
+
+        private ItemComparison Compare(PlayerCharacterData p, ItemStackData s, EquipmentSlot slot, ItemStackId owned)
+        {
+            var id = owned;
             var d = ItemCatalog.Find(s.ItemId);
             if (d == null || !d.IsEquippable) return null;
             var target = PlayerCommandHandlers.TargetSlot(p, d, slot, out var why);
@@ -436,10 +452,16 @@ namespace Realmkeeper.Application
 
             // The same character with the candidate on: a copy, changed the way equipping changes it.
             var copy = p.Clone();
-            var ci = PlayerCommandHandlers.IndexOf(copy, id);
-            var wear = copy.Inventory[ci].Clone();
+            ItemStackData wear;
+            if (id.IsEmpty) wear = s.Clone(); // not owned: a fresh one, as if bought
+            else
+            {
+                var ci = PlayerCommandHandlers.IndexOf(copy, id);
+                wear = copy.Inventory[ci].Clone();
+                copy.Inventory.RemoveAt(ci);
+            }
+
             wear.Quantity = 1;
-            copy.Inventory.RemoveAt(ci);
             foreach (var x in PlayerCommandHandlers.Displaced(copy, d, target))
             {
                 var off = copy.Equipped(x);

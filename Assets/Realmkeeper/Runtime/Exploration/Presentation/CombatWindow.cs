@@ -59,6 +59,11 @@ namespace Realmkeeper.Exploration.Presentation
             _turn.name = "xk-combat-turn";
             _turn.style.flexShrink = 0;
             head.Add(_turn);
+            _outcome = TradeWindow.Text(string.Empty, "rk-badge"); // Phase 26
+            _outcome.name = "xk-combat-outcome";
+            _outcome.AddToClassList("xk-combat-outcome");
+            _outcome.AddToClassList("xk-hidden");
+            head.Add(_outcome);
             _continue = HeadButton("Continue", "xk-combat-continue", () => ContinueRequested?.Invoke());
             _continue.tooltip = "Let the next computer-controlled combatant act now.";
             head.Add(_continue);
@@ -114,6 +119,9 @@ namespace Realmkeeper.Exploration.Presentation
             _cardLine = TradeWindow.Text("-", "xk-cbt-card-line");
             _cardLine.name = "xk-cbt-card-line";
             card.Add(_cardLine);
+            _cardConditions = TradeWindow.Row("rk-vitals-conditions"); // Phase 26: conditions as word badges
+            _cardConditions.name = "xk-cbt-card-conditions";
+            card.Add(_cardConditions);
             _result = TradeWindow.Text("Nothing yet.", "xk-combat-result");
             _result.name = "xk-combat-result";
             card.Add(_result);
@@ -185,6 +193,26 @@ namespace Realmkeeper.Exploration.Presentation
         private readonly VisualElement _bar;
         private readonly Label _cardName;
         private readonly Label _cardLine;
+        private readonly VisualElement _cardConditions; // Phase 26
+        private readonly Label _outcome; // Phase 26
+
+        /// <summary>Phase 26: the end of a fight in a word, from the player's side.</summary>
+        public static string OutcomeWord(EncounterSnapshot s)
+        {
+            if (s == null) return null;
+            switch (s.Outcome)
+            {
+                case EncounterOutcome.Victory:
+                    var mine = s.Player != null && s.WinningSide == s.Player.Side;
+                    return Realmkeeper.UI.RkText.Get(mine ? "combat.won" : "combat.lost");
+                case EncounterOutcome.Withdrawn: return Realmkeeper.UI.RkText.Get("combat.withdrawn");
+                case EncounterOutcome.Stalemate: return Realmkeeper.UI.RkText.Get("combat.stalemate");
+                default: return Realmkeeper.UI.RkText.Get("combat.calledoff");
+            }
+        }
+
+        /// <summary>Phase 26: the outcome banner's text (tests).</summary>
+        public string OutcomeText => _outcome.text;
         private readonly VisualElement _hpFill;
         private readonly Button _logToggle;
         private readonly Label _hover;
@@ -336,8 +364,21 @@ namespace Realmkeeper.Exploration.Presentation
             _hpFill.EnableInClassList("xk-cbt-hp-fill--low", share <= 0.34f);
             var state = c.State == VitalState.Conscious ? string.Empty : " · " + c.State.ToString().ToLowerInvariant();
             var cover = c.Kind == CombatantKind.Player || string.IsNullOrEmpty(c.CoverFromPlayer) ? string.Empty : " · from you: " + c.CoverFromPlayer;
-            _cardLine.text = $"{c.Hp}/{c.MaxHp} HP{(c.TempHp > 0 ? $" +{c.TempHp}" : string.Empty)} · AC {c.ArmorClass} · {c.Speed} ft{state}" +
-                             (c.Conditions.Count > 0 ? "\n" + string.Join(", ", c.Conditions) : string.Empty) + cover;
+            _cardLine.text = $"{c.Hp}/{c.MaxHp} HP{(c.TempHp > 0 ? $" +{c.TempHp}" : string.Empty)} · AC {c.ArmorClass} · {c.Speed} ft{state}" + cover;
+            _cardConditions.Clear();
+            foreach (var cond in c.Conditions)
+            {
+                var badge = TradeWindow.Text(cond, "rk-badge");
+                badge.AddToClassList("rk-badge--warn");
+                _cardConditions.Add(badge);
+            }
+
+            if (c.Concentration != null)
+            {
+                var conc = TradeWindow.Text("Concentrating: " + c.Concentration, "rk-badge");
+                conc.AddToClassList("rk-badge--info");
+                _cardConditions.Add(conc);
+            }
         }
 
         public VisualElement Root { get; }
@@ -378,6 +419,13 @@ namespace Realmkeeper.Exploration.Presentation
                 : WorldSession.Summary(s);
             _turn.text = !active ? "The fight is over" : s.IsPlayersTurn ? "Your turn" : $"{s.Active?.Name}'s turn";
             _turn.EnableInClassList("xk-combat-turn--yours", s.IsPlayersTurn);
+            // Phase 26: the result as a banner, in words and colour.
+            var outcome = active ? null : OutcomeWord(s);
+            _outcome.text = outcome ?? string.Empty;
+            _outcome.EnableInClassList("xk-hidden", outcome == null);
+            _outcome.EnableInClassList("rk-badge--good", outcome == Realmkeeper.UI.RkText.Get("combat.won"));
+            _outcome.EnableInClassList("rk-badge--bad", outcome == Realmkeeper.UI.RkText.Get("combat.lost"));
+            _outcome.EnableInClassList("rk-badge--info", outcome != null && outcome != Realmkeeper.UI.RkText.Get("combat.won") && outcome != Realmkeeper.UI.RkText.Get("combat.lost"));
             _continue.EnableInClassList("xk-hidden", !active || s.IsPlayersTurn);
             _withdraw.EnableInClassList("xk-hidden", !active);
             _callOff.EnableInClassList("xk-hidden", !active || s.Kind != EncounterKind.Practice);

@@ -1959,3 +1959,115 @@
     bottom: 18px;
     right: 18px;
 }
+
+/* ----- Phase 26: trade, crafting, party and codex on the list-and-inspector pattern -------------------------------- */
+
+.xk-trade {
+    left: 7%;
+    right: 7%;
+    top: 6%;
+    bottom: 6%;
+}
+
+.rk-w-compact .xk-trade {
+    left: 2%;
+    right: 2%;
+    top: 3%;
+    bottom: 3%;
+}
+
+.xk-trade-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    margin-top: 8px;
+}
+
+.xk-trade-body > .rk-md-list {
+    flex-direction: column;
+    align-self: stretch;
+}
+
+.xk-trade-list {
+    flex-grow: 1;
+    margin-top: 6px;
+}
+
+.xk-trade-side {
+    align-self: stretch;
+}
+
+.xk-trade-shop {
+    margin-top: 10px;
+}
+
+.xk-trade-why {
+    color: var(--rk-warn);
+}
+
+.xk-trade-stepper,
+.xk-craft-mat {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.xk-trade-stepper > .rk-btn {
+    min-width: 34px;
+    margin-right: 6px;
+}
+
+.xk-trade-qty {
+    min-width: 36px;
+    -unity-text-align: middle-center;
+    font-size: var(--rk-fs-18);
+    color: var(--rk-heading);
+    margin-right: 6px;
+}
+
+.xk-craft-mat > Label {
+    flex-grow: 1;
+    color: var(--rk-text);
+    white-space: normal;
+}
+
+.xk-craft-mat > .rk-icon {
+    margin-right: 8px;
+}
+
+.xk-craft-mat--missing > Label {
+    color: var(--rk-bad);
+}
+
+.xk-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    margin-bottom: 4px;
+}
+
+.xk-chips > Button {
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.xk-codex-section {
+    margin-top: 10px;
+    margin-bottom: 2px;
+    color: var(--rk-bronze-hi);
+    font-size: var(--rk-fs-12);
+    letter-spacing: 1px;
+}
+
+.xk-party-meter {
+    width: 90px;
+    height: 8px;
+    margin-left: 10px;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.xk-party-detail {
+    flex-shrink: 0;
+}

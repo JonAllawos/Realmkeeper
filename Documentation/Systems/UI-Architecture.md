@@ -86,3 +86,13 @@ World (after any command, a day on the map, a fight)
 - There is no localisation framework yet; every string is in code.
 - New Phase 25 strings sit in one place per component (the pause entries, the notice rule, the inspector labels), so a later extraction to string tables is mechanical.
 - This is recorded as a known limit.
+
+## Phase 26 additions
+
+| Addition | What it is |
+|---|---|
+| `RkText` (`Realmkeeper.UI`) | The interface string table: key → English, `Get` / `Format` / `Overlay`. 124 strings so far; the remaining hard-coded areas are listed in `Phase26-UI-Completion.md` |
+| Trade | Rebuilt on the list-and-inspector pattern. `TradeWindow.CompareCatalogSource` and `CompareOwnedSource` call the read-only `WorldSession.CompareCatalogItem` and `CompareItem`. `BuyQuantityRequested` and `SellQuantityRequested` carry a quantity into the existing `BuyItemCommand` and `SellItemCommand` |
+| Crafting | `PlayerHubWindow.Crafting.cs`: the recipe browser and inspector over the existing `WorkshopView` |
+| Codex | `PlayerHubWindow.Codex.cs` over `WorldSession.GetCodex` (ADR-0117) |
+| Measured (editor, batch mode; `Phase26PlayModeTests`) | Hub section renders 0.6–25 ms (inventory with 66 rows: 25 ms, 759 elements). First hub open 282 ms (it builds the 3D preview); later open–close cycles about 35 ms including two frames. Trade open 7 ms. Codex search 1.8 ms. Repeated open and close do not accumulate elements |

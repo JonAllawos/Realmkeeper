@@ -98,14 +98,14 @@ namespace Realmkeeper.UI
                 var side = new VisualElement { name = "rk-pause-recent" };
                 side.AddToClassList("rk-window");
                 side.AddToClassList("rk-pause-recent");
-                var h = new Label("Recent notices");
+                var h = new Label(RkText.Get("pause.recent"));
                 h.AddToClassList("rk-h2");
                 side.Add(h);
                 var list = new ScrollView(ScrollViewMode.Vertical);
                 list.AddToClassList("rk-pause-recent-list");
                 if (recent.Count == 0)
                 {
-                    var none = new Label("Nothing yet this session.");
+                    var none = new Label(RkText.Get("pause.norecent"));
                     none.AddToClassList("rk-empty");
                     list.Add(none);
                 }

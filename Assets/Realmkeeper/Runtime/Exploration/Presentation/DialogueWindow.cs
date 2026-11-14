@@ -31,6 +31,10 @@ namespace Realmkeeper.Exploration.Presentation
             Root.AddToClassList("xk-hidden");
 
             var head = Row("xk-w-head");
+            var emblem = new VisualElement { name = "xk-dialogue-emblem" }; // Phase 26: the speaker's emblem
+            emblem.AddToClassList("rk-inspector-icon");
+            emblem.Add(Realmkeeper.UI.RkIcons.Make("talk", "xl", "accent"));
+            head.Add(emblem);
             var titles = new VisualElement();
             titles.style.flexGrow = 1;
             _name = Text("-", "xk-w-title");
@@ -156,6 +160,8 @@ namespace Realmkeeper.Exploration.Presentation
                 b.EnableInClassList("xk-dialogue-response--social", r.Kind == ResponseKind.Persuade || r.Kind == ResponseKind.Intimidate || r.Kind == ResponseKind.Deceive || r.Kind == ResponseKind.Bribe || r.Kind == ResponseKind.Negotiate);
                 b.EnableInClassList("xk-dialogue-response--decision", r.Decision);
                 b.SetEnabled(r.Enabled);
+                // Phase 26: the kind of response at a glance (the words in brackets stay, so the icon never stands alone).
+                Realmkeeper.UI.RkIcons.Lead(b, ResponseIcon(r), "s", r.Decision ? "accent" : r.Check != null ? "info" : r.QuestInstanceId != null ? "accent" : null);
                 if (!r.Enabled) b.tooltip = r.Why;
                 _responses.Add(b);
                 if (!r.Enabled && r.Why != null)
@@ -170,6 +176,28 @@ namespace Realmkeeper.Exploration.Presentation
             {
                 _message.text = message;
                 _message.EnableInClassList("xk-message--error", failed);
+            }
+        }
+
+        /// <summary>Phase 26: the icon for a kind of response.</summary>
+        public static string ResponseIcon(ResponseView r)
+        {
+            if (r.Decision) return "decision";
+            if (r.Check != null) return "dice";
+            switch (r.Kind)
+            {
+                case ResponseKind.Persuade: return "persuasion";
+                case ResponseKind.Intimidate:
+                case ResponseKind.Threaten: return "intimidation";
+                case ResponseKind.Deceive: return "insight";
+                case ResponseKind.Bribe:
+                case ResponseKind.Give: return "currency";
+                case ResponseKind.Trade: return "trade";
+                case ResponseKind.AcceptQuest:
+                case ResponseKind.DeclineQuest: return "quest";
+                case ResponseKind.End: return "exit";
+                case ResponseKind.RequestInformation: return "rumour";
+                default: return r.QuestInstanceId != null ? "quest" : "talk";
             }
         }
 

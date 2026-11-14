@@ -91,3 +91,12 @@
 | Description and lore | The inspector's text; lore in the serif italic (`rk-lore`) |
 | Warnings and requirements | Notes in the warning tone, and disabled reasons |
 | Hidden or unknown | Not shown, or said to be unknown ("Unknown until you have defeated one"; "Nothing worn") |
+
+## Phase 26 additions
+
+- **Trade quantity stepper** (`xk-trade-stepper`): − / count / + / Max, then the total and the purse after. The confirm button names the action and the amount ("Buy 3 for 21 coin").
+- **Material lines** (`xk-craft-mat`): a tick or a cross icon, the material, "have / need" and how many more. A missing line is red **and** says "(n more)".
+- **Reasons on rows.** A refusal or shortfall is written in the row's second line in the warning colour (`xk-trade-why`), as well as in the disabled button's tooltip.
+- **Response icons in dialogue.** One icon per kind, always beside the unchanged words.
+- **Outcome banner in combat.** A word badge: good for victory, bad for defeat, info otherwise.
+- **The region map key and scale**, in the shared small and hint styles. Map labels no longer go below 12 px.

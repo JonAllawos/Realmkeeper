@@ -567,7 +567,7 @@ namespace Realmkeeper.Exploration.Presentation
                 _regionMap.style.right = 20;
                 _regionMap.style.top = 80;
                 _regionMap.style.width = 420;
-                _regionMap.style.height = 446;
+                _regionMap.style.paddingBottom = 8; // Phase 26: the height follows the map, its key and the scale
                 _regionMap.style.backgroundColor = new Color(0.08f, 0.07f, 0.06f, 0.92f);
                 _regionMap.style.borderTopWidth = _regionMap.style.borderBottomWidth = _regionMap.style.borderLeftWidth = _regionMap.style.borderRightWidth = 1;
                 _regionMap.style.borderTopColor = _regionMap.style.borderBottomColor = _regionMap.style.borderLeftColor = _regionMap.style.borderRightColor = new Color(0.72f, 0.54f, 0.29f);
@@ -582,6 +582,32 @@ namespace Realmkeeper.Exploration.Presentation
                 image.style.marginLeft = 10;
                 image.style.backgroundImage = new StyleBackground(_regionTexture);
                 _regionMap.Add(image);
+                // Phase 26: what the marks mean, and the scale (the approved 40 m a square; nothing here changes it).
+                var key = new VisualElement { name = "xk-region-map-key" };
+                key.style.flexDirection = FlexDirection.Row;
+                key.style.flexWrap = UnityEngine.UIElements.Wrap.Wrap;
+                key.style.marginLeft = 10;
+                key.style.marginRight = 10;
+                key.style.marginTop = 6;
+                foreach (var (mark, text, colour) in new[]
+                         {
+                             ("▲", "map.you", new Color(1f, 0.35f, 0.25f)), ("◆", "map.settlement", new Color(1f, 0.92f, 0.75f)), ("●", "map.place", new Color(1f, 0.92f, 0.75f)),
+                             ("·", "map.landmark", new Color(0.92f, 0.9f, 0.82f)), ("▼", "map.waypoint", new Color(1f, 0.78f, 0.25f)), ("➜", "map.gateway", new Color(1f, 0.92f, 0.75f)),
+                         })
+                {
+                    var item = new Label(mark + " " + Realmkeeper.UI.RkText.Get(text));
+                    item.AddToClassList("rk-small");
+                    item.style.color = colour;
+                    item.style.marginRight = 12;
+                    key.Add(item);
+                }
+
+                _regionMap.Add(key);
+                var scale = new Label(Realmkeeper.UI.RkText.Format("map.scale", (t.SizeX / 1000f).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture), (t.SizeZ / 1000f).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)))
+                { name = "xk-region-map-scale" };
+                scale.AddToClassList("rk-hint");
+                scale.style.marginLeft = 10;
+                _regionMap.Add(scale);
                 Hud.Root.Add(_regionMap);
                 _regionMap.style.display = DisplayStyle.None;
             }
@@ -614,7 +640,7 @@ namespace Realmkeeper.Exploration.Presentation
             {
                 if (!s.Known) continue;
                 var mark = s.Kind == OverlandSiteKind.Settlement ? "◆ " + s.Name : s.Kind == OverlandSiteKind.RegionExit ? "➜" : s.Kind == OverlandSiteKind.Gateway ? "◎" : "●";
-                Dot(s.X, s.Z, mark, s.Kind == OverlandSiteKind.Gateway ? new Color(0.75f, 0.6f, 1f) : new Color(1f, 0.92f, 0.75f), s.Kind == OverlandSiteKind.Settlement ? 11 : 13);
+                Dot(s.X, s.Z, mark, s.Kind == OverlandSiteKind.Gateway ? new Color(0.75f, 0.6f, 1f) : new Color(1f, 0.92f, 0.75f), s.Kind == OverlandSiteKind.Settlement ? 12 : 13); // Phase 26: never below the 12 px minimum
             }
 
             foreach (var l in _landmarkStates) if (l.Found) Dot(l.Landmark.X, l.Landmark.Z, "·", new Color(0.92f, 0.9f, 0.82f), 18); // Phase 24

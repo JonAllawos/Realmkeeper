@@ -1,0 +1,19 @@
+Trade window open (editor): 7.3 ms with 5 lines for sale and 6 offers.
+Hub ▸ Character: rendered in 2.8 ms (100 elements).
+Hub ▸ Party: rendered in 1.3 ms (26 elements).
+Hub ▸ Spells & rest: rendered in 3.4 ms (39 elements).
+Hub ▸ Appearance: rendered in 3.0 ms (73 elements).
+Hub ▸ Inventory: rendered in 23.5 ms (759 elements).
+Hub ▸ Equipment: rendered in 4.2 ms (117 elements).
+Hub ▸ Weapons: rendered in 2.7 ms (416 elements).
+Hub ▸ Clothing & armour: rendered in 1.5 ms (152 elements).
+Hub ▸ Crafting & work: rendered in 17.0 ms (302 elements).
+Hub ▸ Storage: rendered in 2.1 ms (48 elements).
+Hub ▸ Journal: rendered in 3.0 ms (35 elements).
+Hub ▸ Codex: rendered in 11.2 ms (126 elements).
+Hub ▸ Bestiary: rendered in 1.4 ms (23 elements).
+Hub ▸ Currency & possessions: rendered in 0.6 ms (33 elements).
+Hub ▸ Info: rendered in 1.9 ms (106 elements).
+Hub open 280.3 ms, close 0.2 ms (editor). Inventory rows: 66.
+20 open/close cycles (inventory and codex): 36.0 ms each including two frames; HUD elements 1210 → 577; managed memory first 20 (warm-up): 43540 KB; then per 20 cycles: Inventory 52580 KB, Codex -83344 KB, Inventory 72156 KB, Codex -72952 KB.
+Codex search and render: 1.9 ms over 14 entries.

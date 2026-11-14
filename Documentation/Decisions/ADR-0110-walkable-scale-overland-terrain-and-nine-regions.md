@@ -1,6 +1,6 @@
 # ADR-0110: A walkable scale of 40 m a cell, overland terrain rules, and nine regions in a new game
 
-**Status.** Accepted, 2026-11-13 (Phase 23).
+**Status.** Accepted, 2026-11-13 (Phase 23). **Owner confirmed the 40 m scale on 2026-11-14 (Phase 26 brief).**
 - It settles owner decision D1 (`Product/FutureRoadmap.md` §4), taken under the Phase 23 brief.
 - It adds to ADR-0076 and ADR-0077 and leaves their travel scale unchanged. **Owner review is invited.**
 

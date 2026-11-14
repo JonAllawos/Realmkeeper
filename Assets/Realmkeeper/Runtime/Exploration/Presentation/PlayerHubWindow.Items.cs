@@ -436,34 +436,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (!v.InSettlement) _content.Add(Text("Crafting and gathering need a settlement.", "xk-w-empty"));
 
             if (_stationNote != null) _content.Add(Text(_stationNote, "xk-w-note")); // Phase 21: working at a shop's station
-            _content.Add(Text("Recipes", "xk-w-heading"));
-            string discipline = null;
-            foreach (var r in v.Recipes)
-            {
-                if (r.Discipline != discipline)
-                {
-                    discipline = r.Discipline;
-                    _content.Add(Text(CultureInfo.InvariantCulture.TextInfo.ToTitleCase(discipline), "xk-w-key"));
-                }
-
-                var row = Row("xk-w-row");
-                row.name = "xk-craft-" + r.Id;
-                row.AddToClassList("rk-row");
-                row.Add(IconFrame("crafting", r.CanStart ? "accent" : null)); // Phase 25
-                row.Add(Text(r.Name, "xk-w-name"));
-                row.Add(Text(r.Dc > 0 ? $"DC {r.Dc} · {r.ChancePercent}%" : "sure", "xk-w-price"));
-                row.Add(Text(ItemCommandHandlers.Duration(r.Minutes), "xk-w-price"));
-                var id = r.Id;
-                var at = _stationShop;
-                var start = Act("Start", () => Run(s => s.Dispatch(StartWorkCommand.Craft(id, at))));
-                start.SetEnabled(r.CanStart && v.Active == null);
-                row.Add(start);
-                _content.Add(row);
-                var inputs = new List<string>();
-                foreach (var (name, need, have) in r.Inputs) inputs.Add($"{need} {name.ToLowerInvariant()} ({have})");
-                _content.Add(Text($"→ {r.Output} · needs {string.Join(", ", inputs)}" + (r.Tool != null ? $" · {r.Tool.ToLowerInvariant()}{(r.HasTool ? string.Empty : " (missing)")}{(r.Proficient ? ", proficient" : string.Empty)}" : string.Empty)
-                    + $" · at a {r.Station}{(r.HasStation ? string.Empty : " (none here)")} · {r.Ability} {(r.Bonus >= 0 ? "+" : string.Empty)}{r.Bonus}" + (r.Problem != null ? " — " + r.Problem : string.Empty), "xk-w-desc"));
-            }
+            RecipeBrowser(v); // Phase 26
 
             _content.Add(Text("Gathering", "xk-w-heading"));
             if (v.Sites.Count == 0) _content.Add(Text("No places to gather here.", "xk-w-empty"));

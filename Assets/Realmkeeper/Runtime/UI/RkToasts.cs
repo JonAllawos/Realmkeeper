@@ -136,7 +136,7 @@ namespace Realmkeeper.UI
             body.SetBody(n.Body);
             text.Add(body);
             card.Add(text);
-            card.tooltip = "Click to dismiss.";
+            card.tooltip = RkText.Get("toast.dismiss");
             card.RegisterCallback<ClickEvent>(_ => Dismiss(card, n.Key));
             _stack.Insert(0, card);
             _onScreen[n.Key] = card;
@@ -161,7 +161,7 @@ namespace Realmkeeper.UI
             {
                 var n = _folded;
                 _folded = 0;
-                Show(new Notice { Key = "folded:" + Time.realtimeSinceStartup, Kind = "notify", Title = n + " more notices", Body = "See the recent notices in the menu (Esc)." });
+                Show(new Notice { Key = "folded:" + Time.realtimeSinceStartup, Kind = "notify", Title = RkText.Format("toast.more", n), Body = RkText.Get("toast.more.body") });
             }
         }
 

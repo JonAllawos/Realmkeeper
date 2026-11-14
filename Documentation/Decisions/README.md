@@ -118,5 +118,6 @@
 | [0114](ADR-0114-landmarks-visible-travellers-overland-encounters.md) | Landmarks, visible travellers, and overland encounters | Accepted (Phase 24) |
 | [0115](ADR-0115-ground-weather-from-the-existing-weather.md) | Ground weather derived from the existing weather | Accepted (Phase 24) |
 | [0116](ADR-0116-bestiary-knowledge-and-derived-notices.md) | Bestiary knowledge as player state (save v27), and notices derived from the world | Accepted (Phase 25) |
+| [0117](ADR-0117-codex-derived-from-existing-knowledge.md) | The codex is derived from existing knowledge records (no save change) | Accepted (Phase 26) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

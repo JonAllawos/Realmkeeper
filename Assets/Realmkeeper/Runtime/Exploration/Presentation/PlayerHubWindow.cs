@@ -23,7 +23,7 @@ namespace Realmkeeper.Exploration.Presentation
     {
         public static readonly IReadOnlyList<string> Sections = new[]
         {
-            "Character", "Party", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Journal", "Bestiary", "Currency & possessions", "Info",
+            "Character", "Party", "Spells & rest", "Appearance", "Inventory", "Equipment", "Weapons", "Clothing & armour", "Crafting & work", "Storage", "Journal", "Codex", "Bestiary", "Currency & possessions", "Info",
         };
 
         /// <summary>Phase 25: the sections where the 3D figure helps (looks and what is worn). Elsewhere the list gets the room.</summary>
@@ -114,7 +114,7 @@ namespace Realmkeeper.Exploration.Presentation
         {
             "Character" => "character", "Party" => "party", "Spells & rest" => "spells", "Appearance" => "appearance",
             "Inventory" => "inventory", "Equipment" => "equipment", "Weapons" => "weapons", "Clothing & armour" => "clothing",
-            "Crafting & work" => "crafting", "Storage" => "storage", "Journal" => "journal", "Bestiary" => "bestiary", "Currency & possessions" => "currency",
+            "Crafting & work" => "crafting", "Storage" => "storage", "Journal" => "journal", "Codex" => "codex", "Bestiary" => "bestiary", "Currency & possessions" => "currency",
             _ => "info",
         };
         public bool IsOpen => !Root.ClassListContains("xk-hidden");
@@ -187,6 +187,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "Storage": Storage(); break;
                 case "Journal": Journal(); break; // Phase 12
                 case "Bestiary": Bestiary(); break; // Phase 25
+                case "Codex": Codex(); break; // Phase 26
                 case "Currency & possessions": Possessions(h); break;
                 default: Info(h); break;
             }

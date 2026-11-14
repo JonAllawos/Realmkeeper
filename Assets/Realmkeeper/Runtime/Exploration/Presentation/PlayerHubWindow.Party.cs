@@ -54,9 +54,19 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             if (party.Members.All(m => m.NpcId != SelectedCompanion)) SelectedCompanion = party.Members[0].NpcId;
-            foreach (var m in party.Members) _content.Add(Card(m, party));
+            // Phase 26: the party as a list (you first, then each member with health and status) beside the selected member.
+            var md = Row("rk-md");
+            md.name = "xk-party-md";
+            var list = Column("rk-md-list");
+            list.name = "xk-party-list";
+            list.Add(PlayerRow());
+            foreach (var m in party.Members) list.Add(Card(m, party));
+            md.Add(list);
+            var side = Column("rk-md-detail");
             var sel = party.Members.First(m => m.NpcId == SelectedCompanion);
-            Detail(sel);
+            side.Add(Detail(sel));
+            md.Add(side);
+            _content.Add(md);
             Former(party);
         }
 
@@ -65,12 +75,18 @@ namespace Realmkeeper.Exploration.Presentation
             var card = Column("xk-party-card");
             card.name = "xk-party-card-" + m.NpcId;
             card.EnableInClassList("xk-party-card--selected", m.NpcId == SelectedCompanion);
+            card.AddToClassList("rk-row"); // Phase 26: a list row with an icon, health and status; the actions under it
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.alignItems = Align.Stretch;
+            card.EnableInClassList("rk-row--selected", m.NpcId == SelectedCompanion);
             var top = Row("xk-w-row");
+            top.Add(IconFrame("companion", m.NpcId == SelectedCompanion ? "accent" : null));
             var name = new Button(() => { SelectedCompanion = m.NpcId; Render(); }) { text = (m.IsLeader ? "★ " : string.Empty) + m.Name, name = "xk-party-select-" + m.NpcId };
             name.AddToClassList("xk-button");
             name.AddToClassList("xk-w-choice");
             top.Add(name);
             top.Add(Text($"{m.ClassName ?? "-"} {m.Level} · HP {m.Hp}/{m.MaxHp} · AC {m.ArmorClass} · {m.State}", "xk-w-desc"));
+            top.Add(HealthMeter(m.Hp, m.MaxHp));
             card.Add(top);
             var status = m.Role == PartyRole.Reserve ? "in reserve (living their life until you call)" : m.Mode == FollowMode.Wait ? "waiting " + m.Where : "following";
             card.Add(Text($"{status} · loyalty {m.Loyalty} ({m.LoyaltyWord}){(string.IsNullOrEmpty(m.Term) ? string.Empty : " · " + m.Term)}", "xk-w-desc"));
@@ -87,11 +103,21 @@ namespace Realmkeeper.Exploration.Presentation
             return card;
         }
 
-        private void Detail(PartyMemberView m)
+        private VisualElement Detail(PartyMemberView m)
         {
             var d = Column("xk-party-detail");
             d.name = "xk-party-detail";
-            d.Add(Text(m.Name, "xk-w-title"));
+            d.AddToClassList("rk-inspector");
+            var head = Row("rk-inspector-head");
+            var frame = new VisualElement();
+            frame.AddToClassList("rk-inspector-icon");
+            frame.Add(Realmkeeper.UI.RkIcons.Make("companion", "xl", "accent"));
+            head.Add(frame);
+            var titles = Column("rk-inspector-titles");
+            titles.Add(Text(m.Name, "rk-inspector-title"));
+            titles.Add(Text((m.ClassName ?? "-") + " " + m.Level + " · " + m.LoyaltyWord, "rk-inspector-subtitle"));
+            head.Add(titles);
+            d.Add(head);
             var s = m.Sheet;
             if (s != null && s.HasSheet)
             {
@@ -171,7 +197,39 @@ namespace Realmkeeper.Exploration.Presentation
                 }
             }
 
-            _content.Add(d);
+            return d;
+        }
+
+        /// <summary>Phase 26: the player at the head of the party list (not selectable: their sheet is the Character section).</summary>
+        private VisualElement PlayerRow()
+        {
+            var row = Row("rk-row");
+            row.name = "xk-party-you";
+            row.Add(IconFrame("character", "accent"));
+            var main = Column("rk-row-main");
+            var ch = Sheet;
+            main.Add(Text((Hub?.Name ?? Realmkeeper.UI.RkText.Get("party.you")) + " (" + Realmkeeper.UI.RkText.Get("party.you").ToLowerInvariant() + ")", "rk-row-name"));
+            if (ch != null && !ch.NeedsCreation)
+                main.Add(Text($"{ch.Rules.Class.Name} {ch.Level} · HP {ch.Player.Rpg.CurrentHp}/{ch.Rules.MaxHp} · AC {ch.ArmorClass.Total}", "rk-row-sub"));
+            row.Add(main);
+            row.Add(HealthMeter(ch == null || ch.NeedsCreation ? 0 : ch.Player.Rpg.CurrentHp, ch == null || ch.NeedsCreation ? 0 : ch.Rules.MaxHp));
+            return row;
+        }
+
+        /// <summary>Phase 26: a small health meter (the numbers are written beside it).</summary>
+        private static VisualElement HealthMeter(int hp, int max)
+        {
+            var meter = new VisualElement();
+            meter.AddToClassList("rk-meter");
+            meter.AddToClassList("xk-party-meter");
+            var fill = new VisualElement();
+            fill.AddToClassList("rk-meter-fill");
+            var share = max > 0 ? UnityEngine.Mathf.Clamp01(hp / (float)max) : 0f;
+            fill.style.width = Length.Percent(share * 100f);
+            fill.AddToClassList(share > 0.5f ? "rk-meter-fill--good" : share > 0.25f ? "rk-meter-fill--warn" : "rk-meter-fill--bad");
+            meter.Add(fill);
+            meter.tooltip = $"Hit points {hp} of {max}.";
+            return meter;
         }
 
         private void Former(PartyView party)

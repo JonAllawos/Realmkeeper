@@ -57,22 +57,22 @@ namespace Realmkeeper.Exploration.Presentation
             var canLeave = !InFight;
             var entries = new List<RkMenuOverlay.Entry>
             {
-                new RkMenuOverlay.Entry { Name = "resume", Text = "Resume", Icon = "play", Act = ClosePauseMenu, Primary = true },
-                new RkMenuOverlay.Entry { Name = "save", Text = "Save (F5)", Icon = "save", Act = PauseSave },
-                new RkMenuOverlay.Entry { Name = "settings", Text = "Settings", Icon = "settings", Act = PauseOpenSettings },
+                new RkMenuOverlay.Entry { Name = "resume", Text = RkText.Get("pause.resume"), Icon = "play", Act = ClosePauseMenu, Primary = true },
+                new RkMenuOverlay.Entry { Name = "save", Text = RkText.Get("pause.save"), Icon = "save", Act = PauseSave },
+                new RkMenuOverlay.Entry { Name = "settings", Text = RkText.Get("pause.settings"), Icon = "settings", Act = PauseOpenSettings },
                 new RkMenuOverlay.Entry
                 {
-                    Name = "map", Text = "Return to the world map (M)", Icon = "map", Act = () => { ClosePauseMenu(); ReturnToWorldMap(); },
-                    Enabled = canLeave, Hint = canLeave ? null : "Not during a fight: finish it or withdraw first.",
+                    Name = "map", Text = RkText.Get("pause.map"), Icon = "map", Act = () => { ClosePauseMenu(); ReturnToWorldMap(); },
+                    Enabled = canLeave, Hint = canLeave ? null : RkText.Get("pause.notinfight"),
                 },
                 new RkMenuOverlay.Entry
                 {
-                    Name = "main", Text = "Main menu", Icon = "book", Act = PauseMainMenu,
-                    Enabled = canLeave && RkHooks.OpenMainMenu != null, Hint = !canLeave ? "Not during a fight." : RkHooks.OpenMainMenu == null ? "There is no main menu in this scene." : null,
+                    Name = "main", Text = RkText.Get("pause.main"), Icon = "book", Act = PauseMainMenu,
+                    Enabled = canLeave && RkHooks.OpenMainMenu != null, Hint = !canLeave ? "Not during a fight." : RkHooks.OpenMainMenu == null ? RkText.Get("pause.nomainmenu") : null,
                 },
-                new RkMenuOverlay.Entry { Name = "exit", Text = "Exit to desktop", Icon = "exit", Act = PauseExit, Danger = true },
+                new RkMenuOverlay.Entry { Name = "exit", Text = RkText.Get("pause.exit"), Icon = "exit", Act = PauseExit, Danger = true },
             };
-            Pause = new RkMenuOverlay(host, "Paused", where + " · the world's clock is stopped while this menu is open.", entries, Hud.Toasts?.History);
+            Pause = new RkMenuOverlay(host, RkText.Get("pause.title"), RkText.Format("pause.clock", where), entries, Hud.Toasts?.History);
             _pauseOpenedFrame = Time.frameCount;
             Hud.SetWindowOpen(true);
         }
@@ -108,8 +108,8 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var host = Pause?.Root;
             if (host == null) return;
-            RkModal.Confirm(host, "Leave for the main menu?", "You will return to the world map, and the main menu opens over it. Progress since your last save is kept in the running world, but is only on disk once you save.",
-                "Main menu", () =>
+            RkModal.Confirm(host, RkText.Get("pause.mainconfirm.title"), RkText.Get("pause.mainconfirm.body"),
+                RkText.Get("pause.main"), () =>
                 {
                     ClosePauseMenu();
                     ReturnToWorldMap();
@@ -121,8 +121,8 @@ namespace Realmkeeper.Exploration.Presentation
         {
             var host = Pause?.Root;
             if (host == null) return;
-            RkModal.Confirm(host, "Exit to desktop?", "Realmkeeper will close. Anything since your last save will be lost: save first if you want to keep it.",
-                "Exit to desktop", () =>
+            RkModal.Confirm(host, RkText.Get("pause.exitconfirm.title"), RkText.Get("pause.exitconfirm.body"),
+                RkText.Get("pause.exit"), () =>
                 {
                     if (UnityEngine.Application.isEditor) { Hud?.Toasts?.Push("exit-editor", "notify", "Exit closes the built game", "In the editor, stop Play mode instead."); return; }
                     UnityEngine.Application.Quit();
