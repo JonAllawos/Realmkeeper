@@ -44,6 +44,15 @@
 16. **A busy town** at midday: is it smooth enough? (Editor measurements only so far.)
 17. **Save and reload** in town: the same people and dressing come back (they are derived from the same day and hour).
 
+## Added after your feedback (2026-11-14)
+
+18. **Children.** In a town by day, smaller figures run about by doors and in the market; by night there are none. Do they read as children, not small adults? (Scaled adult bodies with a larger head; see the asset decisions.)
+19. **The watch.** Guards' clothes are tinted in the owner's map colour. Compare towns held by different factions.
+20. **The smithy.** Beside most smithies stands an open-sided forge stall with the anvil: is it convincing as a smithy working partly outdoors?
+21. **Stall shops.** Near the market, some provisioners, apothecaries and general dealers sell from a stall outside, with the keeper behind it by day.
+22. **Signs.** No floating white names any more. Shops and public buildings show a kit sign or a painted board with the trade's emblem (no lettering). Is each readable from the street?
+23. **Building forms.** Warehouses, barns and stables have the barn form; smithies and workshops the workshop form; large homes the townhouse.
+
 ## Still outstanding from earlier phases
 
 Hand-play notes from Phases 24–26.1, and your view of the local map's corner and size.

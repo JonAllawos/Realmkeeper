@@ -38,6 +38,10 @@
   - the trades are the economy's;
   - the banner is the owner's.
 - Townsfolk cannot be talked to. That is deliberate: they are the unrecorded majority.
+- **Addendum (2026-11-14, owner feedback):**
+  - Children are part of the same derived population: a share of the day's unnamed people, never at night. No records and no save change.
+  - Stall shops and forge yards are derived from the layout, like the other dressing.
+  - Faction colours come from one shared table (`RkFactionColours`) for the map, banners and the watch.
 
 **Alternatives considered.**
 - **Instantiate named NPCs for the whole population.** Rejected: thousands of records and a second population model.

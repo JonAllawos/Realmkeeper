@@ -23,7 +23,7 @@
 | Shopkeeper callouts | **Complete** | Data-driven lines by shop kind; distance, gap, per-shop cooldown, no calls in windows (live test) |
 | Guards and patrols | **Complete** | Posts at gates by day; patrols on the streets; count by population |
 | Animals | **Partial** | Chickens, cows and horses: animated kit models grazing inside their pastures (live test). Sheep and goats: still box figures (no model in the catalog) |
-| Children | **Deferred** | No child population or body exists. Owner design decision (preflight §6) |
+| Children | **Complete** (addendum §17) | Added after owner feedback; body is a scaled stand-in |
 | Shop signs | **Partial** | Kit signs for smithy, provisions, apothecary, bowyer, tavern; others the plain board. Readability from the street **unverified** |
 | Faction identity | **Partial** | The owner's banners (map colour) at gates and at hall, keep and guard posts. Guard uniforms and notices **not** changed |
 | Everyday objects | **Complete** | By building purpose; clear of roads, doors, buildings, water and fences (27 settlements, tested; live: no doorway blocked) |
@@ -218,6 +218,32 @@ Details are in `Systems/Phase27-Performance.md`. All figures are from the Unity 
 - **Not committed:** the two untracked `Assets/InitTestScene*` scenes (preserved). `M_LampGlow.mat` was restored after every batch run.
 - **Push:** none.
 
-## 17. Owner playtest checklist
+## 17. Addendum: owner feedback round (2026-11-14)
 
-`Systems/Phase27-Owner-Playtest-Checklist.md`: 17 checks. Automated tests, editor measurements and screenshots are kept separate from your playtesting. **Claude has not played the game by hand.**
+**Asked:** children; different factions; different building types; a smithy partly indoors and partly outdoors; some shops as outdoor stalls; no floating white lettered names; research CC0 and CC BY assets.
+
+| Request | Status | What was done |
+|---|---|---|
+| Children | **Complete** (body is a stand-in) | About 16 % of the unnamed people out by day; they play or run errands; none at night (tested). Owned bodies at 0.62 scale, head ×1.25 |
+| Factions | **Partial** | The watch wears the owner's colour; one shared colour table for the map, banners and guards. Buildings are not faction-styled |
+| Building types | **Partial** | Form follows purpose: barns, warehouses and stables in the barn form; workshops, townhouses, cottages, merchant house. No new models |
+| Smithy partly outdoors | **Complete** | A forge yard (`Stall_Blacksmith`) beside 7 of 9 smithies in Thorngate |
+| Outdoor stall shops | **Complete** | 6 in 10 food, potion and general shops near the market; the keeper stands behind the stall by day (tested). Thorngate: 27 |
+| No floating names | **Complete** | Replaced by kit signs and painted emblem boards. Readability **unverified** by a person |
+| Asset research | **Complete** | `Research/Phase27-Asset-Research.md`. Nothing bought or downloaded |
+
+**Tests this round:**
+- `Phase27SettlementLifeTests` (.NET): 8/8, including two new tests (children by day only; forge yards and stall keepers).
+- `Phase8PlayModeTests` now asserts the owner's request: no floating name text, a painted sign present, the kit sign for a smithy.
+- **.NET full suite: 968/968** (Release, 5 min 47 s).
+- **Unity focused regression: 51/51** (421 s): Phase27, Phase26_1, Phase10, Phase13, Phase14, Phase5, Phase11, Npc, Exploration, Phase8.
+- `Phase27CaptureTests`: passed, 27 captures.
+- **Test fix (not weakened):** the first regression run had 1 failure, Phase 11 `TheChestInTheStreet_OpensInStorage_AndKeepsWhatIsStored`. It teleported the player onto the chest lid; the character sometimes slid off to 0.7 m, facing away, so nothing was in front. Before the fix it failed in 3 of 5 runs of its class (nothing new stands near that chest). The test now stands the player a metre in front, facing the chest, as Phase 13 does. It then passed 4 runs in 4, and the whole regression passed.
+
+**Screenshots added:** p27_10 (children), p27_23 (forge yard), p27_24 (stall shop), p27_25 (painted sign), p27_26 (the watch's colours), p27_27 (barn form).
+
+**Owner decisions:** child bodies (UBC Source $19.99 CC0, or Lowpoly_Kid CC BY 4.0, or keep the stand-in); KayKit Medieval Hexagon for faction buildings (style risk); adding the owned sheep model to the catalog.
+
+## 18. Owner playtest checklist
+
+`Systems/Phase27-Owner-Playtest-Checklist.md`: 23 checks. Automated tests, editor measurements and screenshots are kept separate from your playtesting. **Claude has not played the game by hand.**

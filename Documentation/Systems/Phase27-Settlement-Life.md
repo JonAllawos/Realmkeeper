@@ -89,19 +89,60 @@ In the running game at noon, Bramhaven had **106 people out**: 100 unnamed, 6 of
 
 **Clearances** (tested over 27 settlements): every item on the ground keeps clear of every road (half its width + 0.4 m), every door's approach (1.3 m either side, 3.5 m out), other buildings, water and fenced plots. Where the front is blocked, an item goes alongside a side wall.
 
-**Signs.** The kit's sign by trade, where it has one:
-- smithy: `Sign_Blacksmith`;
-- provisions: `Sign_Food`;
-- apothecary: `Sign_Potions`;
-- bowyer: `Sign_Armory`;
-- tavern: `Sign_Pub`.
+**Signs (owner request, 2026-11-14: no floating white lettering).** The 3D name text in front of buildings is gone. Instead:
+- **Kit signs:** a shop with one shows it:
+  - smithy: `Sign_Blacksmith`;
+  - provisions: `Sign_Food`;
+  - apothecary: `Sign_Potions`;
+  - bowyer: `Sign_Armory`;
+  - tavern: `Sign_Pub`.
+- **Painted signboards** (`PaintedSign`): every other shop, and every public building except the hall.
+  - A plank on an iron bracket beside the door, at right angles to the wall so it is seen along the street.
+  - The trade's emblem painted pale ochre on both faces. No lettering.
+- **Emblems** (game-icons.net, CC BY 3.0, already credited):
+  - shops: smithy anvil; general goods coins; leatherworks boots; tailor cloak; bowyer bow; apothecary potion; provisions bread; carpentry hammer and nails;
+  - public buildings by category: trade; food; inn (cooking pot); civic (scales); military (shield); worship (holy symbol); storage and farms (wheat); transport (horse); utility (gears).
+- The name is still in the building's prompt, the journal and the map.
 
-Otherwise the plain board as before.
+**Forge yards.** A smithy works partly outdoors.
+- Beside it, before its anvil, stands a forge yard: the kit's `Stall_Blacksmith`, an open-sided smithing stall.
+- **Thorngate:** 7 of 9 smithies have one. The other two had no clear ground beside them.
+
+**Stall shops (open-air "tiendas").** Some shops trade from an outdoor stall beside the building.
+- **Who:** provisioners, apothecaries and general dealers near the market (within the plaza + 45 m, or in a market district), in 6 cases of 10.
+- **Stalls:** `Stall_Vegetables_Full`, `Stall_Potions`, or a cart stall.
+- **The keeper:** by day stands behind the stall, not at the counter inside (`LayoutBuilding.StallKeeperAt`).
+- **Thorngate:** 27 stall shops.
+
+**Building forms by purpose.**
+
+| Purpose | Form |
+|---|---|
+| Warehouses, barns, stables | The barn form: gable end to the street, no front windows |
+| Smithies, workshops, mills | The workshop archetype |
+| Civic buildings, large homes | The townhouse |
+| Cottages, farmhouses | The cottage |
+| The market hall | The merchant house |
+
+Other buildings keep their seeded draw. The draw is still made, so nothing else in the layout shifts.
 
 **Banner colours.** By the owner's place in the world's faction list, the strategic map's order:
 - crimson, blue, gold, green, violet, teal, orange, silver → the kit's red, blue, yellow, green banners and their patterned variants;
 - independent: plain brown.
 
+## The watch in the owner's colours
+
+- Guards wear the owner's faction colour, blended 75 % into their clothes; skin is untouched.
+- The colour comes from the shared table `RkFactionColours`, which the strategic map and the banners also use.
+
 ## Children
 
-**Not added** (preflight audit §6): the world has no child population or body, and adding them is the owner's design decision.
+**Added (owner request, 2026-11-14).**
+- **How many:** about 16 % of the unnamed people out between 08:00 and 20:00 are children. None are out at night (tested).
+- **What they do:**
+  - three in four **play**: they run and pause in circles round a house door or a market spot;
+  - one in four walks an errand between the homes and the market.
+- **The body:** no CC0 child model in a matching style was found (see `Research/Phase27-Asset-Research.md`).
+  - Children use the town's own humanoid bodies at 0.62 scale, with the head 1.25× larger, so they read as children rather than small adults.
+  - A dedicated child body is an owner decision.
+- **Thorngate:** 27 children of 143 people out at 11:00; none at 23:00.
