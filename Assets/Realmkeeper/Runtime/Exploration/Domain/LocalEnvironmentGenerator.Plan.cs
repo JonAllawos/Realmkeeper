@@ -99,6 +99,7 @@ namespace Realmkeeper.Exploration.Domain
                     if (b.Kind == BuildingKind.House && shops.TryGetValue(b.Key, out var fit)) b.Fit = fit;
 
             PlaceResidents(layout, residents, rng);
+            StreetDressingPlanner.Plan(layout, Realmkeeper.Domain.Randomness.SeedMixer.Combine(Realmkeeper.Domain.Randomness.SeedMixer.FromWorldSeed(worldSeed), "street-dressing:" + settlementId)); // Phase 27
             return layout;
         }
 

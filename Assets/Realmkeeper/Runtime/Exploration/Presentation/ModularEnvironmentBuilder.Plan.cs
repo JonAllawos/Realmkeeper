@@ -196,16 +196,19 @@ namespace Realmkeeper.Exploration.Presentation
         {
             const int across = RoadPointsAcross;
             if (road.Line.Count < 2) return;
+            // Phase 27: corners rounded (each cut at most 2.5 m, so the road stays within its planned corridor), then a row
+            // every metre along the rounded line.
+            var line = RoundCorners(road.Line, 2.5f, 3);
             var samples = new List<Vector2>();
-            for (var i = 0; i + 1 < road.Line.Count; i++)
+            for (var i = 0; i + 1 < line.Count; i++)
             {
-                var a = road.Line[i];
-                var b = road.Line[i + 1];
-                var n = Math.Max(1, Mathf.CeilToInt(a.DistanceTo(b) / 1f));
-                for (var k = 0; k < n; k++) samples.Add(new Vector2(a.X + (b.X - a.X) * k / n, a.Z + (b.Z - a.Z) * k / n));
+                var a = line[i];
+                var b = line[i + 1];
+                var n = Math.Max(1, Mathf.CeilToInt(Vector2.Distance(a, b) / 1f));
+                for (var k = 0; k < n; k++) samples.Add(Vector2.Lerp(a, b, k / (float)n));
             }
 
-            samples.Add(new Vector2(road.Line[road.Line.Count - 1].X, road.Line[road.Line.Count - 1].Z));
+            samples.Add(line[line.Count - 1]);
             var along = 0f;
             var half = road.Width / 2f;
             for (var i = 0; i < samples.Count; i++)
@@ -234,6 +237,66 @@ namespace Realmkeeper.Exploration.Presentation
                     tris.AddRange(new[] { last + k, row + k, last + k + 1, last + k + 1, row + k, row + k + 1 });
             }
 
+            // Phase 27: rounded ends, draped on the ground (a road end on a bridge deck is the deck's, left square).
+            if (samples.Count >= 2)
+            {
+                Cap(plan, road, samples[0], samples[0] - samples[1], half, verts, uvs, tris);
+                Cap(plan, road, samples[samples.Count - 1], samples[samples.Count - 1] - samples[samples.Count - 2], half, verts, uvs, tris);
+            }
+        }
+
+        /// <summary>A half-disc of road beyond an end, its points draped on the walked ground.</summary>
+        private static void Cap(SettlementLayoutData plan, RoadData road, Vector2 end, Vector2 outward, float half, List<Vector3> verts, List<Vector2> uvs, List<int> tris)
+        {
+            if (outward.sqrMagnitude < 1e-6f) return;
+            if (RoadHeight(plan, road.Key, end.x, end.y) > GroundAt(plan, end.x, end.y) + 0.3f) return; // on a deck
+            outward.Normalize();
+            var left = new Vector2(-outward.y, outward.x);
+            var centre = verts.Count;
+            verts.Add(new Vector3(end.x, GroundAt(plan, end.x, end.y) + RoadLift, end.y));
+            uvs.Add(new Vector2(road.Width / 2f, 0f));
+            const int steps = 8;
+            for (var s = 0; s <= steps; s++)
+            {
+                var a = Mathf.PI * s / steps; // from the left edge, round the end, to the right edge
+                var p = end + (left * Mathf.Cos(a) + outward * Mathf.Sin(a)) * half;
+                verts.Add(new Vector3(p.x, GroundAt(plan, p.x, p.y) + RoadLift, p.y));
+                uvs.Add(new Vector2(road.Width / 2f + Mathf.Cos(a) * half, Mathf.Sin(a) * half));
+            }
+
+            for (var s = 0; s < steps; s++)
+            {
+                int a = centre + 1 + s, b = centre + 2 + s;
+                var n = Vector3.Cross(verts[a] - verts[centre], verts[b] - verts[centre]);
+                if (n.y >= 0f) tris.AddRange(new[] { centre, a, b });
+                else tris.AddRange(new[] { centre, b, a });
+            }
+        }
+
+        /// <summary>A line with each inner corner cut back (at most <paramref name="maxCut"/> metres, a quarter of the shorter leg), repeated.</summary>
+        public static List<Vector2> RoundCorners(IReadOnlyList<PlanPoint> line, float maxCut, int passes)
+        {
+            var pts = new List<Vector2>(line.Count);
+            foreach (var p in line) pts.Add(new Vector2(p.X, p.Z));
+            var cut = maxCut;
+            for (var pass = 0; pass < passes && pts.Count >= 3; pass++, cut *= 0.5f)
+            {
+                var next = new List<Vector2>(pts.Count * 2) { pts[0] };
+                for (var i = 1; i + 1 < pts.Count; i++)
+                {
+                    var a = pts[i] - pts[i - 1];
+                    var b = pts[i + 1] - pts[i];
+                    var c = Mathf.Min(cut, 0.25f * Mathf.Min(a.magnitude, b.magnitude));
+                    if (c < 0.05f || Vector2.Angle(a, b) < 4f) { next.Add(pts[i]); continue; }
+                    next.Add(pts[i] - a.normalized * c);
+                    next.Add(pts[i] + b.normalized * c);
+                }
+
+                next.Add(pts[pts.Count - 1]);
+                pts = next;
+            }
+
+            return pts;
         }
 
         /// <summary>The water: a ribbon at its surface along its course, a little wider than its channel.</summary>
@@ -502,6 +565,8 @@ namespace Realmkeeper.Exploration.Presentation
         private static void BuildHerds(Context ctx)
         {
             var plan = ctx.Layout.Plan;
+            var herds = new GameObject("Herds").transform; // Phase 27: outside the merged static geometry
+            herds.SetParent(ctx.Root, false);
             foreach (var herd in ctx.Layout.Herds)
             {
                 FieldData field = null;
@@ -515,10 +580,12 @@ namespace Realmkeeper.Exploration.Presentation
                     var lz = (float)(rng.NextDouble() - 0.5) * (field.Depth - 3f);
                     var p = FieldPoint(plan, field, lx, lz, 0f);
                     var t = new GameObject(herd.CreatureId).transform;
-                    t.SetParent(ctx.Static, false);
+                    t.SetParent(herds, false); // Phase 27: not merged, so the animal can move
                     t.localPosition = p;
                     t.localRotation = Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f);
                     Animal(ctx, t, herd.CreatureId, rng.Next(3));
+                    var centre = FieldPoint(plan, field, 0f, 0f, 0f);
+                    t.gameObject.AddComponent<AmbientWander>().Setup(centre, field.Yaw, field.Width / 2f - 1.5f, field.Depth / 2f - 1.5f, herd.CreatureId == "chicken" ? 0.45f : 0.3f, (x, z) => GroundAt(plan, x, z), rng.Next());
                 }
             }
         }
@@ -537,6 +604,7 @@ namespace Realmkeeper.Exploration.Presentation
                 default: body = new Vector3(0.5f, 0.5f, 0.9f); coat = new Color(0.45f, 0.38f, 0.3f); break;
             }
 
+            if (AnimalModel(ctx, t, kind) != null) return; // Phase 27: the kit's farm animals where it has them
             var mat = Tinted(ctx, "Plaster", coat, "Coat " + coat);
             var legs = kind == "chicken" ? 0.12f : body.y * 0.7f;
             Mesh(ctx, t, "Body", Shared(ctx, "AnimalBody:" + kind, () => MetreMeshes.Box(body, ctx.Assets)), mat, new Vector3(0f, legs + body.y / 2f, 0f));

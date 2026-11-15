@@ -33,7 +33,7 @@ namespace Realmkeeper.Exploration.Presentation
             else BuildBoundary(ctx);
             foreach (var p in layout.Props) BuildProp(ctx, p);
             BuildTavernInterior(ctx);
-            if (planned) BuildPlanDressing(ctx);
+            if (planned) { BuildPlanDressing(ctx); BuildDressing(ctx); } // Phase 27: everyday objects by rule
             else BuildStreetDressing(ctx);
 
             // Merge the thousands of kit pieces into a few hundred draws (one per cell, material and shadow mode).
@@ -179,7 +179,7 @@ namespace Realmkeeper.Exploration.Presentation
             go.transform.SetParent(ctx.Static, false);
             go.transform.localPosition = new Vector3(b.Center.X, b.FloorHeight, b.Center.Z); // Phase 10: on its floor (0 on flat ground)
             go.transform.localRotation = Quaternion.Euler(0f, -b.Yaw, 0f); // door on local −Z faces (sin yaw, −cos yaw)
-            foreach (var piece in plan.Pieces) Piece(ctx, go.transform, piece);
+            foreach (var piece in plan.Pieces) Piece(ctx, go.transform, piece, b);
             if (ctx.Layout.Plan != null) BuildPlinth(ctx, b, go.transform);
 
             // Collision: the walls' volume. The tavern keeps its doorway open and its interior walkable.
@@ -213,7 +213,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         // ----- Pieces --------------------------------------------------------------------------------
 
-        private static void Piece(Context ctx, Transform parent, ModulePlacement p)
+        private static void Piece(Context ctx, Transform parent, ModulePlacement p, LayoutBuilding owner = null)
         {
             var pos = new Vector3(p.X, p.Y, p.Z);
             var scale = new Vector3(p.ScaleX, p.ScaleY, p.ScaleZ);
@@ -261,6 +261,9 @@ namespace Realmkeeper.Exploration.Presentation
                     Barrel(ctx, t, Vector3.zero, 1f);
                     break;
                 case "@Sign":
+                    // Phase 27: the sign of the building's trade where the kit has one (smithy, food, potions, arms, the tavern).
+                    var signId = owner == null ? string.Empty : owner.Kind == BuildingKind.Hall ? "Sign_Pub" : BuildingKitPlanner.SignFor(owner.Fit);
+                    if (signId.Length > 0 && Kit(ctx, t, signId, Vector3.zero, 0f, 1.1f, false) != null) break;
                     Mesh(ctx, t, "Bracket", MetreMeshes.Box(new Vector3(0.06f, 0.06f, 0.7f), ctx.Assets), ctx.Mat("Metal"), new Vector3(0f, 0.35f, -0.05f));
                     Mesh(ctx, t, "Board", MetreMeshes.Box(new Vector3(0.06f, 0.5f, 0.62f), ctx.Assets), ctx.Mat("Planks"), new Vector3(0f, 0f, -0.1f))
                         .transform.localRotation = Quaternion.Euler(0f, 90f, 0f);

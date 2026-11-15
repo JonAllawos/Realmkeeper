@@ -140,7 +140,7 @@ namespace Realmkeeper.Exploration.Presentation
                 if (view == null) continue;
                 var b = view.Building;
                 shopBuildings.Add(b.Key);
-                var door = LocalPaths.ToWorld(b, 0f, -b.Depth / 2f - 0.8f);
+                var door = LocalPaths.ToWorld(b, LocalPaths.DoorwayX(b), -b.Depth / 2f - 0.8f);
                 var at = LayoutToWorld(door.X, door.Z);
                 LocalMap.SetMark("shop:" + b.Key, LocalMarkKind.Shop, view.ShopName, at.x, at.z);
             }
@@ -168,7 +168,7 @@ namespace Realmkeeper.Exploration.Presentation
                 if (b.Function == null || shopBuildings.Contains(b.Key) || landmarkBuildings.Contains(b.Key)) continue;
                 var word = ServiceWord(b.Function.Value);
                 if (word == null) continue;
-                var door = LocalPaths.ToWorld(b, 0f, -b.Depth / 2f - 0.8f);
+                var door = LocalPaths.ToWorld(b, LocalPaths.DoorwayX(b), -b.Depth / 2f - 0.8f);
                 var at = LayoutToWorld(door.X, door.Z);
                 LocalMap.SetMark("service:" + b.Key, LocalMarkKind.Service, word, at.x, at.z);
             }

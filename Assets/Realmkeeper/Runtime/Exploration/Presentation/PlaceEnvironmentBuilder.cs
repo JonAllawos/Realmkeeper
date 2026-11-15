@@ -586,6 +586,18 @@ namespace Realmkeeper.Exploration.Presentation
                 case "forge": return "Anvil";
                 case "workbench": return "Workbench";
                 case "bed": return "Bed_Twin1";
+                case "table": return "table_medium";
+                case "long_table": return "table_long_tablecloth";
+                case "chair": return "Chair_1";
+                case "bench": return "Bench";
+                case "stool": return "Stool";
+                case "shelf": return "Shelf_Simple";
+                case "shelves": return "shelves";
+                case "cabinet": return "Cabinet";
+                case "bookcase": return "Bookcase_1";
+                case "rug": return "Rug_1";
+                case "barrel": return "Barrel";
+                case "sacks": return "Bag";
                 default: return null;
             }
         }

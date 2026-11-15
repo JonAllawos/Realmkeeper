@@ -179,6 +179,12 @@ namespace Realmkeeper.Exploration.Domain
         public List<LayoutInteractable> Interactables { get; } = new List<LayoutInteractable>();
         public List<LayoutResidentSpot> Residents { get; } = new List<LayoutResidentSpot>();
 
+        /// <summary>Phase 27: everyday objects placed by rule (ADR-0119); derived, never saved.</summary>
+        public List<LayoutDressing> Dressing { get; } = new List<LayoutDressing>();
+
+        /// <summary>Phase 27: the owning faction's place in the world's faction list (banner colours match the strategic map), −1 when independent.</summary>
+        public int OwnerIndex { get; set; } = -1;
+
         /// <summary>Phase 10: the settlement's herds (what grazes where), shown as animals in their pastures.</summary>
         public List<LayoutHerd> Herds { get; } = new List<LayoutHerd>();
 

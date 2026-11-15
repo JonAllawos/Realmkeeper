@@ -348,6 +348,20 @@ namespace Realmkeeper.Domain.Places
             Add("bed", "Bed", FeatureKind.Furniture, "A bed with a straw mattress.");
             Add("hearth", "Hearth", FeatureKind.Furniture, "A hearth, its fire banked.");
             Add("desk", "Desk", FeatureKind.Document, "A desk with papers and an inkwell.", Skill.Investigation, 10, "Accounts and letters — ordinary household business.");
+
+            // Phase 27: everyday furniture, placed in proportion to a room's floor (InteriorGenerator.Furnish).
+            Add("table", "Table", FeatureKind.Furniture, "A plain wooden table.");
+            Add("long_table", "Long table", FeatureKind.Furniture, "A long table under a cloth.");
+            Add("chair", "Chair", FeatureKind.Furniture, "A wooden chair.");
+            Add("bench", "Bench", FeatureKind.Furniture, "A wooden bench.");
+            Add("stool", "Stool", FeatureKind.Furniture, "A three-legged stool.");
+            Add("shelf", "Shelf", FeatureKind.Furniture, "A shelf of pots and odds and ends.");
+            Add("shelves", "Shelves", FeatureKind.Furniture, "Tall shelves of stored goods.");
+            Add("cabinet", "Cabinet", FeatureKind.Furniture, "A cabinet for linen and clothes.");
+            Add("bookcase", "Bookcase", FeatureKind.Furniture, "A bookcase of ledgers and papers.");
+            Add("rug", "Rug", FeatureKind.Furniture, "A worn rug.");
+            Add("barrel", "Barrel", FeatureKind.Furniture, "A barrel.");
+            Add("sacks", "Sacks", FeatureKind.Furniture, "Sacks of meal and roots.");
             Add("granary_ledger_in", "Store-room ledger", FeatureKind.Document, "The keeper's working ledger, kept by the door.", Skill.Investigation, 8,
                 "Measures in and out, day by day — the same figures the public tally shows.");
 

@@ -22,8 +22,14 @@ namespace Realmkeeper.Domain.Places
     /// </summary>
     public static class InteriorGenerator
     {
-        public const int MinCells = 5;
-        public const int MaxCells = 14;
+        /// <summary>The side of one interior cell, in metres.</summary>
+        public const float CellMetres = 1.5f;
+
+        /// <summary>Phase 27: the smallest interior (cells); a building narrower than this keeps its own size (at least three).
+        /// </summary>
+        public const int MinCells = 4;
+        /// <summary>Phase 27: up to 30 m, so a great hall is larger inside than a cottage (it was capped at 21 m).</summary>
+        public const int MaxCells = 20;
 
         /// <summary>The functions that have an interior to enter (the tavern hall and shops stay open to the street).</summary>
         public static bool HasInterior(BuildingFunction f)
@@ -71,12 +77,13 @@ namespace Realmkeeper.Domain.Places
         public static PlaceLayout Generate(InteriorRequest req, ulong seed)
         {
             var rng = new PlaceRng(seed);
-            var w = Clamp((int)(req.WidthMetres / 1.5f));
-            var d = Clamp((int)(req.DepthMetres / 1.5f));
+            var w = Cells(req.WidthMetres); // Phase 27: never wider than the building
+            var d = Cells(req.DepthMetres);
             var layout = new PlaceLayout();
             layout.Floors.Add(new PlaceFloor { Index = 0, Name = "Ground floor", Elevation = 0f });
             var plan = Plan(req.Function);
-            var front = Math.Max(3, (int)Math.Round(d * 0.55));
+            // Phase 27: the back rooms keep at least two cells of depth (a person must be able to stand in them).
+            var front = Math.Max(2, Math.Min(d - 2, Math.Max(3, (int)Math.Round(d * 0.55))));
             var back = d - front;
             var rooms = layout.Rooms;
             var c = 0;
@@ -138,7 +145,17 @@ namespace Realmkeeper.Domain.Places
                     break;
                 default:
                     main = Room("main", 0, 0, 0, w, front, RoomKind.Chamber, "Main room");
-                    if (w >= 7)
+                    if (w >= 10)
+                    {
+                        // Phase 27: a large house has a second bedroom.
+                        Room("bedroom", 0, 0, front, w / 3, back, RoomKind.Bedroom, "Bedroom", restricted: true);
+                        Room("bedroom2", 0, w / 3, front, w / 3, back, RoomKind.Bedroom, "Second bedroom", restricted: true);
+                        Room("larder", 0, 2 * (w / 3), front, w - 2 * (w / 3), back, RoomKind.Storage, "Larder");
+                        Door(layout, NextC(), "main", "larder", ConnectionKind.Opening);
+                        Door(layout, NextC(), "main", "bedroom2", ConnectionKind.Door);
+                        Feature(layout, rng, "bedroom2", "bed");
+                    }
+                    else if (w >= 7)
                     {
                         Room("bedroom", 0, 0, front, w / 2, back, RoomKind.Bedroom, "Bedroom", restricted: true);
                         Room("larder", 0, w / 2, front, w - w / 2, back, RoomKind.Storage, "Larder");
@@ -153,6 +170,8 @@ namespace Realmkeeper.Domain.Places
                     if (req.Wealth >= 55) Feature(layout, rng, "main", "desk");
                     break;
             }
+
+            Furnish(layout, rng); // Phase 27: furniture in proportion to each room's floor
 
             // Upper floors (houses with a second storey, towers): reached by stairs from the main room.
             var storeys = Math.Max(1, Math.Min(plan == "tower" ? 3 : 2, req.Storeys));
@@ -198,7 +217,51 @@ namespace Realmkeeper.Domain.Places
             return layout;
         }
 
-        private static int Clamp(int cells) => Math.Max(MinCells, Math.Min(MaxCells, cells));
+        /// <summary>Phase 27: cells that fit inside the walls: never more than the building holds, at least <see cref="MinCells"/> where it allows.</summary>
+        public static int Cells(float metres)
+        {
+            var fit = (int)Math.Floor(metres / CellMetres + 0.001);
+            return Math.Max(MinCells, Math.Min(MaxCells, fit)); // the building's own size; below four cells no plan has rooms one can stand in
+        }
+
+        /// <summary>
+        /// Phase 27: each ground-floor room gets furniture for its purpose, about one piece per ten cells (22 m²) beyond what
+        /// its plan already placed, so a large room is furnished as one, not left bare around a single bed.
+        /// </summary>
+        private static void Furnish(PlaceLayout layout, PlaceRng rng)
+        {
+            foreach (var r in layout.Rooms)
+            {
+                if (r.Floor != 0) continue;
+                string[] kinds;
+                switch (r.Kind)
+                {
+                    case RoomKind.Chamber: kinds = new[] { "table", "chair", "bench", "shelf", "rug", "barrel" }; break;
+                    case RoomKind.Bedroom: kinds = new[] { "cabinet", "rug", "stool" }; break;
+                    case RoomKind.Storage: kinds = new[] { "barrel", "sacks", "shelves", "barrel", "sacks" }; break;
+                    case RoomKind.Workshop: kinds = new[] { "shelf", "barrel", "workbench", "sacks" }; break;
+                    case RoomKind.Office: kinds = new[] { "bookcase", "chair", "cabinet" }; break;
+                    case RoomKind.Hall: kinds = new[] { "long_table", "bench", "bench", "chair", "bookcase" }; break;
+                    case RoomKind.Barracks: kinds = new[] { "table", "bench", "barrel", "bench" }; break;
+                    case RoomKind.Shrine: kinds = new[] { "bench", "bench", "bench" }; break;
+                    default: continue;
+                }
+
+                var have = 0;
+                foreach (var f in layout.Features) if (f.Room == r.Id) have++;
+                var want = 1 + r.Rect.W * r.Rect.D / 10;
+                for (var i = 0; have < want && i < kinds.Length * 2; i++)
+                {
+                    var def = kinds[i % kinds.Length];
+                    var d = FeatureCatalog.Find(def);
+                    if (d == null) continue;
+                    var (x, z) = Spot(layout, rng, r);
+                    if (x < 0) break;
+                    layout.Features.Add(new PlaceFeature { Id = def + ":" + r.Id + ":" + layout.Features.Count, Room = r.Id, Kind = d.Kind, DefinitionId = def, X = x, Z = z });
+                    have++;
+                }
+            }
+        }
 
         private static PlaceRoom Add(List<PlaceRoom> rooms, PlaceRoom r)
         {

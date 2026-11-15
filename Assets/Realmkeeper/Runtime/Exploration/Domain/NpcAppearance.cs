@@ -101,10 +101,25 @@ namespace Realmkeeper.Exploration.Domain
         {
             if (npcId.IsEmpty) throw new ArgumentException("A persistent NPC ID is required.", nameof(npcId));
             var seed = SeedMixer.Combine(SeedMixer.HashString("appearance"), npcId.ToString());
+            return FromSeed(seed, role, frameFromIdentity ?? FrameFor(name, seed), npcId);
+        }
+
+        /// <summary>
+        /// Phase 27: the looks of one of the settlement's unnamed people (ADR-0119), from a stable key ("settlement/tf-12"). They
+        /// have no record, so no NPC ID: the same key always gives the same person.
+        /// </summary>
+        public static NpcAppearance ResolveUnnamed(string key, NpcRole role)
+        {
+            var seed = SeedMixer.Combine(SeedMixer.HashString("appearance:unnamed"), key ?? string.Empty);
+            return FromSeed(seed, role, SeedMixer.Combine(seed, 99UL) % 2 == 0 ? BodyFrame.Female : BodyFrame.Male, default);
+        }
+
+        private static NpcAppearance FromSeed(ulong seed, NpcRole role, BodyFrame frame, NpcId npcId)
+        {
             ulong Pick(int stream) => SeedMixer.Combine(seed, (ulong)stream);
             int Index(int stream, int count) => (int)(Pick(stream) % (ulong)count);
 
-            var frame = frameFromIdentity ?? FrameFor(name, seed); // Phase 4 identity (sex) wins over the name hint
+            // frame: Phase 4 identity (sex) wins over the name hint (chosen by the caller)
             var sex = frame == BodyFrame.Female ? "Female" : "Male";
             var (outfit, material) = OutfitFor(role, Index(1, 2));
             var appearance = new NpcAppearance

@@ -335,6 +335,19 @@ namespace Realmkeeper.Exploration.Domain
             return plan;
         }
 
+        /// <summary>Phase 27: the kit sign a shop hangs by its trade (the plain board where the kit has none).</summary>
+        public static string SignFor(ShopFit fit)
+        {
+            switch (fit)
+            {
+                case ShopFit.Smithy: return "Sign_Blacksmith";
+                case ShopFit.Provisions: return "Sign_Food";
+                case ShopFit.Apothecary: return "Sign_Potions";
+                case ShopFit.Bowyer: return "Sign_Armory";
+                default: return string.Empty;
+            }
+        }
+
         /// <summary>Where a shop's open doorway sits along its front (its door slot, chosen without randomness).</summary>
         public static float ShopDoorX(LayoutBuilding b)
         {
@@ -487,7 +500,34 @@ namespace Realmkeeper.Exploration.Domain
         /// <summary>Modules along a side: the footprint rounded down to the 2 m grid (within a quarter metre), at least 2.</summary>
         public static int Snap(float metres) => Math.Max(2, (int)Math.Floor((metres + 0.5f) / ModuleSize));
 
-        private static int DoorSlot(int modulesX, PlanRandom rng) => rng == null ? (modulesX - 1) / 2 : Math.Min(modulesX - 1, (modulesX - 1) / 2 + rng.Int(2));
+        /// <summary>
+        /// Phase 27: the door is always the centre-most slot, so the paths and people that use <see cref="DoorX"/> reach the real
+        /// doorway (owner report: paths ended beside the door). The draw is still made, so every other random choice of
+        /// the building (windows, shutters, roofs) is unchanged.
+        /// </summary>
+        private static int DoorSlot(int modulesX, PlanRandom rng)
+        {
+            rng?.Int(2);
+            return (modulesX - 1) / 2;
+        }
+
+        /// <summary>Phase 27: where a building's front door is along its front (local x), for every kind: the one rule the kit, paths and people share.</summary>
+        /// <summary>Phase 27: where the door leaf hangs along its wall module and how much wider than its model it is drawn.</summary>
+        public const float DoorLeafAlong = -0.60f;
+
+        public const float DoorLeafWidth = 1.17f;
+
+        public static float DoorX(LayoutBuilding b)
+        {
+            switch (b.Kind)
+            {
+                case BuildingKind.Hall: return 0f; // the tavern's doorway is centred
+                case BuildingKind.Landmark: return SlotX(2, 0); // a tower's door is its first slot
+                default:
+                    var modulesX = Snap(b.Width);
+                    return SlotX(modulesX, (modulesX - 1) / 2);
+            }
+        }
 
         /// <summary>Centre of slot <paramref name="i"/> of <paramref name="count"/> along a side centred on 0.</summary>
         public static float SlotX(int count, int i) => (i - (count - 1) / 2f) * ModuleSize;
@@ -543,7 +583,10 @@ namespace Realmkeeper.Exploration.Domain
                 case Opening.Door:
                 case Opening.BalconyDoor:
                     plan.Pieces.Add(new ModulePlacement(WallId(family, "Door_" + shape), x, y, z, yaw));
-                    plan.Pieces.Add(Offset("Door_1_" + shape, x, y, z, yaw, -0.53f, 0f));
+                    // Phase 27: the leaf fills its frame. Measured in the running game: the opening is 1.29 m (−0.65 to 0.64 from the
+                    // wall module's origin) and the leaf 1.12 m (−0.05 to 1.07 from its hinge); at 1.17 wide from −0.60 it closes it
+                    // (it was 1.12 m from −0.53, leaving 7–10 cm open either side: owner report, doors smaller than their frames).
+                    plan.Pieces.Add(Offset("Door_1_" + shape, x, y, z, yaw, DoorLeafAlong, 0f, DoorLeafWidth));
                     if (opening == Opening.BalconyDoor)
                     {
                         plan.Pieces.Add(Offset("Balcony_Simple_Straight", x, y, z, yaw, 0f, 0f));

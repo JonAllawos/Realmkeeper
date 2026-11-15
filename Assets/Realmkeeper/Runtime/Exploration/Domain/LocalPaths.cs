@@ -36,13 +36,13 @@ namespace Realmkeeper.Exploration.Domain
         }
 
         /// <summary>The point outside a building's door, offset sideways for the n-th person there.</summary>
-        public static LocalPoint DoorOutside(LayoutBuilding b, float side = 0f) => ToWorld(b, side, -(b.Depth / 2f + DoorStandOff));
+        public static LocalPoint DoorOutside(LayoutBuilding b, float side = 0f) => ToWorld(b, DoorwayX(b) + side, -(b.Depth / 2f + DoorStandOff)); // Phase 27: in front of the real door
 
         /// <summary>Just inside an enterable building's doorway.</summary>
         public static LocalPoint DoorInside(LayoutBuilding b) => ToWorld(b, DoorwayX(b), -(b.Depth / 2f - 1.2f));
 
         /// <summary>Where the doorway of an enterable building is along its front (the tavern's is centred; a shop's at its door slot).</summary>
-        public static float DoorwayX(LayoutBuilding b) => b.Fit == ShopFit.None ? 0f : BuildingKitPlanner.ShopDoorX(b);
+        public static float DoorwayX(LayoutBuilding b) => b.Fit == ShopFit.None ? BuildingKitPlanner.DoorX(b) : BuildingKitPlanner.ShopDoorX(b);
 
         /// <summary>Behind a shop's counter (the keeper's place), the n-th person further along.</summary>
         public static LocalPoint BehindCounter(LayoutBuilding b, int n = 0) => ToWorld(b, -0.6f + n * 1.1f, b.Depth / 2f - 1.15f);

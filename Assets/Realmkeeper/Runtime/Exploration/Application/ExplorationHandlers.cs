@@ -57,6 +57,7 @@ namespace Realmkeeper.Exploration.Application
             var layout = LocalEnvironmentGenerator.FromPlan(plan.Clone(), world.Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
             foreach (var h in world.Livestock) if (h.SettlementId == settlement.SettlementId) layout.Herds.Add(new LayoutHerd { CreatureId = h.CreatureId, Count = h.Count, PastureKey = h.PastureKey });
             layout.RegionKind = world.FindRegion(settlement.RegionId)?.Kind ?? RegionKind.Vale;
+            for (var i = 0; i < world.Factions.Count; i++) if (!settlement.FactionId.IsEmpty && world.Factions[i].FactionId == settlement.FactionId) layout.OwnerIndex = i; // Phase 27: banner colours
             return layout;
         }
 
@@ -72,6 +73,7 @@ namespace Realmkeeper.Exploration.Application
             var layout = LocalEnvironmentGenerator.FromPlan(plan, session.GetOverview().Seed, settlement.SettlementId, settlement.RegionId, settlement.SettlementType, residents, shops);
             foreach (var h in session.GetHerds(settlement.SettlementId)) layout.Herds.Add(new LayoutHerd { CreatureId = h.CreatureId, Count = h.Count, PastureKey = h.PastureKey });
             layout.RegionKind = session.FindRegion(settlement.RegionId)?.Kind ?? RegionKind.Vale;
+            layout.OwnerIndex = session.GetStreetLife(settlement.SettlementId)?.OwnerIndex ?? -1; // Phase 27: banner colours, as the strategic map
             return layout;
         }
 
