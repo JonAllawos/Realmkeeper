@@ -40,6 +40,6 @@ Everything implemented this round comes from kits already in the art catalog:
 
 ## Decisions for the owner
 
-1. **Child bodies:** buy UBC Source ($19.99, CC0) for teen bodies; or adopt Lowpoly_Kid (CC BY 4.0, credited); or keep the scaled adult bodies.
+1. **Child bodies: decided 2026-11-15. Keep the scaled owned bodies.** UBC Source and Lowpoly_Kid are not adopted.
 2. **KayKit Medieval Hexagon** for faction-coloured buildings: try it (style risk), or keep the owned kit.
 3. **Sheep:** add the owned `Sheep.fbx` to the catalog.

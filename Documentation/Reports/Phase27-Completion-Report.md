@@ -224,7 +224,7 @@ Details are in `Systems/Phase27-Performance.md`. All figures are from the Unity 
 
 | Request | Status | What was done |
 |---|---|---|
-| Children | **Complete** (body is a stand-in) | About 16 % of the unnamed people out by day; they play or run errands; none at night (tested). Owned bodies at 0.62 scale, head ×1.25 |
+| Children | **Complete** (scaled owned bodies, kept by owner decision 2026-11-15) | About 16 % of the unnamed people out by day; they play or run errands; none at night (tested). Owned bodies at 0.62 scale, head ×1.25 |
 | Factions | **Partial** | The watch wears the owner's colour; one shared colour table for the map, banners and guards. Buildings are not faction-styled |
 | Building types | **Partial** | Form follows purpose: barns, warehouses and stables in the barn form; workshops, townhouses, cottages, merchant house. No new models |
 | Smithy partly outdoors | **Complete** | A forge yard (`Stall_Blacksmith`) beside 7 of 9 smithies in Thorngate |
@@ -242,7 +242,7 @@ Details are in `Systems/Phase27-Performance.md`. All figures are from the Unity 
 
 **Screenshots added:** p27_10 (children), p27_23 (forge yard), p27_24 (stall shop), p27_25 (painted sign), p27_26 (the watch's colours), p27_27 (barn form).
 
-**Owner decisions:** child bodies (UBC Source $19.99 CC0, or Lowpoly_Kid CC BY 4.0, or keep the stand-in); KayKit Medieval Hexagon for faction buildings (style risk); adding the owned sheep model to the catalog.
+**Owner decisions:** child bodies: keep the scaled owned bodies (decided 2026-11-15). Still open: KayKit Medieval Hexagon for faction buildings (style risk); adding the owned sheep model to the catalog.
 
 ## 18. Owner playtest checklist
 

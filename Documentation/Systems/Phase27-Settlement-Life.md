@@ -144,5 +144,5 @@ Other buildings keep their seeded draw. The draw is still made, so nothing else 
   - one in four walks an errand between the homes and the market.
 - **The body:** no CC0 child model in a matching style was found (see `Research/Phase27-Asset-Research.md`).
   - Children use the town's own humanoid bodies at 0.62 scale, with the head 1.25× larger, so they read as children rather than small adults.
-  - A dedicated child body is an owner decision.
+  - **Owner decision (2026-11-15):** keep these scaled bodies; no dedicated child model.
 - **Thorngate:** 27 children of 143 people out at 11:00; none at 23:00.

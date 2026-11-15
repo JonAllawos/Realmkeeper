@@ -46,7 +46,7 @@
 
 ## Added after your feedback (2026-11-14)
 
-18. **Children.** In a town by day, smaller figures run about by doors and in the market; by night there are none. Do they read as children, not small adults? (Scaled adult bodies with a larger head; see the asset decisions.)
+18. **Children.** In a town by day, smaller figures run about by doors and in the market; by night there are none. Do they read as children, not small adults? (Scaled owned bodies with a larger head: kept by your decision, 2026-11-15.)
 19. **The watch.** Guards' clothes are tinted in the owner's map colour. Compare towns held by different factions.
 20. **The smithy.** Beside most smithies stands an open-sided forge stall with the anvil: is it convincing as a smithy working partly outdoors?
 21. **Stall shops.** Near the market, some provisioners, apothecaries and general dealers sell from a stall outside, with the keeper behind it by day.
