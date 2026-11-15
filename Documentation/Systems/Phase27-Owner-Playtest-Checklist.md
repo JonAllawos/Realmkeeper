@@ -19,7 +19,7 @@
 3. **Visit a village and a hamlet.** Fewer people, in proportion to their size.
 4. **Look at the people.** Varied looks and dress (labourers, farmers, smiths, elders); nobody in your way (they never block you); they cannot be talked to (only named residents can).
 5. **Shopkeepers.** Walk past an open shop whose keeper is out or at the counter. Now and then they call a line of their trade. Not constantly, not two at once, never while a window or conversation is open. Calling never opens the shop.
-6. **Animals.** In a pasture, chickens, cows and horses are kit models that graze about and never leave the fence. (Sheep and goats are still the old box figures.)
+6. **Animals.** In a pasture, chickens, cows and horses are kit models that graze about and never leave the fence. Sheep are now the kit's sheep too (2026-11-15); goats are still the old box figures.
 
 ## Streets and buildings
 

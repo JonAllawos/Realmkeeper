@@ -36,10 +36,10 @@ Everything implemented this round comes from kits already in the art catalog:
 
 ## Owned but unused
 
-- `FarmAnimals/Sheep.fbx` is on disk but not in the art catalog, so sheep are still drawn as box figures. Adding it is a catalog change only; no new licence. No goat model is owned.
+- **Correction (2026-11-15):** `Sheep.fbx` *was* in the art catalog, with its walk and idle animations; the town simply didn't use it, and its materials imported at zero opacity (invisible). Both fixed. The owned goat model is in the catalog but has no animations, so goats stay box figures.
 
 ## Decisions for the owner
 
 1. **Child bodies: decided 2026-11-15. Keep the scaled owned bodies.** UBC Source and Lowpoly_Kid are not adopted.
-2. **KayKit Medieval Hexagon** for faction-coloured buildings: try it (style risk), or keep the owned kit.
-3. **Sheep:** add the owned `Sheep.fbx` to the catalog.
+2. **KayKit Medieval Hexagon** for faction-coloured buildings. **Assessed 2026-11-15 (from its store page, not downloaded):** not recommended for town buildings. Its pieces are miniatures sized for hex tiles, with flat colours and no interiors, beside our full-size, painted, enterable buildings. It could suit faction markers on the strategic map. Owner decision still open.
+3. **Sheep: done 2026-11-15** (owner request). Sheep use the owned animated model.

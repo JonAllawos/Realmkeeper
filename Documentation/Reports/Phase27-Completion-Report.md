@@ -22,7 +22,7 @@
 | Roles and daily activity | **Complete** | Errands, gathering, carrying, working, farming, travelling, from the town's labour and the hour; varied looks. Tested: labour shifts the mix |
 | Shopkeeper callouts | **Complete** | Data-driven lines by shop kind; distance, gap, per-shop cooldown, no calls in windows (live test) |
 | Guards and patrols | **Complete** | Posts at gates by day; patrols on the streets; count by population |
-| Animals | **Partial** | Chickens, cows and horses: animated kit models grazing inside their pastures (live test). Sheep and goats: still box figures (no model in the catalog) |
+| Animals | **Partial** | Chickens, cows, horses and sheep: animated kit models grazing inside their pastures (live test; sheep added 2026-11-15). Goats: still box figures (the owned goat model has no animations) |
 | Children | **Complete** (addendum §17) | Added after owner feedback; body is a scaled stand-in |
 | Shop signs | **Partial** | Kit signs for smithy, provisions, apothecary, bowyer, tavern; others the plain board. Readability from the street **unverified** |
 | Faction identity | **Partial** | The owner's banners (map colour) at gates and at hall, keep and guard posts. Guard uniforms and notices **not** changed |
@@ -200,7 +200,7 @@ Details are in `Systems/Phase27-Performance.md`. All figures are from the Unity 
   - new building archetypes;
   - guard uniforms by faction;
   - notices;
-  - sheep and goat models (not in the catalog);
+  - goat models (the owned one has no animations; sheep done 2026-11-15);
   - terrain smoothing on hills.
 - **Townsfolk:**
   - cannot be talked to (by design);
@@ -242,8 +242,25 @@ Details are in `Systems/Phase27-Performance.md`. All figures are from the Unity 
 
 **Screenshots added:** p27_10 (children), p27_23 (forge yard), p27_24 (stall shop), p27_25 (painted sign), p27_26 (the watch's colours), p27_27 (barn form).
 
-**Owner decisions:** child bodies: keep the scaled owned bodies (decided 2026-11-15). Still open: KayKit Medieval Hexagon for faction buildings (style risk); adding the owned sheep model to the catalog.
+**Owner decisions:** child bodies: keep the scaled owned bodies (decided 2026-11-15). Still open: KayKit Medieval Hexagon for faction buildings (style risk). Sheep: done (2026-11-15; see below).
 
 ## 18. Owner playtest checklist
 
 `Systems/Phase27-Owner-Playtest-Checklist.md`: 23 checks. Automated tests, editor measurements and screenshots are kept separate from your playtesting. **Claude has not played the game by hand.**
+
+## 19. Addendum: sheep (2026-11-15)
+
+**Asked:** add the owned sheep model.
+
+**Found:** the sheep (with idle and walk animations) was already in the art catalog. The pasture code never asked for it, and its FBX materials imported at **zero opacity**, so the sheep was invisible wherever it was drawn, including as a beast.
+
+**Done:**
+- Pastures draw sheep with the kit's animated model (`ModularEnvironmentBuilder.Dressing.AnimalModel`).
+- The art importer makes every animal's materials opaque (`ArtImportPostprocessor`, version 9, which reimports the art).
+- Goats stay box figures: the owned goat model has no animations.
+
+**Tests:**
+- `Phase27PlayModeTests` now asserts every sheep is the kit model and opaque. Live: 11 of 11 sheep drawn with the kit's model.
+- Focused Unity regression plus the creature tests (Phase18, Phase15Art): **58/58** (466 s).
+- Captures passed; new `p27_28_sheep.jpg`.
+- .NET not rerun: no domain code changed.

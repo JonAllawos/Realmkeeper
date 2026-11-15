@@ -9,6 +9,7 @@ p27_08_storefront: 1920x1080. A storefront: its keeper at the counter, barrels a
 p27_11_street_details: 1920x1080. A smithy: anvil, workbench and wood pile by its door, its sign above. (Smithy).
 p27_12_shop_sign: 1920x1080. A provisioner's sign (the kit's food sign) by the door. (Provisions).
 p27_09_animals: 1920x1080. Animals in their pasture (the kit's models where it has the species), grazing about inside the fence.
+p27_28_sheep: 1920x1080. Sheep in their pasture: the kit's animated sheep (Quaternius, CC0), no longer box figures.
 p27_18_door: 1920x1080. A house door seen square on: the leaf fills its frame, and the point people walk to is in front of it.
 p27_19_road_uphill: 1920x1080. A road climbing (39 % over its stretch): the paving follows the ground, its corners rounded.
 p27_20_road_downhill: 1920x1080. The same road looking downhill.

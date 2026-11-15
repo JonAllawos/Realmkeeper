@@ -68,7 +68,8 @@ In the running game at noon, Bramhaven had **106 people out**: 100 unnamed, 6 of
 ## Animals
 
 - **Herds** come from `world.Livestock`, in their pastures.
-- **Models:** chickens, cows and horses use the kit's animated models (`ArtCatalog.Animal`); species the kit lacks (sheep, goats) keep the box figures.
+- **Models:** chickens, cows, horses and (from 2026-11-15) sheep use the kit's animated models (`ArtCatalog.Animal`). Goats keep the box figures: the owned goat model has no animations and would slide about the pasture.
+- **Sheep fix (2026-11-15):** the sheep was already in the catalog, but its FBX materials imported at zero opacity, so it was invisible (in pastures and as a beast). The art importer now makes every animal's materials opaque (`ArtImportPostprocessor`, version 9).
 - **Wandering:** each animal walks to points inside its pasture (in the field's own frame, so never through the fence) and stands a while. It is inactive beyond 90 m of the camera.
 - **Herds are no longer merged** into the static geometry, so they can move.
 
