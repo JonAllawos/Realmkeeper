@@ -1,0 +1,22 @@
+Entering the town (layout, build, residents, first frames): 768 ms (editor, batch mode).
+1644 inhabitants; named out 12; unnamed planned out at noon 100 (the rule gives 100); watch 6; figures shown 32 (at most 32 within 70 m).
+Frame by the square at noon (editor, batch mode; not a player build): with townsfolk 1.69 ms mean, 14.9 ms worst; without 1.19 ms mean, 2.0 ms worst. Townsfolk update 0.118 ms mean, 0.289 ms worst; plan for the hour 28.8 ms; figures built so far 41, slowest build 1.6 ms; allocated memory 856 MB.
+At 22:00: 13 people out (noon: 106); figures shown 8.
+Callout from Fenna Fairweather at Fairweather's Smithy: "Blades sharpened, buckles mended!" after 4.9 s.
+Animals: 39 in pastures; 37 of 37 near the player moved; all inside their fields: True.
+Dressing: 58 items planned, 70 placed, 42 solid; doorways blocked: 0.
+Door check Wall_Plaster_Door_Flat + Door_1_Flat: wall 2.00 × 3.12 × 0.41 m; opening 1.33 m wide at 1 m, 3.12 m high at the centre; leaf 1.12 × 2.10 × 0.12 m; opening x -0.65 to 0.64 from the wall's origin; leaf x -0.05 to 1.07 from its origin; leaf y 0.04 to 2.13.
+As the kit hangs it: the leaf spans -0.65 to 0.65; the opening -0.65 to 0.64.
+Door check Wall_Plaster_Door_Round + Door_1_Round: wall 2.00 × 3.12 × 0.41 m; opening 1.33 m wide at 1 m, 3.12 m high at the centre; leaf 1.12 × 2.32 × 0.12 m; opening x -0.65 to 0.64 from the wall's origin; leaf x -0.05 to 1.07 from its origin; leaf y 0.03 to 2.35.
+As the kit hangs it: the leaf spans -0.65 to 0.66; the opening -0.65 to 0.64.
+Entering the town (layout, build, residents, first frames): 759 ms (editor, batch mode).
+1644 inhabitants; named out 12; unnamed planned out at noon 100 (the rule gives 100); watch 6; figures shown 32 (at most 32 within 70 m).
+Frame by the square at noon (editor, batch mode; not a player build): with townsfolk 1.82 ms mean, 18.8 ms worst; without 1.22 ms mean, 1.8 ms worst. Townsfolk update 0.117 ms mean, 0.239 ms worst; plan for the hour 27.4 ms; figures built so far 41, slowest build 1.8 ms; allocated memory 857 MB.
+At 22:00: 13 people out (noon: 106); figures shown 8.
+Callout from Fenna Fairweather at Fairweather's Smithy: "Blades sharpened, buckles mended!" after 4.8 s.
+Animals: 39 in pastures; 39 of 39 near the player moved; all inside their fields: True.
+Dressing: 58 items planned, 84 placed, 42 solid; doorways blocked: 0.
+Door check Wall_Plaster_Door_Flat + Door_1_Flat: wall 2.00 × 3.12 × 0.41 m; opening 1.33 m wide at 1 m, 3.12 m high at the centre; leaf 1.12 × 2.10 × 0.12 m; opening x -0.65 to 0.64 from the wall's origin; leaf x -0.05 to 1.07 from its origin; leaf y 0.04 to 2.13.
+As the kit hangs it: the leaf spans -0.65 to 0.65; the opening -0.65 to 0.64.
+Door check Wall_Plaster_Door_Round + Door_1_Round: wall 2.00 × 3.12 × 0.41 m; opening 1.33 m wide at 1 m, 3.12 m high at the centre; leaf 1.12 × 2.32 × 0.12 m; opening x -0.65 to 0.64 from the wall's origin; leaf x -0.05 to 1.07 from its origin; leaf y 0.03 to 2.35.
+As the kit hangs it: the leaf spans -0.65 to 0.66; the opening -0.65 to 0.64.

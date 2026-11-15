@@ -1,0 +1,23 @@
+Large settlement: Bramhaven (Town), population 1644, owner The Crown of Bramhaven.
+p27_03_large_street: 1920x1080. Bramhaven: the way in at noon; 3 unnamed townsfolk shown of 106 out.
+p27_04_market: 1920x1080. The market square at noon: 32 townsfolk shown, stalls, benches, named residents.
+p27_05_residential: 1920x1080. A residential street: quieter than the market; dressing by the doors (a bench, a barrel or a wood pile at some homes).
+Banners in this town: 10 planned, 40 objects; nearest to this gate 6.9 m; planned for it at (87,-48) (90,-41); gate at (94,-47).
+p27_06_faction_gate: 1920x1080. A gate with the owner's banners (banner_patternA_red: the strategic map's colour for The Crown of Bramhaven), and the watch at its post.
+p27_07_guard_patrol: 1920x1080. The watch on patrol between a gate and the hall, along the streets.
+p27_08_storefront: 1920x1080. A storefront: its keeper at the counter, barrels and a crate by the door. (General).
+p27_11_street_details: 1920x1080. A smithy: anvil, workbench and wood pile by its door, its sign above. (Smithy).
+p27_12_shop_sign: 1920x1080. A provisioner's sign (the kit's food sign) by the door. (Provisions).
+p27_09_animals: 1920x1080. Animals in their pasture (the kit's models where it has the species), grazing about inside the fence.
+p27_18_door: 1920x1080. A house door seen square on: the leaf fills its frame, and the point people walk to is in front of it.
+p27_19_road_uphill: 1920x1080. A road climbing (39 % over its stretch): the paving follows the ground, its corners rounded.
+p27_20_road_downhill: 1920x1080. The same road looking downhill.
+p27_21_road_end: 1920x1080. A road's end: rounded, draped on the ground.
+p27_22_road_junction: 1920x1080. A junction: a lane meeting a street, both draped, no gap.
+p27_15_tavern: 1920x1080. Inside the tavern (its hall, tables and hearth).
+p27_16_blacksmith: 1920x1080. Inside a smithy (its forge station and counter).
+p27_13_small_house: 1920x1080. A small house inside: its rooms fit within its walls. (Cottage, 6×6 m).
+p27_14_large_house: 1920x1080. A large house inside: more rooms, a second bedroom, more furniture. (LargeHome, 11×11 m).
+p27_17_warehouse: 1920x1080. A store or workshop inside: shelves, barrels, sacks in proportion to its floor. (Warehouse, 10×12 m).
+p27_02_medium_street: 1920x1080. Mossholm (Village, population 536): 34 unnamed out at this hour, 7 shown.
+p27_01_small_street: 1920x1080. Westerthorpe (Hamlet, population 181): 10 unnamed out at this hour, 1 shown.

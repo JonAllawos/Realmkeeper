@@ -120,5 +120,6 @@
 | [0116](ADR-0116-bestiary-knowledge-and-derived-notices.md) | Bestiary knowledge as player state (save v27), and notices derived from the world | Accepted (Phase 25) |
 | [0117](ADR-0117-codex-derived-from-existing-knowledge.md) | The codex is derived from existing knowledge records (no save change) | Accepted (Phase 26) |
 | [0118](ADR-0118-local-hud-map-heading-up-from-existing-records.md) | The local HUD map is heading-up and drawn from existing records (no save change) | Accepted (Phase 26.1) |
+| [0119](ADR-0119-street-life-from-the-authoritative-population.md) | Street life is drawn from the authoritative population, in two tiers (no save change) | Accepted (Phase 27) |
 
 Template: Context · Decision · Consequences · Alternatives considered.
