@@ -12,21 +12,10 @@ namespace Realmkeeper.Presentation
     /// <summary>Stable display colours for factions (by their position in the world's faction list).</summary>
     public static class FactionPalette
     {
-        private static readonly Color[] Colors =
-        {
-            new Color(0.78f, 0.25f, 0.22f), // crimson
-            new Color(0.25f, 0.45f, 0.78f), // blue
-            new Color(0.85f, 0.68f, 0.22f), // gold
-            new Color(0.36f, 0.62f, 0.36f), // green
-            new Color(0.62f, 0.38f, 0.72f), // violet
-            new Color(0.22f, 0.66f, 0.68f), // teal
-            new Color(0.88f, 0.50f, 0.22f), // orange
-            new Color(0.80f, 0.80f, 0.84f), // silver
-        };
+        // Phase 27: the table moved to Realmkeeper.UI.RkFactionColours, shared with the towns (banners, the watch).
+        public static readonly Color Independent = Realmkeeper.UI.RkFactionColours.Independent;
 
-        public static readonly Color Independent = new Color(0.55f, 0.53f, 0.50f);
-
-        public static Color ColorFor(int index) => index < 0 ? Independent : Colors[index % Colors.Length];
+        public static Color ColorFor(int index) => Realmkeeper.UI.RkFactionColours.For(index);
     }
 
     /// <summary>

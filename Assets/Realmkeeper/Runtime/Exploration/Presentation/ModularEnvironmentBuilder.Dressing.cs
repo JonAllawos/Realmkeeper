@@ -25,6 +25,10 @@ namespace Realmkeeper.Exploration.Presentation
 
         public static string BannerFor(int ownerIndex) => ownerIndex < 0 ? IndependentBanner : BannerByFaction[ownerIndex % BannerByFaction.Length];
 
+        // The banner list follows Realmkeeper.UI.RkFactionColours (the strategic map's order and colours).
+
+        private static LayoutBuilding Owner(LocalEnvironmentLayout layout, string key) { foreach (var b in layout.Buildings) if (b.Key == key) return b; return null; }
+
         private static void BuildDressing(Context ctx)
         {
             var layout = ctx.Layout;
@@ -46,6 +50,11 @@ namespace Realmkeeper.Exploration.Presentation
                     case DressingKind.Workbench: Kit(ctx, root, "Workbench", at, yaw, 1.9f, true); break;
                     case DressingKind.Sacks: Kit(ctx, root, "Bag_2", at, yaw, 0.75f, true); break;
                     case DressingKind.Cart: Kit(ctx, root, "town_cart", at, yaw, 3.2f, true); break;
+                    case DressingKind.ForgeYard: Kit(ctx, root, "Stall_Blacksmith", at, yaw, 3.6f, true); break;
+                    case DressingKind.MarketStall:
+                        var fit = Owner(layout, d.For)?.Fit ?? ShopFit.General;
+                        Kit(ctx, root, fit == ShopFit.Provisions ? "Stall_Vegetables_Full" : fit == ShopFit.Apothecary ? "Stall_Potions" : "Stall_Cart_Empty", at, yaw, 3.2f, true);
+                        break;
                     case DressingKind.Banner:
                         // Back to back: the kit's cloth is one-sided, and a banner is seen from both ways along a road.
                         Kit(ctx, root, BannerFor(layout.OwnerIndex), at, yaw, 3.4f, !d.Raised);

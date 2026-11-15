@@ -101,6 +101,12 @@ namespace Realmkeeper.Exploration.Domain
         public Realmkeeper.Domain.Settlements.WallMaterial Walls { get; set; }
         public bool Chimney { get; set; }
         public string DistrictKey { get; set; }
+
+        /// <summary>Phase 27: an open-air stall at the shop's frontage (a "tienda"): its keeper serves from behind it by day.</summary>
+        public LocalPoint? StallAt { get; set; }
+
+        /// <summary>Phase 27: where the keeper stands behind the stall.</summary>
+        public LocalPoint? StallKeeperAt { get; set; }
     }
 
     public sealed class LayoutProp

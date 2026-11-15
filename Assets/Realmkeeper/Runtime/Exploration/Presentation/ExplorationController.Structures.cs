@@ -43,11 +43,13 @@ namespace Realmkeeper.Exploration.Presentation
             if (InPlace) return; // Phase 13
             if (_session == null || EnvironmentRoot == null) return;
             var byBuilding = new Dictionary<string, List<string>>();
+            var categories = new Dictionary<string, StructureCategory>();
             foreach (var s in _session.GetStructures(layout.SettlementId))
             {
                 if (string.IsNullOrEmpty(s.LayoutKey) || s.Category == StructureCategory.Housing) continue;
                 if (!byBuilding.TryGetValue(s.LayoutKey, out var names)) byBuilding[s.LayoutKey] = names = new List<string>();
                 names.Add(s.Name);
+                if (!categories.ContainsKey(s.LayoutKey)) categories[s.LayoutKey] = s.Category;
             }
 
             var root = new GameObject("Structure signs").transform;
@@ -55,12 +57,14 @@ namespace Realmkeeper.Exploration.Presentation
             {
                 var b = LocalPaths.Find(layout, pair.Key);
                 if (b == null) continue;
-                var door = LocalPaths.DoorOutside(b);
+                // Phase 27 (owner: no floating lettered names): a painted signboard on the wall beside the door. Shops and the
+                // tavern carry their trade's sign from the building kit; every other public building shows its emblem here.
                 var sign = new GameObject("Sign " + pair.Key);
                 sign.transform.SetParent(root, false);
-                sign.transform.position = new Vector3(door.X, b.FloorHeight + 3.1f, door.Z); // Phase 10: above the door on a planned settlement's ground
-                sign.transform.rotation = Quaternion.Euler(0f, LocalPaths.FacingOut(b) + 180f, 0f);
-                WorldText(sign, string.Join(" · ", pair.Value), new Color(0.95f, 0.86f, 0.62f), 0.05f);
+                sign.transform.position = EnvironmentRoot.transform.TransformPoint(new Vector3(b.Center.X, b.FloorHeight, b.Center.Z));
+                sign.transform.rotation = EnvironmentRoot.transform.rotation * Quaternion.Euler(0f, -b.Yaw, 0f);
+                if (b.Fit == ShopFit.None && b.Kind != BuildingKind.Hall)
+                    PaintedSign.Hang(sign.transform, new Vector3(LocalPaths.DoorwayX(b) + 1.35f, 2.6f, -b.Depth / 2f), PaintedSign.EmblemFor(categories[pair.Key]), Catalog != null ? Catalog.Material("Planks") : null, Catalog != null ? Catalog.Material("Metal") : null);
                 _signs.Add(sign);
             }
         }

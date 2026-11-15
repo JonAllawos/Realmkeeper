@@ -18,6 +18,9 @@ namespace Realmkeeper.Exploration.Domain
         Patrolling = 6,
         Guarding = 7,
         Farming = 8,
+
+        /// <summary>Phase 27 (owner request): children at play about the square and by their homes, by day.</summary>
+        Playing = 9,
     }
 
     /// <summary>The settlement figures the street population is drawn from (all authoritative, read from the world).</summary>
@@ -65,6 +68,9 @@ namespace Realmkeeper.Exploration.Domain
 
         /// <summary>The district or place they belong to (for the busy-versus-quiet measure).</summary>
         public string Where { get; set; }
+
+        /// <summary>Phase 27: a child (shown smaller; plays or runs errands by day; never out at night).</summary>
+        public bool Child { get; set; }
     }
 
     /// <summary>
@@ -132,6 +138,19 @@ namespace Realmkeeper.Exploration.Domain
             var made = 0;
             for (var tries = 0; made < count && tries < count * 3; tries++) // a person whose way is not along the streets is planned again
             {
+                // Phase 27: children are part of the unnamed population: about one in six out by day (none at night).
+                if (hour >= 8 && hour < 20 && rng.NextDouble() < ChildShare)
+                {
+                    var kid = rng.Next(4) == 0
+                        ? Walk(layout, rng, spots, "tf", NpcRole.Resident, TownsfolkActivity.Errand, spots.Homes, spots.Market, 1.4f)
+                        : Playing(rng, spots);
+                    if (kid == null) continue;
+                    kid.Child = true;
+                    kid.Key = "tf-" + made++;
+                    specs.Add(kid);
+                    continue;
+                }
+
                 var roll = rng.NextDouble();
                 TownsfolkSpec s;
                 // Shares: people about on errands and at the market are most of any street; then workers by the town's labour.
@@ -195,6 +214,16 @@ namespace Realmkeeper.Exploration.Domain
                 Key = key, Look = look, Activity = activity, Route = offset, Speed = speed * (0.85f + (float)rng.NextDouble() * 0.3f),
                 Pause = 4f + (float)rng.NextDouble() * 10f, Phase = (float)rng.NextDouble() * 600f, Where = activity == TownsfolkActivity.Shopping ? "market" : "street",
             };
+        }
+
+        /// <summary>Of the unnamed out by day, the share who are children.</summary>
+        public const double ChildShare = 0.16;
+
+        private static TownsfolkSpec Playing(Random rng, Spots spots)
+        {
+            // In the square or by the homes, running about a spot.
+            var at = rng.Next(2) == 0 && spots.Homes.Count > 0 ? spots.Homes[rng.Next(spots.Homes.Count)] : spots.Market[rng.Next(spots.Market.Count)];
+            return new TownsfolkSpec { Key = "tf", Look = NpcRole.Resident, Activity = TownsfolkActivity.Playing, Route = { Jitter(at, rng, 2f) }, Wander = 2.5f, Where = "play" };
         }
 
         private static TownsfolkSpec Gathering(Random rng, Spots spots, string key)
@@ -321,6 +350,10 @@ namespace Realmkeeper.Exploration.Domain
                         var len = Math.Max(1f, (float)Math.Sqrt(g.X * g.X + g.Z * g.Z));
                         s.Gates.Add(new LocalPoint(g.X - g.X / len * 6f, g.Z - g.Z / len * 6f));
                     }
+
+                // Smiths at work in their forge yards (twice as likely a spot as a workshop door).
+                foreach (var d in layout.Dressing)
+                    if (d.Kind == DressingKind.ForgeYard) { s.Workshops.Add(d.Position); s.Workshops.Add(d.Position); }
 
                 if (s.Gates.Count == 0) s.Gates.Add(LocalPaths.LeavingPoint(layout));
                 if (s.Stores.Count == 0) s.Stores.AddRange(s.Market);

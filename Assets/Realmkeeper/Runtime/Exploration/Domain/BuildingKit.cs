@@ -199,8 +199,28 @@ namespace Realmkeeper.Exploration.Domain
                 case BuildingKind.Hall: return Tavern(building, profile);
                 case BuildingKind.House when building.Fit != ShopFit.None: return Shop(building, profile, rng);
                 case BuildingKind.Granary: return Granary(building, profile, rng);
+                // Phase 27 (owner request: different building types): stores, barns and stables take the barn form.
+                case BuildingKind.House when building.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Warehouse || building.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Barn || building.Function == Realmkeeper.Domain.Settlements.BuildingFunction.Stable:
+                    return Granary(building, profile, rng);
                 case BuildingKind.Landmark: return Tower(building, rng);
                 default: return House(building, profile, rng);
+            }
+        }
+
+        /// <summary>Phase 27: the form a building of a purpose takes, or null for an ordinary home (the profile's mix).</summary>
+        public static BuildingArchetype? ArchetypeFor(Realmkeeper.Domain.Settlements.BuildingFunction? f)
+        {
+            switch (f)
+            {
+                case Realmkeeper.Domain.Settlements.BuildingFunction.Smithy:
+                case Realmkeeper.Domain.Settlements.BuildingFunction.Workshop:
+                case Realmkeeper.Domain.Settlements.BuildingFunction.Mill: return BuildingArchetype.Workshop;
+                case Realmkeeper.Domain.Settlements.BuildingFunction.Civic:
+                case Realmkeeper.Domain.Settlements.BuildingFunction.LargeHome: return BuildingArchetype.Townhouse;
+                case Realmkeeper.Domain.Settlements.BuildingFunction.Cottage:
+                case Realmkeeper.Domain.Settlements.BuildingFunction.Farmhouse: return BuildingArchetype.Cottage;
+                case Realmkeeper.Domain.Settlements.BuildingFunction.MarketHall: return BuildingArchetype.MerchantHouse;
+                default: return null;
             }
         }
 
@@ -212,7 +232,8 @@ namespace Realmkeeper.Exploration.Domain
 
         private static BuildingPlan House(LayoutBuilding b, SettlementVisualProfile profile, PlanRandom rng)
         {
-            var archetype = profile.HouseArchetypes[rng.Int(profile.HouseArchetypes.Count)];
+            var drawn = profile.HouseArchetypes[rng.Int(profile.HouseArchetypes.Count)];
+            var archetype = ArchetypeFor(b.Function) ?? drawn; // Phase 27: the form follows the purpose where it has one (the draw is still made)
             var plan = Footprint(b, archetype);
             var storeys = archetype == BuildingArchetype.Cottage ? 1
                 : archetype == BuildingArchetype.Workshop ? Math.Min(2, profile.MaxStoreys)

@@ -77,7 +77,8 @@ namespace Realmkeeper.Exploration.Domain
             if (b.Kind == BuildingKind.Hall)
                 return (new LocalPoint(b.Center.X + 1.5f + Side(n) * 0.8f, b.Center.Z + 0.6f), 0.5f, true);
             if (b.Fit != ShopFit.None)
-                return keeper ? (BehindCounter(b, 0), 0.4f, true) : (ShopFloor(b, n), 0.6f, true);
+                return keeper && b.StallKeeperAt.HasValue ? (b.StallKeeperAt.Value, 0.4f, false) // Phase 27: behind the shop's open-air stall
+                    : keeper ? (BehindCounter(b, 0), 0.4f, true) : (ShopFloor(b, n), 0.6f, true);
             return (DoorOutside(b, Side(n)), 1.2f, false);
         }
 

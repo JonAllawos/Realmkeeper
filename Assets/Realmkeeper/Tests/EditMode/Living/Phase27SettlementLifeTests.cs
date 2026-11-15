@@ -224,6 +224,48 @@ namespace Realmkeeper.Tests.EditMode.Living
                 Ok(S.Dispatch(new Realmkeeper.Application.Places.ExitPlaceCommand()));
             }
         }
+
+        [Test]
+        public void Children_PlayByDay_AndAreNeverOutAtNight()
+        {
+            var (s, layout) = Layouts().OrderByDescending(x => x.s.Population).First();
+            var noon = TownsfolkPlanner.Plan(layout, Input(s, 11 * 60));
+            var night = TownsfolkPlanner.Plan(layout, Input(s, 23 * 60));
+            var kids = noon.Count(x => x.Child);
+            TestContext.WriteLine($"{s.Name} at 11:00: {kids} children of {noon.Count} out ({noon.Count(x => x.Child && x.Activity == TownsfolkActivity.Playing)} playing); at 23:00: {night.Count(x => x.Child)}.");
+            Assert.That(kids, Is.GreaterThan(0), "Children are out by day.");
+            Assert.That(kids, Is.LessThan(noon.Count / 3), "A share of the street, not most of it.");
+            Assert.That(noon.Any(x => x.Child && x.Activity == TownsfolkActivity.Playing), Is.True, "Some are at play.");
+            Assert.That(night.Any(x => x.Child), Is.False, "None at night.");
+            Assert.That(noon.Where(x => x.Child).All(x => x.Look != Realmkeeper.Domain.World.NpcRole.Guard), Is.True);
+        }
+
+        [Test]
+        public void SmithiesHaveForgeYards_AndSomeShopsTradeFromStalls_TheirKeepersOutside()
+        {
+            int smithies = 0, yards = 0, stalls = 0;
+            foreach (var (s, layout) in Layouts())
+            {
+                foreach (var b in layout.Buildings.Where(x => x.Fit == ShopFit.Smithy))
+                {
+                    smithies++;
+                    if (layout.Dressing.Any(d => d.Kind == DressingKind.ForgeYard && d.For == b.Key)) yards++;
+                }
+
+                foreach (var b in layout.Buildings.Where(x => x.StallAt.HasValue))
+                {
+                    stalls++;
+                    var spot = LocalPaths.SpotAt(layout, b.Key, null, 0, true);
+                    Assert.That(spot.HasValue && !spot.Value.indoors, Is.True, $"{s.Name}: {b.Key}'s keeper serves outside, at the stall.");
+                    Assert.That(Dist(spot.Value.spot, b.StallAt.Value), Is.LessThan(2f), "Behind the stall.");
+                    Assert.That(StreetDressingPlanner.Clear(layout, b.StallKeeperAt.Value, 0.2f, b.Key) || Dist(b.StallKeeperAt.Value, b.StallAt.Value) < 1.5f, Is.True);
+                }
+            }
+
+            TestContext.WriteLine($"Smithies {smithies}, with forge yards {yards}; open-air stall shops {stalls}.");
+            Assert.That(yards, Is.GreaterThan(smithies / 2), "Most smithies have room for an outdoor forge yard.");
+            Assert.That(stalls, Is.GreaterThan(0), "Some shops trade from stalls.");
+        }
         private static float Dist(LocalPoint a, LocalPoint b) => (float)Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Z - b.Z) * (a.Z - b.Z));
     }
 }

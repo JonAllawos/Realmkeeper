@@ -95,7 +95,17 @@ namespace Realmkeeper.Exploration.Presentation
                 if (!t.Active) continue;
                 var s = t.Spec;
                 var p = TownsfolkPlanner.PositionAt(s, _townsClock, out var heading, out var walking);
-                if (s.Route.Count == 1 && s.Wander > 0f)
+                if (s.Activity == TownsfolkActivity.Playing)
+                {
+                    // Children at play: bursts of running round their spot, then a pause.
+                    var k = (s.Key.GetHashCode() & 0xffff) * 0.0001f;
+                    var running = Mathf.Sin(_townsClock * 0.45f + k * 7f) > -0.2f;
+                    var angle = _townsClock * (running ? 1.1f : 0f) + k * 40f;
+                    p = new LocalPoint(p.X + Mathf.Cos(angle) * s.Wander, p.Z + Mathf.Sin(angle) * s.Wander);
+                    heading = Mathf.Atan2(-Mathf.Sin(angle), Mathf.Cos(angle)) * Mathf.Rad2Deg; // along the circle
+                    walking = running;
+                }
+                else if (s.Route.Count == 1 && s.Wander > 0f)
                 {
                     // Standing about: a slow sway round their spot.
                     var k = s.Key.GetHashCode() * 0.001f;
@@ -185,6 +195,9 @@ namespace Realmkeeper.Exploration.Presentation
                 var looks = NpcAppearanceResolver.ResolveUnnamed(_streamer.Current.SettlementId + "/" + spec.Key + "/" + _townsHour, spec.Look);
                 var buildWatch = System.Diagnostics.Stopwatch.StartNew();
                 var anim = HumanoidCharacterBuilder.Build(body.transform, looks, Catalog);
+                if (spec.Child) MakeChild(go.transform, anim); // Phase 27: the same bodies at a child's size, the head a little larger
+                if (spec.Look == Realmkeeper.Domain.World.NpcRole.Guard) // Phase 27: the watch dressed in their lord's colour (the strategic map's)
+                    HumanoidCharacterBuilder.TintCloth(body, Color.Lerp(Color.white, Realmkeeper.UI.RkFactionColours.For(_streamer.Current.OwnerIndex), 0.75f));
                 TownsfolkBuildMsMax = System.Math.Max(TownsfolkBuildMsMax, buildWatch.Elapsed.TotalMilliseconds);
                 _townsBodies[spec.Key] = new Townsperson { Go = go, Animation = anim, Spec = spec, Active = true };
                 TownsfolkBuilt++;
@@ -205,6 +218,16 @@ namespace Realmkeeper.Exploration.Presentation
             var shown = 0;
             foreach (var t in _townsBodies.Values) if (t.Active) shown++;
             TownsfolkFigures = shown;
+        }
+
+        /// <summary>A child: the shared humanoid body at about 1.1 m, its head scaled up for a child's proportions.</summary>
+        public const float ChildScale = 0.62f;
+
+        private static void MakeChild(Transform figure, CharacterAnimationDriver anim)
+        {
+            figure.localScale = Vector3.one * ChildScale;
+            var head = anim != null && anim.Animator != null && anim.Animator.isHuman ? anim.Animator.GetBoneTransform(HumanBodyBones.Head) : null;
+            if (head != null) head.localScale *= 1.25f;
         }
 
         private void ClearTownsfolk()

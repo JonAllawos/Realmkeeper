@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using Realmkeeper.Exploration.Domain;
 using Realmkeeper.Application;
 using Realmkeeper.Domain.Combat;
 using Realmkeeper.Domain.World;
@@ -298,8 +299,12 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(box.Children().Select(c => ((Label)c).text), Has.Some.Contains("Decorative"));
 
             yield return CombatDriver.EnterTownAsFighter(bootstrap, runtime, controller);
-            Assert.That(controller.StructureSigns.Count, Is.GreaterThan(0), "Signs name the buildings.");
-            Assert.That(controller.StructureSigns.Any(s => s.GetComponent<TextMesh>().text.Contains(structures.First(x => x.Kind == "Smithy").Name)), Is.True);
+            // Phase 27 (owner request): signs are painted boards by the door, never floating lettered names.
+            Assert.That(controller.StructureSigns.Count, Is.GreaterThan(0), "The public buildings have their signs.");
+            var smithyName = structures.First(x => x.Kind == "Smithy").Name;
+            Assert.That(Object.FindObjectsByType<TextMesh>(FindObjectsSortMode.None).Any(t => t.text.Contains(smithyName)), Is.False, "No floating name over the smithy.");
+            Assert.That(controller.StructureSigns.Any(s => s.GetComponentsInChildren<Transform>().Any(t => t.name.StartsWith("Painted sign ", System.StringComparison.Ordinal))), Is.True, "A painted signboard on a public building.");
+            Assert.That(BuildingKitPlanner.SignFor(ShopFit.Smithy), Is.EqualTo("Sign_Blacksmith"), "The smithy hangs the kit's smith sign.");
 
             controller.ToggleHub();
             yield return null;

@@ -264,6 +264,8 @@ namespace Realmkeeper.Exploration.Presentation
                     // Phase 27: the sign of the building's trade where the kit has one (smithy, food, potions, arms, the tavern).
                     var signId = owner == null ? string.Empty : owner.Kind == BuildingKind.Hall ? "Sign_Pub" : BuildingKitPlanner.SignFor(owner.Fit);
                     if (signId.Length > 0 && Kit(ctx, t, signId, Vector3.zero, 0f, 1.1f, false) != null) break;
+                    // Otherwise the trade's emblem painted on a board (no lettering), the plain board only where there is no emblem.
+                    if (owner != null && PaintedSign.Hang(t, new Vector3(0f, 0f, 0.3f), PaintedSign.EmblemFor(owner.Fit), ctx.Mat("Planks"), ctx.Mat("Metal")) != null) break;
                     Mesh(ctx, t, "Bracket", MetreMeshes.Box(new Vector3(0.06f, 0.06f, 0.7f), ctx.Assets), ctx.Mat("Metal"), new Vector3(0f, 0.35f, -0.05f));
                     Mesh(ctx, t, "Board", MetreMeshes.Box(new Vector3(0.06f, 0.5f, 0.62f), ctx.Assets), ctx.Mat("Planks"), new Vector3(0f, 0f, -0.1f))
                         .transform.localRotation = Quaternion.Euler(0f, 90f, 0f);

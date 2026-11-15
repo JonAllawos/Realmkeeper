@@ -145,6 +145,17 @@ namespace Realmkeeper.Exploration.Presentation
             r.quality = SkinQuality.Bone2;
         }
 
+        /// <summary>Phase 27: dyes a built body's clothes (every material but the skin) a colour: the watch in their faction's.</summary>
+        public static void TintCloth(GameObject root, Color colour)
+        {
+            foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                for (var i = 0; i < mats.Length; i++)
+                    if (mats[i] != null && !mats[i].name.StartsWith("M_Body", StringComparison.Ordinal)) SetColour(r, i, colour);
+            }
+        }
+
         private static void SetColour(Renderer r, int index, Color colour)
         {
             if (colour == Color.white) return;

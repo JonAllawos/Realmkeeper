@@ -20,6 +20,12 @@ namespace Realmkeeper.Exploration.Domain
         Banner = 7,
         WoodPile = 8,
         Hay = 9,
+
+        /// <summary>Phase 27: a shop's open-air stall (by its trade: vegetables, potions, a cart of goods).</summary>
+        MarketStall = 10,
+
+        /// <summary>Phase 27: a smithy's outdoor forge (the kit's blacksmith stall) beside the building.</summary>
+        ForgeYard = 11,
     }
 
     /// <summary>Phase 27: one dressing item, where it stands and why (the building or place it belongs to).</summary>
@@ -67,28 +73,53 @@ namespace Realmkeeper.Exploration.Domain
             {
                 var doorX = LocalPaths.DoorwayX(b);
                 var front = -b.Depth / 2f;
-                void Beside(DressingKind kind, float along, float outward, float yaw = 0f)
+                LayoutDressing Beside(DressingKind kind, float along, float outward, float yaw = 0f, float radius = 0.55f, float side = 0.9f)
                 {
                     // Where asked, by the front wall; failing that, alongside a side wall near the front (away from the street).
                     var spots = new[]
                     {
                         LocalPaths.ToWorld(b, doorX + along, front - outward),
-                        LocalPaths.ToWorld(b, (along >= 0 ? 1 : -1) * (b.Width / 2f + 0.9f), front + 1.2f + Math.Abs(along) * 0.3f),
-                        LocalPaths.ToWorld(b, (along >= 0 ? -1 : 1) * (b.Width / 2f + 0.9f), front + 1.2f + Math.Abs(along) * 0.3f),
+                        LocalPaths.ToWorld(b, (along >= 0 ? 1 : -1) * (b.Width / 2f + side), front + 1.2f + Math.Abs(along) * 0.3f),
+                        LocalPaths.ToWorld(b, (along >= 0 ? -1 : 1) * (b.Width / 2f + side), front + 1.2f + Math.Abs(along) * 0.3f),
                     };
                     for (var k = 0; k < spots.Length; k++)
-                        if (TryAdd(layout, new LayoutDressing { Kind = kind, Position = spots[k], Yaw = b.Yaw + yaw + (k == 0 ? 0f : 90f), For = b.Key }, 0.55f)) return;
+                    {
+                        var d = new LayoutDressing { Kind = kind, Position = spots[k], Yaw = b.Yaw + yaw + (k == 0 ? 0f : 90f), For = b.Key };
+                        if (TryAdd(layout, d, radius)) return d;
+                    }
+
+                    return null;
                 }
 
                 var function = b.Function;
                 if (b.Fit == ShopFit.Smithy || function == BuildingFunction.Smithy)
                 {
+                    // Owner request: a smithy works partly indoors (its forge station) and partly outdoors: an open forge yard
+                    // beside the building (the kit's blacksmith stall), where the smith is seen at work by day.
+                    Beside(DressingKind.ForgeYard, 3.4f, 1.8f, 0f, 1.5f, 2.0f);
                     Beside(DressingKind.Anvil, 2.3f, 1.0f);
                     Beside(DressingKind.Workbench, -2.6f, 0.9f);
                     Beside(DressingKind.WoodPile, 3.6f, 0.7f);
                 }
                 else if (b.Fit != ShopFit.None)
                 {
+                    // Owner request: some shops trade in the open, from a stall at their frontage ("tiendas"): the food sellers,
+                    // apothecaries and general dealers by the market, about half of them.
+                    var stallTrade = b.Fit == ShopFit.Provisions || b.Fit == ShopFit.Apothecary || b.Fit == ShopFit.General;
+                    var byMarket = Math.Sqrt(b.Center.X * b.Center.X + b.Center.Z * b.Center.Z) < layout.PlazaRadius + 45f || MarketDistrict(layout, b);
+                    if (stallTrade && byMarket && rng.Next(100) < 60)
+                    {
+                        var stall = Beside(DressingKind.MarketStall, 3.2f, 2.4f, 0f, 1.4f, 2.0f);
+                        if (stall != null)
+                        {
+                            b.StallAt = stall.Position;
+                            // The keeper stands behind it, on the building's side.
+                            var (sx, sz) = Local(b, stall.Position);
+                            var toward = sz < -b.Depth / 2f ? LocalPaths.ToWorld(b, sx, sz + 1.1f) : LocalPaths.ToWorld(b, sx + (sx > 0 ? -1.1f : 1.1f), sz);
+                            b.StallKeeperAt = toward;
+                        }
+                    }
+
                     Beside(DressingKind.Barrel, 2.0f, 0.6f);
                     Beside(DressingKind.Crate, 2.8f, 0.6f, 15f);
                     if (b.Fit == ShopFit.Provisions) Beside(DressingKind.Sacks, -2.2f, 0.6f);
@@ -158,6 +189,13 @@ namespace Realmkeeper.Exploration.Domain
                         }
                 }
             }
+        }
+
+        private static bool MarketDistrict(LocalEnvironmentLayout layout, LayoutBuilding b)
+        {
+            if (layout.Plan == null || string.IsNullOrEmpty(b.DistrictKey)) return false;
+            foreach (var d in layout.Plan.Districts) if (d.Key == b.DistrictKey) return d.Type == DistrictType.Market;
+            return false;
         }
 
         /// <summary>Adds an item on the ground only where it blocks nothing (see the class summary); true when added.</summary>

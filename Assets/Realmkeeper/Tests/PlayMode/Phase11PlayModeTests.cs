@@ -259,7 +259,17 @@ namespace Realmkeeper.Tests.PlayMode
             // 12. Walk up to the chest and open it: the hub opens on Storage.
             var chest = c.Containers.First(x => x.ContainerKind == ContainerKind.Personal);
             var p = chest.InteractionPoint;
-            c.Player.Teleport(new LocalPose(p.x + 0.2f, p.y, p.z, 0f));
+            // Stand a metre in front of it, facing it (as Phase13's Use does). Teleporting onto the chest itself was fragile:
+            // the character sometimes slid off its lid to 0.7 m, facing away, and the detector rightly found nothing.
+            var from = c.Player.transform.position;
+            var dir = new Vector3(p.x - from.x, 0f, p.z - from.z);
+            if (dir.sqrMagnitude < 0.01f) dir = Vector3.forward;
+            dir.Normalize();
+            var stand = p - dir * 1.0f;
+            var yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+            c.Player.Teleport(new LocalPose(stand.x, p.y + 0.05f, stand.z, yaw));
+            c.CameraRig.SetView(yaw, 10f);
+            c.CameraRig.Snap();
             for (var i = 0; i < 4; i++) yield return null;
             Assert.That(c.CurrentTarget, Is.SameAs(chest), "The chest is the thing in front of the player.");
             c.Interact();

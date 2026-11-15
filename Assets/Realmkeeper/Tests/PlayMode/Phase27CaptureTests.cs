@@ -220,6 +220,70 @@ namespace Realmkeeper.Tests.PlayMode
                 yield return Shot("p27_22_road_junction", W(eye.x, eye.y, 4f), W(join.end.x, join.end.y, 0f), "A junction: a lane meeting a street, both draped, no gap.");
             }
 
+            // 10: children at play.
+            var kid = c.Townsfolk.FirstOrDefault(x => x.Child && x.Activity == TownsfolkActivity.Playing);
+            if (kid != null)
+            {
+                var k = kid.Route[0];
+                yield return Near(c, k.X + 3f, k.Z + 3f, 4f);
+                var fig = GameObject.Find("Townsperson " + kid.Key);
+                var at = fig != null ? fig.transform.position : W(k.X, k.Z, 0f);
+                yield return Shot("p27_10_children", at + new Vector3(5f, 2.2f, 5f), at + Vector3.up * 0.6f, $"Children at play ({c.Townsfolk.Count(x => x.Child)} children of {c.Townsfolk.Count} out at noon): the town's own bodies at a child's size.");
+            }
+            else _log.Add("p27_10_children: no child at play in the plan at this hour.");
+
+            // 23: a smithy's forge yard; 24: a shop trading from its stall; 25: a painted sign; 26: the watch in the owner's colour.
+            var yard = layout.Dressing.FirstOrDefault(x => x.Kind == DressingKind.ForgeYard);
+            if (yard != null)
+            {
+                yield return Near(c, yard.Position.X, yard.Position.Z, 3f);
+                var y0 = W(yard.Position.X, yard.Position.Z, 0f);
+                var smithyB = layout.Buildings.First(x => x.Key == yard.For);
+                var (yx, yz) = StreetDressingPlanner.Local(smithyB, yard.Position);
+                var eye = LocalPaths.ToWorld(smithyB, yx * 1.2f, -smithyB.Depth / 2f - 9f); // from the street in front, looking at the yard
+                yield return Shot("p27_23_forge_yard", W(eye.X, eye.Z, 2.6f), y0 + Vector3.up * 1.0f, "A smithy working partly outdoors: its forge yard (the kit's blacksmith stall) beside the building.");
+            }
+
+            var stallShop = layout.Buildings.FirstOrDefault(x => x.StallAt.HasValue);
+            if (stallShop != null)
+            {
+                var st = stallShop.StallAt.Value;
+                yield return Near(c, st.X, st.Z, 3f);
+                var s0 = W(st.X, st.Z, 0f);
+                var o = LocalPaths.ToWorld(stallShop, LocalPaths.DoorwayX(stallShop) + 3f, -stallShop.Depth / 2f - 9f);
+                yield return Shot("p27_24_stall_shop", W(o.X, o.Z, 2.0f), s0 + Vector3.up * 1.0f, $"An open-air stall shop ({stallShop.Fit}): the keeper serves from behind the stall by day.");
+            }
+
+            var signed = layout.Buildings.FirstOrDefault(x => x.Fit == ShopFit.Leatherworks || x.Fit == ShopFit.Tailor || x.Fit == ShopFit.General || x.Fit == ShopFit.Carpentry);
+            if (signed != null)
+            {
+                var d = LocalPaths.DoorOutside(signed, 0f);
+                var o = LocalPaths.ToWorld(signed, LocalPaths.DoorwayX(signed) - 4f, -signed.Depth / 2f - 3.5f);
+                yield return Near(c, d.X, d.Z, 2f);
+                // Square on to the board's face: along the wall, at the board's height (the kit's sign slot, the door's left).
+                var face = LocalPaths.ToWorld(signed, LocalPaths.DoorwayX(signed) - 1.15f, -signed.Depth / 2f - 0.78f);
+                var eye = LocalPaths.ToWorld(signed, LocalPaths.DoorwayX(signed) - 5.5f, -signed.Depth / 2f - 1.2f);
+                var lift = signed.FloorHeight + 2.55f - Ground(c, face.X, face.Z);
+                yield return Shot("p27_25_painted_sign", W(eye.X, eye.Z, lift + 0.2f), W(face.X, face.Z, lift), $"A painted signboard ({signed.Fit}: its trade's emblem, no lettering) hung beside the door.", 40f);
+            }
+
+            var post = c.Townsfolk.FirstOrDefault(x => x.Activity == TownsfolkActivity.Guarding);
+            if (post != null)
+            {
+                yield return Near(c, post.Route[0].X, post.Route[0].Z, 3f);
+                var g = GameObject.Find("Townsperson " + post.Key);
+                if (g != null && g.activeInHierarchy) yield return Shot("p27_26_watch_colours", g.transform.position + new Vector3(3f, 1.8f, 3f), g.transform.position + Vector3.up * 1.1f, $"The watch at a gate, dressed in the owner's colour ({s.GetStreetLife(layout.SettlementId).OwnerName}).");
+            }
+
+            var store = layout.Buildings.FirstOrDefault(x => x.Function == BuildingFunction.Warehouse || x.Function == BuildingFunction.Stable || x.Function == BuildingFunction.Barn);
+            if (store != null)
+            {
+                // From the road just in front of the door (further out crosses the street into the buildings opposite).
+                var o = LocalPaths.ToWorld(store, store.Width * 0.25f, -store.Depth / 2f - 6.5f);
+                yield return Near(c, store.Center.X + 30f, store.Center.Z + 30f, 2f); // the player out of the shot
+                yield return Shot("p27_27_building_types", W(o.X, o.Z, 2.2f), W(store.Center.X, store.Center.Z, 3.0f), $"A {store.Function}: the barn form (gable end to the street, stone, no windows), not an ordinary house.", 80f);
+            }
+
             // 13–17: interiors by size and kind (entered homes and stores are the generator's; the tavern and smithy are open to the street).
             var tavern = layout.Buildings.FirstOrDefault(x => x.Kind == BuildingKind.Hall);
             if (tavern != null)
