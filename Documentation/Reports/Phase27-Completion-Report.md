@@ -216,7 +216,7 @@ Details are in `Systems/Phase27-Performance.md`. All figures are from the Unity 
 
 - **Commits:** code and tests, then documentation and screenshots (hashes in the closing message).
 - **Not committed:** the two untracked `Assets/InitTestScene*` scenes (preserved). `M_LampGlow.mat` was restored after every batch run.
-- **Push:** pushed 2026-11-15 at the owner's instruction: `3f8ded4..03b3ded` to `origin/feature/phase-0-1-foundation` (Phases 26.1 and 27 with the feedback round). This note is recorded in a follow-up commit.
+- **Push:** pushed 2026-11-15 at the owner's instruction: `3f8ded4..03b3ded`, then the sheep commits `54cf5e3..ee02119` to `origin/feature/phase-0-1-foundation` (Phases 26.1 and 27 with the feedback round). This note is recorded in a follow-up commit.
 
 ## 17. Addendum: owner feedback round (2026-11-14)
 
