@@ -162,6 +162,18 @@ namespace Realmkeeper.Tests.PlayMode
                 yield return Shot("p27_09_animals", a + new Vector3(7f, 3f, 7f), a + Vector3.up * 0.5f, "Animals in their pasture (the kit's models where it has the species), grazing about inside the fence.");
             }
 
+            // 28: sheep, now the kit's animated sheep rather than box figures.
+            var sheep = Object.FindObjectsByType<AmbientWander>(FindObjectsSortMode.None).FirstOrDefault(w => w.name == "sheep");
+            if (sheep != null)
+            {
+                var a = sheep.transform.position;
+                c.Player.Teleport(new LocalPose(a.x + 9f, a.y + 0.3f, a.z + 9f, 0f));
+                yield return Seconds(3f);
+                a = sheep.transform.position;
+                yield return Shot("p27_28_sheep", a + new Vector3(4.5f, 2.2f, 4.5f), a + Vector3.up * 0.4f, "Sheep in their pasture: the kit's animated sheep (Quaternius, CC0), no longer box figures.");
+            }
+            else _log.Add("p27_28_sheep: no sheep pasture in this town.");
+
             // 18: a door, with the way to it.
             if (home != null)
             {

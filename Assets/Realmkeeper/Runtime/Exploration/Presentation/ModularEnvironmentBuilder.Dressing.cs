@@ -94,7 +94,10 @@ namespace Realmkeeper.Exploration.Presentation
             return ctx.Catalog.Module(id) != null ? Module(ctx, parent, id, at, yaw, Vector3.one) : null;
         }
 
-        /// <summary>A farm animal from the kit (chicken, cow, horse), or null where the kit has none (the box figure is drawn).</summary>
+        /// <summary>
+        /// A farm animal from the kit (chicken, cow, horse, sheep), or null where the kit has none (the box figure is drawn).
+        /// The goat stays a box figure: the owned goat model has no animations, so it would slide about the pasture.
+        /// </summary>
         private static GameObject AnimalModel(Context ctx, Transform t, string kind)
         {
             string id;
@@ -104,6 +107,7 @@ namespace Realmkeeper.Exploration.Presentation
                 case "chicken": id = "Chicken"; size = 0.5f; break;
                 case "cattle": id = "Cow"; size = 2.0f; break;
                 case "draft_horse": case "riding_horse": id = "Horse"; size = 2.3f; break;
+                case "sheep": id = "Sheep"; size = 1.15f; break; // Quaternius Farm Animals, CC0 (already in the catalog, animated)
                 default: return null;
             }
 

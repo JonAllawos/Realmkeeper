@@ -18,7 +18,7 @@ namespace Realmkeeper.Editor
         public override int GetPostprocessOrder() => 10;
 
         /// <summary>Bumped when the settings change, so Unity reimports the art.</summary>
-        public override uint GetVersion() => 8; // Phase 19: interface art (icons, frames, map symbols, parchment)
+        public override uint GetVersion() => 9; // Phase 27: animals' materials forced opaque (the sheep came in at zero opacity)
 
         /// <summary>Phase 19: the interface textures loaded from Resources (RkIcons, RkFrames, RkMap).</summary>
         public static bool IsInterfaceArt(string path) =>
@@ -135,6 +135,7 @@ namespace Realmkeeper.Editor
         private void OnPreprocessMaterialDescription(UnityEditor.AssetImporters.MaterialDescription description, Material material, AnimationClip[] animations)
         {
             BindExtractedTexture(material);
+            if (assetPath.StartsWith(Root, System.StringComparison.Ordinal) && IsAnimal(assetPath)) MakeOpaque(material);
             if (!assetPath.Contains("/Quaternius/StylizedNatureMegaKit/")) return;
             var n = material.name + " " + description.materialName;
             if (!(n.Contains("Leaf") || n.Contains("Leaves") || n.Contains("Grass") || n.Contains("Flower") || n.Contains("Petal") || n.Contains("Pine") || n.Contains("Plant") || n.Contains("Fern"))) return;
@@ -143,6 +144,31 @@ namespace Realmkeeper.Editor
             if (material.HasProperty("_Cull")) material.SetFloat("_Cull", 0f);
             material.EnableKeyword("_ALPHATEST_ON");
             material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+        }
+
+        /// <summary>
+        /// Phase 27: an animal is never see-through. The Quaternius sheep's FBX carries its materials at zero opacity, which
+        /// the importer turned into transparent URP materials with alpha 0: the sheep (in pastures and as a beast) was invisible.
+        /// </summary>
+        private static void MakeOpaque(Material material)
+        {
+            if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 0f);
+            if (material.HasProperty("_Blend")) material.SetFloat("_Blend", 0f);
+            if (material.HasProperty("_SrcBlend")) material.SetFloat("_SrcBlend", 1f);
+            if (material.HasProperty("_DstBlend")) material.SetFloat("_DstBlend", 0f);
+            if (material.HasProperty("_ZWrite")) material.SetFloat("_ZWrite", 1f);
+            if (material.HasProperty("_BaseColor"))
+            {
+                var c = material.GetColor("_BaseColor");
+                c.a = 1f;
+                material.SetColor("_BaseColor", c);
+            }
+
+            material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.DisableKeyword("_ALPHAMODULATE_ON");
+            material.SetOverrideTag("RenderType", "Opaque");
+            material.renderQueue = -1; // the shader's own (geometry)
         }
 
         /// <summary>

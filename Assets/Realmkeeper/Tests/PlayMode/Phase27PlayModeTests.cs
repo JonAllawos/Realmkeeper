@@ -199,6 +199,15 @@ namespace Realmkeeper.Tests.PlayMode
             }
             else Log.Add("Animals: this town has no herds in its pastures.");
 
+            // Sheep are the kit's animated sheep, not box figures (owner request, 2026-11-15).
+            var sheep = wanderers.Where(w => w.name == "sheep").ToList();
+            Log.Add($"Sheep: {sheep.Count} in pastures; {sheep.Count(w => w.transform.Find("Body Sheep") != null)} drawn with the kit's model.");
+            Assert.That(sheep.All(w => w.transform.Find("Body Sheep") != null && w.transform.Find("Body") == null), Is.True, "Every sheep is the kit model.");
+            // …and can be seen: the FBX's materials came in at zero opacity until the importer made animals opaque.
+            var sheepMats = sheep.SelectMany(w => w.GetComponentsInChildren<Renderer>()).SelectMany(r => r.sharedMaterials).Where(m => m != null).Distinct().ToList();
+            Assert.That(sheepMats.All(m => (!m.HasProperty("_Surface") || m.GetFloat("_Surface") == 0f) && (!m.HasProperty("_BaseColor") || m.GetColor("_BaseColor").a > 0.99f)), Is.True,
+                "Sheep are opaque: " + string.Join(", ", sheepMats.Select(m => m.name)));
+
             // Dressing: in the scene, and no dressing collider stands in any doorway's approach.
             var dressing = GameObject.Find("Phase 27 dressing");
             Assert.That(dressing, Is.Not.Null);
