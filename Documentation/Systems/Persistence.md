@@ -126,3 +126,10 @@ this build can't rebuild. **Any failed load leaves the active world untouched.**
 
 `TypeNameHandling.None` (a save file can never choose which .NET type gets created),
 `MaxDepth` 32, a size cap and slot-name filtering.
+
+## Phase 28: no schema change
+
+Arrival at a settlement's front gate is derived from the persisted plan's roads, wall and gates at load (ADR-0120).
+- The stored `ArrivalX`/`ArrivalZ`/`ArrivalYaw` stay in the save, unchanged. They are used only as the reported last-resort fallback.
+- Existing saves arrive at their gates without migration.
+- A player saved inside a settlement keeps their saved position.

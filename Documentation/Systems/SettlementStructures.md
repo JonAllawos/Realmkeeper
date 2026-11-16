@@ -82,3 +82,15 @@ buildings in each settlement's persisted plan (ADR-0047), so every structure, si
 building, on its floor and plinth. A structure's sign hangs above its building's door at the building's floor
 height. The plan's other buildings (homes, barns, mills, warehouses, sheds) are part of the settlement's
 look. They are not structures with economic effects.
+
+## Phase 28: entrances
+
+A settlement's entrances (gates in the wall, or unwalled ways in) are derived from its persisted plan by `SettlementEntrances` (ADR-0120): one per main road, where it crosses the wall or the built core's edge. The first main road's is the main entrance, the plan's own "town gate".
+
+Uses:
+- the arrival point (just inside the main entrance);
+- the named gate guards' and the watch's posts;
+- the gatehouses' inward side;
+- the way in from the country.
+
+Nothing about entrances is saved. See `Phase28-Settlement-Arrival-and-Gates.md`.

@@ -1,0 +1,17 @@
+Town: Bramhaven (Town), population 1644, owner The Crown of Bramhaven; 2 gates; arrival at the main gate.
+p28_12_map_to_settlement_arrival: 1920x1080. Entering Bramhaven from the strategic map: the player stands just inside the front gate, facing into the town (the live camera and interface).
+p28_13_local_map_after_arrival: local map at (x:1720.00, y:878.00, width:184.00, height:186.00); it draws the player at (84.1,-42.0), the player is at (84.1,-42.0). Same image as p28_12 (the map is its bottom right); also saved cropped.
+p28_13_local_map_after_arrival: 240x266. The local HUD map right after arrival: the player at the gate (the mark at the top of the map's arrow), the gate marks and the shops ahead.
+p28_04_gate_from_outside: 1920x1080. The front gate of Bramhaven from the road outside: the gatehouse in the wall, its portcullis raised, the gate open, lanterns, the owner's banners.
+p28_05_gate_from_inside: 1920x1080. The same gate from inside: the leaves laid back against the passage, the wall closing on the towers.
+p28_06_exterior_approach: 1920x1080. The approach: the main road leading straight to the front gate.
+p28_10_road_to_gate: 1920x1080. The road meeting the gate: it runs on through the passage, draped on the ground; the wall meets the towers.
+p28_03_town_entrance: 1920x1080. Bramhaven (Town): walking up to its front gate.
+The watch: 1 at posts, 2 on patrol.
+p28_07_guards_at_entrance: 1920x1080. The watch at the front gate: a pair beside the road just inside, facing out of the gate, clear of the way.
+p28_08_guards_on_patrol: the patrol's figure was not drawn at the moment of capture.
+p28_11_road_uphill: 1920x1080. An approach road climbing (12 % over its stretch) toward the walls: the paving follows the ground.
+p28_14_road_downhill: 1920x1080. The same approach looking downhill, away from the town.
+p28_02_village_entrance: 1920x1080. Mossholm (Village, population 536): its way in from the road (a timber gateway and lantern); no wall, 2 on watch.
+p28_01_hamlet_entrance: 1920x1080. Westerthorpe (Hamlet, population 181): its way in from the road (a waymarker and a lantern); no wall, 1 on watch.
+p28_15_major_city_entrance: no city or fortress among the settlements in view of this test world; the larger gatehouse proportions (city 8 m opening, 5 m towers, +2.5 m; fortress 5.5 m towers, +4 m) are not captured.

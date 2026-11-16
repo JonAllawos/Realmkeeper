@@ -390,6 +390,8 @@ Each phase is: foundational architecture (**Arch**), functional implementation (
 ### Phase 27: Navigation, discovery and exploration HUD (workstream F)
 
 > **Renumbered (2026-11-14).** The owner's Phase 27 brief was "Settlement Life, Architecture & Street-Level World Immersion" (`../Reports/Phase27-Completion-Report.md`); this navigation plan is still to be scheduled.
+
+> **Renumbered (2026-11-15).** The owner's Phase 28 brief was "City Arrival, Gates, Security & World-to-Settlement Integration" (`../Reports/Phase28-Completion-Report.md`); the living overland simulation this plan called Phase 28 is still to be scheduled.
 >
 > **Partly delivered (Phase 26.1, 2026-11-14).** A compact heading-up local map in the exploration HUD is in (ADR-0118). It is drawn from existing records only: no hidden people, unfound landmarks or unseen outlaws. Still to come from this plan: a compass, discovery cues in the world, and marker selection.
 

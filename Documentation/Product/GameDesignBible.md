@@ -20,7 +20,7 @@ The campaign, world, mythology and narrative direction (established canon, propo
 > foundation, is an **owner decision** and has not been made. Each phase builds only what its own
 > brief authorises.
 
-## Implementation status (updated at the end of Phase 27, 2026-11-14)
+## Implementation status (updated at the end of Phase 28, 2026-11-15)
 
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
@@ -131,6 +131,7 @@ present but visibly temporary; **Not started**.
 | Interface completion and codex (Phase 26) | **Implemented (not hand-played)** | Trade, crafting and party on the list-and-inspector pattern: quantities, comparisons for shop items, reasons written on rows, materials have/need, health meters. A codex of people, companions, factions, settlements, places, creatures, discoveries and events, derived from existing knowledge (ADR-0117). Dialogue response icons; combat condition badges and outcome banner; the region map's key and its 40 m scale (D1 confirmed). An interface string table (partial). The creator, advancement and strategic panels keep Phase 20–22 layouts (`Systems/Phase26-UI-Completion.md`, `Systems/Phase26-Codex.md`) |
 | Local HUD map (Phase 26.1) | **Implemented (not hand-played)** | A heading-up map at the bottom right of the exploration HUD, drawn only from what the player may know (ADR-0118) |
 | Settlement life (Phase 27) | **Implemented (not hand-played)** | The streets show a share of the authoritative population by hour (about 100 people and a watch of 6 in a town of 1,644 at noon), doing what the town's labour and places suggest; the nearest 32 as full figures (ADR-0119). Shopkeepers call out; the watch posts at the gates and patrols; animals graze in their pastures. Trade signs, the owner's banners in their map colour, everyday objects by building purpose. Doors where paths lead and leaves that fill their frames; interiors sized to their buildings and furnished by area; rounded road corners and ends. Children not added (owner decision needed) (`Systems/Phase27-Settlement-Life.md`, `Systems/Phase27-Building-Interiors.md`) |
+| Settlement arrival and gates (Phase 28) | **Implemented (not hand-played)** | Entering from the strategic map puts the player just inside the settlement's own front gate (from the country, by the gate facing the way they came); old saves too (derived from the stored plan, ADR-0120). Walled towns have gatehouses with open leaves and a raised portcullis, the wall closed on them; villages a timber gateway, hamlets a waymarker. The watch holds the gates beside the road, facing out, more for cities and fortresses; named gate guards hold their own posts. Cities and fortresses not seen in the test world (`Systems/Phase28-Settlement-Arrival-and-Gates.md`) |
 
 ### §19 Design principles: how Phases 6–7 respect them
 
