@@ -12,9 +12,9 @@
 
 > **Phase 30 (2026-11-16): §0 below proposes a milestone roadmap that would supersede §5's phase list.** §5 is kept as
 > the record of the 2026-11-12 plan. Phases 23–29 already departed from it: Phase 29 became gates and terrain, not fast
-> travel. Owner decisions D1–D5 and requirements R1–R3 stand. §0 is **proposed, not approved**.
+> travel. Owner decisions D1–D5 and requirements R1–R3 stand. §0 was **approved by the owner on 2026-11-16** ("Approve, brief M1.1"); its phases still each need their own brief.
 
-## 0. Milestone roadmap (proposed in Phase 30, awaiting owner approval)
+## 0. Milestone roadmap (Phase 30; approved by the owner 2026-11-16)
 
 **Basis:**
 - `../Architecture/CanonicalWorld-Audit.md`, `../Architecture/SingleWorld-Transition.md`;
@@ -93,7 +93,7 @@ Release acceptance (`../Testing/Release-Acceptance.md`, drafted in Phase 30, ref
 
 ### Recommended next phase
 
-**M1.1: release save system and main menu.** It is the smallest step that changes the product's shape (New Game, Continue, Load Game, three slots, autosave, backups). It has no canon dependency, and every later milestone needs it. It requires a save-schema brief (v28) and owner approval of `../Systems/SaveLoad-Design.md`.
+**M1.1: release save system and main menu.** It is the smallest step that changes the product's shape (New Game, Continue, Load Game, three slots, autosave, backups). It has no canon dependency, and every later milestone needs it. Brief: `../Briefs/M1.1-Release-Save-System-Brief.md` (written 2026-11-16; starts on the owner's go-ahead).
 
 ## 1. Where the project stands (inspected 2026-11-12)
 
@@ -197,7 +197,7 @@ These must be decided before or at the start of the named phase. The roadmap doe
 | D4 | **Pending play before creation.** Should a new game require creation before play, or allow pending play but discard pre-creation experience and coin? | Phase 22 | **Decided 2026-11-13: "No XP before creation".** Experience awards are refused until the character exists, so every new character starts at 0. Pending play (walking, trading, talking) stays allowed, and coin earned before creation is kept. Old saves that already hold pre-creation experience keep it (ADR-0109) |
 | D5 | **Store-licensed and paid assets.** Commit them to the private repository, or keep them local only? | Phase 25 | Currently local only and git-ignored |
 
-## 5. The proposed phases (2026-11-12 plan; superseded by §0 if the owner approves it)
+## 5. The proposed phases (2026-11-12 plan; superseded by §0, approved 2026-11-16)
 
 Each phase is: foundational architecture (**Arch**), functional implementation (**Func**), content expansion (**Content**), visual and UX refinement (**UX**), performance and stability (**Perf**), or testing and validation (**Test**). Most are a mix; the main kind is listed first.
 
