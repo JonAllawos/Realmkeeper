@@ -107,10 +107,9 @@ namespace Realmkeeper.Exploration.Presentation
                 }
                 else if (s.Route.Count == 1 && s.Wander > 0f)
                 {
-                    // Standing about: a slow sway round their spot.
-                    var k = s.Key.GetHashCode() * 0.001f;
-                    p = new LocalPoint(p.X + Mathf.Sin(_townsClock * 0.13f + k) * s.Wander * 0.5f, p.Z + Mathf.Cos(_townsClock * 0.11f + k) * s.Wander * 0.5f);
-                    heading = 180f + k * 57f;
+                    // Standing about: a slow sway round their spot. Someone at work holds their place (a kneeling worker must not slide).
+                    var (dx, dz) = s.Activity == TownsfolkActivity.Working ? (0f, 0f) : StandingSway(s.Key, s.Wander, _townsClock);
+                    p = new LocalPoint(p.X + dx, p.Z + dz);
                     if (s.Facing.HasValue) t.Yaw = s.Facing.Value; // Phase 28: a gate guard looks out of the gate
                 }
 
@@ -219,6 +218,18 @@ namespace Realmkeeper.Exploration.Presentation
             var shown = 0;
             foreach (var t in _townsBodies.Values) if (t.Active) shown++;
             TownsfolkFigures = shown;
+        }
+
+        /// <summary>
+        /// The offset of someone standing about from their spot at a moment: a slow drift within half their wander radius.
+        /// The per-person phase is kept in [0, 2π): it was once the key's hash × 0.001 (up to about two million), where a
+        /// float's steps (about 0.1) made the figure stand frozen and then jump a few centimetres in one frame. Each jump read
+        /// as a burst of speed, so kneeling workers stood up and knelt again and people standing about twitched (2026-11-16).
+        /// </summary>
+        public static (float dx, float dz) StandingSway(string key, float wander, float clock)
+        {
+            var phase = (key.GetHashCode() & 0xffff) / 65536f * (2f * Mathf.PI);
+            return (Mathf.Sin(clock * 0.13f + phase) * wander * 0.5f, Mathf.Cos(clock * 0.11f + phase) * wander * 0.5f);
         }
 
         /// <summary>A child: the shared humanoid body at about 1.1 m, its head scaled up for a child's proportions.</summary>
