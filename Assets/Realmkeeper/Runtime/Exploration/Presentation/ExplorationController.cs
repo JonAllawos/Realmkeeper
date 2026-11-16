@@ -499,6 +499,21 @@ namespace Realmkeeper.Exploration.Presentation
 
         public CommandResult SaveNow()
         {
+            // M1.1 (ADR-0123): never in a fight or a conversation; a game loaded from an autosave chooses a slot instead.
+            var blocker = _session != null && _session.HasWorld ? _session.GetSaveBlocker() : null;
+            if (blocker != null)
+            {
+                var refused = CommandResult.InvalidState(blocker);
+                Hud?.ShowMessage(refused);
+                return refused;
+            }
+
+            if (Realmkeeper.Application.SaveSlots.IsAuto(_runtime.ActiveSlot.Name) && Realmkeeper.UI.RkHooks.OpenSaveGame != null)
+            {
+                Realmkeeper.UI.RkHooks.OpenSaveGame();
+                return CommandResult.Ok("Choose a slot to save in.");
+            }
+
             var result = _runtime.Save(); // the runtime's active slot, shared with the map view
             Hud?.ShowMessage(result);
             return result;

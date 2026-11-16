@@ -185,6 +185,20 @@ namespace Realmkeeper.UI
             }
         }
 
+        private const string AutosaveKey = "rk.game.autosave";
+
+        /// <summary>M1.1 (ADR-0123): autosave at arrivals, story moments and on leaving. On by default.</summary>
+        public static bool Autosave
+        {
+            get => PlayerPrefs.GetInt(AutosaveKey, 1) == 1;
+            set
+            {
+                PlayerPrefs.SetInt(AutosaveKey, value ? 1 : 0);
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
         public static bool VSync
         {
             get => PlayerPrefs.GetInt(VSyncKey, QualitySettings.vSyncCount > 0 ? 1 : 0) == 1;

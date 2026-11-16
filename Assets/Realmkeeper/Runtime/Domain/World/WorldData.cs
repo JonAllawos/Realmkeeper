@@ -46,7 +46,7 @@ namespace Realmkeeper.Domain.World
     public sealed class WorldData
     {
         /// <summary>Schema version written by this build. Bump when the save layout changes.</summary>
-        public const int CurrentSchemaVersion = 27; // Phase 25 (ADR-0116): the creature kinds the player has met; Phase 24 (ADR-0113, ADR-0114): landmark states, overland encounters and their clock, the waypoint; Phase 23 (ADR-0110, ADR-0111): realms, gateways, the player in the country and the realm they are in; Phase 22 (ADR-0109): the level-up in progress and the level-up notice; Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
+        public const int CurrentSchemaVersion = 28; // M1.1 (ADR-0123): the play-time counter, the save summary and checksum in the envelope; Phase 25 (ADR-0116): the creature kinds the player has met; Phase 24 (ADR-0113, ADR-0114): landmark states, overland encounters and their clock, the waypoint; Phase 23 (ADR-0110, ADR-0111): realms, gateways, the player in the country and the realm they are in; Phase 22 (ADR-0109): the level-up in progress and the level-up notice; Phase 21 (ADR-0105): seasons and weather; Phase 20A (ADR-0104): eye colour, the per-hit ancestry boon flag; Phase 20 (ADR-0101): lineages, identity, height and build; // Phase 18 (ADR-0096): discoveries with kind and certainty; Phase 18 places
         public const int MaxNameLength = 64;
 
         public WorldId WorldId { get; set; }
@@ -179,6 +179,9 @@ namespace Realmkeeper.Domain.World
 
         /// <summary>Phase 24 (ADR-0114): what changed in the country: landmarks found or searched, encounters met, the encounter clock.</summary>
         public OverlandStateData Overland { get; set; } = new OverlandStateData();
+
+        /// <summary>M1.1 (ADR-0123): seconds of active play (menus and the pause menu excluded), recorded at each save. 0 for saves from before v28.</summary>
+        public double PlaytimeSeconds { get; set; }
 
         public RouteSegmentData FindRoute(string id)
         {
@@ -360,6 +363,7 @@ namespace Realmkeeper.Domain.World
             copy.Gateways = new List<GatewayData>();
             if (Gateways != null) foreach (var g in Gateways) copy.Gateways.Add(g?.Clone());
             copy.Overland = Overland?.Clone() ?? new OverlandStateData();
+            copy.PlaytimeSeconds = PlaytimeSeconds; // M1.1
             return copy;
         }
 

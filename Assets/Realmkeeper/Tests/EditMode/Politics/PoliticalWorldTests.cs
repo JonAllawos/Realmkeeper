@@ -600,6 +600,7 @@ namespace Realmkeeper.Tests.EditMode.Politics
                 p["workers"] = 0;
             }
 
+            doc.Remove("integrity"); // M1.1 (ADR-0123): an edited file is Damaged by its checksum; a hand-edited test save drops it
             File.WriteAllText(Path.Combine(_dir, "famine" + JsonWorldStore.Extension), doc.ToString());
             var famine = Phase2Worlds.Session(_dir, 4);
             var loadedFamine = famine.Execute(new LoadWorldCommand("famine"));

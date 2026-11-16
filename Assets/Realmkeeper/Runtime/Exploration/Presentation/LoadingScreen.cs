@@ -92,7 +92,11 @@ namespace Realmkeeper.Exploration.Presentation
             _title.text = "TRAVELLING";
             _fill.style.width = Length.Percent(5);
             _root.style.display = DisplayStyle.Flex;
+            _failed = false;
+            Realmkeeper.UI.RkHooks.TransitionInProgress = true; // M1.1: no autosave until it completes
         }
+
+        private bool _failed;
 
         public void Progress(float fraction, string status)
         {
@@ -104,8 +108,18 @@ namespace Realmkeeper.Exploration.Presentation
         {
             _title.text = "COULD NOT TRAVEL";
             _status.text = why + "  You stay where you were.";
+            _failed = true;
         }
 
-        public void Hide() => _root.style.display = DisplayStyle.None;
+        /// <summary>
+        /// Closes the screen. M1.1 (ADR-0123): after a transition that completed, the arrival is announced first, while the
+        /// screen still shows, so an autosave's pause is hidden behind it.
+        /// </summary>
+        public void Hide()
+        {
+            if (IsShown && !_failed) Realmkeeper.UI.RkHooks.RaiseTransitionArrived(Destination);
+            Realmkeeper.UI.RkHooks.TransitionInProgress = false;
+            _root.style.display = DisplayStyle.None;
+        }
     }
 }

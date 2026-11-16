@@ -244,6 +244,7 @@ namespace Realmkeeper.Tests.EditMode.Phase2
                 if ((string)stack["resourceTypeId"] == "food") stack["quantity"] = 0;
             }
 
+            doc.Remove("integrity"); // M1.1 (ADR-0123): an edited file is Damaged by its checksum; a hand-edited test save drops it
             File.WriteAllText(path, doc.ToString());
             Assert.That(session.Execute(new LoadWorldCommand("granary")).IsSuccess, Is.True);
             session.Execute(new AdvanceDayCommand());

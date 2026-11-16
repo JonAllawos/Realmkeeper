@@ -109,6 +109,9 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         /// <summary>Phase 24 (v26): landmark states, overland encounters and the encounter clock (absent: none).</summary>
         public OverlandDto Overland { get; set; }
+
+        /// <summary>M1.1 (v28): seconds of active play (absent in older saves: 0).</summary>
+        public double? PlaytimeSeconds { get; set; }
     }
 
     public sealed class WorldSettingsDto

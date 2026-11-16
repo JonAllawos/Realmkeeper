@@ -62,7 +62,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         }
 
         /// <summary>Migrations shipped with this build, one per historical schema version.</summary>
-        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7(), new MigrationV7ToV8(), new MigrationV8ToV9(), new MigrationV9ToV10(), new MigrationV10ToV11(), new MigrationV11ToV12(), new MigrationV12ToV13(), new MigrationV13ToV14(), new MigrationV14ToV15(), new MigrationV15ToV16(), new MigrationV16ToV17(), new MigrationV17ToV18(), new MigrationV18ToV19(), new MigrationV19ToV20(), new MigrationV20ToV21(), new MigrationV21ToV22(), new MigrationV22ToV23(), new MigrationV23ToV24(), new MigrationV24ToV25(), new MigrationV25ToV26(), new MigrationV26ToV27() };
+        public static IReadOnlyList<ISaveMigration> BuiltInMigrations { get; } = new ISaveMigration[] { new MigrationV1ToV2(), new MigrationV2ToV3(), new MigrationV3ToV4(), new MigrationV4ToV5(), new MigrationV5ToV6(), new MigrationV6ToV7(), new MigrationV7ToV8(), new MigrationV8ToV9(), new MigrationV9ToV10(), new MigrationV10ToV11(), new MigrationV11ToV12(), new MigrationV12ToV13(), new MigrationV13ToV14(), new MigrationV14ToV15(), new MigrationV15ToV16(), new MigrationV16ToV17(), new MigrationV17ToV18(), new MigrationV18ToV19(), new MigrationV19ToV20(), new MigrationV20ToV21(), new MigrationV21ToV22(), new MigrationV22ToV23(), new MigrationV23ToV24(), new MigrationV24ToV25(), new MigrationV25ToV26(), new MigrationV26ToV27(), new MigrationV27ToV28() };
 
         /// <summary>First schema with regions, the player character and named residents.</summary>
         public const int FirstSchemaWithRegions = 3;
@@ -74,20 +74,26 @@ namespace Realmkeeper.Infrastructure.Persistence
         public const int FirstSchemaWithCommerce = 7;
         public const int FirstSchemaWithStructures = 10;
 
-        public string Serialize(WorldData world)
+        /// <summary>The JSON settings saves are written and read with (camelCase, no type names).</summary>
+        public JsonSerializerSettings Settings => _settings;
+
+        /// <summary>Same as <c>Serialize(world, null)</c>: the summary's slot kind is "other".</summary>
+        public string Serialize(WorldData world) => Serialize(world, null);
+
+        /// <summary>
+        /// M1.1 (ADR-0123): writes the v28 file: the envelope with its one-line summary and the world's checksum, then the
+        /// world (<see cref="SaveEnvelope"/>). <paramref name="slotKind"/> is "manual", "auto" or "other".
+        /// </summary>
+        public string Serialize(WorldData world, string slotKind)
         {
             if (world == null) throw new ArgumentNullException(nameof(world));
             var validation = WorldValidator.Validate(world);
             if (!validation.IsValid) throw new InvalidOperationException("Refusing to save an invalid world: " + validation);
 
-            var file = new WorldSaveFileDto
-            {
-                Format = FormatMarker,
-                SchemaVersion = WorldData.CurrentSchemaVersion,
-                SavedAtUtc = _utcNow().ToString("o", CultureInfo.InvariantCulture),
-                World = WorldSaveMapper.ToDto(world),
-            };
-            return JsonConvert.SerializeObject(file, _settings);
+            var now = _utcNow();
+            var worldJson = JsonConvert.SerializeObject(WorldSaveMapper.ToDto(world), _settings);
+            return SaveEnvelope.Compose(FormatMarker, WorldData.CurrentSchemaVersion, now.ToString("o", CultureInfo.InvariantCulture),
+                SaveEnvelope.Summarize(world, slotKind, now), _settings, worldJson);
         }
 
         public LoadResult Deserialize(string json)

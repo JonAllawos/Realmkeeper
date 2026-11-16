@@ -124,5 +124,6 @@
 | [0120](ADR-0120-settlement-entrances-derived-from-the-plan.md) | Settlement entrances (arrival, gate guards, the watch, the way in from the country) are derived from the persisted plan (no save change) | Accepted (Phase 28) |
 | [0121](ADR-0121-gates-follow-their-roads-and-gate-roads-run-straight.md) | Gatehouses follow their roads, and the road through a wall gate runs straight (layout generator v3; older plans updated on load, no schema change) | Accepted (Phase 29) |
 | [0122](ADR-0122-overland-ground-as-unity-terrain-with-region-cache.md) | The overland ground is a Unity Terrain fed by the game's own heights, cached per region; ground weather has one authority (no save change) | Accepted (Phase 29) |
+| [0123](ADR-0123-release-save-slots-summary-checksum-and-schema-v28.md) | Release save slots (three manual, three rotating autosaves), a one-line save summary, a SHA-256 checksum, backups and recovery; schema v28 | Accepted (M1.1) |
 
 Template: Context · Decision · Consequences · Alternatives considered.

@@ -33,6 +33,7 @@ namespace Realmkeeper.Infrastructure.Persistence
         private static void WriteCommerceWorld(WorldData w, WorldDto dto)
         {
             dto.MinuteOfDay = w.MinuteOfDay;
+            dto.PlaytimeSeconds = w.PlaytimeSeconds; // M1.1 (v28)
             if (dto.Player != null && w.Player != null)
             {
                 var p = w.Player;
@@ -110,6 +111,9 @@ namespace Realmkeeper.Infrastructure.Persistence
             var minute = dto.MinuteOfDay ?? WorldTime.DefaultStartMinute;
             if (minute < 0 || minute >= WorldTime.MinutesPerDay) throw new SaveDataException($"Minute of day {minute} is out of range.");
             world.MinuteOfDay = minute;
+            var playtime = dto.PlaytimeSeconds ?? 0; // M1.1 (v28): absent before v28
+            if (double.IsNaN(playtime) || double.IsInfinity(playtime) || playtime < 0) throw new SaveDataException($"Play time {playtime} is not a valid number of seconds.");
+            world.PlaytimeSeconds = playtime;
 
             if (dto.Player != null && world.Player != null)
             {

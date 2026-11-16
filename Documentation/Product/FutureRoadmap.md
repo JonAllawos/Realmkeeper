@@ -93,7 +93,7 @@ Release acceptance (`../Testing/Release-Acceptance.md`, drafted in Phase 30, ref
 
 ### Recommended next phase
 
-**M1.1: release save system and main menu.** It is the smallest step that changes the product's shape (New Game, Continue, Load Game, three slots, autosave, backups). It has no canon dependency, and every later milestone needs it. Brief: `../Briefs/M1.1-Release-Save-System-Brief.md` (written 2026-11-16; starts on the owner's go-ahead).
+**M1.1: release save system and main menu.** It is the smallest step that changes the product's shape (New Game, Continue, Load Game, three slots, autosave, backups). It has no canon dependency, and every later milestone needs it. Brief: `../Briefs/M1.1-Release-Save-System-Brief.md`. **Implemented 2026-11-16** (`../Reports/M1.1-Completion-Report.md`); owner hand-play outstanding. Next: M1.2 (command and save performance), on the owner's go-ahead.
 
 ## 1. Where the project stands (inspected 2026-11-12)
 

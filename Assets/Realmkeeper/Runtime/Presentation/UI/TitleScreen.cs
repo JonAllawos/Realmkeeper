@@ -21,7 +21,7 @@ namespace Realmkeeper.Presentation
     /// slots, <see cref="StartCampaignCommand"/>; saves are listed and deleted through <see cref="JsonWorldStore"/>.
     /// Shown when the game starts (the scene is the first one loaded), and from the map's Menu button.
     /// </summary>
-    public sealed class TitleScreen : MonoBehaviour
+    public sealed partial class TitleScreen : MonoBehaviour
     {
         private static string _firstScene;
 
@@ -34,15 +34,27 @@ namespace Realmkeeper.Presentation
         public VisualElement Content { get; private set; }
         public Label Message { get; private set; }
         public Button ContinueButton { get; private set; }
-        public Button NewWorldButton { get; private set; }
+
+        /// <summary>M1.1: New Game (a slot, then the fixed world).</summary>
+        public Button NewGameButton { get; private set; }
+
+        /// <summary>M1.1: Load Game (the slots, the autosaves, and older saves in development builds).</summary>
         public Button LoadButton { get; private set; }
+
+        /// <summary>M1.1: Save Game, shown only in a game.</summary>
+        public Button SaveGameButton { get; private set; }
+
+        /// <summary>Developer entry (editor and development builds only; null otherwise): a named world from a seed.</summary>
+        public Button NewWorldButton { get; private set; }
+
+        /// <summary>Developer entry (editor and development builds only; null otherwise).</summary>
         public Button CampaignsButton { get; private set; }
         public Button SettingsButton { get; private set; }
         public Button CreditsButton { get; private set; }
         public Button ExitButton { get; private set; }
         public RkSettingsWindow Settings { get; private set; }
 
-        /// <summary>The page on the right: "worlds", "new", "campaigns", "credits" or null.</summary>
+        /// <summary>The page on the right: "load", "save", "newgame", "credits", the developer pages "new" and "campaigns", or null ("worlds" opens "load").</summary>
         public string Page { get; private set; }
 
         public bool IsOpen => Root != null && Root.style.display != DisplayStyle.None;
@@ -73,24 +85,30 @@ namespace Realmkeeper.Presentation
             title._document.panelSettings = RkSettings.Panel;
             title._document.sortingOrder = 100;
             go.SetActive(true);
-            title._store = new JsonWorldStore(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, RealmkeeperRuntime.SaveFolder));
+            title._store = new JsonWorldStore(bootstrap.Runtime.SaveRoot); // M1.1: the runtime's folder (a test may point it elsewhere)
             title.Build();
             title.Hide();
             return title;
         }
 
-        /// <summary>Opens the screen. Launch: "Continue" loads the newest save; in a game: "Resume" closes it.</summary>
-        public void Open(bool launch)
+        /// <summary>
+        /// Opens the screen. Launch: "Continue" loads the most recently played save; in a game: "Resume" closes it, and
+        /// the world's clock runs again if it was running. M1.1: <paramref name="page"/> opens a page at once ("save", "load").
+        /// </summary>
+        public void Open(bool launch, string page = null)
         {
+            if (!IsOpen) _resumeOnClose = !launch && _bootstrap.Playback != null && _bootstrap.Playback.IsPlaying;
             _launch = launch;
             _bootstrap.Playback?.Pause();
             if (_bootstrap.Hud != null) _bootstrap.Hud.SetVisible(false);
             Root.style.display = DisplayStyle.Flex;
             RkMusic.TitleOpen = true; // 2026-11-15 audio pass
             RefreshMenu();
-            ShowPage(launch ? null : null);
+            ShowPage(page);
             ContinueButton.Focus();
         }
+
+        private bool _resumeOnClose;
 
         public void Hide()
         {
@@ -103,6 +121,9 @@ namespace Realmkeeper.Presentation
         private void Close()
         {
             Hide();
+            ReleaseThumbnails();
+            if (_resumeOnClose && _bootstrap.Runtime.Host.IsActive) _bootstrap.Playback?.Play(); // M1.1: back to the game as it was
+            _resumeOnClose = false;
             Closed?.Invoke();
         }
 
@@ -156,13 +177,25 @@ namespace Realmkeeper.Presentation
             rule.style.marginBottom = 18;
             left.Add(rule);
 
+            // M1.1 (ADR-0123): the release menu.
             ContinueButton = MenuButton(left, "title-continue", "Continue", "play", OnContinue);
-            NewWorldButton = MenuButton(left, "title-new", "New world", "newworld", () => ShowPage("new"));
-            LoadButton = MenuButton(left, "title-load", "Load world", "load", () => ShowPage("worlds"));
-            CampaignsButton = MenuButton(left, "title-campaigns", "Campaigns", "campaign", () => ShowPage("campaigns"));
+            NewGameButton = MenuButton(left, "title-newgame", "New Game", "newworld", () => ShowPage("newgame"));
+            LoadButton = MenuButton(left, "title-load", "Load Game", "load", () => ShowPage("load"));
+            SaveGameButton = MenuButton(left, "title-save", "Save Game", "save", () => ShowPage("save"));
             SettingsButton = MenuButton(left, "title-settings", "Settings", "settings", OpenSettings);
             CreditsButton = MenuButton(left, "title-credits", "Credits", "credits", () => ShowPage("credits"));
-            ExitButton = MenuButton(left, "title-exit", "Exit to desktop", "exit", OnExit);
+            ExitButton = MenuButton(left, "title-exit", "Exit Game", "exit", OnExit);
+
+            // Developer entries: named worlds from a seed, and campaigns (editor and development builds only).
+            if (DeveloperBuild)
+            {
+                var dev = new Label("Developer") { name = "title-developer" };
+                dev.AddToClassList("rk-hint");
+                dev.style.marginTop = 12;
+                left.Add(dev);
+                NewWorldButton = MenuButton(left, "title-new", "New world (name and seed)", "newworld", () => ShowPage("new"));
+                CampaignsButton = MenuButton(left, "title-campaigns", "Campaigns", "campaign", () => ShowPage("campaigns"));
+            }
 
             Message = new Label { name = "title-message" };
             Message.AddToClassList("rk-hint");
@@ -213,24 +246,31 @@ namespace Realmkeeper.Presentation
 
         private void RefreshMenu()
         {
-            var saves = _store.ListSaves();
+            // Headers only here (fast); Continue and Load Game check each file's checksum when used.
+            var saves = _store.ListSaves(false).Where(s => s.Kind != SaveSlotKind.Other || DeveloperBuild).ToList();
             if (_launch)
             {
                 ContinueButton.text = "Continue";
-                var newest = saves.FirstOrDefault(s => s.Readable && s.Compatible);
+                var newest = saves.Where(s => s.CanLoad).OrderByDescending(s => s.LastPlayedUtc).FirstOrDefault();
                 ContinueButton.SetEnabled(newest != null);
-                ContinueButton.tooltip = newest != null ? $"Load '{newest.WorldName}' ({FormatDate(newest.Date)}), saved {Local(newest.LastWriteUtc)}." : "No saved world yet: start a new one.";
+                ContinueButton.tooltip = newest != null
+                    ? $"Load {SlotLabel(newest)}: {FormatDate(newest.Date)}, played {Local(newest.LastPlayedUtc)}."
+                    : "No saved game yet: start a new one.";
                 RkIcons.Lead(ContinueButton, "play", "m");
             }
             else
             {
                 ContinueButton.text = "Resume";
                 ContinueButton.SetEnabled(true);
-                ContinueButton.tooltip = "Return to the world as it is.";
+                ContinueButton.tooltip = "Return to the game as it is.";
             }
 
+            var inGame = !_launch && _bootstrap.Runtime.Host.IsActive;
+            SaveGameButton.style.display = inGame ? DisplayStyle.Flex : DisplayStyle.None;
+            var blocker = inGame && _bootstrap.Session != null ? _bootstrap.Session.GetSaveBlocker() : null;
+            SaveGameButton.tooltip = blocker ?? "Save your game in one of three slots.";
             LoadButton.SetEnabled(saves.Count > 0);
-            LoadButton.tooltip = saves.Count > 0 ? $"{saves.Count} saved world(s)." : "No saved worlds yet.";
+            LoadButton.tooltip = saves.Count > 0 ? $"{saves.Count} save(s)." : "No saved games yet.";
             ExitButton.tooltip = UnityEngine.Application.isEditor ? "Ends play in the built game (the editor keeps running)." : "Close Realmkeeper.";
         }
 
@@ -239,17 +279,19 @@ namespace Realmkeeper.Presentation
         private void OnContinue()
         {
             if (!_launch) { Close(); return; }
-            var newest = _store.ListSaves().FirstOrDefault(s => s.Readable && s.Compatible);
-            if (newest == null) { Say("There is no saved world yet."); return; }
-            LoadSlot(newest.Slot);
+            ContinueGame(); // M1.1: the most recently played save, falling back on failure
         }
 
         private void OnExit()
         {
-            // Phase 25: leaving asks first, and in a game says what would be lost.
-            var body = _launch ? "Realmkeeper will close." : "Realmkeeper will close. Anything since your last save will be lost: save first (Resume, then Save) to keep it.";
-            RkModal.Confirm(_document.rootVisualElement, "Exit to desktop?", body, "Exit to desktop", () =>
+            // Phase 25: leaving asks first, and in a game says what would be lost. M1.1: an autosave is made first when allowed.
+            var inGame = !_launch && _bootstrap.Runtime.Host.IsActive;
+            var body = !inGame ? "Realmkeeper will close."
+                : RkSettings.Autosave ? "Realmkeeper will close. An autosave is made first unless you are in a fight or a conversation, or saved in the last minute; to be sure, use Save Game first."
+                : "Realmkeeper will close. Autosave is off: anything since your last save will be lost. Use Save Game first to keep it.";
+            RkModal.Confirm(_document.rootVisualElement, "Exit the game?", body, "Exit Game", () =>
             {
+                if (inGame) RkHooks.RaiseBeforeLeavingGame("exit");
                 if (UnityEngine.Application.isEditor) { Say("Exit closes the built game; in the editor, stop Play mode instead."); return; }
                 UnityEngine.Application.Quit();
             }, true);
@@ -317,11 +359,15 @@ namespace Realmkeeper.Presentation
 
         public void ShowPage(string page)
         {
+            if (page == "worlds") page = "load"; // Phase 19's name for the saves page
             Page = page;
             Content.Clear();
+            ReleaseThumbnails();
             switch (page)
             {
-                case "worlds": BuildWorlds(); break;
+                case "load": BuildLoadGame(); break;
+                case "save": BuildSaveGame(); break;
+                case "newgame": BuildNewGame(); break;
                 case "new": BuildNewWorld(); break;
                 case "campaigns": BuildCampaigns(); break;
                 case "credits": BuildCredits(); break;
@@ -352,66 +398,6 @@ namespace Realmkeeper.Presentation
             panel.Add(rule);
             Content.Add(panel);
             return panel;
-        }
-
-        private void BuildWorlds()
-        {
-            var panel = Panel("Saved worlds", "load");
-            var saves = _store.ListSaves();
-            if (saves.Count == 0)
-            {
-                var empty = new Label("No world has been saved yet. Found a new one, and it will appear here.");
-                empty.AddToClassList("rk-empty");
-                panel.Add(empty);
-                return;
-            }
-
-            var list = new ScrollView(ScrollViewMode.Vertical) { name = "title-world-list" };
-            list.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            panel.Add(list);
-            var active = _bootstrap.Runtime.ActiveSlot.Name;
-            foreach (var s in saves)
-            {
-                var card = new VisualElement { name = "world-card-" + s.Slot };
-                card.AddToClassList("rk-card");
-                card.EnableInClassList("rk-card--selected", s.Slot == active && _bootstrap.Runtime.Host.IsActive);
-                card.style.flexDirection = FlexDirection.Row;
-                card.style.alignItems = Align.Center;
-                var icon = RkIcons.Make("world", "xl", s.Readable ? "accent" : "bad");
-                icon.style.marginRight = 14;
-                card.Add(icon);
-                var text = new VisualElement();
-                text.style.flexGrow = 1;
-                var name = new Label(s.WorldName ?? s.Slot);
-                name.AddToClassList("rk-h2");
-                text.Add(name);
-                var detail = new Label(s.Readable
-                    ? $"{FormatDate(s.Date)} · seed {s.Seed} · saved {Local(s.LastWriteUtc)} · {s.Bytes / 1024 / 1024f:0.0} MB · slot '{s.Slot}'"
-                    : $"This file's header could not be read; it may be damaged. Slot '{s.Slot}'.");
-                detail.AddToClassList("rk-hint");
-                text.Add(detail);
-                if (s.Readable && !s.Compatible)
-                {
-                    var warn = new Label($"Saved by a newer build (schema v{s.SchemaVersion}); this build reads up to v{WorldData.CurrentSchemaVersion}.");
-                    warn.AddToClassList("rk-badge");
-                    warn.AddToClassList("rk-badge--warn");
-                    text.Add(warn);
-                }
-
-                card.Add(text);
-                var slot = s.Slot;
-                var load = new Button(() => LoadSlot(slot)) { name = "world-load-" + slot, text = "Load" };
-                load.AddToClassList("rk-btn");
-                load.AddToClassList("rk-btn--primary");
-                load.SetEnabled(s.Readable && s.Compatible);
-                if (!(s.Readable && s.Compatible)) load.tooltip = s.Readable ? "Saved by a newer build." : "The file could not be read.";
-                var delete = new Button(() => ConfirmDelete(slot, s.WorldName ?? slot)) { name = "world-delete-" + slot, text = "Delete" };
-                delete.AddToClassList("rk-btn");
-                delete.AddToClassList("rk-btn--danger");
-                card.Add(load);
-                card.Add(delete);
-                list.Add(card);
-            }
         }
 
         private void ConfirmDelete(string slot, string worldName)

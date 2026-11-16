@@ -60,6 +60,26 @@ namespace Realmkeeper.Presentation
 
         public CommandResult LastCreateResult { get; private set; }
 
+        /// <summary>M1.1 (ADR-0123): autosaves and save thumbnails.</summary>
+        public SaveService Saves { get; private set; }
+
+        /// <summary>
+        /// M1.1: the map's Save button and shortcut. Refused in a fight or a conversation; when the game came from an
+        /// autosave it opens Save Game, so a player's save never lands in the autosave rotation.
+        /// </summary>
+        public CommandResult QuickSave()
+        {
+            var blocker = Session != null ? Session.GetSaveBlocker() : "There is no game to save.";
+            if (blocker != null) return CommandResult.InvalidState(blocker);
+            if (SaveSlots.IsAuto(Runtime.ActiveSlot.Name))
+            {
+                Title.Open(false, "save");
+                return CommandResult.Ok("Choose a slot to save in.");
+            }
+
+            return Runtime.Save();
+        }
+
         /// <summary>True while the strategic map (camera, world, HUD) is shown.</summary>
         public bool StrategicVisible => _strategicVisible;
 
@@ -95,7 +115,7 @@ namespace Realmkeeper.Presentation
             Selection.Initialize(null, WorldView, CameraController.Camera, _materials.Highlight);
             Hud = RealmkeeperHud.Create(transform);
             Hud.Initialize(null, null, Selection, CameraController, WorldView);
-            Hud.SaveHandler = () => Runtime.Save();
+            Hud.SaveHandler = QuickSave;
             Hud.LoadHandler = () => Runtime.Load();
             Hud.PoliticalOverlayChanged += on => PoliticalOverlay.SetOn(on, Session);
             Selection.IsPointerOverUi = Hud.IsPointerOverUi;
@@ -103,6 +123,10 @@ namespace Realmkeeper.Presentation
             Title = TitleScreen.Create(this);
             Hud.MenuRequested += () => Title.Open(false);
             Realmkeeper.UI.RkHooks.OpenMainMenu = () => Title.Open(false); // Phase 25: the exploration pause menu's "Main menu"
+            Realmkeeper.UI.RkHooks.OpenSaveGame = () => Title.Open(false, "save"); // M1.1
+            Realmkeeper.UI.RkHooks.OpenLoadGame = () => Title.Open(false, "load");
+            Saves = SaveService.Create(this); // M1.1: autosave and thumbnails
+            Runtime.PlaytimeCounts = () => !Title.IsOpen && !Realmkeeper.UI.RkHooks.PauseMenuOpen; // M1.1: menus are not play
             CameraController.IsPointerOverUi = Hud.IsPointerOverUi;
 
             // Follow every session the runtime starts, not just the first (restart, start from a save).
@@ -153,6 +177,9 @@ namespace Realmkeeper.Presentation
         private void OnDestroy()
         {
             Realmkeeper.UI.RkHooks.OpenMainMenu = null; // Phase 25
+            Realmkeeper.UI.RkHooks.OpenSaveGame = null; // M1.1
+            Realmkeeper.UI.RkHooks.OpenLoadGame = null;
+            if (Runtime != null && Runtime.PlaytimeCounts != null) Runtime.PlaytimeCounts = null;
             _binding?.Dispose();
             if (Runtime != null)
             {

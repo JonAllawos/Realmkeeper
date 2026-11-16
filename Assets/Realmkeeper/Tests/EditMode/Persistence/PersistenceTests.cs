@@ -186,7 +186,8 @@ namespace Realmkeeper.Tests.EditMode.Persistence
             Assert.That(store.Save(early, "main").IsSuccess, Is.True);
             Assert.That(store.Save(later, "main").IsSuccess, Is.True);
             Assert.That(store.Load("main").World.CurrentSimulationDate, Is.EqualTo(later.CurrentSimulationDate));
-            Assert.That(Directory.GetFiles(_dir).Length, Is.EqualTo(1), "No temporary files left behind.");
+            // M1.1 (ADR-0123): overwriting keeps the replaced file as the slot's backup; nothing else is left behind.
+            Assert.That(Directory.GetFiles(_dir).Select(Path.GetFileName), Is.EquivalentTo(new[] { "main" + JsonWorldStore.Extension, "main" + JsonWorldStore.Extension + JsonWorldStore.BackupSuffix }), "No temporary files left behind; the save and its backup.");
 
             later.Settlements[0].Stability = 999;
             Assert.That(store.Save(later, "main").IsSuccess, Is.False);

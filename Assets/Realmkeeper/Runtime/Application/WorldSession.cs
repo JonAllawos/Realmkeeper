@@ -77,6 +77,7 @@ namespace Realmkeeper.Application
 
             // Built-in commands that go through the registry.
             _commands.Register<SaveWorldCommand>(new SaveWorldHandler());
+            _commands.Register<RecordPlaytimeCommand>(new RecordPlaytimeHandler()); // M1.1
             _commands.Register<SetSimulationSpeedCommand>(new SetSpeedHandler());
             _commands.Register<SetTradeRouteSuspendedCommand>(new SetTradeRouteSuspendedHandler());
             PoliticalCommandHandlers.Register(_commands);

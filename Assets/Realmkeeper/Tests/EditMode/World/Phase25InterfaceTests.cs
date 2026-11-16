@@ -140,7 +140,7 @@ namespace Realmkeeper.Tests.EditMode.World
             Assert.That(_s.Execute(new SaveWorldCommand("p25")).IsSuccess, Is.True);
             Assert.That(_s.Execute(new LoadWorldCommand("p25")).IsSuccess, Is.True);
             Assert.That(W.Player.KnownCreatures.Select(k => (k.CreatureId, k.Met, k.Defeated)).OrderBy(x => x.CreatureId), Is.EqualTo(before));
-            Assert.That(W.SchemaVersion, Is.EqualTo(27));
+            Assert.That(W.SchemaVersion, Is.EqualTo(28)); // M1.1 (v28)
 
             // A v26 save has no record: it is made from the fights the save still holds, once.
             var path = Path.Combine(_dir, "p25" + JsonWorldStore.Extension);

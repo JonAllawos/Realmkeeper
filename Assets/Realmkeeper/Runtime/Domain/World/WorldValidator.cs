@@ -40,6 +40,8 @@ namespace Realmkeeper.Domain.World
             if (world.SchemaVersion != WorldData.CurrentSchemaVersion)
                 result.AddError($"SchemaVersion {world.SchemaVersion} is not the current schema ({WorldData.CurrentSchemaVersion}).");
             if (!world.CurrentSimulationDate.IsValidDate) result.AddError("CurrentSimulationDate is invalid.");
+            if (double.IsNaN(world.PlaytimeSeconds) || double.IsInfinity(world.PlaytimeSeconds) || world.PlaytimeSeconds < 0)
+                result.AddError("PlaytimeSeconds must be a finite, non-negative number."); // M1.1
 
             if (world.WorldSettings == null)
             {

@@ -56,8 +56,8 @@
 | Crime and reputation | 4 | A | ADR-0059, 0069 | NPCs | Guards' response in play; bounties at scale |
 | Travel and transportation | 3 | A, R | Journeys, route graph, walking | Geography | Fast travel or transport (D2 undecided) |
 | Survival and resting | 3 | A | Rests, hunger (fed level), exhaustion | — | Decide the release depth of survival |
-| Save and load | 3 | A | v27, atomic, migrations | All | `SaveLoad-Design.md`: slots, autosave, backups, metadata |
-| Main menu and UI | 3 | A, R | Phases 19, 25–26; design system v2 | — | Release menu (New Game, Continue, Load Game); onboarding |
+| Save and load | 4 | A | M1.1: v28; three slots, three rotating autosaves, backups, checksum, slot details, Continue by last played (ADR-0123) | All | Timed autosave and off-main-thread saving (M1.2); owner hand-play |
+| Main menu and UI | 4 | A, R | Phases 19, 25–26; design system v2; M1.1 release menu (Continue, New Game, Load Game, Save Game, Settings, Credits, Exit Game; developer entries in development builds) | — | Onboarding; New Game's canonical world (M1.3); owner hand-play |
 | Audio | 3 | A, U | Audio pass `da4fb07`: music, footsteps, hits, jingles | — | Owner hand-play; ambience; mix |
 | Graphics and visual effects | 3 | R, U | URP, kits, Unity Terrain, placeholder art | — | Character art (placeholder), visual direction pass, effects |
 | Accessibility | 3 | A, R | Text size, contrast, reduced motion | UI | Key remapping, subtitles policy, colour-blind checks |

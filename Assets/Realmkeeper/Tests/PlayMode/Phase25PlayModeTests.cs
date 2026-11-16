@@ -127,7 +127,7 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(c.Player.MovementEnabled, Is.False);
             Assert.That(hud.WindowOpen, Is.True, "The HUD steps aside.");
             var root = c.Pause.Root;
-            foreach (var name in new[] { "resume", "save", "settings", "map", "main", "exit" }) Assert.That(root.Q<Button>("pause-" + name), Is.Not.Null, name);
+            foreach (var name in new[] { "resume", "save", "load", "settings", "map", "main", "exit" }) Assert.That(root.Q<Button>("pause-" + name), Is.Not.Null, name); // M1.1: Load Game added
             Click(root.Q<Button>("pause-exit"));
             yield return null;
             Assert.That(root.Q<VisualElement>("rk-modal"), Is.Not.Null, "Exit asks first.");
@@ -139,12 +139,19 @@ namespace Realmkeeper.Tests.PlayMode
             Assert.That(c.PauseSettings.IsOpen, Is.True);
             Assert.That(c.PauseSettings.TextSize, Is.Not.Null);
             c.PauseSettings.Close();
+            // M1.1 (ADR-0123): Save Game opens the slot chooser; Resume there gives the clock back.
             Click(root.Q<Button>("pause-save"));
             yield return Frames(2);
-            Assert.That(c.PauseOpen, Is.False, "Saving closes the menu.");
+            Assert.That(c.PauseOpen, Is.False, "Save Game closes the menu …");
+            Assert.That(b.Title.IsOpen && b.Title.Page == "save", Is.True, "… and opens the Save Game screen.");
+            Assert.That(b.Title.Content.Q<Button>("slot-save-slot-1"), Is.Not.Null, "The three slots are offered.");
+            b.Title.ShowPage(null);
+            Click(b.Title.ContinueButton);
+            yield return Frames(2);
+            Assert.That(b.Title.IsOpen, Is.False);
             Assert.That(rt.Playback.IsPlaying, Is.True, "The clock runs again.");
+            Assert.That(c.SaveNow().IsSuccess, Is.True, "Save (F5) still writes the active slot.");
             Assert.That(new Realmkeeper.Infrastructure.Persistence.JsonWorldStore(Path.Combine(UnityEngine.Application.persistentDataPath, RealmkeeperRuntime.SaveFolder)).Exists(Slot), Is.True, "Save wrote the slot.");
-            Assert.That(hud.Toasts.History.First().Title, Is.EqualTo("Saved"));
             rt.Playback.Pause();
             c.OpenPauseMenu();
             yield return null;

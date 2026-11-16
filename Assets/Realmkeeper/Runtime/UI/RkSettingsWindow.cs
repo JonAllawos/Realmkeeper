@@ -61,6 +61,9 @@ namespace Realmkeeper.UI
         public DropdownField TextSize { get; private set; }
         public Toggle Contrast { get; private set; }
         public Toggle ReducedMotion { get; private set; }
+
+        /// <summary>M1.1: the autosave setting.</summary>
+        public Toggle Autosave { get; private set; }
         public Slider UiVolume { get; private set; }
         public Slider MusicVolume { get; private set; }
 
@@ -132,6 +135,12 @@ namespace Realmkeeper.UI
             MusicVolume = new Slider("Music", 0f, 1f) { name = "settings-music-volume", value = RkSettings.MusicVolume, showInputField = false };
             MusicVolume.RegisterValueChangedCallback(e => { RkSettings.MusicVolume = e.newValue; Say(e.newValue <= 0f ? "Music off." : "Music: " + Mathf.RoundToInt(e.newValue * 100f) + " % of the sound volume."); });
             scroll.Add(Row(MusicVolume, "The music of the title, the map, the country, settlements, night, places and fights, under the sound volume. 0 turns it off."));
+
+            // Game (M1.1)
+            scroll.Add(Section("Game"));
+            Autosave = new Toggle("Autosave") { name = "settings-autosave", value = RkSettings.Autosave };
+            Autosave.RegisterValueChangedCallback(e => { RkSettings.Autosave = e.newValue; Say(e.newValue ? "Autosave on: the game saves after arrivals, story moments and when you leave." : "Autosave off: only Save Game saves your progress."); });
+            scroll.Add(Row(Autosave, "Saves to three rotating autosave slots after you arrive somewhere, after story decisions, and when you leave the game. Never during a fight or a conversation."));
 
             // Interface
             scroll.Add(Section("Interface"));

@@ -55,6 +55,7 @@ Port: `Realmkeeper.Application.Ports.IWorldStore`.
 | 25 | Phase 23. The world gains `realms` (id, name, profile; regions with id, name, kind, seed) and `gateways` (id, name, state Dormant/Open/Sealed, discovered, two ends of realm, region and cell). The player gains optional `realmId` (empty is the surface) and `returnToOverland`, and a location kind `Overland` (3) with its region and pose in region metres. Geography, ground and vegetation are regenerated from the seed, never saved. | `MigrationV24ToV25` is structural and writes nothing: absent fields read as the surface and no return. The atlas step on load adds the surface realm, the ancient prototype realm and the dormant prototype gateway once, with seed-derived ids (loading again adds nothing). No migration moves a player into the country. Tested: a v24 save loads at v25 with its regions, realms and a dormant gateway; an overland pose, realm and gateway state round-trip (ADR-0111). |
 | 26 | Phase 24. The world gains `overland`: `landmarks` (landmark id, found, foundAt, searched, restedDay), `encounters` (id, kind, state, regionId, x, z, at, populationId, groupId, text, outcome, encounterId; the 40 most recent) and the encounter clock (`lastCheckBucket`, `lastEncounterAt`). The player gains `waypoint`. Landmarks themselves are regenerated from the seed, never saved. | `MigrationV25ToV26` is structural and writes nothing: absent means nothing found, nothing met, no mark. Tested: a v25 save loads at v26 with an empty overland state and validates; landmark states, the clock and the waypoint round-trip (ADR-0113, ADR-0114). |
 | 27 | Phase 25. The player gains `knownCreatures`: one entry per creature kind met in a fight (creatureId, firstMetAt, met, defeated), at most 500, for the bestiary. | `MigrationV26ToV27` writes nothing: an absent list is seeded once on load from the fights the save still holds (`CreatureKnowledge.SeedFromHistory`); an empty list stays empty. Tested: a v26 save loads at v27 with the record seeded from its fight, validates, and does not count the fight twice after another save and load (ADR-0116). |
+| 28 | M1.1. The world gains `playtimeSeconds` (active play, recorded before each save). The envelope gains a one-line `summary` (worldName, characterName, className, level, locationText, minuteOfDay, date, campaignChapter, playtimeSeconds, playedAtUtc, slotKind) and `integrity` (SHA-256 of the world's text as written), both before `world`. | `MigrationV27ToV28` writes nothing: absent playtime reads as 0 (shown as —); the summary and checksum are written by the next save. The store checks a declared checksum before parsing; a file without one is read unchecked. Tested: a real v27 file written by the pre-M1.1 build loads, and its world re-serialises identically apart from `playtimeSeconds` (ADR-0123). |
 
 ## Format (schema v2, Phase 2)
 
@@ -134,6 +135,12 @@ Arrival at a settlement's front gate is derived from the persisted plan's roads,
 - Existing saves arrive at their gates without migration.
 - A player saved inside a settlement keeps their saved position.
 
-## Phase 30: release design (not implemented)
+## M1.1: release slots, backups and autosave (ADR-0123)
 
-The release save system (three manual slots, rotating autosaves, backups, slot metadata, Continue rules, saving off the main thread) is designed in `SaveLoad-Design.md`, awaiting owner approval. No schema change was made in Phase 30.
+- **Slots:** `slot-1`…`slot-3` (Save Game, New Game) and `auto-1`…`auto-3` (the autosave rotation: an empty slot first, then the one played longest ago). Any other name is an older or developer save, listed in development builds only.
+- **Files beside a slot:** `<slot>.rkworld.json.bak` (the save it replaced, kept by `File.Replace`), `<slot>.jpg` (the thumbnail), and `<slot>.rkworld.json.damaged` after a backup is restored.
+- **Writing:** temporary file, read back and compared, then replace with backup. Any failure leaves the save and its backup untouched. Stale `.tmp` files are removed at start-up.
+- **States:** Ready, Will be updated, Too new for this build, Damaged (backup available), Damaged.
+- **Continue:** newest `playedAtUtc` among loadable saves; on a failed load it offers the next. It never changes a file.
+
+The Phase 30 design is `SaveLoad-Design.md`; what M1.1 implemented, and what it left for M1.2, is marked there.

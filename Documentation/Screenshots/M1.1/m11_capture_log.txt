@@ -1,0 +1,21 @@
+m11_01_main_menu_empty: 1920x1080, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Launch menu with no saves: Continue disabled with its reason; Developer entries (editor and development builds).
+m11_01_main_menu_empty_1024x768: 1024x768, interface scale 1.25, width classes [Title Screen=compact, HUD=compact]. Launch menu with no saves: Continue disabled with its reason; Developer entries (editor and development builds).
+m11_02_main_menu: 1920x1080, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Launch menu: Continue, New Game, Load Game, Settings, Credits, Exit Game.
+m11_02_main_menu_1366x768: 1366x768, interface scale 1.25, width classes [Title Screen=regular, HUD=regular]. Launch menu: Continue, New Game, Load Game, Settings, Credits, Exit Game.
+m11_02_main_menu_1280x720: 1280x720, interface scale 1.25, width classes [Title Screen=regular, HUD=regular]. Launch menu: Continue, New Game, Load Game, Settings, Credits, Exit Game.
+m11_02_main_menu_1024x768: 1024x768, interface scale 1.25, width classes [Title Screen=compact, HUD=compact]. Launch menu: Continue, New Game, Load Game, Settings, Credits, Exit Game.
+m11_02_main_menu_2560x1440: 2560x1440, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Launch menu: Continue, New Game, Load Game, Settings, Credits, Exit Game.
+m11_02_main_menu_3440x1440: 3440x1440, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Launch menu: Continue, New Game, Load Game, Settings, Credits, Exit Game.
+m11_03_load_game: 1920x1080, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Load Game: three slots (one Damaged with its backup offered), the autosaves, and older saves in development builds.
+m11_03_load_game_1366x768: 1366x768, interface scale 1.25, width classes [Title Screen=regular, HUD=regular]. Load Game: three slots (one Damaged with its backup offered), the autosaves, and older saves in development builds.
+m11_03_load_game_1280x720: 1280x720, interface scale 1.25, width classes [Title Screen=regular, HUD=regular]. Load Game: three slots (one Damaged with its backup offered), the autosaves, and older saves in development builds.
+m11_03_load_game_1024x768: 1024x768, interface scale 1.25, width classes [Title Screen=compact, HUD=compact]. Load Game: three slots (one Damaged with its backup offered), the autosaves, and older saves in development builds.
+m11_03_load_game_2560x1440: 2560x1440, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Load Game: three slots (one Damaged with its backup offered), the autosaves, and older saves in development builds.
+m11_03_load_game_3440x1440: 3440x1440, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Load Game: three slots (one Damaged with its backup offered), the autosaves, and older saves in development builds.
+m11_04_new_game: 1920x1080, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. New Game: choose a slot; an occupied one says Replace and asks first.
+m11_04_new_game_1024x768: 1024x768, interface scale 1.25, width classes [Title Screen=compact, HUD=compact]. New Game: choose a slot; an occupied one says Replace and asks first.
+m11_04_new_game_3440x1440: 3440x1440, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. New Game: choose a slot; an occupied one says Replace and asks first.
+m11_05_save_game: 1920x1080, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Save Game in a game: the three manual slots.
+m11_05_save_game_1024x768: 1024x768, interface scale 1.25, width classes [Title Screen=compact, HUD=compact]. Save Game in a game: the three manual slots.
+m11_05_save_game_3440x1440: 3440x1440, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. Save Game in a game: the three manual slots.
+m11_06_in_game_menu: 1920x1080, interface scale 1.00, width classes [Title Screen=regular, HUD=regular]. The menu in a game: Resume, Save Game, Load Game.

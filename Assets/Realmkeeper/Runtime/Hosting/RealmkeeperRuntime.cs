@@ -70,10 +70,48 @@ namespace Realmkeeper.Hosting
             }
 
             DontDestroyOnLoad(gameObject);
-            var saves = Path.Combine(UnityEngine.Application.persistentDataPath, SaveFolder);
-            Host = RealmkeeperComposition.CreateHost(saves, ConfigureSession);
+            SaveRoot = Path.GetFullPath(string.IsNullOrEmpty(SaveRootOverride) ? Path.Combine(UnityEngine.Application.persistentDataPath, SaveFolder) : SaveRootOverride);
+            Host = RealmkeeperComposition.CreateHost(SaveRoot, ConfigureSession);
             Host.SessionStarted += Bind;
             Host.SessionEnded += Unbind;
+
+            // M1.1 (ADR-0123): a temporary file left by an interrupted save is removed; the saves beside it are untouched.
+            var removed = new Realmkeeper.Infrastructure.Persistence.JsonWorldStore(SaveRoot).CleanStaleTemps();
+            if (removed.Count > 0) Debug.Log("Realmkeeper: removed " + removed.Count + " unfinished save file(s) left by an interrupted save: " + string.Join(", ", removed) + ". The saves themselves are untouched.");
+        }
+
+        /// <summary>
+        /// M1.1: tests point the save folder elsewhere (set before the runtime is created; null for the player's own
+        /// <c>persistentDataPath/Saves</c>), so a test never writes the release slots of the player's saves.
+        /// </summary>
+        public static string SaveRootOverride;
+
+        /// <summary>M1.1: the folder every save screen and the session use.</summary>
+        public string SaveRoot { get; private set; }
+
+        /// <summary>M1.1: raised after every save attempt (the slot and the result), manual or auto.</summary>
+        public event Action<string, CommandResult> Saved;
+
+        private double _lastSaveTime = double.NaN;
+
+        /// <summary>M1.1: real seconds since the last successful save in this session; null when nothing was saved yet.</summary>
+        public double? SecondsSinceLastSave => double.IsNaN(_lastSaveTime) ? (double?)null : Time.realtimeSinceStartupAsDouble - _lastSaveTime;
+
+        /// <summary>M1.1: forgets when the last save was (tests, which cannot wait a minute between autosaves).</summary>
+        public void ResetSaveClock() => _lastSaveTime = double.NaN;
+
+        /// <summary>M1.1: whether play time counts this frame (set by the presentation: no menu open). Null: always.</summary>
+        public Func<bool> PlaytimeCounts { get; set; }
+
+        /// <summary>M1.1: play time since the last save or load, not yet recorded into the world.</summary>
+        public double UnsavedPlaytime { get; private set; }
+
+        /// <summary>Records the play time counted since the last save into the world (a command), before a save.</summary>
+        private void FlushPlaytime()
+        {
+            if (UnsavedPlaytime <= 0 || !Host.IsActive) return;
+            var r = Host.Session.Dispatch(new RecordPlaytimeCommand(Math.Min(UnsavedPlaytime, RecordPlaytimeCommand.MaxSeconds)));
+            if (r.IsSuccess) UnsavedPlaytime = 0;
         }
 
         /// <summary>Starts a new world unless one is already active (returns the existing session's state in that case).</summary>
@@ -122,7 +160,11 @@ namespace Realmkeeper.Hosting
             var slotError = SaveSlot.Validate(slot);
             if (slotError != null) return CommandResult.Invalid(slotError);
             PreparingSave?.Invoke();
-            return Host.Session.Dispatch(new SaveWorldCommand(slot));
+            FlushPlaytime(); // M1.1
+            var result = Host.Session.Dispatch(new SaveWorldCommand(slot));
+            if (result.IsSuccess) _lastSaveTime = Time.realtimeSinceStartupAsDouble;
+            Saved?.Invoke(slot, result);
+            return result;
         }
 
         /// <summary>Loads <see cref="ActiveSlot"/> into the active session (the session object stays the same).</summary>
@@ -154,6 +196,7 @@ namespace Realmkeeper.Hosting
 
         private void Bind(WorldSession session)
         {
+            UnsavedPlaytime = 0; // M1.1: a new or loaded world starts its own count
             _boundSession = session;
             Playback = new SimulationPlayback(session);
             session.WorldChanged += OnWorldChanged;
@@ -172,6 +215,7 @@ namespace Realmkeeper.Hosting
         private void OnWorldChanged(WorldChange change)
         {
             if (change.Reason == WorldChangeReason.Closed) return;
+            if (change.Reason == WorldChangeReason.Loaded) UnsavedPlaytime = 0; // M1.1: time since the last save is lost with the progress
             UpdateMode();
         }
 
@@ -194,6 +238,7 @@ namespace Realmkeeper.Hosting
         private void Update()
         {
             Playback?.Tick(Time.deltaTime);
+            if (Host != null && Host.IsActive && (PlaytimeCounts == null || PlaytimeCounts())) UnsavedPlaytime += Time.unscaledDeltaTime; // M1.1
         }
 
         private void OnDestroy()

@@ -1,7 +1,7 @@
 # Save, load, Continue and New Game: release design (Phase 30)
 
-**Date:** 2026-11-16. **Status:** design for owner review; **nothing implemented, no schema change, no migration.**
-**Current implementation:** `Systems/Persistence.md` (schema v27), `Infrastructure/Persistence/`, `Presentation/UI/TitleScreen.cs`.
+**Date:** 2026-11-16. **Status:** approved by the owner 2026-11-16. **M1.1 implemented** the menu, slots, metadata, Continue, New Game, reliability and autosave at arrivals, story moments and on leaving (schema v28, ADR-0123). Differences from this design: the checksum is optional on read (a file without one is read unchecked, so hand-edited and older saves load); New Game uses a fixed stand-in world until M1.3; there is no quicksave key. **Not yet:** the timed autosave, saving off the main thread and compact JSON (M1.2).
+**Current implementation:** `Systems/Persistence.md` (schema v28), `Infrastructure/Persistence/`, `Presentation/UI/TitleScreen.cs`.
 
 ## Answer first
 

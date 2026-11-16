@@ -103,6 +103,21 @@ namespace Realmkeeper.Infrastructure.Persistence
     /// is regenerated: settlements, people, routes and every change the player made are kept as they were.
     /// </summary>
     /// <summary>
+    /// v27 → v28 (M1.1, ADR-0123). Structural, writes nothing: the world gains an optional <c>playtimeSeconds</c> (absent:
+    /// 0, shown as "—"), and the envelope a <c>summary</c> and an <c>integrity</c> checksum, written by the next save. No
+    /// world field is changed.
+    /// </summary>
+    public sealed class MigrationV27ToV28 : ISaveMigration
+    {
+        public int SourceVersion => 27;
+
+        public void Migrate(JObject document)
+        {
+            // Optional fields: nothing to rewrite.
+        }
+    }
+
+    /// <summary>
     /// v26 → v27 (Phase 25, ADR-0116). The player gains an optional <c>knownCreatures</c> list for the bestiary. Nothing
     /// is rewritten: an absent list is seeded on load from the fights the save still holds
     /// (<see cref="Realmkeeper.Domain.World.CreatureKnowledge.SeedFromHistory"/>).

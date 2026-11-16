@@ -227,6 +227,7 @@ namespace Realmkeeper.Tests.EditMode.Character
             rpg["experience"] = 400;
             rpg["experienceLog"] = new JArray(new JObject { ["key"] = "story:prologue", ["source"] = "Story", ["sourceId"] = "prologue", ["amount"] = 400, ["reason"] = "before Phase 22" });
             Directory.CreateDirectory(_dir);
+            doc.Remove("integrity"); // M1.1 (ADR-0123): an edited file is Damaged by its checksum; a hand-edited test save drops it
             File.WriteAllText(Path.Combine(_dir, "pending" + JsonWorldStore.Extension), doc.ToString());
             Assert.That(_s.Execute(new LoadWorldCommand("pending")).IsSuccess, Is.True);
             Assert.That(W.Player.Rpg.Experience, Is.EqualTo(400));

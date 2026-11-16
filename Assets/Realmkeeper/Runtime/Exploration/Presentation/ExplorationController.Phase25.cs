@@ -55,10 +55,20 @@ namespace Realmkeeper.Exploration.Presentation
             var host = Hud.Root.panel?.visualTree ?? Hud.Root;
             var where = InOverland ? "In the country" : InPlace ? "In a place" : RoadStage != null ? "On the road" : "In a settlement";
             var canLeave = !InFight;
+            var saveBlocker = _session != null && _session.HasWorld ? _session.GetSaveBlocker() : null;
             var entries = new List<RkMenuOverlay.Entry>
             {
                 new RkMenuOverlay.Entry { Name = "resume", Text = RkText.Get("pause.resume"), Icon = "play", Act = ClosePauseMenu, Primary = true },
-                new RkMenuOverlay.Entry { Name = "save", Text = RkText.Get("pause.save"), Icon = "save", Act = PauseSave },
+                new RkMenuOverlay.Entry
+                {
+                    Name = "save", Text = RkText.Get("pause.save"), Icon = "save", Act = PauseSave,
+                    Enabled = saveBlocker == null, Hint = saveBlocker, // M1.1: not in a fight or a conversation
+                },
+                new RkMenuOverlay.Entry
+                {
+                    Name = "load", Text = RkText.Get("pause.load"), Icon = "load", Act = PauseLoad, // M1.1
+                    Enabled = canLeave && RkHooks.OpenLoadGame != null, Hint = !canLeave ? "Not during a fight." : RkHooks.OpenLoadGame == null ? RkText.Get("pause.nomainmenu") : null,
+                },
                 new RkMenuOverlay.Entry { Name = "settings", Text = RkText.Get("pause.settings"), Icon = "settings", Act = PauseOpenSettings },
                 new RkMenuOverlay.Entry
                 {
@@ -74,6 +84,7 @@ namespace Realmkeeper.Exploration.Presentation
             };
             Pause = new RkMenuOverlay(host, RkText.Get("pause.title"), RkText.Format("pause.clock", where), entries, Hud.Toasts?.History);
             _pauseOpenedFrame = Time.frameCount;
+            RkHooks.PauseMenuOpen = true; // M1.1: play time stops
             Hud.SetWindowOpen(true);
         }
 
@@ -83,6 +94,7 @@ namespace Realmkeeper.Exploration.Presentation
             PauseSettings?.Close();
             Pause.Close();
             Pause = null;
+            RkHooks.PauseMenuOpen = false;
             _pauseClosedFrame = Time.frameCount;
             if (Player != null) Player.MovementEnabled = _movementBeforePause;
             if (_pauseWasPlaying) _runtime?.Playback?.Play();
@@ -90,18 +102,37 @@ namespace Realmkeeper.Exploration.Presentation
             Hud?.SetWindowOpen(WindowOpen);
         }
 
+        /// <summary>
+        /// M1.1: Save Game opens the slot chooser (the title's Save Game screen). In a scene without one (some tests), it
+        /// saves the active slot as Phase 25 did.
+        /// </summary>
         private void PauseSave()
         {
+            if (RkHooks.OpenSaveGame != null)
+            {
+                ClosePauseMenu();
+                RkHooks.OpenSaveGame();
+                return;
+            }
+
             var result = SaveNow();
             Hud?.Toasts?.Push("saved:" + Time.realtimeSinceStartup, result.IsSuccess ? "saved" : "error", result.IsSuccess ? "Saved" : "Not saved", result.Message);
             ClosePauseMenu();
+        }
+
+        /// <summary>M1.1: Load Game opens the title's Load Game screen.</summary>
+        private void PauseLoad()
+        {
+            if (RkHooks.OpenLoadGame == null) return;
+            ClosePauseMenu();
+            RkHooks.OpenLoadGame();
         }
 
         private void PauseOpenSettings()
         {
             var host = Pause?.Root;
             if (host == null) return;
-            PauseSettings = new RkSettingsWindow(host, () => Pause?.Buttons[2]?.Focus());
+            PauseSettings = new RkSettingsWindow(host, () => Pause?.Root.Q<Button>("pause-settings")?.Focus());
         }
 
         private void PauseMainMenu()
@@ -112,6 +143,7 @@ namespace Realmkeeper.Exploration.Presentation
                 RkText.Get("pause.main"), () =>
                 {
                     ClosePauseMenu();
+                    RkHooks.RaiseBeforeLeavingGame("title"); // M1.1: an autosave where the player was, when allowed
                     ReturnToWorldMap();
                     RkHooks.OpenMainMenu?.Invoke();
                 });
@@ -124,6 +156,7 @@ namespace Realmkeeper.Exploration.Presentation
             RkModal.Confirm(host, RkText.Get("pause.exitconfirm.title"), RkText.Get("pause.exitconfirm.body"),
                 RkText.Get("pause.exit"), () =>
                 {
+                    RkHooks.RaiseBeforeLeavingGame("exit"); // M1.1
                     if (UnityEngine.Application.isEditor) { Hud?.Toasts?.Push("exit-editor", "notify", "Exit closes the built game", "In the editor, stop Play mode instead."); return; }
                     UnityEngine.Application.Quit();
                 }, true);
