@@ -4,7 +4,7 @@
 
 **Approach:** conservative. Remove only what is provably unused; measure before and after any performance change; delete no files the owner has asked to keep; report candidates rather than act on them.
 
-**Baseline:** `3c61b01`. **Commit:** local only, listed in the closing message.
+**Baseline:** `3c61b01`. **Commits:** `ff08004` (code and tests), `433532a` (this report); pushed 2026-11-15 at the owner's instruction.
 
 ## 1. What changed
 
