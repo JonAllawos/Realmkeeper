@@ -790,3 +790,39 @@ These are restated from the Bible, not new.
 - Measured against the daily tick budget. Shops already cost about 14 ms per simulated day for 67 shops.
 
 **Candidate phases:** Phase 28 (living overland simulation) or a dedicated economy phase. The owner decides.
+
+### R2: A massive persistent world with regional economies (recorded 2026-11-16)
+
+**Source:** the owner's "Product Bible Additions" (2026-11-16), recorded as Game Design Bible amendments A7 and A9. **A long-term product requirement, not authorisation to build.**
+
+**Requirement (summary; the full text is A7).**
+- A world of dozens of cities, many more towns, villages, hamlets, farms, outposts, castles, forts, ports, ruins and isolated settlements, and hundreds of discoverable destinations.
+- Coherent geography: mountains shape travel and settlement, rivers shape trade, resources shape economies. Surface and underground exploration.
+- Regional economies that are not interchangeable: resources, agriculture, industry, crafts, trade routes and ports, politics and taxation, supply, demand and scarcity. Goods move through the world, and events change prices, availability and prosperity. One economy, joined to the civilisation simulation.
+
+**Constraints:**
+- One persistent world and one simulation (ADR-0009). No isolated hand-built city levels; procedural generation alongside authored places.
+- Exact dimensions, counts and economic formulas are **not locked** until designed (A9).
+- Extends the Phase 2 economy (`../Systems/Economy.md`) and R1; no second economy.
+- Generation, simulation tiers and streaming are measured against the daily tick and frame budgets before scale is raised.
+
+**First design work:** world size and settlement counts against the simulation and streaming budgets; city and fortress generation (the types exist but are never placed today); regional characters and resources; whether underground is a layer or a realm. **Candidate phases:** the owner decides; it touches world generation (Phase 25's area), streaming and the economy.
+
+### R3: Player-owned property, home building and estates (recorded 2026-11-16)
+
+**Source:** the owner's "Product Bible Additions" (2026-11-16), recorded as Game Design Bible amendments A8 and A9. **A long-term product requirement, not authorisation to build.**
+
+**Requirement (summary; the full text is A8).**
+- Acquire land by purchase, political, factional or contractual arrangement, with wealth from any source, including illicit coin where the world's laws and consequences permit it. Availability, price, size and restrictions vary by place.
+- Urban plots: small, expensive, vertical (upper floors, basements), with workshops and commercial rooms where permitted.
+- Rural plots and estates: farms, livestock, stables, outbuildings, manors, gardens and orchards, worker accommodation, run as working operations.
+- Construction and upgrades inside and out, paid in coin and resources; functional stations (alchemy, forge, potions, crafting, storage and vaults, kitchens, farm and animal care) joined to the existing crafting, inventory and economy.
+- Household staff and employees with real work: domestic staff, cooks, ranch and stable hands, craftspeople, guards.
+- Persistent ownership in the one world: saved, kept when the player leaves, simulated while they are away, and subject to law, tax, crime, faction control, supply, demand, security and upkeep.
+
+**Constraints:**
+- Uses the existing crafting, inventory, economy, crime and NPC systems; no parallel property economy.
+- Player construction must be stored on top of persisted generated plans without breaking deterministic regeneration or old saves (versioned, migrated).
+- Costs, limits and plot sizes are **not locked** until designed (A9).
+
+**Dependencies:** an ownership and deed model; an employment model shared with NPC labour; taxes and ownership in law; interiors that can change (Phase 21's interior generation is per building plan). **Candidate phases:** the owner decides; ownership and a single urban home are the natural first slice.

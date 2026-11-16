@@ -17,7 +17,19 @@ namespace Realmkeeper.Infrastructure.Persistence
 
         static partial void ReadSettlementLayouts(WorldDto dto, WorldData world)
         {
-            foreach (var d in dto.SettlementLayouts ?? new List<SettlementLayoutDto>()) world.SettlementLayouts.Add(Layout(d));
+            foreach (var d in dto.SettlementLayouts ?? new List<SettlementLayoutDto>())
+            {
+                var p = Layout(d);
+                // Phase 29 (ADR-0121): plans saved before v3 get their roads straightened through the wall gates, once; the
+                // save's shape is unchanged and the plan is written back as v3.
+                if (p.GeneratorVersion < 3)
+                {
+                    SettlementWalls.StraightenGateRoads(p);
+                    p.GeneratorVersion = 3;
+                }
+
+                world.SettlementLayouts.Add(p);
+            }
         }
 
         private static List<float> Flat(IEnumerable<PlanPoint> points)

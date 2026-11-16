@@ -449,6 +449,175 @@ These extend the list in §19; the original twenty stand.
 
 ---
 
+## Owner design amendments (2026-11-16): world scale, regional economies and player property
+
+Supplied by the owner on 2026-11-16, during Phase 29, as "Product Bible Additions". **These are long-term product
+requirements, not authorisation to build any of them now.** Nothing in this section is implemented unless a later status
+entry says so. Each system needs its own brief. The owner's requirements follow (A7–A9). A short note of where the code
+stands, inspected on 2026-11-16, closes each one.
+
+### A7. Massive persistent world, geography and regional economies
+
+**Core vision.** Realmkeeper must ultimately support a genuinely large, persistent fantasy world. The current map and its
+limited number of major settlements are an early foundation, not the intended final world. The long-term vision is a world
+containing dozens of cities and a substantial number of additional settlements, destinations and points of interest.
+
+**World scale and geography.** The world should include:
+- dozens of cities, each with its own identity, architecture, population, culture and economy;
+- towns, villages, hamlets, farming communities, military outposts, castles, forts, ports, ruins and isolated settlements;
+- hundreds of discoverable destinations and points of interest over the full world, with exact quantities determined through
+  future world-generation and performance planning;
+- vast wilderness areas between settlements;
+- distinct geographical regions with different terrain, elevation, climate and resources;
+- large mountain ranges, valleys, hills, forests, plains, swamps, deserts, coastlines, rivers, lakes, caves, underground
+  networks, mines and other natural formations;
+- surface and underground exploration, including caves, caverns, tunnels, buried structures and extensive subterranean
+  locations;
+- roads, trade routes, passes, bridges, waterways and other connections between regions and settlements.
+
+The world must feel geographically coherent. Mountains should affect travel and settlement placement. Rivers should influence
+trade and development. Resources should influence local economies and the growth of communities.
+
+**Distinct regional economies.** Cities and settlements must not feel economically interchangeable. Each region should have
+its own economic character, based on:
+- available natural resources;
+- agricultural production and livestock;
+- mining, forestry, fishing and other industries;
+- local craftsmanship and manufacturing;
+- trade routes, ports, caravans and merchants;
+- political control, taxation, wealth and stability;
+- supply, demand, scarcity and regional specialisation.
+
+Goods should move through the world. A mining town should have a different economy from an agricultural village or a wealthy
+trade city. Regional conditions and events should be able to change prices, availability, prosperity and trade. The economy
+should connect to the broader civilisation simulation, not exist as a disconnected player-facing shop system.
+
+**Where the code stands (inspected 2026-11-16).**
+- **Settlement types:** cities and fortresses exist as types (with their own gatehouse proportions since Phase 28), but world
+  generation places only towns, villages and hamlets (`RegionGenerator.SiteTypes`). No generated world contains a city.
+- **Regions:** walkable regions are 128 cells (5.12 km a side) of country (ADR-0110), with a few settlements each (three in
+  the starting region of seed 123456789). The ancient realm is a separate region whose content is undecided.
+- **Underground:** places entered from settlements and the country (mines, crypts, caves and others; Phase 13 onward) are
+  generated per place. There is no connected underground network.
+- **Economy:** settlement economies with five resources (food, timber, stone, iron, coin), production, storage by settlement
+  type, trade routes and shipments exist since Phase 2 (`../Systems/Economy.md`), all deterministic. Shops as economic
+  entities are recorded as `FutureRoadmap.md` R1. Regional specialisation beyond these resources is not modelled.
+
+### A8. Player-owned property, home building and estates
+
+**Core vision.** Players must eventually be able to acquire property, establish a home and develop it into anything from a
+modest residence to a substantial rural estate. Property ownership and construction should be meaningful long-term progression
+systems. Players should be able to build a place to live, store possessions, conduct crafting, employ people, operate
+agricultural businesses and establish a personal foothold in the world.
+
+**Acquiring land.** Players should be able to acquire land using accumulated wealth. Possible paths include:
+- purchasing available property through legitimate owners or authorities;
+- acquiring land through appropriate political, factional or contractual arrangements;
+- using wealth obtained through legitimate work, trade, adventuring or criminal activity;
+- using stolen or otherwise illicitly acquired coin to finance property purchases, where the game world's laws and
+  consequences permit it.
+
+Property availability, price, size and restrictions should vary by location.
+
+**Urban property.** Property inside city walls should generally be more limited in space and more expensive. Urban
+construction should support:
+- smaller residential plots;
+- multi-storey buildings, including second and third floors where structurally appropriate;
+- basements and underground storage or utility spaces;
+- interior room customisation and expansion;
+- exterior appearance and architectural upgrades;
+- workshops, commercial facilities and specialised crafting rooms where permitted.
+
+Urban plots should make efficient use of limited space and allow players to develop vertically.
+
+**Rural property and estates.** Property outside city limits should generally allow larger plots and greater freedom.
+Players should be able to establish:
+- farms and crop fields;
+- livestock ranches and animal enclosures;
+- stables and horse facilities;
+- barns, sheds, storehouses, workshops and other outbuildings;
+- larger residences, manors and estates;
+- gardens, orchards and other productive land;
+- employee and worker accommodation.
+
+Rural properties should support ongoing agricultural and livestock operations, not merely decorative buildings. Players
+should be able to hire ranch hands and other workers to help maintain and operate their property.
+
+**Construction and upgrades.** Players should spend currency and resources to improve both the interior and exterior of
+their properties. Customisation should include:
+- building layout and room additions;
+- walls, floors, ceilings, doors, windows and architectural details;
+- furniture, decorations, lighting and storage;
+- exterior materials, landscaping, fences, gates, courtyards and gardens;
+- additional floors and basements;
+- functional workspaces and specialised facilities.
+
+**Functional facilities and stations.** Properties should support useful stations and facilities, connected to the existing
+crafting, inventory, resource and economy systems:
+- alchemy tables;
+- forges and smithing equipment;
+- potion-making stations;
+- general crafting workspaces;
+- storage rooms and vaults;
+- kitchens and food preparation facilities;
+- agricultural and animal-care facilities.
+
+**Household staff and employees.** Players should eventually be able to hire people to work and live at their properties:
+- housemaids and domestic staff;
+- chefs and cooks;
+- ranch hands and farm workers;
+- stable hands;
+- craftspeople and workshop assistants;
+- guards and property security;
+- other specialised employees as the property grows.
+
+Employees should have meaningful roles and provide services or perform work, not exist only as decorative NPCs.
+
+**Persistent ownership and simulation.** Player properties must be part of the same persistent world as cities,
+settlements, factions and the wider economy:
+- ownership must persist through saves and world transitions;
+- buildings and upgrades must remain after leaving the property;
+- employees and operations should continue to be represented in the simulation when the player is elsewhere;
+- property should interact with local laws, taxes, crime, faction control, supply, demand and security;
+- larger properties should require greater investment and potentially more employees and upkeep.
+
+**Where the code stands (inspected 2026-11-16).**
+- **Ownership:** there is no property ownership, purchase or construction system. Settlement buildings come from persisted
+  generated plans (ADR-0120 and earlier), not player edits.
+- **Crafting:** stations are bound to settlement workshops (anvil, workbench; Phase 21). Crafting and inventory exist
+  (Phase 11, Phase 21).
+- **People:** employment exists for NPCs in the settlement economy and labour (Phase 2 onward). The player cannot hire
+  anyone. Companions (Phase 15) are a party system, not employees.
+- **Law:** crime and its consequences exist (Phase 14). Taxes and ownership-related law do not.
+
+### A9. Design and implementation principles for A7 and A8
+
+These are long-term product requirements, not authorisation to immediately build every system.
+- Preserve the existing single persistent world and shared simulation.
+- Design world generation and streaming to accommodate substantially more destinations and larger geography.
+- Avoid making every city or settlement a manually authored, isolated environment.
+- Use procedural generation alongside authored locations to provide scale without sacrificing identity or quality.
+- Keep property ownership, construction, economy, crafting, employment and simulation interconnected.
+- Build systems incrementally, with persistence, performance and meaningful gameplay prioritised over superficial feature
+  counts.
+- **Do not lock** exact world dimensions, city counts, construction costs, property limits or economic formulas until they
+  have been deliberately designed.
+
+### A10. Known gaps these amendments open
+
+| Gap | First design question for the owner |
+|---|---|
+| World generation never places cities, forts, castles, ports or outposts | How many settlements of each kind, and how big a world, the simulation and streaming can carry (A9: not locked yet) |
+| A few settlements per region; points of interest in the tens, not hundreds | Destination density per region against generation and streaming cost |
+| No coastlines, deserts or swamps as region kinds with their own economies; no climate model beyond weather | Which regional characters come first |
+| No connected underground network | Whether underground is its own realm, region layer or per-place |
+| Five economy resources; no regional specialisation, ports or caravans as simulated actors | How far the Phase 2 economy is extended versus replaced (R1 and R2 in `FutureRoadmap.md`) |
+| No property, purchase, construction, upkeep or tax | Ownership model first (deeds, plots, legality of illicit coin) |
+| The player cannot employ anyone | Employment model shared with the NPC economy |
+| Settlement plans are generated and persisted; nothing supports player edits to buildings | How player construction is stored on top of generated plans |
+
+---
+
 ## The Bible (as supplied)
 
 ```text

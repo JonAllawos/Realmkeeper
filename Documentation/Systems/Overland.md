@@ -106,6 +106,15 @@ A place entered from the country returns the player there when they leave it.
   - Return to World Map (M) leaves.
 - **`LoadingScreen`:** covers every transition. A refusal shows its reason and leaves the player where they were.
 
+### Phase 29: the ground as a Unity Terrain (ADR-0122)
+
+- **Default:** one Unity Terrain per region, filled from `OverlandTerrain.HeightAt` (1025² heightmap, a sample every 5 m, one `TerrainCollider`), drawn with `Realmkeeper/TerrainGround` (biome colour and ground weights from two region textures; grain, wet ground, snow and fog as before).
+- **Fallback:** the chunk meshes above, behind `OverlandWorld.UseUnityTerrain = false`, reading the same heights.
+- **Streaming:** the 640 m chunks still stream trees, grass and barriers near the player.
+- **Cache (`OverlandTerrainCache`):** the heightmap and both textures are kept for up to 3 regions (least recently used evicted), keyed by the session's immutable `OverlandTerrain` object; a loaded or new world brings new objects, so it never matches old ground. A repeat entry prepares the ground in 1–12 ms instead of about 100–140 ms (editor).
+- **Visual parity (2026-11-16):** colour, sunlight, roads, bridges and ground weather match the mesh ground in all seven matched screenshot pairs (ADR-0122, "Visual parity").
+- **Ground weather:** ADR-0115's `_Wet` and `_Snow` own the overland ground and roads on both grounds (`OverlandWorld.ApplyGroundConditions`); the atmosphere no longer replaces their materials, so the mesh ground now shows lying snow too.
+
 ## Follow-up (owner request, 2026-11-13)
 
 - **Look.**

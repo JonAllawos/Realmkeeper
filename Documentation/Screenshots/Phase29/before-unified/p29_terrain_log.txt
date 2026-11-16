@@ -1,0 +1,16 @@
+p29_mesh_01_settlement_approach: The arrival outside the town: its roads leading out across the country.
+p29_mesh_02_countryside: Representative countryside: grassland and meadow, forest edges.
+p29_mesh_05_wet_ground: The same view with the ground wet (conditions: wetness 85, muddy).
+p29_mesh_06_snow: The same view under deep snow (conditions: snow cover 70: level ground whitens).
+p29_mesh_03_hills_and_steep_ground: Hills and steep ground: rocky slopes and crags.
+p29_mesh_04_road_and_bridge: A road crossing water by its bridge or causeway.
+p29_mesh_07_region_from_above: The whole region from above (5.12 km a side), haze as in play.
+p29_mesh: mesh ground; arrival (740,3100); steep (10, 59); bridge (61, 62); field (12, 66).
+p29_terrain_01_settlement_approach: The arrival outside the town: its roads leading out across the country.
+p29_terrain_02_countryside: Representative countryside: grassland and meadow, forest edges.
+p29_terrain_05_wet_ground: The same view with the ground wet (conditions: wetness 85, muddy).
+p29_terrain_06_snow: The same view under deep snow (conditions: snow cover 70: level ground whitens).
+p29_terrain_03_hills_and_steep_ground: Hills and steep ground: rocky slopes and crags.
+p29_terrain_04_road_and_bridge: A road crossing water by its bridge or causeway.
+p29_terrain_07_region_from_above: The whole region from above (5.12 km a side), haze as in play.
+p29_terrain: Unity Terrain; arrival (740,3100); steep (10, 59); bridge (61, 62); field (12, 66).

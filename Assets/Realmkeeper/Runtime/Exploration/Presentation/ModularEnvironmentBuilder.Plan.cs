@@ -653,48 +653,12 @@ namespace Realmkeeper.Exploration.Presentation
                 return;
             }
 
-            // Phase 28: the wall runs right up to each gatehouse's towers (and either side of a lane's postern) instead of
-            // leaving out whole 20 m segments near a gate: no gaps a cart could be driven through beside the gate.
-            var gateHalf = GateSpec(ctx.Layout.Type).opening / 2f + GateSpec(ctx.Layout.Type).tower - 0.4f;
-            for (var i = 0; i < plan.Wall.Count; i++)
-            {
-                var a = plan.Wall[i];
-                var b = plan.Wall[(i + 1) % plan.Wall.Count];
-                var va = new Vector2(a.X, a.Z);
-                var vb = new Vector2(b.X, b.Z);
-                var len = Vector2.Distance(va, vb);
-                if (len < 0.5f) continue;
-                var dir = (vb - va) / len;
-                var cuts = new List<(float from, float to, bool postern)>();
-                foreach (var g in plan.Gates)
-                {
-                    var rel = new Vector2(g.X, g.Z) - va;
-                    var along = Vector2.Dot(rel, dir);
-                    var off = Mathf.Abs(rel.x * dir.y - rel.y * dir.x);
-                    if (off < 6f && along > -gateHalf && along < len + gateHalf) cuts.Add((along - gateHalf, along + gateHalf, false));
-                }
-
-                foreach (var (at, width, cos) in RoadCrossings(plan, va, vb))
-                {
-                    var along = at * len;
-                    var inGate = false;
-                    foreach (var c in cuts) if (!c.postern && along > c.from - 1f && along < c.to + 1f) inGate = true;
-                    if (inGate) continue;
-                    var half = (width / 2f + 0.9f) / Mathf.Max(0.35f, Mathf.Sqrt(Mathf.Max(0f, 1f - cos * cos))); // wider where the lane crosses aslant
-                    cuts.Add((along - half, along + half, true));
-                }
-
-                cuts.Sort((x, y) => x.from.CompareTo(y.from));
-                var start = 0f;
-                foreach (var c in cuts)
-                {
-                    WallPiece(ctx, boundary, colliders, va + dir * start, va + dir * Mathf.Min(len, c.from));
-                    if (c.postern) PosternLintel(ctx, boundary, va + dir * Mathf.Max(0f, c.from), va + dir * Mathf.Min(len, c.to));
-                    start = Mathf.Max(start, c.to);
-                }
-
-                WallPiece(ctx, boundary, colliders, va + dir * start, vb);
-            }
+            // Phase 28: the wall runs right up to each gatehouse's towers (and either side of a lane's postern). Phase 29
+            // (ADR-0121): the runs come from the plan (SettlementWalls), cut back along the wall to the towers of a gatehouse
+            // that now lies along its own road, so no stone stands across a way through; the engine-free tests check every gate.
+            var (runs, posterns) = SettlementWalls.Runs(plan, ctx.Layout.Type);
+            foreach (var r in runs) WallPiece(ctx, boundary, colliders, new Vector2(r.AX, r.AZ), new Vector2(r.BX, r.BZ));
+            foreach (var p in posterns) PosternLintel(ctx, boundary, new Vector2(p.AX, p.AZ), new Vector2(p.BX, p.BZ));
         }
 
         /// <summary>A straight run of town wall from <paramref name="p"/> to <paramref name="q"/> (skipped where too short or in water).</summary>
@@ -741,38 +705,6 @@ namespace Realmkeeper.Exploration.Presentation
             lintel.transform.localRotation = Quaternion.LookRotation(new Vector3(q.x - p.x, 0f, q.y - p.y).normalized, Vector3.up);
         }
 
-        /// <summary>Where roads cross the wall segment <paramref name="a"/>→<paramref name="b"/>: the fraction along it, the road's width, and the cosine between them.</summary>
-        private static List<(float at, float width, float cos)> RoadCrossings(SettlementLayoutData plan, Vector2 a, Vector2 b)
-        {
-            var list = new List<(float, float, float)>();
-            var ab = b - a;
-            foreach (var road in plan.Roads)
-                for (var i = 0; i + 1 < road.Line.Count; i++)
-                {
-                    var c = new Vector2(road.Line[i].X, road.Line[i].Z);
-                    var d = new Vector2(road.Line[i + 1].X, road.Line[i + 1].Z);
-                    var cd = d - c;
-                    var den = ab.x * cd.y - ab.y * cd.x;
-                    if (Mathf.Abs(den) < 1e-5f) continue;
-                    var t = ((c.x - a.x) * cd.y - (c.y - a.y) * cd.x) / den;
-                    var u = ((c.x - a.x) * ab.y - (c.y - a.y) * ab.x) / den;
-                    if (t < 0f || t > 1f || u < 0f || u > 1f) continue;
-                    list.Add((t, road.Width, Vector2.Dot(ab.normalized, cd.normalized)));
-                }
-
-            return list;
-        }
-
-        /// <summary>Phase 28: a gatehouse's proportions by the settlement's standing: a city's and a fortress's are larger.</summary>
-        private static (float opening, float tower, float extra) GateSpec(Realmkeeper.Domain.World.SettlementType type)
-        {
-            switch (type)
-            {
-                case Realmkeeper.Domain.World.SettlementType.Fortress: return (7f, 5.5f, 4f);
-                case Realmkeeper.Domain.World.SettlementType.City: return (8f, 5f, 2.5f);
-                default: return (7.5f, 4f, 0f);
-            }
-        }
 
         /// <summary>
         /// Phase 28: an unwalled settlement's way in, at its main entrance across the road: a village's timber gateway (two posts,
@@ -828,11 +760,18 @@ namespace Realmkeeper.Exploration.Presentation
             var root = new GameObject(b.Key + " (gatehouse)").transform;
             root.SetParent(ctx.Static, false);
             root.localPosition = new Vector3(b.Center.X, plan.HeightAt(b.Center.X, b.Center.Z), b.Center.Z);
-            root.localRotation = Quaternion.Euler(0f, -b.Yaw, 0f);
+            // Phase 29 (ADR-0121): along the road that passes through it (not toward the centre), its opening the road's width.
+            var (opening, tower, extra) = SettlementWalls.GateSpec(ctx.Layout.Type);
+            foreach (var g in SettlementWalls.Gates(plan, ctx.Layout.Type))
+                if (g.Key == b.Key)
+                {
+                    opening = g.Opening;
+                    root.localRotation = Quaternion.LookRotation(new Vector3(g.DirX, 0f, g.DirZ), Vector3.up);
+                }
+
             var colliders = new GameObject(b.Key + " colliders").transform;
             colliders.SetParent(ctx.Colliders, false);
             colliders.SetPositionAndRotation(root.position, root.rotation);
-            var (opening, tower, extra) = GateSpec(ctx.Layout.Type);
             var height = b.Height + 2f + extra;
             foreach (var s in new[] { -1f, 1f })
             {

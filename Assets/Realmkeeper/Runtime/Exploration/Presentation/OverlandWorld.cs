@@ -31,6 +31,7 @@ namespace Realmkeeper.Exploration.Presentation
 
         private OverlandTerrain _terrain;
         private Material _ground;
+        private Material _roadMaterial;
         private Material _water;
         private int _chunksX, _chunksZ;
         private Chunk[] _chunks;
@@ -84,16 +85,33 @@ namespace Realmkeeper.Exploration.Presentation
             var w = go.AddComponent<OverlandWorld>();
             w._terrain = view.Terrain;
             var vc = Shader.Find("Realmkeeper/VertexColorLit") ?? Shader.Find("Universal Render Pipeline/Particles/Simple Lit");
-            w._ground = new Material(vc) { name = "Overland ground", enableInstancing = true };
-            if (catalog != null && w._ground.HasProperty("_TexStrength"))
+            var terrainTemplate = UseUnityTerrain ? Resources.Load<Material>(TerrainMaterialResource) : null;
+            w._ground = terrainTemplate != null
+                ? new Material(terrainTemplate) { name = "Overland ground (terrain)" }
+                : new Material(vc) { name = "Overland ground", enableInstancing = true };
+            void Grain(Material m)
             {
+                if (catalog == null || !m.HasProperty("_TexStrength")) return;
                 // The owned ambientCG grass and ground, and the village kit's rock, as the ground's grain (Phase 23 follow-up).
-                w._ground.SetTexture("_GrassTex", catalog.Material("Grass")?.mainTexture);
-                w._ground.SetTexture("_DirtTex", catalog.Material("Dirt")?.mainTexture);
-                w._ground.SetTexture("_RockTex", catalog.Material("RockTrim")?.mainTexture ?? catalog.Material("Gravel")?.mainTexture);
-                w._ground.SetFloat("_TexStrength", 0.85f);
-                w._ground.SetFloat("_TexScale", 0.25f);
+                m.SetTexture("_GrassTex", catalog.Material("Grass")?.mainTexture);
+                m.SetTexture("_DirtTex", catalog.Material("Dirt")?.mainTexture);
+                m.SetTexture("_RockTex", catalog.Material("RockTrim")?.mainTexture ?? catalog.Material("Gravel")?.mainTexture);
+                m.SetFloat("_TexStrength", 0.85f);
+                m.SetFloat("_TexScale", 0.25f);
             }
+
+            Grain(w._ground);
+
+            // Roads (and the bridge decks they carry over water) are meshes with their own vertex colours and grain weights:
+            // they keep Realmkeeper/VertexColorLit. With the mesh ground they share its material, as in Phase 23; with the
+            // Unity Terrain they get their own, set up the same way, since the terrain shader takes its colour from the
+            // region's textures and would paint them the ground's (Phase 29 parity fix).
+            if (terrainTemplate != null)
+            {
+                w._roadMaterial = new Material(vc) { name = "Overland roads", enableInstancing = true };
+                Grain(w._roadMaterial);
+            }
+            else w._roadMaterial = w._ground;
             var water = Shader.Find("Realmkeeper/Water");
             w._water = water != null ? new Material(water) { name = "Overland water" } : new Material(vc) { name = "Overland water" };
             if (view.Profile == RealmProfiles.AncientPrototype && w._water.HasProperty("_ShallowColor")) w._water.SetColor("_ShallowColor", new Color(0.32f, 0.22f, 0.42f, 0.8f));
@@ -101,23 +119,196 @@ namespace Realmkeeper.Exploration.Presentation
             w._chunksX = Mathf.CeilToInt(view.Terrain.Map.Width / (float)ChunkCells);
             w._chunksZ = Mathf.CeilToInt(view.Terrain.Map.Depth / (float)ChunkCells);
             w._chunks = new Chunk[w._chunksX * w._chunksZ];
-            var coarseRoot = new GameObject("Ground (coarse)").transform;
-            coarseRoot.SetParent(go.transform, false);
-            for (var cz = 0; cz < w._chunksZ; cz++)
-                for (var cx = 0; cx < w._chunksX; cx++)
-                {
-                    var c = new Chunk { X = cx, Z = cz };
-                    c.Coarse = w.MeshObject(coarseRoot, $"Chunk {cx},{cz} (coarse)", w.GroundMesh(cx, cz, 1), w._ground, false).GetComponent<MeshRenderer>();
-                    c.Coarse.shadowCastingMode = ShadowCastingMode.Off;
-                    w._chunks[cz * w._chunksX + cx] = c;
-                }
+            if (terrainTemplate != null)
+            {
+                // Phase 29 (ADR-0122): one Unity Terrain over the whole region, its heights the game's own; the chunks below
+                // only stream the trees, grass and barriers around the player.
+                w.BuildTerrain(go.transform);
+                for (var cz = 0; cz < w._chunksZ; cz++)
+                    for (var cx = 0; cx < w._chunksX; cx++)
+                        w._chunks[cz * w._chunksX + cx] = new Chunk { X = cx, Z = cz };
+            }
+            else
+            {
+                var coarseRoot = new GameObject("Ground (coarse)").transform;
+                coarseRoot.SetParent(go.transform, false);
+                for (var cz = 0; cz < w._chunksZ; cz++)
+                    for (var cx = 0; cx < w._chunksX; cx++)
+                    {
+                        var c = new Chunk { X = cx, Z = cz };
+                        c.Coarse = w.MeshObject(coarseRoot, $"Chunk {cx},{cz} (coarse)", w.GroundMesh(cx, cz, 1), w._ground, false).GetComponent<MeshRenderer>();
+                        c.Coarse.shadowCastingMode = ShadowCastingMode.Off;
+                        w._chunks[cz * w._chunksX + cx] = c;
+                    }
+            }
 
             w.BuildWater(go.transform);
             w.BuildRoads(go.transform, view.Profile == RealmProfiles.AncientPrototype);
             w.BuildEdges(go.transform);
             if (catalog != null) w.LoadTrees(go.transform, catalog, view.RegionKind);
-            Debug.Log($"Realmkeeper: overland {view.RegionName} prepared in {clock.ElapsedMilliseconds} ms ({w._chunks.Length} coarse chunks, {w.RoadKm:0.0} km of road).");
+            w.PrepareMs = clock.ElapsedMilliseconds;
+            Debug.Log($"Realmkeeper: overland {view.RegionName} prepared in {clock.ElapsedMilliseconds} ms ({(w.UnityTerrain != null ? $"Unity Terrain {w.UnityTerrain.terrainData.heightmapResolution}² in {w.TerrainBuildMs:0} ms, {(w.TerrainFromCache ? "cache hit" : "cache miss")}" : w._chunks.Length + " coarse chunks")}, {w.RoadKm:0.0} km of road).");
             return w;
+        }
+
+        // ----- Phase 29: the ground as a Unity Terrain (ADR-0122) -----------------------------------------------
+
+        /// <summary>
+        /// Draw the ground as one Unity Terrain (true, the default) or as the Phase 23 chunk meshes (false: kept for comparison
+        /// and as a fallback; the terrain material missing from Resources also falls back).
+        /// </summary>
+        public static bool UseUnityTerrain = true;
+
+        /// <summary>The terrain material under Resources (it carries the Realmkeeper/TerrainGround shader into builds).</summary>
+        public const string TerrainMaterialResource = "RkTerrainGround";
+
+        /// <summary>Heightmap samples per side: 1025 over a 128-cell region is a sample every 5 m (the old near mesh: 10 m).</summary>
+        public const int HeightmapResolution = 1025;
+
+        /// <summary>Biome colour and ground-weight texels per cell (10 m each), filtered bilinearly as the vertex colours were.</summary>
+        public const int TexelsPerCell = 4;
+
+        public UnityEngine.Terrain UnityTerrain { get; private set; }
+        public float TerrainBuildMs { get; private set; }
+        public string TerrainBreakdown { get; private set; }
+        public long PrepareMs { get; private set; }
+
+        private Texture2D _biomeColour;
+        private Texture2D _groundWeights;
+
+        /// <summary>Whether this region's terrain came from <see cref="OverlandTerrainCache"/> (a repeat entry) rather than a build.</summary>
+        public bool TerrainFromCache { get; private set; }
+
+        private void BuildTerrain(Transform parent)
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var map = _terrain.Map;
+            var sizeX = map.Width * OverlandScale.MetresPerCell;
+            var sizeZ = map.Depth * OverlandScale.MetresPerCell;
+
+            // Phase 29: the same terrain object as an earlier entry → the same ground; reuse what that build made.
+            var cached = OverlandTerrainCache.Find(_terrain);
+            TerrainData data;
+            float lo;
+            if (cached != null)
+            {
+                data = cached.Data;
+                lo = cached.Lo;
+                _biomeColour = cached.Colour;
+                _groundWeights = cached.Weights;
+                TerrainFromCache = true;
+                TerrainBreakdown = "from the cache";
+            }
+            else
+            {
+                (data, lo) = BuildTerrainAssets(sizeX, sizeZ, clock);
+                OverlandTerrainCache.Store(_terrain, data, _biomeColour, _groundWeights, lo);
+            }
+
+            var objectStart = clock.Elapsed.TotalMilliseconds;
+            var go = UnityEngine.Terrain.CreateTerrainGameObject(data);
+            go.name = "Ground (Unity Terrain)";
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(0f, lo, 0f);
+            go.isStatic = true;
+            var t = go.GetComponent<UnityEngine.Terrain>();
+            t.materialTemplate = _ground;
+            t.drawInstanced = false; // the Realmkeeper shader takes ordinary meshes (position, normal)
+            t.drawTreesAndFoliage = false; // trees and grass stay the game's own instanced, streamed planting
+            t.heightmapPixelError = 4f;
+            t.basemapDistance = 20000f;
+            t.shadowCastingMode = ShadowCastingMode.On;
+            t.allowAutoConnect = false;
+            UnityTerrain = t;
+            _ground.SetTexture("_BiomeColour", _biomeColour);
+            _ground.SetTexture("_GroundWeights", _groundWeights);
+            _ground.SetVector("_Region", new Vector4(0f, 0f, sizeX, sizeZ));
+            TerrainBuildMs = (float)clock.Elapsed.TotalMilliseconds;
+            TerrainBreakdown += $"; terrain object and collider {TerrainBuildMs - objectStart:0} ms; cache {OverlandTerrainCache.Count} region(s), {OverlandTerrainCache.RetainedBytes / (1024f * 1024f):0.0} MB, {OverlandTerrainCache.Hits} hits, {OverlandTerrainCache.Misses} misses, {OverlandTerrainCache.Evictions} evictions";
+            Debug.Log("Realmkeeper: overland terrain " + TerrainBreakdown + ".");
+        }
+
+        /// <summary>
+        /// The region's TerrainData (heights) and its two textures, built from the game's terrain. Pure in the terrain: the
+        /// sampling runs in parallel (read-only data, hashed noise); every Unity object is made here, on the main thread.
+        /// </summary>
+        private (TerrainData data, float lo) BuildTerrainAssets(float sizeX, float sizeZ, System.Diagnostics.Stopwatch clock)
+        {
+            var map = _terrain.Map;
+            var res = HeightmapResolution;
+            var start = clock.Elapsed.TotalMilliseconds;
+
+            // Heights: the game's own (OverlandTerrain.HeightAt), sampled on the heightmap's grid.
+            // The game's terrain is read-only and its noise a pure hash: rows are sampled in parallel, with the same results.
+            var raw = new float[res, res];
+            var rowLo = new float[res];
+            var rowHi = new float[res];
+            var terrain = _terrain;
+            System.Threading.Tasks.Parallel.For(0, res, z =>
+            {
+                var pz = z * sizeZ / (res - 1);
+                var l = float.MaxValue;
+                var h2 = float.MinValue;
+                for (var x = 0; x < res; x++)
+                {
+                    var h = terrain.HeightAt(x * sizeX / (res - 1), pz);
+                    raw[z, x] = h;
+                    if (h < l) l = h;
+                    if (h > h2) h2 = h;
+                }
+
+                rowLo[z] = l;
+                rowHi[z] = h2;
+            });
+            var lo = float.MaxValue;
+            var hi = float.MinValue;
+            for (var z = 0; z < res; z++) { lo = Mathf.Min(lo, rowLo[z]); hi = Mathf.Max(hi, rowHi[z]); }
+            var sampledMs = clock.Elapsed.TotalMilliseconds - start;
+
+            var span = Mathf.Max(1f, hi - lo);
+            for (var z = 0; z < res; z++)
+                for (var x = 0; x < res; x++)
+                    raw[z, x] = (raw[z, x] - lo) / span;
+
+            var data = new TerrainData { name = "Overland terrain", heightmapResolution = res };
+            data.size = new Vector3(sizeX, span, sizeZ);
+            data.SetHeights(0, 0, raw);
+
+            // Colour and weights: the same functions the chunk meshes used for their vertices, at 10 m.
+            var tw = map.Width * TexelsPerCell;
+            var td = map.Depth * TexelsPerCell;
+            var step = OverlandScale.MetresPerCell / TexelsPerCell;
+            // ColourAt returns the colour already in linear space (as the chunk meshes' vertex colours, which Unity passes
+            // through unconverted), and can exceed 1 (the shade, snowy peaks). So the texture is linear half-float: the shader
+            // samples exactly the vertex colours' values. An sRGB 8-bit texture converted them to linear a second time
+            // (much darker ground) and clipped the brightest. Phase 29 parity fix (ADR-0122).
+            var colours = new Color[tw * td];
+            var weights = new Color32[tw * td];
+            var unityMs = clock.Elapsed.TotalMilliseconds;
+            System.Threading.Tasks.Parallel.For(0, td, z =>
+            {
+                for (var x = 0; x < tw; x++)
+                {
+                    var px = (x + 0.5f) * step;
+                    var pz = (z + 0.5f) * step;
+                    var h = terrain.HeightAt(px, pz);
+                    colours[z * tw + x] = ColourAt(px, pz, h);
+                    var wgt = WeightsAt(px, pz, h);
+                    weights[z * tw + x] = new Color32((byte)(Mathf.Clamp01(wgt.x) * 255f + 0.5f), (byte)(Mathf.Clamp01(wgt.y) * 255f + 0.5f), 0, 255);
+                }
+            });
+            var paintedMs = clock.Elapsed.TotalMilliseconds - unityMs;
+            unityMs -= start + sampledMs;
+
+            _biomeColour = new Texture2D(tw, td, TextureFormat.RGBAHalf, true, true) { name = "Overland biome colour", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            _biomeColour.SetPixels(colours);
+            _biomeColour.Apply(true, true);
+            _groundWeights = new Texture2D(tw, td, TextureFormat.RGBA32, true, true) { name = "Overland ground weights", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            _groundWeights.SetPixels32(weights);
+            _groundWeights.Apply(true, true);
+            var texturesMs = clock.Elapsed.TotalMilliseconds - start - sampledMs - unityMs - paintedMs;
+            TerrainBreakdown = $"built: heights sampled {sampledMs:0} ms, heightmap set {unityMs:0} ms, colour and weights {paintedMs:0} ms, textures {texturesMs:0} ms";
+            return (data, lo);
         }
 
         private GameObject MeshObject(Transform parent, string name, Mesh mesh, Material material, bool collider)
@@ -322,7 +513,7 @@ namespace Realmkeeper.Exploration.Presentation
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             _meshes.Add(mesh);
-            MeshObject(parent, "Roads", mesh, _ground, false).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            MeshObject(parent, "Roads", mesh, _roadMaterial, false).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
         }
 
         /// <summary>
@@ -615,8 +806,18 @@ namespace Realmkeeper.Exploration.Presentation
         private void BuildDetail(Chunk c)
         {
             var clock = System.Diagnostics.Stopwatch.StartNew();
-            c.Detail = MeshObject(transform, $"Chunk {c.X},{c.Z} (detail)", GroundMesh(c.X, c.Z, DetailPerCell), _ground, true);
-            c.Coarse.enabled = false;
+            if (UnityTerrain != null)
+            {
+                // The terrain is the ground and its collider; the chunk only holds what streams (barriers; trees and grass).
+                c.Detail = new GameObject($"Chunk {c.X},{c.Z} (streamed)");
+                c.Detail.transform.SetParent(transform, false);
+            }
+            else
+            {
+                c.Detail = MeshObject(transform, $"Chunk {c.X},{c.Z} (detail)", GroundMesh(c.X, c.Z, DetailPerCell), _ground, true);
+                c.Coarse.enabled = false;
+            }
+
             BuildBarriers(c);
             PlantChunk(c);
             DetailChunks++;
@@ -625,13 +826,17 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void DropDetail(Chunk c)
         {
-            var mesh = c.Detail.GetComponent<MeshFilter>().sharedMesh;
-            _meshes.Remove(mesh);
-            Destroy(mesh);
+            var filter = c.Detail.GetComponent<MeshFilter>();
+            if (filter != null)
+            {
+                _meshes.Remove(filter.sharedMesh);
+                Destroy(filter.sharedMesh);
+            }
+
             BarrierColliders -= c.Detail.GetComponentsInChildren<BoxCollider>().Length;
             Destroy(c.Detail);
             c.Detail = null;
-            c.Coarse.enabled = true;
+            if (c.Coarse != null) c.Coarse.enabled = true;
             c.Trees.Clear();
             DetailChunks--;
         }
@@ -680,10 +885,36 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>The ground's wetness and snow (0..1) on its material: darker when wet, white on level ground under snow.</summary>
         public void SetGroundWeather(float wet, float snow)
         {
-            if (_ground == null) return;
-            if (_ground.HasProperty("_Wet")) _ground.SetFloat("_Wet", Mathf.Clamp01(wet));
-            if (_ground.HasProperty("_Snow")) _ground.SetFloat("_Snow", Mathf.Clamp01(snow));
+            foreach (var m in new[] { _ground, _roadMaterial }) // the roads' own material with the Unity Terrain (the same one otherwise)
+            {
+                if (m == null) continue;
+                if (m.HasProperty("_Wet")) m.SetFloat("_Wet", Mathf.Clamp01(wet));
+                if (m.HasProperty("_Snow")) m.SetFloat("_Snow", Mathf.Clamp01(snow));
+            }
         }
+
+        /// <summary>The material the roads and bridge decks are drawn with (tests read it).</summary>
+        public Material RoadMaterial => _roadMaterial;
+
+        /// <summary>
+        /// The overland ground's own material (the chunk meshes', or the Unity Terrain's). With <see cref="RoadMaterial"/>, it is
+        /// the one place the overland ground's weather is shown (ADR-0115): the atmosphere leaves both alone (ADR-0122).
+        /// </summary>
+        public Material GroundMaterial => _ground;
+
+        /// <summary>
+        /// ADR-0115: the ground conditions shown on the ground (fords barred in flood; `_Wet` from wetness 40, full at 90;
+        /// `_Snow` from snow cover 10, full at 60). The controller calls it when the conditions change; tests call it the same way.
+        /// </summary>
+        public void ApplyGroundConditions(GroundConditions g)
+        {
+            if (g == null) return;
+            SetFordsFlooded(g.FordsFlooded);
+            SetGroundWeather(g.Wetness >= 40 ? Mathf.InverseLerp(40f, 90f, g.Wetness) : 0f, g.Snow >= 10 ? Mathf.InverseLerp(10f, 60f, g.Snow) : 0f);
+        }
+
+        /// <summary>The ground colour the build puts at a point (linear; the same function as the mesh ground's vertex colours).</summary>
+        public Color GroundColourAt(float x, float z) => ColourAt(x, z, _terrain.HeightAt(x, z));
 
         private void Update()
         {
@@ -858,7 +1089,16 @@ namespace Realmkeeper.Exploration.Presentation
             foreach (var m in _meshes) if (m != null) Destroy(m);
             _meshes.Clear();
             if (_ground != null) Destroy(_ground);
+            if (_roadMaterial != null && _roadMaterial != _ground) Destroy(_roadMaterial);
             if (_water != null) Destroy(_water);
+            // Phase 29: the heights and textures belong to the terrain cache while it holds them (it destroys them on eviction).
+            var data = UnityTerrain != null ? UnityTerrain.terrainData : null;
+            if (data != null && !OverlandTerrainCache.Owns(data))
+            {
+                Destroy(data);
+                if (_biomeColour != null) Destroy(_biomeColour);
+                if (_groundWeights != null) Destroy(_groundWeights);
+            }
             foreach (var m in _own) if (m != null) Destroy(m); // the atmosphere destroys its own seasonal copies
         }
     }

@@ -33,7 +33,13 @@ namespace Realmkeeper.Domain.Settlements
             public string Key(string prefix) => prefix + "-" + (Next++).ToString(CultureInfo.InvariantCulture);
         }
 
-        public static SettlementLayoutData Generate(WorldData world, RegionMap map, SettlementData s)
+        public static SettlementLayoutData Generate(WorldData world, RegionMap map, SettlementData s) => Generate(world, map, s, true);
+
+        /// <summary>
+        /// As <see cref="Generate(WorldData, RegionMap, SettlementData)"/>; with <paramref name="straightenGateRoads"/> false the
+        /// plan is exactly what generator v2 made (Phase 29 tests use it to measure what saved v2 plans hold before migration).
+        /// </summary>
+        public static SettlementLayoutData Generate(WorldData world, RegionMap map, SettlementData s, bool straightenGateRoads)
         {
             if (world == null || map == null || s == null) throw new ArgumentNullException(world == null ? nameof(world) : map == null ? nameof(map) : nameof(s));
             var seed = SeedMixer.Combine(SeedMixer.FromWorldSeed(world.Seed), "settlement-layout-v2:" + s.SettlementId);
@@ -62,6 +68,8 @@ namespace Realmkeeper.Domain.Settlements
             Landmarks(ctx);
             Features(ctx);
             Arrival(ctx, exits);
+            if (straightenGateRoads) SettlementWalls.StraightenGateRoads(plan); // Phase 29 (v3, ADR-0121): roads run straight through wall gates
+            else plan.GeneratorVersion = 2;
             return plan;
         }
 

@@ -180,6 +180,16 @@ namespace Realmkeeper.Exploration.Presentation
         private void Adopt(Transform root)
         {
             var copies = _copies;
+            // ADR-0122: the overland ground and its roads show their weather through their own materials (ADR-0115: _Wet and
+            // _Snow from the ground conditions, the same rule as walking pace), on the chunk meshes and the Unity Terrain alike.
+            // A per-visit copy here would replace them and hide that weather (its tint cannot whiten them), so they are left.
+            var overland = new HashSet<Material>();
+            foreach (var w in root.GetComponentsInChildren<OverlandWorld>(true))
+            {
+                if (w.GroundMaterial != null) overland.Add(w.GroundMaterial);
+                if (w.RoadMaterial != null) overland.Add(w.RoadMaterial);
+            }
+
             foreach (var r in root.GetComponentsInChildren<Renderer>(true))
             {
                 if (r is ParticleSystemRenderer) continue;
@@ -190,7 +200,7 @@ namespace Realmkeeper.Exploration.Presentation
                 for (var i = 0; i < mats.Length; i++)
                 {
                     var m = mats[i];
-                    if (m == null || _copySet.Contains(m) || !m.HasProperty("_BaseColor")) continue;
+                    if (m == null || _copySet.Contains(m) || overland.Contains(m) || !m.HasProperty("_BaseColor")) continue;
                     var isRoof = roof || Matches(m.name, RoofWords);
                     var isGround = ground || (!isRoof && Matches(m.name, GroundWords));
                     var isFoliage = !isRoof && Matches(m.name, LeafWords) && !Matches(m.name, EvergreenWords);

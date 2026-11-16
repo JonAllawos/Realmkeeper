@@ -133,8 +133,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (_ground == null || g.State != _ground.State || g.FordsFlooded != _ground.FordsFlooded || g.Line != _ground.Line)
             {
                 _ground = g;
-                _overland.SetFordsFlooded(g.FordsFlooded);
-                _overland.SetGroundWeather(g.Wetness >= 40 ? Mathf.InverseLerp(40f, 90f, g.Wetness) : 0f, g.Snow >= 10 ? Mathf.InverseLerp(10f, 60f, g.Snow) : 0f);
+                _overland.ApplyGroundConditions(g); // fords and the ground's look (ADR-0115), in one place
             }
 
             var cell = _overlandView.Terrain.CellAt(at.x, at.z);

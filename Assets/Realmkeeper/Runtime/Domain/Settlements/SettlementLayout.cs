@@ -355,7 +355,8 @@ namespace Realmkeeper.Domain.Settlements
     /// </summary>
     public sealed class SettlementLayoutData
     {
-        public const int CurrentGeneratorVersion = 2;
+        /// <summary>v3 (Phase 29): roads run straight through wall gates (<see cref="SettlementWalls.StraightenGateRoads"/>); v2 plans are straightened on load.</summary>
+        public const int CurrentGeneratorVersion = 3;
 
         public SettlementId SettlementId { get; set; }
         public int GeneratorVersion { get; set; } = CurrentGeneratorVersion;
