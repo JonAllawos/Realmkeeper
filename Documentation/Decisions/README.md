@@ -122,5 +122,7 @@
 | [0118](ADR-0118-local-hud-map-heading-up-from-existing-records.md) | The local HUD map is heading-up and drawn from existing records (no save change) | Accepted (Phase 26.1) |
 | [0119](ADR-0119-street-life-from-the-authoritative-population.md) | Street life is drawn from the authoritative population, in two tiers (no save change) | Accepted (Phase 27) |
 | [0120](ADR-0120-settlement-entrances-derived-from-the-plan.md) | Settlement entrances (arrival, gate guards, the watch, the way in from the country) are derived from the persisted plan (no save change) | Accepted (Phase 28) |
+| [0121](ADR-0121-gates-follow-their-roads-and-gate-roads-run-straight.md) | Gatehouses follow their roads, and the road through a wall gate runs straight (layout generator v3; older plans updated on load, no schema change) | Accepted (Phase 29) |
+| [0122](ADR-0122-overland-ground-as-unity-terrain-with-region-cache.md) | The overland ground is a Unity Terrain fed by the game's own heights, cached per region; ground weather has one authority (no save change) | Accepted (Phase 29) |
 
 Template: Context · Decision · Consequences · Alternatives considered.
