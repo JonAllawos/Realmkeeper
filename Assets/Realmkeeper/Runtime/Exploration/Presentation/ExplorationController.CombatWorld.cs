@@ -418,6 +418,7 @@ namespace Realmkeeper.Exploration.Presentation
             var delay = 0f;
             _floatStack.Clear();
             var casters = new HashSet<CombatantId>();
+            var critLanding = false; // 2026-11-15 audio pass: a critical blow is heard heavier
             foreach (var e in s.Log)
             {
                 if (e.Sequence <= _fxSeen) continue;
@@ -444,9 +445,10 @@ namespace Realmkeeper.Exploration.Presentation
                         if (e.Kind == CombatLogKind.Attack && miss)
                         {
                             Float(target, "Miss", new Color(0.8f, 0.8f, 0.8f), delay, 1f);
-                            if (HasShield(e.TargetId)) AnimOf(e.TargetId)?.Play(CombatMotion.Block); // a shield turned it
+                            if (HasShield(e.TargetId)) { AnimOf(e.TargetId)?.Play(CombatMotion.Block); GameSounds.PlayAfter("block", delay, 0.8f); } // a shield turned it
                         }
                         else if (crit) Float(target, "Critical!", new Color(1f, 0.85f, 0.3f), delay, 1.3f);
+                        critLanding = crit && !miss;
                         break;
                     }
 
@@ -456,6 +458,8 @@ namespace Realmkeeper.Exploration.Presentation
                         target = actor;
                         if (target == null) break;
                         Float(target, "-" + e.Value.ToString(CultureInfo.InvariantCulture) + (e.Text.IndexOf("resistance", System.StringComparison.OrdinalIgnoreCase) >= 0 ? " resisted" : e.Text.IndexOf("immun", System.StringComparison.OrdinalIgnoreCase) >= 0 ? " immune" : string.Empty), new Color(0.95f, 0.35f, 0.25f), delay + 0.05f, 1.15f);
+                        GameSounds.PlayAfter(critLanding ? "hit-heavy" : "hit", delay + 0.05f, 0.85f); // 2026-11-15 audio pass
+                        critLanding = false;
                         var hurt = AnimOf(e.ActorId); // the applied-damage entry names the victim as its actor
                         if (hurt != null) hurt.Play(CombatMotion.Hit);
                         else if (Player == null || target != Player.transform) CombatLunge.Flinch(target.Find("Figure") ?? target, delay);

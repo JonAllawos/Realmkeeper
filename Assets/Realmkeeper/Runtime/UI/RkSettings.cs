@@ -171,6 +171,20 @@ namespace Realmkeeper.UI
             }
         }
 
+        private const string MusicKey = "rk.audio.music";
+
+        /// <summary>2026-11-15 audio pass: the music volume, 0 (off) to 1, under the sound volume. Default 0.5.</summary>
+        public static float MusicVolume
+        {
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(MusicKey, 0.5f));
+            set
+            {
+                PlayerPrefs.SetFloat(MusicKey, Mathf.Clamp01(value));
+                PlayerPrefs.Save();
+                Changed?.Invoke();
+            }
+        }
+
         public static bool VSync
         {
             get => PlayerPrefs.GetInt(VSyncKey, QualitySettings.vSyncCount > 0 ? 1 : 0) == 1;

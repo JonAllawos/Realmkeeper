@@ -62,6 +62,7 @@ namespace Realmkeeper.UI
         public Toggle Contrast { get; private set; }
         public Toggle ReducedMotion { get; private set; }
         public Slider UiVolume { get; private set; }
+        public Slider MusicVolume { get; private set; }
 
         public RkSettingsWindow(VisualElement host, System.Action onClose = null)
         {
@@ -128,6 +129,9 @@ namespace Realmkeeper.UI
             UiVolume = new Slider("Interface sounds", 0f, 1f) { name = "settings-ui-volume", value = RkSettings.UiSoundVolume, showInputField = false };
             UiVolume.RegisterValueChangedCallback(e => { RkSettings.UiSoundVolume = e.newValue; RkUiSound.Play("toggle"); Say(e.newValue <= 0f ? "Interface sounds off." : "Interface sounds: " + Mathf.RoundToInt(e.newValue * 100f) + " % of the sound volume."); });
             scroll.Add(Row(UiVolume, "Clicks, tabs, notifications and menus, under the sound volume. 0 turns them off; nothing is said by sound alone."));
+            MusicVolume = new Slider("Music", 0f, 1f) { name = "settings-music-volume", value = RkSettings.MusicVolume, showInputField = false };
+            MusicVolume.RegisterValueChangedCallback(e => { RkSettings.MusicVolume = e.newValue; Say(e.newValue <= 0f ? "Music off." : "Music: " + Mathf.RoundToInt(e.newValue * 100f) + " % of the sound volume."); });
+            scroll.Add(Row(MusicVolume, "The music of the title, the map, the country, settlements, night, places and fights, under the sound volume. 0 turns it off."));
 
             // Interface
             scroll.Add(Section("Interface"));

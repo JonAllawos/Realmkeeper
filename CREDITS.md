@@ -161,3 +161,20 @@ CC0 1.0: the purchase gives the files; the licence asks nothing of the game.
 | 11 more game-icons.net icons (paw print, cow, deer track, fanged skull, fangs circle, boar tusks, sheep, ringing bell, speaker, hamburger menu, goblin head) by Lorc and Delapouite | Lorc, Delapouite (game-icons.net) | CC BY 3.0 | `Assets/Realmkeeper/Art/ThirdParty/GameIcons/License.txt` |
 
 The full register, with evaluations and rejected candidates, is `Documentation/Assets/Phase25-Asset-Register.md`.
+
+## Added in the audio pass (2026-11-15): music, footsteps by ground, blows and cues
+
+### Music (Creative Commons Attribution 4.0, credit required)
+
+"Achaidh Cheide", "Celtic Impulse", "Crossing the Chasm", "Five Armies", "Lord of the Land", "Master of the Feast",
+"Midnight Tale", "Minstrel Guild", "Pippin the Hunchback", "Teller of the Tales", "Thatched Villagers" and "Village Consort"
+by Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License
+http://creativecommons.org/licenses/by/4.0/. Used unmodified (file names lower-cased). Licence record:
+`Assets/Realmkeeper/Art/ThirdParty/KevinMacLeod/License.txt`.
+
+### Sounds (CC0 1.0 Universal: no credit required, credited anyway)
+
+| Work | Author | Licence | Licence file |
+|---|---|---|---|
+| Impact Sounds 1.0: 35 of its 130 sounds (footsteps on grass, wood, stone and snow; blows; a shield struck), unmodified | Kenney (www.kenney.nl) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Kenney/ImpactSounds/License.txt` |
+| Music Jingles: 3 of its 85 jingles (quest completed, quest failed, new level), unmodified | Kenney (www.kenney.nl) | CC0 1.0 | `Assets/Realmkeeper/Art/ThirdParty/Kenney/MusicJingles/License.txt` |

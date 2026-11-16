@@ -508,11 +508,14 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void Update()
         {
+            // 2026-11-15 audio pass: the music follows what is shown (a fight, a place, night, the country or the settlement).
+            Realmkeeper.UI.RkMusic.ExplorationMood = IsExploring ? Realmkeeper.UI.RkMusic.ExplorationMoodFor(InFight, InPlace, InOverland, _atmosphere?.Weather != null ? _atmosphere.Weather.Look.Night : 0f) : (Realmkeeper.UI.MusicMood?)null;
             if (!IsExploring || Player == null) return;
             UpdatePhase25(); // Phase 25: notices, vitals, the HUD stepping aside for windows
             UpdateLocalMap(); // Phase 26.1: the compact local map (does no work while a window hides it)
             UpdateTownsfolk(); // Phase 27: the unnamed population in the streets
             UpdateCallouts(); // Phase 27: shopkeepers call to passers-by
+            GameSounds.Surface = GameSounds.SurfaceFor(InPlace, InOverland, _atmosphere?.Weather != null ? _atmosphere.Weather.Look.Snow : 0f); // 2026-11-15 audio pass: footsteps by ground
             if (PauseOpen) UpdatePauseKeys();
             if (PauseOpen || HandlePauseKey()) // Phase 25: the pause menu holds the game while it is open
             {
@@ -617,6 +620,8 @@ namespace Realmkeeper.Exploration.Presentation
 
         private void OnDestroy()
         {
+            Realmkeeper.UI.RkMusic.ExplorationMood = null; // the world is no longer shown
+            GameSounds.Surface = null;
             if (_runtime != null)
             {
                 _runtime.PreparingSave -= OnPreparingSave;

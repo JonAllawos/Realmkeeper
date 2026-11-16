@@ -86,6 +86,7 @@ namespace Realmkeeper.Presentation
             _bootstrap.Playback?.Pause();
             if (_bootstrap.Hud != null) _bootstrap.Hud.SetVisible(false);
             Root.style.display = DisplayStyle.Flex;
+            RkMusic.TitleOpen = true; // 2026-11-15 audio pass
             RefreshMenu();
             ShowPage(launch ? null : null);
             ContinueButton.Focus();
@@ -95,6 +96,7 @@ namespace Realmkeeper.Presentation
         {
             Settings?.Close();
             Root.style.display = DisplayStyle.None;
+            RkMusic.TitleOpen = false;
             if (_bootstrap != null && _bootstrap.Hud != null) _bootstrap.Hud.SetVisible(_bootstrap.StrategicVisible);
         }
 

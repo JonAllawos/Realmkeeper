@@ -27,7 +27,64 @@ namespace Realmkeeper.Exploration.Presentation
             ["page"] = new[] { "bookFlip1", "bookFlip2", "bookFlip3" },
             ["cloth"] = new[] { "cloth1", "cloth2", "cloth3", "cloth4" },
             ["draw"] = new[] { "drawKnife1", "drawKnife2", "drawKnife3" },
+            // 2026-11-15 audio pass (Kenney Impact Sounds, CC0): footsteps by surface, blows in a fight.
+            ["footstep-grass"] = Numbered("footstep_grass_00", 5),
+            ["footstep-wood"] = Numbered("footstep_wood_00", 5),
+            ["footstep-stone"] = Numbered("footstep_concrete_00", 5),
+            ["footstep-snow"] = Numbered("footstep_snow_00", 5),
+            ["hit"] = Numbered("impactPunch_medium_00", 5),
+            ["hit-heavy"] = Numbered("impactPunch_heavy_00", 5),
+            ["block"] = Numbered("impactPlate_light_00", 5),
+            // Kenney Music Jingles (CC0): short cues for news worth a moment.
+            ["quest-done"] = new[] { "jingles_PIZZI01" },
+            ["quest-failed"] = new[] { "jingles_PIZZI10" },
+            ["level-up"] = new[] { "jingles_STEEL01" },
         };
+
+        /// <summary>The ground the player walks on: "grass", "wood", "stone", "snow", or null for the default (earth and gravel).</summary>
+        public static string Surface { get; set; }
+
+        private static string[] Numbered(string prefix, int count)
+        {
+            var takes = new string[count];
+            for (var i = 0; i < count; i++) takes[i] = prefix + i;
+            return takes;
+        }
+
+        /// <summary>
+        /// The ground under the player: stone inside places (mines, crypts, caves), snow when it falls thickly, grass in the
+        /// open country, otherwise the default (the settlement's earth and gravel). Pure, for tests.
+        /// </summary>
+        public static string SurfaceFor(bool inPlace, bool inOverland, float snow)
+        {
+            if (inPlace) return "stone";
+            if (snow >= 0.35f) return "snow";
+            return inOverland ? "grass" : null;
+        }
+
+        private static readonly List<(float At, string Sound, float Gain)> Pending = new List<(float, string, float)>();
+
+        /// <summary>Plays a sound after a delay in seconds (so a blow is heard when it lands, not when it is decided).</summary>
+        public static void PlayAfter(string sound, float delay, float gain = 1f)
+        {
+            if (delay <= 0f || !UnityEngine.Application.isPlaying) { Play(sound, gain); return; }
+            Pending.Add((Time.unscaledTime + delay, sound, gain));
+            Source(); // makes sure the runner exists
+        }
+
+        private sealed class Runner : MonoBehaviour
+        {
+            private void Update()
+            {
+                for (var i = Pending.Count - 1; i >= 0; i--)
+                {
+                    if (Pending[i].At > Time.unscaledTime) continue;
+                    var p = Pending[i];
+                    Pending.RemoveAt(i);
+                    Play(p.Sound, p.Gain);
+                }
+            }
+        }
 
         private static readonly Dictionary<string, AudioClip> Clips = new Dictionary<string, AudioClip>();
         private static readonly Dictionary<string, int> Next = new Dictionary<string, int>();
@@ -48,6 +105,7 @@ namespace Realmkeeper.Exploration.Presentation
         /// <summary>Plays the next take of a sound at the player's volume. Unknown names and missing clips are ignored.</summary>
         public static void Play(string sound, float gain = 1f)
         {
+            if (sound == "footstep" && Surface != null && Takes.ContainsKey("footstep-" + Surface)) sound = "footstep-" + Surface;
             if (!Takes.TryGetValue(sound, out var takes) || takes.Length == 0) return;
             Requested++;
             Last = sound;
@@ -75,6 +133,7 @@ namespace Realmkeeper.Exploration.Presentation
             if (_source != null) return _source;
             var go = new GameObject("Realmkeeper sounds");
             Object.DontDestroyOnLoad(go);
+            go.AddComponent<Runner>();
             _source = go.AddComponent<AudioSource>();
             _source.playOnAwake = false;
             _source.spatialBlend = 0f; // heard by the player wherever the camera is

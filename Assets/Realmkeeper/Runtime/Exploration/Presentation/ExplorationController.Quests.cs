@@ -126,6 +126,9 @@ namespace Realmkeeper.Exploration.Presentation
                 {
                     LastQuestNotice = notice;
                     Hud?.ShowMessage(CommandResult.Ok(notice));
+                    // 2026-11-15 audio pass: a quest's end is marked by a short cue (the words carry it without sound).
+                    if (notice.StartsWith("Quest completed:", System.StringComparison.Ordinal)) GameSounds.Play("quest-done");
+                    else if (notice.StartsWith("Quest failed:", System.StringComparison.Ordinal)) GameSounds.Play("quest-failed");
                 }
             }
 

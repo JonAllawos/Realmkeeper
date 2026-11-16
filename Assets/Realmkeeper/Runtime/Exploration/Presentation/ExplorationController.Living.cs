@@ -722,7 +722,7 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             if (character == null || !character.LevelUpUnannounced || InFight || WindowOpen || _session == null) return;
-            if (_session.Dispatch(new AcknowledgeLevelUpCommand()).IsSuccess) ShowLevelNotice(character);
+            if (_session.Dispatch(new AcknowledgeLevelUpCommand()).IsSuccess) { ShowLevelNotice(character); GameSounds.Play("level-up"); } // 2026-11-15 audio pass
         }
 
         private void ShowLevelNotice(CharacterSnapshot character)

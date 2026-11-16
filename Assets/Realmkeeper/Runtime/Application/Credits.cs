@@ -55,6 +55,10 @@ namespace Realmkeeper.Application
             ("Fantasy UI Borders: window frames and dividers", "Kenney (kenney.nl)", "CC0 1.0 Universal"),
             ("Cartography Pack: map symbols, compass rose and parchment", "Kenney (kenney.nl)", "CC0 1.0 Universal"),
             ("Interface Sounds: 10 of its sounds (clicks, tabs, confirmations, notices)", "Kenney (kenney.nl)", "CC0 1.0 Universal"), // Phase 25
+            // 2026-11-15 audio pass
+            ("Music: \"Achaidh Cheide\", \"Celtic Impulse\", \"Crossing the Chasm\", \"Five Armies\", \"Lord of the Land\", \"Master of the Feast\", \"Midnight Tale\", \"Minstrel Guild\", \"Pippin the Hunchback\", \"Teller of the Tales\", \"Thatched Villagers\", \"Village Consort\"", "Kevin MacLeod (incompetech.com)", "Licensed under Creative Commons: By Attribution 4.0 License (creativecommons.org/licenses/by/4.0)"),
+            ("Impact Sounds: 35 of its sounds (footsteps by ground, blows, a shield struck)", "Kenney (kenney.nl)", "CC0 1.0 Universal"),
+            ("Music Jingles: 3 of its jingles (quest completed, quest failed, new level)", "Kenney (kenney.nl)", "CC0 1.0 Universal"),
             ("EB Garamond (headings and dialogue)", "The EB Garamond Project Authors (github.com/octaviopardo/EBGaramond12)", "SIL Open Font License 1.1 (openfontlicense.org)"),
             ("Alegreya Sans (text)", "The Alegreya Sans Project Authors (github.com/huertatipografica/Alegreya-Sans)", "SIL Open Font License 1.1 (openfontlicense.org)"),
         };
