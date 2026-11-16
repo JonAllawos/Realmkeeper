@@ -173,7 +173,7 @@ Details are in `Systems/Phase28-Performance.md`.
 Branch `feature/phase-0-1-foundation`, baseline `94d0305`.
 - **Commits:** code and tests, then documentation and screenshots (hashes in the closing message).
 - **Not committed:** the two untracked `Assets/InitTestScene*` scenes (preserved). `M_LampGlow.mat` was restored after every batch run.
-- **Push:** none.
+- **Push:** pushed 2026-11-15 at the owner's instruction: `94d0305..0c8b77a` to `origin/feature/phase-0-1-foundation`. This note is recorded in a follow-up commit.
 
 ## 14. Owner playtest checklist
 
