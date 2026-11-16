@@ -22,6 +22,10 @@ The campaign, world, mythology and narrative direction (established canon, propo
 
 ## Implementation status (updated at the end of Phase 28, 2026-11-15)
 
+> **Phase 30 (2026-11-16):** the current, evidence-based status of every major system is `Feature-Completion-Matrix.md`.
+> Some rows below are stale: the connected world has 9 regions, not 6; overland travel and navigation are Foundation
+> (Phases 23–24), not "Not started"; and Phases 22–29 are done. See `../Systems/Phase30-Preflight-Audit.md` §6.
+
 Status words: **Implemented** = built, tested and in the shipped scene; **Foundation** = the data
 and rules exist and are tested, but the system that uses them does not yet; **Placeholder** =
 present but visibly temporary; **Not started**.

@@ -10,6 +10,91 @@
 - **The Game Design Bible** (`GameDesignBible.md`) remains the central source of product direction. Its "Owner design amendments (2026-11-12)" section states the requirements this roadmap serves; this document holds the phase-by-phase detail.
 - **`../Roadmap.md`:** the history of completed milestones.
 
+> **Phase 30 (2026-11-16): §0 below proposes a milestone roadmap that would supersede §5's phase list.** §5 is kept as
+> the record of the 2026-11-12 plan. Phases 23–29 already departed from it: Phase 29 became gates and terrain, not fast
+> travel. Owner decisions D1–D5 and requirements R1–R3 stand. §0 is **proposed, not approved**.
+
+## 0. Milestone roadmap (proposed in Phase 30, awaiting owner approval)
+
+**Basis:**
+- `../Architecture/CanonicalWorld-Audit.md`, `../Architecture/SingleWorld-Transition.md`;
+- `../Systems/SaveLoad-Design.md`, `Campaign-Architecture-Assessment.md`;
+- `Feature-Completion-Matrix.md`, `First-Release-Scope.md`, `Technical-Risk-Register.md`.
+
+**Rules:**
+- A milestone is done when its acceptance criteria hold, including the owner's hand-play where it says so. A milestone is not done because its phases ran.
+- Phases inside a milestone are suggestions; each still needs its own brief.
+- No dates and no fixed phase count.
+
+**Complexity:** S (one phase), M (two or three), L (four or more), XL (open-ended content work).
+
+### M1. Foundation and canonical world (M–L)
+
+| | |
+|---|---|
+| **Objective** | One canonical world, a release save system, and an architecture that scales past 9 regions |
+| **Existing work** | One `WorldData`, atomic saves, migrations v1–v27, idempotent genesis, region streaming |
+| **Phases** | 1. Release menu, three slots, autosave, backups, metadata (save v28). 2. Command copy-on-write per aggregate; compact saves off the main thread. 3. Baked world definition and versioning (ADR first). 4. Story anchors and the anchor binding |
+| **Depends on** | Owner approval of `SingleWorld-Transition.md`; save-schema design brief |
+| **Acceptance** | New Game always yields the same world; three slots, autosaves and backups pass the tests in `SaveLoad-Design.md` §8; a generator code change cannot move a saved world's ground; save causes no visible hitch on a development build |
+| **Done when** | All of the above, plus a full Unity checkpoint and an owner hand-play of New Game, save, load and Continue |
+
+### M2. Living world at the campaign's scale (M)
+
+| | |
+|---|---|
+| **Objective** | The world the campaign needs: its regions, cities and borders, living within budget |
+| **Existing work** | Settlements, people, factions, economy, weather, world events, emergent stories, tiers |
+| **Phases** | 1. Macro-map and atlas beyond 9 regions, with cities, fortresses and ports. 2. Continuous borders, crossable wherever passable. 3. Measure the daily tick and loads at target size; a dormant tier only if needed |
+| **Depends on** | M1.3; the campaign's act and region plan (owner) |
+| **Acceptance** | The target world loads, ticks and saves within budgets measured on a development build |
+
+### M3. Complete player experience (M)
+
+| | |
+|---|---|
+| **Objective** | Every core loop a 40-hour campaign uses works and is tuned |
+| **Phases** | 1. Creation-first New Game and the opening's mechanics: stealth, scripted sequences, set-piece fights. 2. Progression and combat balance for the campaign's level range; the partial spells. 3. Travel (fast travel per D2), survival depth decision, onboarding |
+| **Depends on** | M1; owner decisions D2 and D4 |
+| **Acceptance** | A test character can play from creation through a scripted opening built with placeholder anchors |
+
+### M4. Exploration and world depth (M)
+
+| | |
+|---|---|
+| **Objective** | Places and overland content worth leaving the road for |
+| **Phases** | The deferred Phase 29 sections 3–8 (discoveries, encounters, escorts, ancient realm hooks), scoped to the campaign's regions; authored story places |
+| **Depends on** | M2 |
+
+### M5. Main campaign (XL)
+
+| | |
+|---|---|
+| **Objective** | The authored campaign, start to ending and aftermath |
+| **Phases** | 1. Vertical slice: the opening and chapter 1, played start to finish. 2. Authoring pipeline as data files. 3. Acts, one at a time, each played through by the owner before the next |
+| **Depends on** | M1.4, M3.1; **owner canon decisions** (`Campaign-Architecture-Assessment.md` §6) |
+| **Acceptance** | The campaign completes on every main ending path in automated runs and in owner play |
+
+### M6. Side content and world population (L–XL)
+
+Authored side quests, faction and companion stories, bounties, optional bosses, rare equipment, environmental storytelling, at the volume the release scope sets. Can run beside M5 once the pipeline (M5.2) exists.
+
+### M7. Systems integration and content completion (M)
+
+Every system at level 5 in the feature matrix for release scope; cross-system consequences checked; quest-state consistency across saves.
+
+### M8. Visual, audio, UX and performance polish (L)
+
+Character art beyond placeholders, effects, ambience and mix, interface pass, accessibility (remapping, colour checks), performance budgets on target hardware.
+
+### M9. Release readiness (M)
+
+Release acceptance (`../Testing/Release-Acceptance.md`, drafted in Phase 30, refined in M7): full regression, long-session stability, save reliability, resolution matrix, the owner's full playthrough.
+
+### Recommended next phase
+
+**M1.1: release save system and main menu.** It is the smallest step that changes the product's shape (New Game, Continue, Load Game, three slots, autosave, backups). It has no canon dependency, and every later milestone needs it. It requires a save-schema brief (v28) and owner approval of `../Systems/SaveLoad-Design.md`.
+
 ## 1. Where the project stands (inspected 2026-11-12)
 
 ### Repository
@@ -112,7 +197,7 @@ These must be decided before or at the start of the named phase. The roadmap doe
 | D4 | **Pending play before creation.** Should a new game require creation before play, or allow pending play but discard pre-creation experience and coin? | Phase 22 | **Decided 2026-11-13: "No XP before creation".** Experience awards are refused until the character exists, so every new character starts at 0. Pending play (walking, trading, talking) stays allowed, and coin earned before creation is kept. Old saves that already hold pre-creation experience keep it (ADR-0109) |
 | D5 | **Store-licensed and paid assets.** Commit them to the private repository, or keep them local only? | Phase 25 | Currently local only and git-ignored |
 
-## 5. The proposed phases
+## 5. The proposed phases (2026-11-12 plan; superseded by §0 if the owner approves it)
 
 Each phase is: foundational architecture (**Arch**), functional implementation (**Func**), content expansion (**Content**), visual and UX refinement (**UX**), performance and stability (**Perf**), or testing and validation (**Test**). Most are a mix; the main kind is listed first.
 

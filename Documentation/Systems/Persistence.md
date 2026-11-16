@@ -133,3 +133,7 @@ Arrival at a settlement's front gate is derived from the persisted plan's roads,
 - The stored `ArrivalX`/`ArrivalZ`/`ArrivalYaw` stay in the save, unchanged. They are used only as the reported last-resort fallback.
 - Existing saves arrive at their gates without migration.
 - A player saved inside a settlement keeps their saved position.
+
+## Phase 30: release design (not implemented)
+
+The release save system (three manual slots, rotating autosaves, backups, slot metadata, Continue rules, saving off the main thread) is designed in `SaveLoad-Design.md`, awaiting owner approval. No schema change was made in Phase 30.
