@@ -20,19 +20,28 @@ namespace Realmkeeper.Exploration.Domain
             if (settlementId.IsEmpty) throw new ArgumentException("A settlement ID is required.", nameof(settlementId));
             residents = residents ?? Array.Empty<ResidentInput>();
             var rng = new LayoutRandom(worldSeed, settlementId);
-            var arrival = new LocalPoint(plan.Arrival.X, plan.Arrival.Z);
+            // Phase 28 (ADR-0120): travellers arrive just inside the settlement's front gate (or its way in, unwalled), from the
+            // plan's own entrances, not at the edge of the plan. Derived at load, so old saves arrive at the gate too.
+            var (at, yaw, main, fallback) = SettlementEntrances.Arrival(plan);
+            var arrival = new LocalPoint(at.X, at.Z);
             var layout = new LocalEnvironmentLayout
             {
                 SettlementId = settlementId, RegionId = regionId, Type = type, Plan = plan,
                 HalfExtent = plan.HalfExtent, PlazaRadius = plan.PlazaRadius, HasWalls = plan.HasWalls,
-                ArrivalPose = new LocalPose(arrival.X, plan.HeightAt(arrival.X, arrival.Z), arrival.Z, plan.ArrivalYaw),
+                ArrivalPose = new LocalPose(arrival.X, plan.HeightAt(arrival.X, arrival.Z), arrival.Z, yaw),
+                ArrivalIsFallback = fallback,
             };
+            layout.Entrances.AddRange(SettlementEntrances.Of(plan));
 
-            // The gate: a few metres in from where travellers arrive, beside the road.
-            var inward = Math.Max(1f, (float)Math.Sqrt(arrival.X * arrival.X + arrival.Z * arrival.Z));
-            var ux = -arrival.X / inward;
-            var uz = -arrival.Z / inward;
-            layout.Gate = new LocalPoint(arrival.X + ux * 6f - uz * 2.5f, arrival.Z + uz * 6f + ux * 2.5f);
+            // The gate guards' post: beside the road just inside the main entrance (else a few metres in from the arrival).
+            if (main != null && main.Posts.Length > 0) layout.Gate = new LocalPoint(main.Posts[0].X, main.Posts[0].Z);
+            else
+            {
+                var inward = Math.Max(1f, (float)Math.Sqrt(arrival.X * arrival.X + arrival.Z * arrival.Z));
+                var ux = -arrival.X / inward;
+                var uz = -arrival.Z / inward;
+                layout.Gate = new LocalPoint(arrival.X + ux * 6f - uz * 2.5f, arrival.Z + uz * 6f + ux * 2.5f);
+            }
 
             foreach (var r in plan.Roads)
                 for (var i = 0; i + 1 < r.Line.Count; i++)

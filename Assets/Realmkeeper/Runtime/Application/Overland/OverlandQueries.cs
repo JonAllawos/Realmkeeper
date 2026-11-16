@@ -85,7 +85,7 @@ namespace Realmkeeper.Application.Overland
                 foreach (var s in world.Settlements)
                 {
                     if (s.RegionId != region) continue;
-                    var at = Gate(terrain, s.Position);
+                    var at = GateOf(world, terrain, s);
                     list.Add(new OverlandSite
                     {
                         Kind = OverlandSiteKind.Settlement, Id = s.SettlementId.ToString(), Name = s.Name, Cell = s.Position, X = at.x, Z = at.z, Known = regionKnown,
@@ -180,10 +180,18 @@ namespace Realmkeeper.Application.Overland
         /// A settlement's way in from the country: a road cell <see cref="GateCells"/> from its centre (where a road leaves the
         /// town), else walkable ground at that distance, else the nearest walkable cell. Deterministic (scan order breaks ties).
         /// </summary>
-        public static (float x, float z) Gate(OverlandTerrain terrain, MapCoord centre)
+        public static (float x, float z) Gate(OverlandTerrain terrain, MapCoord centre) => Gate(terrain, centre, null);
+
+        /// <summary>
+        /// Phase 28 (ADR-0120): as <see cref="Gate(OverlandTerrain, MapCoord)"/>, choosing, among the road cells of the nearest
+        /// ring that has any, the one closest to the bearing <paramref name="toward"/> (radians, atan2(z, x)): the road that leads
+        /// to the settlement's main gate. Without a bearing, the first in scan order, as before.
+        /// </summary>
+        public static (float x, float z) Gate(OverlandTerrain terrain, MapCoord centre, float? toward)
         {
             if (terrain == null) return OverlandScale.CellCentre(centre);
             MapCoord? road = null, ground = null;
+            var bestGap = double.MaxValue;
             for (var r = GateCells; r <= GateCells + 2 && road == null; r++)
                 for (var dz = -r; dz <= r; dz++)
                     for (var dx = -r; dx <= r; dx++)
@@ -193,13 +201,21 @@ namespace Realmkeeper.Application.Overland
                         if (!terrain.Map.InBounds(c)) continue;
                         var o = terrain.Cell(c.X, c.Z);
                         if (!o.Passable) continue;
-                        if (o.Road && road == null) road = c;
                         if (ground == null) ground = c;
+                        if (!o.Road) continue;
+                        if (toward == null) { if (road == null) road = c; continue; }
+                        var gap = Math.Abs(Math.Atan2(dz, dx) - toward.Value) % (Math.PI * 2);
+                        if (gap > Math.PI) gap = Math.PI * 2 - gap;
+                        if (gap < bestGap) { bestGap = gap; road = c; }
                     }
 
             if (road != null) return OverlandScale.CellCentre(road.Value);
             return ground != null ? OverlandScale.CellCentre(ground.Value) : Approach(terrain, centre, 3);
         }
+
+        /// <summary>Phase 28: a settlement's way in from the country, on the road that leads to its main gate (from its plan).</summary>
+        public static (float x, float z) GateOf(WorldData world, OverlandTerrain terrain, SettlementData s) =>
+            Gate(terrain, s.Position, Realmkeeper.Domain.Settlements.SettlementEntrances.MainBearing(world?.FindLayout(s.SettlementId)));
 
         /// <summary>A standing point beside a site: the centre of the nearest walkable cell within <paramref name="radius"/>, preferring roads.</summary>
         public static (float x, float z) Approach(OverlandTerrain terrain, MapCoord cell, int radius)

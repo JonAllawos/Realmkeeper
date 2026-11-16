@@ -278,7 +278,7 @@ namespace Realmkeeper.Tests.EditMode.World
             var t = _s.GetOverlandTerrain(RealmIds.Surface, P.RegionId);
             // Somewhere well away from the towns.
             var spot = Enumerable.Range(0, 32 * 32).Select(i => OverlandScale.CellCentre(new MapCoord(2 + (i % 32) * 4, 2 + (i / 32) * 4)))
-                .Where(c => t.Walkable(c.x, c.z) && W.Settlements.Where(s => s.RegionId == P.RegionId).All(s => Dist(OverlandQueries.Gate(t, s.Position).x, OverlandQueries.Gate(t, s.Position).z, c.x, c.z) > 900f))
+                .Where(c => t.Walkable(c.x, c.z) && W.Settlements.Where(s => s.RegionId == P.RegionId).All(s => Dist(OverlandQueries.GateOf(W, t, s).x, OverlandQueries.GateOf(W, t, s).z, c.x, c.z) > 900f))
                 .Where(c => OverlandRoads.NearestRoad(W, t, c.x, c.z, out _, out _, out _, out var rx, out var rz) && Dist(rx, rz, c.x, c.z) < 300f)
                 .FirstOrDefault();
             Assume.That(spot.x, Is.Not.EqualTo(0f), "A spot near a road, far from towns.");

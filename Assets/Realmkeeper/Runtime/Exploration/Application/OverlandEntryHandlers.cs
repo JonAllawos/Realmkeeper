@@ -19,6 +19,17 @@ namespace Realmkeeper.Exploration.Application
             var world = context.Committed;
             var settlement = world.FindSettlement(command.SettlementId);
             var layout = ExplorationModule.LayoutFor(world, settlement);
+            // Phase 28 (ADR-0120): in by the entrance that faces the way the player came (the plan's exits share the map's frame).
+            var arrival = layout.ArrivalPose;
+            var plan = world.FindLayout(settlement.SettlementId);
+            if (plan != null)
+            {
+                var (cx, cz) = Realmkeeper.Domain.Geography.OverlandScale.CellCentre(settlement.Position);
+                var from = (float)System.Math.Atan2(player.Pose.Z - cz, player.Pose.X - cx);
+                var (at, yaw, _, fallback) = Realmkeeper.Domain.Settlements.SettlementEntrances.Arrival(plan, from);
+                if (!fallback) arrival = new LocalPose(at.X, plan.HeightAt(at.X, at.Z), at.Z, yaw);
+            }
+
             var w = context.Edit();
             var p = w.Player;
             p.LocationKind = CharacterLocationKind.Settlement;
@@ -26,7 +37,7 @@ namespace Realmkeeper.Exploration.Application
             p.RegionId = settlement.RegionId;
             p.LastSettlementId = settlement.SettlementId;
             p.ReturnToOverland = true;
-            p.Pose = layout.ArrivalPose;
+            p.Pose = arrival;
             // Phase 24 (ADR-0113): a journey ends where its walker arrives: at its destination it is done; elsewhere it is given up.
             var arrived = string.Empty;
             if (w.Journey != null && w.Journey.Status != JourneyStatus.Arrived)

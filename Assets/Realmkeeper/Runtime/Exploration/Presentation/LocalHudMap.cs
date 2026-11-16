@@ -259,9 +259,13 @@ namespace Realmkeeper.Exploration.Presentation
         /// One frame: follows the player (canvas moved and turned by its style), reads moving marks' positions, places
         /// the marks, and every quarter second chooses the labels again.
         /// </summary>
+        /// <summary>Phase 28: where the map last drew the player (local metres): for checking it never shows a stale position.</summary>
+        public Vector2 PlayerAt { get; private set; }
+
         public void Tick(Vector3 player, float heading, float deltaSeconds)
         {
             if (!Visible) return;
+            PlayerAt = new Vector2(player.x, player.z);
             _shownHeading = LocalMapGeometry.SmoothHeading(_shownHeading, heading, deltaSeconds, ReducedMotion);
             var ppm = PixelsPerMetre;
             var p = new Vector2(player.x, player.z);

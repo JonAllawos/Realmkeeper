@@ -647,37 +647,177 @@ namespace Realmkeeper.Exploration.Presentation
                          (new Vector3(e, 10f, 0f), new Vector3(1f, 40f, e * 2f)), (new Vector3(-e, 10f, 0f), new Vector3(1f, 40f, e * 2f)) })
                 ColliderBox(colliders, "Edge", c, s);
 
-            if (!plan.HasWalls || plan.Wall.Count < 3) return;
+            if (!plan.HasWalls || plan.Wall.Count < 3)
+            {
+                BuildWaysIn(ctx); // Phase 28: an unwalled village or hamlet still marks its way in
+                return;
+            }
+
+            // Phase 28: the wall runs right up to each gatehouse's towers (and either side of a lane's postern) instead of
+            // leaving out whole 20 m segments near a gate: no gaps a cart could be driven through beside the gate.
+            var gateHalf = GateSpec(ctx.Layout.Type).opening / 2f + GateSpec(ctx.Layout.Type).tower - 0.4f;
             for (var i = 0; i < plan.Wall.Count; i++)
             {
                 var a = plan.Wall[i];
                 var b = plan.Wall[(i + 1) % plan.Wall.Count];
                 var va = new Vector2(a.X, a.Z);
                 var vb = new Vector2(b.X, b.Z);
-                var mid = (va + vb) / 2f;
-                var nearGate = false;
-                foreach (var g in plan.Gates) if (Vector2.Distance(new Vector2(g.X, g.Z), mid) < 12f) nearGate = true;
-                if (nearGate || RoadCrosses(plan, va, vb)) continue; // a gate, or a postern where a lane or track passes
-                if (SettlementTerrain.InWater(plan, mid.x, mid.y, 1f)) continue; // the water is the wall there
-                var ga = plan.HeightAt(a.X, a.Z);
-                var gb = plan.HeightAt(b.X, b.Z);
-                var bottom = Math.Min(ga, gb) - 0.6f;
-                var top = Math.Max(ga, gb) + 4.6f;
-                var length = Vector2.Distance(va, vb) + 0.8f;
-                var centre = new Vector3(mid.x, (bottom + top) / 2f, mid.y);
-                var size = new Vector3(1.4f, top - bottom, length);
-                var yaw = Quaternion.LookRotation(new Vector3(vb.x - va.x, 0f, vb.y - va.y).normalized, Vector3.up);
-                var wall = Mesh(ctx, boundary, "Wall", MetreMeshes.Box(size, ctx.Assets), ctx.Mat("WallStone"), centre);
-                wall.transform.localRotation = yaw;
-                var col = new GameObject("Wall");
-                col.transform.SetParent(colliders, false);
-                col.transform.SetPositionAndRotation(centre, yaw);
-                col.AddComponent<BoxCollider>().size = size;
-                for (var d = -length / 2f + 0.6f; d < length / 2f - 0.4f; d += 1.6f)
+                var len = Vector2.Distance(va, vb);
+                if (len < 0.5f) continue;
+                var dir = (vb - va) / len;
+                var cuts = new List<(float from, float to, bool postern)>();
+                foreach (var g in plan.Gates)
                 {
-                    var merlon = Mesh(ctx, boundary, "Merlon", Shared(ctx, "Merlon"), ctx.Mat("WallStone"), centre + yaw * new Vector3(0f, size.y / 2f + 0.4f, d));
-                    merlon.transform.localRotation = yaw;
+                    var rel = new Vector2(g.X, g.Z) - va;
+                    var along = Vector2.Dot(rel, dir);
+                    var off = Mathf.Abs(rel.x * dir.y - rel.y * dir.x);
+                    if (off < 6f && along > -gateHalf && along < len + gateHalf) cuts.Add((along - gateHalf, along + gateHalf, false));
                 }
+
+                foreach (var (at, width, cos) in RoadCrossings(plan, va, vb))
+                {
+                    var along = at * len;
+                    var inGate = false;
+                    foreach (var c in cuts) if (!c.postern && along > c.from - 1f && along < c.to + 1f) inGate = true;
+                    if (inGate) continue;
+                    var half = (width / 2f + 0.9f) / Mathf.Max(0.35f, Mathf.Sqrt(Mathf.Max(0f, 1f - cos * cos))); // wider where the lane crosses aslant
+                    cuts.Add((along - half, along + half, true));
+                }
+
+                cuts.Sort((x, y) => x.from.CompareTo(y.from));
+                var start = 0f;
+                foreach (var c in cuts)
+                {
+                    WallPiece(ctx, boundary, colliders, va + dir * start, va + dir * Mathf.Min(len, c.from));
+                    if (c.postern) PosternLintel(ctx, boundary, va + dir * Mathf.Max(0f, c.from), va + dir * Mathf.Min(len, c.to));
+                    start = Mathf.Max(start, c.to);
+                }
+
+                WallPiece(ctx, boundary, colliders, va + dir * start, vb);
+            }
+        }
+
+        /// <summary>A straight run of town wall from <paramref name="p"/> to <paramref name="q"/> (skipped where too short or in water).</summary>
+        private static void WallPiece(Context ctx, Transform boundary, Transform colliders, Vector2 p, Vector2 q)
+        {
+            var plan = ctx.Layout.Plan;
+            var length = Vector2.Distance(p, q);
+            if (length < 0.6f) return;
+            var mid = (p + q) / 2f;
+            if (SettlementTerrain.InWater(plan, mid.x, mid.y, 1f)) return; // the water is the wall there
+            var ga = plan.HeightAt(p.x, p.y);
+            var gb = plan.HeightAt(q.x, q.y);
+            var bottom = Math.Min(ga, gb) - 0.6f;
+            var top = Math.Max(ga, gb) + 4.6f;
+            length += 0.8f;
+            var centre = new Vector3(mid.x, (bottom + top) / 2f, mid.y);
+            var size = new Vector3(1.4f, top - bottom, length);
+            var yaw = Quaternion.LookRotation(new Vector3(q.x - p.x, 0f, q.y - p.y).normalized, Vector3.up);
+            var wall = Mesh(ctx, boundary, "Wall", MetreMeshes.Box(size, ctx.Assets), ctx.Mat("WallStone"), centre);
+            wall.transform.localRotation = yaw;
+            var col = new GameObject("Wall");
+            col.transform.SetParent(colliders, false);
+            col.transform.SetPositionAndRotation(centre, yaw);
+            col.AddComponent<BoxCollider>().size = size;
+            for (var d = -length / 2f + 0.6f; d < length / 2f - 0.4f; d += 1.6f)
+            {
+                var merlon = Mesh(ctx, boundary, "Merlon", Shared(ctx, "Merlon"), ctx.Mat("WallStone"), centre + yaw * new Vector3(0f, size.y / 2f + 0.4f, d));
+                merlon.transform.localRotation = yaw;
+            }
+        }
+
+        /// <summary>A postern: a stone lintel over a lane where it passes the wall (the way under it stays open; no collider low down).</summary>
+        private static void PosternLintel(Context ctx, Transform boundary, Vector2 p, Vector2 q)
+        {
+            var plan = ctx.Layout.Plan;
+            var length = Vector2.Distance(p, q);
+            if (length < 1f) return;
+            var mid = (p + q) / 2f;
+            var ground = Math.Max(plan.HeightAt(p.x, p.y), plan.HeightAt(q.x, q.y));
+            var top = ground + 4.6f;
+            var bottom = Math.Min(plan.HeightAt(p.x, p.y), plan.HeightAt(q.x, q.y)) + 3.6f;
+            var size = new Vector3(1.6f, Math.Max(0.6f, top - bottom), length + 1.2f);
+            var lintel = Mesh(ctx, boundary, "Postern lintel", MetreMeshes.Box(size, ctx.Assets), ctx.Mat("WallStone"), new Vector3(mid.x, (top + bottom) / 2f, mid.y));
+            lintel.transform.localRotation = Quaternion.LookRotation(new Vector3(q.x - p.x, 0f, q.y - p.y).normalized, Vector3.up);
+        }
+
+        /// <summary>Where roads cross the wall segment <paramref name="a"/>→<paramref name="b"/>: the fraction along it, the road's width, and the cosine between them.</summary>
+        private static List<(float at, float width, float cos)> RoadCrossings(SettlementLayoutData plan, Vector2 a, Vector2 b)
+        {
+            var list = new List<(float, float, float)>();
+            var ab = b - a;
+            foreach (var road in plan.Roads)
+                for (var i = 0; i + 1 < road.Line.Count; i++)
+                {
+                    var c = new Vector2(road.Line[i].X, road.Line[i].Z);
+                    var d = new Vector2(road.Line[i + 1].X, road.Line[i + 1].Z);
+                    var cd = d - c;
+                    var den = ab.x * cd.y - ab.y * cd.x;
+                    if (Mathf.Abs(den) < 1e-5f) continue;
+                    var t = ((c.x - a.x) * cd.y - (c.y - a.y) * cd.x) / den;
+                    var u = ((c.x - a.x) * ab.y - (c.y - a.y) * ab.x) / den;
+                    if (t < 0f || t > 1f || u < 0f || u > 1f) continue;
+                    list.Add((t, road.Width, Vector2.Dot(ab.normalized, cd.normalized)));
+                }
+
+            return list;
+        }
+
+        /// <summary>Phase 28: a gatehouse's proportions by the settlement's standing: a city's and a fortress's are larger.</summary>
+        private static (float opening, float tower, float extra) GateSpec(Realmkeeper.Domain.World.SettlementType type)
+        {
+            switch (type)
+            {
+                case Realmkeeper.Domain.World.SettlementType.Fortress: return (7f, 5.5f, 4f);
+                case Realmkeeper.Domain.World.SettlementType.City: return (8f, 5f, 2.5f);
+                default: return (7.5f, 4f, 0f);
+            }
+        }
+
+        /// <summary>
+        /// Phase 28: an unwalled settlement's way in, at its main entrance across the road: a village's timber gateway (two posts,
+        /// a beam and a lantern), a hamlet's waymarker and lantern beside the road. The way stays open.
+        /// </summary>
+        private static void BuildWaysIn(Context ctx)
+        {
+            var layout = ctx.Layout;
+            var plan = layout.Plan;
+            foreach (var e in layout.Entrances)
+            {
+                var root = new GameObject("Way in " + e.RoadKey).transform;
+                root.SetParent(ctx.Static, false);
+                var ground = plan.HeightAt(e.Gate.X, e.Gate.Z);
+                root.localPosition = new Vector3(e.Gate.X, ground, e.Gate.Z);
+                root.localRotation = Quaternion.LookRotation(new Vector3(e.InX, 0f, e.InZ), Vector3.up); // local +Z into the settlement
+                var colliders = new GameObject("Way in colliders " + e.RoadKey).transform;
+                colliders.SetParent(ctx.Colliders, false);
+                colliders.SetPositionAndRotation(root.position, root.rotation);
+                var side = e.RoadWidth / 2f + 0.7f;
+                if (layout.Type >= Realmkeeper.Domain.World.SettlementType.Village && e.IsMain)
+                {
+                    foreach (var s in new[] { -1f, 1f })
+                    {
+                        Mesh(ctx, root, "Gateway post", Shared(ctx, "GatewayPost", () => MetreMeshes.Box(new Vector3(0.36f, 4.4f, 0.36f), ctx.Assets)), ctx.Mat("Bark"), new Vector3(s * side, 2.0f, 0f));
+                        ColliderBox(colliders, "Gateway post", new Vector3(s * side, 2.0f, 0f), new Vector3(0.36f, 4.4f, 0.36f));
+                        Mesh(ctx, root, "Gateway brace", Shared(ctx, "GatewayBrace", () => MetreMeshes.Box(new Vector3(0.18f, 1.3f, 0.18f), ctx.Assets)), ctx.Mat("Bark"), new Vector3(s * (side - 0.45f), 3.55f, 0f))
+                            .transform.localRotation = Quaternion.Euler(0f, 0f, s * 45f);
+                    }
+
+                    Mesh(ctx, root, "Gateway beam", MetreMeshes.Box(new Vector3(side * 2f + 1.0f, 0.34f, 0.4f), ctx.Assets), ctx.Mat("Bark"), new Vector3(0f, 4.15f, 0f));
+                    Kit(ctx, root, "Lantern_Wall", new Vector3(side + 0.25f, 2.6f, 0f), 90f, 0.55f, false);
+                }
+                else
+                {
+                    Mesh(ctx, root, "Waymarker", Shared(ctx, "Waymarker", () => MetreMeshes.Box(new Vector3(0.3f, 1.3f, 0.3f), ctx.Assets)), ctx.Mat("RockTrim"), new Vector3(side, 0.6f, 0f));
+                    ColliderBox(colliders, "Waymarker", new Vector3(side, 0.6f, 0f), new Vector3(0.3f, 1.3f, 0.3f));
+                }
+
+                // A lamp at the way in, as the town's street lamps are made (iron post, arm and lantern).
+                var lamp = new Vector3(-side - 0.5f, 0f, 1.2f);
+                Mesh(ctx, root, "Post", Shared(ctx, "WayInLampPost", () => MetreMeshes.Lathe(new[] { new Vector2(0.14f, 0f), new Vector2(0.11f, 0.3f), new Vector2(0.07f, 0.35f), new Vector2(0.06f, 3.1f) }, 8, ctx.Assets)), ctx.Mat("Metal"), lamp);
+                Mesh(ctx, root, "Arm", Shared(ctx, "WayInLampArm", () => MetreMeshes.Box(new Vector3(0.6f, 0.05f, 0.05f), ctx.Assets)), ctx.Mat("Metal"), lamp + new Vector3(0.28f, 3.05f, 0f));
+                Lantern(ctx, root, lamp + new Vector3(0.55f, 2.75f, 0f));
+                ColliderBox(colliders, "Lamp post", lamp + new Vector3(0f, 1.6f, 0f), new Vector3(0.2f, 3.2f, 0.2f));
             }
         }
 
@@ -692,20 +832,77 @@ namespace Realmkeeper.Exploration.Presentation
             var colliders = new GameObject(b.Key + " colliders").transform;
             colliders.SetParent(ctx.Colliders, false);
             colliders.SetPositionAndRotation(root.position, root.rotation);
-            const float opening = 7.5f;
-            const float tower = 4f;
-            var height = b.Height + 2f;
+            var (opening, tower, extra) = GateSpec(ctx.Layout.Type);
+            var height = b.Height + 2f + extra;
             foreach (var s in new[] { -1f, 1f })
             {
-                var c = new Vector3(s * (opening / 2f + tower / 2f), height / 2f - 1f, 0f);
-                Mesh(ctx, root, "Tower", MetreMeshes.Box(new Vector3(tower, height + 2f, tower), ctx.Assets), ctx.Mat("WallStone"), c);
-                ColliderBox(colliders, "Tower", c, new Vector3(tower, height + 2f, tower));
-                for (var k = -1; k <= 1; k++)
-                    Mesh(ctx, root, "Merlon", Shared(ctx, "Merlon"), ctx.Mat("WallStone"), new Vector3(c.x + k * 1.3f, height + 0.4f, -tower / 2f + 0.3f));
+                // Phase 28: the foundation reaches below the lowest ground under the tower (a gate on a slope never floats).
+                var low = 0f;
+                foreach (var u in new[] { -tower / 2f, 0f, tower / 2f })
+                    foreach (var v in new[] { -tower / 2f, 0f, tower / 2f })
+                    {
+                        var at = root.localPosition + root.localRotation * new Vector3(s * (opening / 2f + tower / 2f) + u, 0f, v);
+                        low = Mathf.Min(low, plan.HeightAt(at.x, at.z) - root.localPosition.y);
+                    }
+
+                var bottom = Mathf.Min(-2f, low - 0.6f);
+                var c = new Vector3(s * (opening / 2f + tower / 2f), (height + bottom) / 2f, 0f);
+                Mesh(ctx, root, "Tower", MetreMeshes.Box(new Vector3(tower, height - bottom, tower), ctx.Assets), ctx.Mat("WallStone"), c);
+                ColliderBox(colliders, "Tower", c, new Vector3(tower, height - bottom, tower));
+                var n = Mathf.Max(1, Mathf.RoundToInt((tower - 1f) / 1.3f));
+                foreach (var z in new[] { -tower / 2f + 0.3f, tower / 2f - 0.3f }) // battlements on both faces
+                    for (var k = 0; k <= n; k++)
+                        Mesh(ctx, root, "Merlon", Shared(ctx, "Merlon"), ctx.Mat("WallStone"), new Vector3(c.x - tower / 2f + 0.5f + k * (tower - 1f) / n, height + 0.4f, z));
             }
 
+            var archBottom = height - 2.5f;
             Mesh(ctx, root, "Arch", MetreMeshes.Box(new Vector3(opening + 0.4f, 2f, tower), ctx.Assets), ctx.Mat("WallStone"), new Vector3(0f, height - 1.5f, 0f));
             ColliderBox(colliders, "Arch", new Vector3(0f, height - 1.5f, 0f), new Vector3(opening + 0.4f, 2f, tower));
+            // Phase 28: corbels under the lintel's ends, so the opening reads as an arch rather than a slot.
+            foreach (var s in new[] { -1f, 1f })
+                Mesh(ctx, root, "Corbel", Shared(ctx, "GateCorbel" + tower, () => MetreMeshes.Box(new Vector3(0.9f, 0.9f, tower), ctx.Assets)), ctx.Mat("RockTrim"), new Vector3(s * (opening / 2f - 0.4f), archBottom - 0.4f, 0f));
+
+            // Which way is in: the entrance this gatehouse stands on (the gatehouse's own yaw faces the centre; check, not assume).
+            var inward = 1f;
+            foreach (var e in ctx.Layout.Entrances)
+                if (Mathf.Abs(e.Gate.X - b.Center.X) + Mathf.Abs(e.Gate.Z - b.Center.Z) < 1.5f)
+                    inward = Mathf.Sign(Vector3.Dot(Quaternion.Inverse(root.localRotation) * new Vector3(e.InX, 0f, e.InZ), Vector3.forward));
+            if (inward == 0f) inward = 1f;
+
+            // A raised portcullis on the outer face: its teeth hang below the arch, well above any head.
+            var grid = new GameObject("Portcullis").transform;
+            grid.SetParent(root, false);
+            grid.localPosition = new Vector3(0f, archBottom - 0.6f, -inward * (tower / 2f - 0.55f)); // a metre of it shows below the arch
+            var iron = ctx.Mat("Metal");
+            for (var x = -opening / 2f + 0.35f; x <= opening / 2f - 0.3f; x += 0.55f)
+                Mesh(ctx, grid, "Bar", Shared(ctx, "PortcullisBar", () => MetreMeshes.Box(new Vector3(0.09f, 1.9f, 0.09f), ctx.Assets)), iron, new Vector3(x, 0.55f, 0f));
+            foreach (var y in new[] { 0.05f, 0.95f })
+                Mesh(ctx, grid, "Rail", MetreMeshes.Box(new Vector3(opening - 0.2f, 0.1f, 0.12f), ctx.Assets), iron, new Vector3(0f, y, 0f));
+
+            // The gate itself: two plank leaves, iron-banded, open and laid back against the sides of the passage on the inside.
+            var leafHeight = Mathf.Min(5.2f, archBottom - 0.3f);
+            var leafWidth = opening / 2f - 0.1f;
+            foreach (var s in new[] { -1f, 1f })
+            {
+                var hinge = new GameObject("Gate leaf").transform;
+                hinge.SetParent(root, false);
+                hinge.localPosition = new Vector3(s * (opening / 2f - 0.12f), 0f, inward * (tower / 2f - 0.1f));
+                // Laid back: the leaf runs inward along the passage side from its hinge.
+                hinge.localRotation = Quaternion.LookRotation(new Vector3(0f, 0f, inward), Vector3.up);
+                Mesh(ctx, hinge, "Planks", Shared(ctx, "GateLeaf" + leafHeight + leafWidth, () => MetreMeshes.Box(new Vector3(0.16f, leafHeight, leafWidth), ctx.Assets)), ctx.Mat("Planks"), new Vector3(0f, leafHeight / 2f, leafWidth / 2f));
+                foreach (var y in new[] { 0.7f, leafHeight / 2f, leafHeight - 0.7f })
+                    Mesh(ctx, hinge, "Band", Shared(ctx, "GateBand" + leafWidth, () => MetreMeshes.Box(new Vector3(0.2f, 0.14f, leafWidth - 0.1f), ctx.Assets)), iron, new Vector3(0f, y, leafWidth / 2f));
+                var leafCollider = new GameObject("Gate leaf");
+                leafCollider.transform.SetParent(colliders, false);
+                leafCollider.transform.localPosition = hinge.localPosition + hinge.localRotation * new Vector3(0f, leafHeight / 2f, leafWidth / 2f);
+                leafCollider.transform.localRotation = hinge.localRotation;
+                leafCollider.AddComponent<BoxCollider>().size = new Vector3(0.16f, leafHeight, leafWidth);
+            }
+
+            // Lanterns on the outer face either side of the opening, and on the inner face.
+            foreach (var s in new[] { -1f, 1f })
+                foreach (var face in new[] { -inward, inward })
+                    Kit(ctx, root, "Lantern_Wall", new Vector3(s * (opening / 2f + 0.9f), 3.3f, face * (tower / 2f + 0.15f)), face > 0 ? 0f : 180f, 0.55f, false);
         }
 
         /// <summary>A plinth under a building where the ground falls away beneath its floor.</summary>

@@ -111,6 +111,7 @@ namespace Realmkeeper.Exploration.Presentation
                     var k = s.Key.GetHashCode() * 0.001f;
                     p = new LocalPoint(p.X + Mathf.Sin(_townsClock * 0.13f + k) * s.Wander * 0.5f, p.Z + Mathf.Cos(_townsClock * 0.11f + k) * s.Wander * 0.5f);
                     heading = 180f + k * 57f;
+                    if (s.Facing.HasValue) t.Yaw = s.Facing.Value; // Phase 28: a gate guard looks out of the gate
                 }
 
                 var at = new Vector3(p.X, layout.GroundAt(p.X, p.Z), p.Z);

@@ -240,7 +240,7 @@ namespace Realmkeeper.Tests.EditMode.Living
                 Assert.That(layout.Buildings.Count, Is.EqualTo(plan.Buildings.Count));
                 Assert.That(layout.Buildings[0].Key, Is.EqualTo(SettlementSites.Hall));
                 Assert.That(layout.Streets.Count, Is.EqualTo(plan.Roads.Sum(r => r.Line.Count - 1)));
-                Assert.That(layout.ArrivalPose.Y, Is.EqualTo(plan.HeightAt(plan.Arrival.X, plan.Arrival.Z)).Within(0.01f), "The traveller arrives on the ground.");
+                Assert.That(layout.ArrivalPose.Y, Is.EqualTo(plan.HeightAt(layout.ArrivalPose.X, layout.ArrivalPose.Z)).Within(0.01f), "The traveller arrives on the ground (Phase 28: at the front gate, not the plan's edge point).");
                 Assert.That(SettlementTerrain.InWater(plan, layout.ArrivalPose.X, layout.ArrivalPose.Z), Is.False);
 
                 // From the way in to every site's door, along the roads, never through a building.

@@ -195,7 +195,7 @@ namespace Realmkeeper.Application.Overland
                 if (settlement == null) return CommandResult.InvalidState("There is no country to go out into.");
                 var terrain = context.Session.GetOverlandTerrain(RealmIds.Surface, settlement.RegionId);
                 if (terrain == null) return CommandResult.InvalidState("The country of " + settlement.Name + " has no map.");
-                var (x, z) = OverlandQueries.Gate(terrain, settlement.Position); // at its way in, outside the town
+                var (x, z) = OverlandQueries.GateOf(world, terrain, settlement); // at its way in, outside the town
                 var w = context.Edit();
                 var p = w.Player;
                 p.LocationKind = CharacterLocationKind.Overland;
@@ -396,7 +396,7 @@ namespace Realmkeeper.Application.Overland
             foreach (var s in w.Settlements)
             {
                 if (s.RegionId != p.RegionId) continue;
-                var (gx, gz) = OverlandQueries.Gate(terrain, s.Position);
+                var (gx, gz) = OverlandQueries.GateOf(w, terrain, s);
                 var d = Dist(p, gx, gz);
                 if (d < bestSettle) { bestSettle = d; t.Settlement = s.SettlementId; t.X = gx; t.Z = gz; }
             }

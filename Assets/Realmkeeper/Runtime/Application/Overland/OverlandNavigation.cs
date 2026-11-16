@@ -49,8 +49,8 @@ namespace Realmkeeper.Application.Overland
                 }
                 else
                 {
-                    var (ax, az) = OverlandQueries.Gate(terrain, a.Position);
-                    var (bx, bz) = OverlandQueries.Gate(terrain, b.Position);
+                    var (ax, az) = OverlandQueries.GateOf(w, terrain, a);
+                    var (bx, bz) = OverlandQueries.GateOf(w, terrain, b);
                     x = ax + (bx - ax) * f;
                     z = az + (bz - az) * f;
                 }
@@ -68,7 +68,7 @@ namespace Realmkeeper.Application.Overland
             var rn = w.FindRegion(near.RegionId);
             var rf = w.FindRegion(far.RegionId);
             if (t2 == null || rn == null || rf == null) return false;
-            var (gx, gz) = OverlandQueries.Gate(t2, near.Position);
+            var (gx, gz) = OverlandQueries.GateOf(w, t2, near);
             var edge = OverlandQueries.EdgeCell(t2, near.Position, rf.AtlasX - rn.AtlasX, rf.AtlasZ - rn.AtlasZ);
             var (ex, ez) = OverlandScale.CellCentre(edge);
             x = gx + (ex - gx) * share;
@@ -196,7 +196,7 @@ namespace Realmkeeper.Application.Overland
                     // Its way in when it is in the player's country; elsewhere its cell (no other region's country is built for this).
                     var p0 = w.Player;
                     var t = p0 != null && p0.IsOverland && p0.RegionId == s.RegionId ? session.GetOverlandTerrain(RealmIds.Surface, s.RegionId) : null;
-                    var (x, z) = t != null ? OverlandQueries.Gate(t, s.Position) : OverlandScale.CellCentre(s.Position);
+                    var (x, z) = t != null ? OverlandQueries.GateOf(w, t, s) : OverlandScale.CellCentre(s.Position);
                     return (s.Name, RealmIds.Surface, s.RegionId, x, z);
                 }
 

@@ -83,7 +83,8 @@ namespace Realmkeeper.Tests.EditMode.Living
             Assert.That(farming.Count(x => x.Activity == TownsfolkActivity.Farming), Is.GreaterThan(trading.Count(x => x.Activity == TownsfolkActivity.Farming)));
             Assert.That(trading.Count(x => x.Activity == TownsfolkActivity.Carrying), Is.GreaterThan(farming.Count(x => x.Activity == TownsfolkActivity.Carrying)));
             Assert.That(a.Select(x => x.Activity).Distinct().Count(), Is.GreaterThanOrEqualTo(4), "Varied activity, not everyone the same.");
-            Assert.That(a.Count(x => x.Look == Realmkeeper.Domain.World.NpcRole.Guard), Is.EqualTo(TownsfolkPlanner.Watch(Input(s, 11 * 60))), "The watch.");
+            Assert.That(a.Count(x => x.Look == Realmkeeper.Domain.World.NpcRole.Guard), Is.EqualTo(TownsfolkPlanner.UnnamedWatch(layout, Input(s, 11 * 60))), "The watch (Phase 28: less the named gate guards at their posts).");
+            Assert.That(TownsfolkPlanner.UnnamedWatch(layout, Input(s, 11 * 60)) + TownsfolkPlanner.NamedPosted(layout), Is.EqualTo(Math.Max(TownsfolkPlanner.Watch(Input(s, 11 * 60)), TownsfolkPlanner.NamedPosted(layout))), "Named and unnamed together are the watch.");
 
             // Busy versus quiet: more people near the square than an equal area of the outskirts.
             int near = 0, far = 0;

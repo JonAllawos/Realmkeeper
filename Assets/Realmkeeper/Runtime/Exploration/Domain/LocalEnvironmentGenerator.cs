@@ -259,8 +259,8 @@ namespace Realmkeeper.Exploration.Domain
 
             if (r.SiteKey == SettlementSites.Gate)
             {
-                anchor = new LocalPoint(layout.Gate.X + side * 1.4f, layout.Gate.Z);
-                wander = 1.5f;
+                anchor = layout.GatePost(n); // Phase 28: a post of its own beside the road at the gate
+                wander = 0.6f; // stands at the post
                 return true;
             }
 

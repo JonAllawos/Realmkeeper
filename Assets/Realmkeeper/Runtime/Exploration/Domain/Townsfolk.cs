@@ -71,6 +71,9 @@ namespace Realmkeeper.Exploration.Domain
 
         /// <summary>Phase 27: a child (shown smaller; plays or runs errands by day; never out at night).</summary>
         public bool Child { get; set; }
+
+        /// <summary>Phase 28: the way someone at a post faces (Unity yaw, degrees): a gate guard looks out of the gate.</summary>
+        public float? Facing { get; set; }
     }
 
     /// <summary>
@@ -104,13 +107,46 @@ namespace Realmkeeper.Exploration.Domain
             return Math.Max(0, Math.Min(MaxPlanned, raw - input.NamedOut));
         }
 
-        /// <summary>The town watch on duty: about one in two hundred and fifty inhabitants, at least one where there is a town.</summary>
+        /// <summary>
+        /// The town watch on duty: about one in two hundred and fifty inhabitants (none under 120), half at night. Phase 28: a
+        /// walled town keeps at least its main gate's pair; a city half as many again, a fortress twice as many.
+        /// </summary>
         public static int Watch(TownsfolkInput input)
         {
             if (input == null || input.Population < 120) return 0;
             var night = input.MinuteOfDay < 6 * 60 || input.MinuteOfDay >= 21 * 60;
             var n = Math.Max(1, Math.Min(10, input.Population / 250));
-            return night ? Math.Max(1, n / 2) : n;
+            if (input.Type == SettlementType.City) n = (n * 3 + 1) / 2;
+            else if (input.Type == SettlementType.Fortress) n *= 2;
+            if (input.Type >= SettlementType.Town) n = Math.Max(2, n);
+            n = Math.Min(16, n);
+            return night ? Math.Max(input.Type >= SettlementType.Town ? 2 : 1, n / 2) : n;
+        }
+
+        /// <summary>Phase 28: named gate guards standing at posts (at most one to a post).</summary>
+        public static int NamedPosted(LocalEnvironmentLayout layout) => layout == null ? 0 : Math.Min(layout.NamedAtGate, Posts(layout, true).Count);
+
+        /// <summary>Phase 28: the unnamed part of the watch: the watch less the named gate guards already at their posts.</summary>
+        public static int UnnamedWatch(LocalEnvironmentLayout layout, TownsfolkInput input) => Math.Max(0, Watch(input) - NamedPosted(layout));
+
+        /// <summary>Phase 28: the watch's posts in the order they are manned, with the way each faces.</summary>
+        public static List<(LocalPoint at, float facing)> Posts(LocalEnvironmentLayout layout, bool day)
+        {
+            var list = new List<(LocalPoint, float)>();
+            if (layout == null) return list;
+            var others = new List<Realmkeeper.Domain.Settlements.SettlementEntrance>();
+            foreach (var e in layout.Entrances)
+            {
+                if (e.Posts.Length == 0) continue;
+                if (e.IsMain) foreach (var p in e.Posts) list.Add((new LocalPoint(p.X, p.Z), e.PostYaw));
+                else others.Add(e);
+            }
+
+            if (!day) return list;
+            for (var k = 0; k < 2; k++)
+                foreach (var e in others)
+                    if (k < e.Posts.Length) list.Add((new LocalPoint(e.Posts[k].X, e.Posts[k].Z), e.PostYaw));
+            return list;
         }
 
         public static List<TownsfolkSpec> Plan(LocalEnvironmentLayout layout, TownsfolkInput input)
@@ -166,14 +202,23 @@ namespace Realmkeeper.Exploration.Domain
                 specs.Add(s);
             }
 
-            // The watch: patrols between the gates and the square, and a post at each gate by day.
-            var watch = Watch(input);
+            // The watch (Phase 28, ADR-0120): first the gate posts, beside the road just inside each entrance and facing out (a
+            // pair at the main gate, then one at each other gate, then their second posts); by night only the main gate's pair.
+            // The rest patrol between the gates and the square.
+            // Named gate guards (the simulation's own people, posted at the gate) take the first posts and count toward the watch.
+            var named = NamedPosted(layout);
+            var watch = UnnamedWatch(layout, input);
+            var day = hour >= 6 && hour < 21;
+            var posts = Posts(layout, day);
+            posts.RemoveRange(0, Math.Min(named, posts.Count));
+            var posted = 0;
             for (var g = 0; g < watch; g++)
             {
-                if (g < spots.Gates.Count && hour >= 6 && hour < 21)
+                if (posted < posts.Count)
                 {
-                    var post = spots.Gates[g];
-                    specs.Add(new TownsfolkSpec { Key = "watch-post-" + g, Look = NpcRole.Guard, Activity = TownsfolkActivity.Guarding, Route = { post }, Wander = 1.2f, Where = "gate" });
+                    var (post, facing) = posts[posted];
+                    specs.Add(new TownsfolkSpec { Key = "watch-post-" + posted, Look = NpcRole.Guard, Activity = TownsfolkActivity.Guarding, Route = { post }, Wander = 0.3f, Where = "gate", Facing = facing });
+                    posted++;
                     continue;
                 }
 

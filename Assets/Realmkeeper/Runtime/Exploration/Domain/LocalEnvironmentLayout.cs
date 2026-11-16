@@ -176,8 +176,41 @@ namespace Realmkeeper.Exploration.Domain
         public float PlazaRadius { get; set; }
         public bool HasWalls { get; set; }
 
-        /// <summary>Where the character arrives through the south gate, facing north.</summary>
+        /// <summary>Where the character arrives: just inside the main entrance, facing in (Phase 28; from the plan's entrances).</summary>
         public LocalPose ArrivalPose { get; set; }
+
+        /// <summary>Phase 28: true only when no entrance had a clear standing point and the plan's edge point was used.</summary>
+        public bool ArrivalIsFallback { get; set; }
+
+        /// <summary>Phase 28 (ADR-0120): the ways in (gates, or unwalled ways in), main first; derived from the plan, never saved.</summary>
+        public List<Realmkeeper.Domain.Settlements.SettlementEntrance> Entrances { get; } = new List<Realmkeeper.Domain.Settlements.SettlementEntrance>();
+
+        /// <summary>
+        /// Phase 28: the <paramref name="n"/>th gate post, in the order the watch mans them (the main gate's pair first, then the
+        /// other gates'); without posts, beside <see cref="Gate"/> as before. A named gate guard stands at one of these, and the
+        /// unnamed watch takes the posts left over, so guards never stand two to a post.
+        /// </summary>
+        public LocalPoint GatePost(int n)
+        {
+            var posts = new List<LocalPoint>();
+            foreach (var e in Entrances) if (e.IsMain) foreach (var p in e.Posts) posts.Add(new LocalPoint(p.X, p.Z));
+            for (var k = 0; k < 2; k++)
+                foreach (var e in Entrances)
+                    if (!e.IsMain && k < e.Posts.Length) posts.Add(new LocalPoint(e.Posts[k].X, e.Posts[k].Z));
+            if (posts.Count > 0) return posts[n % posts.Count];
+            return new LocalPoint(Gate.X + (n % 2 == 0 ? 1f : -1f) * 1.4f * (1 + n / 2), Gate.Z);
+        }
+
+        /// <summary>Phase 28: how many named people are posted at the gate (they take the first gate posts).</summary>
+        public int NamedAtGate
+        {
+            get
+            {
+                var n = 0;
+                foreach (var r in Residents) if (r.SiteKey == Realmkeeper.Domain.World.SettlementSites.Gate) n++;
+                return n;
+            }
+        }
 
         public List<LayoutStreet> Streets { get; } = new List<LayoutStreet>();
         public List<LayoutBuilding> Buildings { get; } = new List<LayoutBuilding>();

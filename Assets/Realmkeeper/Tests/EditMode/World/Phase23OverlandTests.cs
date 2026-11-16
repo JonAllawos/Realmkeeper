@@ -349,7 +349,7 @@ namespace Realmkeeper.Tests.EditMode.World
             Assert.That(P.LocationKind, Is.EqualTo(CharacterLocationKind.Overland));
             Assert.That(P.RegionId, Is.EqualTo(home));
             var t = _s.GetOverlandTerrain(RealmIds.Surface, home);
-            var gate = OverlandQueries.Gate(t, here.Position);
+            var gate = OverlandQueries.GateOf(W, t, here);
             Assert.That(Math.Abs(P.Pose.X - gate.x) + Math.Abs(P.Pose.Z - gate.z), Is.LessThan(0.01f), "Out by the chosen settlement's way in.");
         }
 

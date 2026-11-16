@@ -187,10 +187,23 @@ namespace Realmkeeper.Tests.PlayMode
             if (friendly != null)
             {
                 // A long jump is charged its walking time (honestly), and the group travels meanwhile: close in on where it is now.
-                for (var hop = 0; hop < 4; hop++)
+                // Phase 28: the way in from the country now lies on the main road, so the nearest group may be about to arrive in
+                // town and leave the road during the walk; then the next nearest is followed (up to three groups).
+                var tried = new HashSet<string>();
+                for (var hop = 0; hop < 8; hop++)
                 {
                     var now = session.GetTravellers().FirstOrDefault(t => t.GroupId == friendly.GroupId);
-                    if (now == null) break;
+                    if (now == null)
+                    {
+                        tried.Add(friendly.GroupId);
+                        var here = new Vector2(c.Player.transform.position.x, c.Player.transform.position.z);
+                        var next = tried.Count < 3 ? session.GetTravellers().Where(t => !t.Hostile && !tried.Contains(t.GroupId)).OrderBy(t => Vector2.Distance(new Vector2(t.X, t.Z), here)).FirstOrDefault() : null;
+                        if (next == null) break;
+                        Log.Add($"{friendly.Name} reached its town during the walk; following {next.Name} instead.");
+                        friendly = next;
+                        continue;
+                    }
+
                     friendly = now;
                     if (Vector2.Distance(new Vector2(now.X, now.Z), new Vector2(c.Player.transform.position.x, c.Player.transform.position.z)) < 20f) break;
                     yield return StandBy(c, now.X, now.Z, 9f);

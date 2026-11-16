@@ -70,7 +70,7 @@ namespace Realmkeeper.Exploration.Domain
                 return (new LocalPoint((float)Math.Cos(angle) * radius, (float)Math.Sin(angle) * radius), 1.5f, false);
             }
 
-            if (siteKey == SettlementSites.Gate) return (new LocalPoint(layout.Gate.X + Side(n) * 1.4f, layout.Gate.Z), 1.5f, false);
+            if (siteKey == SettlementSites.Gate) return (layout.GatePost(n), 0.6f, false); // Phase 28: a post of its own
 
             var b = Find(layout, siteKey);
             if (b == null) return null;
