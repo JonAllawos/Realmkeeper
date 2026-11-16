@@ -407,6 +407,18 @@ namespace Realmkeeper.Exploration.Presentation
             Player.SpeedMultiplier = 1f; // Phase 15: free exploration movement is never slowed by load, hunger or combat budgets (the rules still apply them in fights; the hub still shows them)
             var look = PlayerLook.From(hub);
             if (Catalog != null && look.Signature != Player.LookSignature) Player.RebuildBody(look, Catalog, Assets());
+            // Cleanup pass (2026-11-15): mark the open hub stale instead of rendering it here. A hub action's own render
+            // (with its message) follows in the same frame and clears the mark; otherwise LateUpdate renders it once.
+            // Measured before: 2–3 full renders (6.5 ms each, preview included) per click.
+            if (HubWindow != null && HubWindow.IsOpen) _hubStale = true;
+        }
+
+        private bool _hubStale;
+
+        private void LateUpdate()
+        {
+            if (!_hubStale) return;
+            _hubStale = false;
             if (HubWindow != null && HubWindow.IsOpen) ShowHub(null, false);
         }
 
@@ -529,9 +541,26 @@ namespace Realmkeeper.Exploration.Presentation
             GameSounds.Play("book-open");
         }
 
+        /// <summary>Diagnostics (cleanup pass, 2026-11-15): how many full hub renders, and their total time in milliseconds.</summary>
+        public int HubRenders { get; private set; }
+
+        public double HubRenderMilliseconds { get; private set; }
+
         private void ShowHub(string message, bool failed)
         {
             if (HubWindow == null) return;
+            _hubStale = false; // this render shows the world as it is now
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            try { RenderHub(message, failed); }
+            finally
+            {
+                HubRenders++;
+                HubRenderMilliseconds += watch.Elapsed.TotalMilliseconds;
+            }
+        }
+
+        private void RenderHub(string message, bool failed)
+        {
             Trade?.Hide();
             TradingAt = null;
             var hub = _session.GetPlayerHub();
