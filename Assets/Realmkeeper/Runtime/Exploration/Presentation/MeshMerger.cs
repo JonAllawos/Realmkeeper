@@ -15,7 +15,9 @@ namespace Realmkeeper.Exploration.Presentation
     /// </summary>
     public static class MeshMerger
     {
-        public const float CellSize = 24f;
+        // Visual pass (2026-11-16): 48 m, not 24. Planned, walled towns (Phases 26–28) are far larger than the towns this was
+        // tuned for, and 24 m cells left about 1,250 merged renderers and 3,000–4,700 draws a frame against the 1,500 budget.
+        public const float CellSize = 48f;
 
         public static int Merge(Transform root, GeneratedAssets owner)
         {

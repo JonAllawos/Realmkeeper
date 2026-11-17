@@ -63,7 +63,15 @@ namespace Realmkeeper.Exploration.Presentation
             public TownsfolkSpec Spec;
             public bool Active;
             public float Yaw;
+            public Renderer[] Renderers; // visual pass: found once, for the shadow switch
+            public bool Shadows = true;
         }
+
+        /// <summary>
+        /// Visual pass (2026-11-16): townsfolk further than this from the camera cast no shadow. Each figure is several skinned
+        /// parts, drawn again for each shadow cascade; a shadow this far off is a few pixels.
+        /// </summary>
+        public const float TownsfolkShadowMetres = 30f;
 
         private void UpdateTownsfolk()
         {
@@ -90,9 +98,20 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             // Move the shown figures along their ways.
+            var eye = CameraRig != null && CameraRig.Camera != null ? CameraRig.Camera.transform.position : Player.transform.position;
+            var shadowReach2 = TownsfolkShadowMetres * TownsfolkShadowMetres;
             foreach (var t in _townsBodies.Values)
             {
                 if (!t.Active) continue;
+                var castShadow = (t.Go.transform.position - eye).sqrMagnitude < shadowReach2;
+                if (castShadow != t.Shadows)
+                {
+                    t.Renderers ??= t.Go.GetComponentsInChildren<Renderer>(true);
+                    foreach (var r in t.Renderers)
+                        if (r != null) r.shadowCastingMode = castShadow ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+                    t.Shadows = castShadow;
+                }
+
                 var s = t.Spec;
                 var p = TownsfolkPlanner.PositionAt(s, _townsClock, out var heading, out var walking);
                 if (s.Activity == TownsfolkActivity.Playing)

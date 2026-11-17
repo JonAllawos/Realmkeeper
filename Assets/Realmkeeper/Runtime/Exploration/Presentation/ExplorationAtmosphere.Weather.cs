@@ -17,6 +17,7 @@ namespace Realmkeeper.Exploration.Presentation
         private static readonly Color SnowWhite = new Color(0.9f, 0.92f, 0.95f);
         private static readonly string[] GroundWords = { "terrain", "ground", "plaza", "road", "street", "path", "grass", "cobble", "dirt", "gravel" };
         private static readonly string[] RoofWords = { "roof", "thatch", "slate", "shingle" };
+        private static readonly string[] LawnWords = { "grass", "lawn" };
 
         private int _sunrise = Sunrise;
         private int _sunset = Sunset;
@@ -39,6 +40,7 @@ namespace Realmkeeper.Exploration.Presentation
             public float Smoothness;
             public bool Roof;
             public bool Foliage;
+            public bool Grass; // visual pass: a lawn darkens and shines less in the wet than bare ground does
             public Texture Texture;
             public Color LeafColour; // foliage: the colour the leaves show in summer (texture × tint), measured once
             public Texture LeafMask; // foliage: the kit's white texture of the same leaves, coloured outright by season
@@ -215,6 +217,7 @@ namespace Realmkeeper.Exploration.Presentation
                         {
                             Material = copy, Base = m.GetColor("_BaseColor"), Smoothness = m.HasProperty("_Smoothness") ? m.GetFloat("_Smoothness") : 0.15f, Roof = isRoof,
                             Texture = m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null, Foliage = isFoliage,
+                            Grass = !isRoof && !isFoliage && Matches(m.name, LawnWords),
                             LeafColour = isFoliage ? Mul(m.GetColor("_BaseColor"), MeanColour(m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null)) : Color.white,
                             LeafMask = isFoliage ? LeafMaskFor(m.HasProperty("_BaseMap") ? m.GetTexture("_BaseMap") : null) : null,
                         });
@@ -295,7 +298,7 @@ namespace Realmkeeper.Exploration.Presentation
                 else
                 {
                     if (s.Material.HasProperty("_BaseMap")) s.Material.SetTexture("_BaseMap", s.Texture);
-                    c = s.Base * Mathf.Lerp(1f, 0.68f, wet);
+                    c = s.Base * Mathf.Lerp(1f, s.Grass ? 0.86f : 0.68f, wet);
                     // A dusting: paler and greyer.
                     var grey = (c.r + c.g + c.b) / 3f;
                     c = Color.Lerp(c, new Color(grey, grey, grey) * 1.35f, snow * 1.4f);
@@ -303,7 +306,7 @@ namespace Realmkeeper.Exploration.Presentation
 
                 c.a = s.Base.a;
                 s.Material.SetColor("_BaseColor", c);
-                if (s.Material.HasProperty("_Smoothness")) s.Material.SetFloat("_Smoothness", snow >= 0.45f ? 0.22f : Mathf.Lerp(s.Smoothness, 0.62f, wet * (1f - snow)));
+                if (s.Material.HasProperty("_Smoothness")) s.Material.SetFloat("_Smoothness", snow >= 0.45f ? 0.22f : Mathf.Lerp(s.Smoothness, s.Grass ? 0.32f : 0.62f, wet * (1f - snow)));
             }
         }
 

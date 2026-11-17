@@ -1,0 +1,17 @@
+clear_noon_town_gate_inside      frame   3.26 ms  batches   404  set-pass  112  triangles    892059  shadow casters    98
+clear_noon_town_street           frame   6.35 ms  batches  3900  set-pass  489  triangles   8507865  shadow casters   826
+clear_noon_town_plaza            frame   4.53 ms  batches  2417  set-pass  150  triangles   5380926  shadow casters   753
+clear_noon_town_house            frame   4.06 ms  batches   845  set-pass  213  triangles   2108918  shadow casters   263
+clear_noon_town_approach         frame   9.21 ms  batches  3811  set-pass  502  triangles   7932182  shadow casters   265
+clear_noon_town_overview         frame   6.96 ms  batches  4030  set-pass  415  triangles   7803653  shadow casters    96
+overcast_town_street             frame   5.78 ms  batches  3076  set-pass  313  triangles   6470070  shadow casters     0
+overcast_town_plaza              frame   4.21 ms  batches  1664  set-pass  107  triangles   3506286  shadow casters     0
+rain_town_street                 frame   6.20 ms  batches  3087  set-pass  316  triangles   6477882  shadow casters     0
+rain_town_plaza                  frame   4.71 ms  batches  1665  set-pass  108  triangles   3508290  shadow casters     0
+dusk_town_street                 frame   7.04 ms  batches  4712  set-pass  477  triangles  10165517  shadow casters  1624
+dusk_town_plaza                  frame   4.37 ms  batches  2644  set-pass  162  triangles   5780116  shadow casters   980
+clear_noon_country_eye_0         frame   4.06 ms  batches   305  set-pass  139  triangles   3262045  shadow casters    31
+clear_noon_country_eye_1         frame   9.66 ms  batches   784  set-pass  148  triangles  40947089  shadow casters    34
+clear_noon_country_eye_2         frame   4.77 ms  batches  1666  set-pass  171  triangles  12160085  shadow casters    38
+clear_noon_country_above         frame   5.97 ms  batches   308  set-pass  136  triangles   5970937  shadow casters    46
+rain_country_eye_0               frame   3.98 ms  batches   275  set-pass  129  triangles   3208518  shadow casters     0

@@ -1,0 +1,20 @@
+clear_noon_town_gate_inside      frame   3.29 ms  batches   404  set-pass  112  triangles    892059  shadow casters    98
+clear_noon_town_street           frame   6.29 ms  batches  3900  set-pass  481  triangles   8507865  shadow casters   826
+clear_noon_town_plaza            frame   4.05 ms  batches  2417  set-pass  149  triangles   5380926  shadow casters   753
+clear_noon_town_house            frame   3.68 ms  batches   845  set-pass  212  triangles   2108918  shadow casters   263
+clear_noon_town_approach         frame   6.78 ms  batches  3811  set-pass  507  triangles   7932182  shadow casters   265
+clear_noon_town_overview         frame   9.43 ms  batches  4030  set-pass  421  triangles   7803653  shadow casters    96
+overcast_town_street             frame   5.71 ms  batches  3076  set-pass  311  triangles   6470070  shadow casters     0
+overcast_town_plaza              frame   4.39 ms  batches  1664  set-pass  105  triangles   3506286  shadow casters     0
+rain_town_street                 frame   5.76 ms  batches  3087  set-pass  314  triangles   6477882  shadow casters     0
+rain_town_plaza                  frame   4.00 ms  batches  1665  set-pass  106  triangles   3508290  shadow casters     0
+dusk_town_street                 frame   6.46 ms  batches  4712  set-pass  477  triangles  10165517  shadow casters  1624
+dusk_town_plaza                  frame   4.24 ms  batches  2644  set-pass  159  triangles   5780116  shadow casters   980
+clear_noon_country_eye_0         frame  11.87 ms  batches   322  set-pass  123  triangles  72553549  shadow casters    60
+clear_noon_country_eye_1         frame  11.47 ms  batches   786  set-pass  123  triangles  72616177  shadow casters    58
+clear_noon_country_eye_2         frame  12.52 ms  batches  1664  set-pass  140  triangles  76841431  shadow casters    62
+clear_noon_country_above         frame  10.66 ms  batches   320  set-pass  121  triangles  72566137  shadow casters    70
+rain_country_eye_0               frame   6.62 ms  batches   255  set-pass  99  triangles  36517924  shadow casters     0
+
+(Restored by hand on 2026-11-16 from the VisualPassCaptureTests output of the baseline run, as printed in the session: a later
+diagnostic run with the same RK_CAPTURE_TAG overwrote this file. The values above are that run's measurements, unchanged.)

@@ -431,7 +431,9 @@ namespace Realmkeeper.Exploration.Presentation
             var c = Color.Lerp(Color.Lerp(BiomeColour(_terrain.Cell(ix, iz).Biome), BiomeColour(_terrain.Cell(ix + 1, iz).Biome), tx),
                 Color.Lerp(BiomeColour(_terrain.Cell(ix, iz + 1).Biome), BiomeColour(_terrain.Cell(ix + 1, iz + 1).Biome), tx), tz);
             if (h > OverlandScale.VerticalMetres * 0.95f) c = Color.Lerp(c, new Color(0.92f, 0.93f, 0.95f), Mathf.Clamp01((h - OverlandScale.VerticalMetres * 0.95f) / 40f));
-            var shade = 1.32f * (0.92f + 0.16f * _terrain.Noise(x * 0.08f, z * 0.08f)); // brighter than the map's palette: this ground is seen up close, under the day's light
+            // Brighter than the map's palette (this ground is seen up close, under the day's light), but less than the 1.32 of
+            // Phase 23: under the street sun and ACES that read as lime (visual pass, 2026-11-16). The noise is a little wider too.
+            var shade = 1.18f * (0.88f + 0.24f * _terrain.Noise(x * 0.08f, z * 0.08f));
             c = new Color(c.r * shade, c.g * shade, c.b * shade, 1f);
             return c.linear; // vertex colours are not converted by Unity in linear space
         }
@@ -583,9 +585,13 @@ namespace Realmkeeper.Exploration.Presentation
             _carrier.enabled = false;
             var materials = new List<Material>();
             var index = new Dictionary<Material, int>();
+            // The region's own trees, in the proportions TreeFor gives over its fifty hashes (species and the kit's five variants).
+            // Visual pass (2026-11-16): the hashes used before (5, 10, … 25 and 40, … 60) all gave variant 1, so only two or three
+            // kinds loaded, and planting, which picked among "the first ten kinds", drew dead trees, rocks and bushes for most trees.
+            var treeIds = new List<string>();
+            for (var h = 0; h < 50; h++) treeIds.Add(ModularEnvironmentBuilder.TreeFor(kind, h));
             var ids = new List<string>();
-            for (var n = 1; n <= 5; n++) ids.Add(ModularEnvironmentBuilder.TreeFor(kind, n * 5 + 0)); // the region's own species
-            for (var n = 1; n <= 5; n++) ids.Add(ModularEnvironmentBuilder.TreeFor(kind, n * 5 + 35));
+            foreach (var id in treeIds) if (!ids.Contains(id)) ids.Add(id);
             ids.AddRange(new[] { "DeadTree_1", "DeadTree_3", "Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3", "Bush_Common", "Bush_Common_Flowers" });
             ids.AddRange(GrassIds); // the owned nature kit's ground cover (Phase 23 follow-up)
             foreach (var id in ids)
@@ -623,7 +629,16 @@ namespace Realmkeeper.Exploration.Presentation
             }
 
             _carrier.sharedMaterials = materials.ToArray();
+            _treePick.Clear();
+            foreach (var id in treeIds)
+            {
+                var k = KindIndex(id);
+                if (k >= 0) _treePick.Add(k);
+            }
         }
+
+        /// <summary>The kinds a tree is planted from, weighted as TreeFor weights them (indices into the loaded kinds).</summary>
+        private readonly List<int> _treePick = new List<int>();
 
         private int KindIndex(string id) => _trees.FindIndex(t => t.Id == id);
 
@@ -658,7 +673,8 @@ namespace Realmkeeper.Exploration.Presentation
                         var pz = (z + 0.1f + 0.8f * _terrain.Random01(x, z, 70 + i)) * OverlandScale.MetresPerCell;
                         int k;
                         if (cell.Biome == Biome.Marsh && dead >= 0) k = dead;
-                        else k = (int)(_terrain.Random01(x, z, 90 + i) * 10) % Math.Min(10, _trees.Count);
+                        else if (_treePick.Count > 0) k = _treePick[(int)(_terrain.Random01(x, z, 90 + i) * _treePick.Count) % _treePick.Count];
+                        else continue;
                         var scale = 0.85f + 0.5f * _terrain.Random01(x, z, 110 + i);
                         var yaw = 360f * _terrain.Random01(x, z, 130 + i);
                         c.Trees.Add((k, Matrix4x4.TRS(new Vector3(px, _terrain.HeightAt(px, pz) - 0.2f, pz), Quaternion.Euler(0, yaw, 0), Vector3.one * scale)));
@@ -1054,8 +1070,61 @@ namespace Realmkeeper.Exploration.Presentation
         {
             if (_carrier == null || _trees.Count == 0 || camera.cameraType == CameraType.Preview) return;
             var materials = _carrier.sharedMaterials; // the atmosphere's seasonal copies, once it has adopted them
-            Draw(_byKind, materials, _drawAt, TreeRadiusMetres, ShadowCastingMode.On, camera);
-            Draw(_grassByKind, materials, _drawAt, GrassDrawMetres, ShadowCastingMode.Off, camera); // ground cover casts no shadow: cheap
+            // Visual pass (2026-11-16): each camera now draws only what it can see, and only trees within the shadow distance
+            // cast shadows. Before, every tree within 650 m was drawn in every direction, and all of them again into the
+            // shadow map, which reaches 90 m: about 36 M triangles a pass in clear weather once the trees were planted properly.
+            GeometryUtility.CalculateFrustumPlanes(camera, _planes);
+            var shadowReach = GraphicsSettings.currentRenderPipeline is UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset urp ? urp.shadowDistance + 25f : 0f;
+            Split(_byKind, camera.transform.position, shadowReach, 14f, _nearByKind, _farByKind);
+            Draw(_nearByKind, materials, _drawAt, TreeRadiusMetres, ShadowCastingMode.On, camera);
+            Draw(_farByKind, materials, _drawAt, TreeRadiusMetres, ShadowCastingMode.Off, camera);
+            Split(_grassByKind, camera.transform.position, 0f, 1.5f, _nearByKind, _farByKind);
+            Draw(_farByKind, materials, _drawAt, GrassDrawMetres, ShadowCastingMode.Off, camera); // ground cover casts no shadow: cheap
+        }
+
+        private const float ThinFrom = 250f;
+        private readonly Plane[] _planes = new Plane[6];
+        private readonly Dictionary<int, List<Matrix4x4>> _nearByKind = new Dictionary<int, List<Matrix4x4>>();
+        private readonly Dictionary<int, List<Matrix4x4>> _farByKind = new Dictionary<int, List<Matrix4x4>>();
+
+        /// <summary>Instances in the camera's view, split into those within <paramref name="near"/> metres and the rest (by kind).</summary>
+        private void Split(Dictionary<int, List<Matrix4x4>> byKind, Vector3 eye, float near, float radius, Dictionary<int, List<Matrix4x4>> inNear, Dictionary<int, List<Matrix4x4>> inFar)
+        {
+            foreach (var l in inNear.Values) l.Clear();
+            foreach (var l in inFar.Values) l.Clear();
+            var near2 = near * near;
+            foreach (var pair in byKind)
+            {
+                foreach (var m in pair.Value)
+                {
+                    var scale = m.m11; // upright, uniformly scaled instances: the Y column's height is the scale
+                    var c = new Vector3(m.m03, m.m13 + radius * 0.5f * scale, m.m23);
+                    var dx = c.x - eye.x;
+                    var dz = c.z - eye.z;
+                    var d2 = dx * dx + dz * dz;
+                    var close = d2 < near2;
+                    // Shadow casters near the camera are kept even outside the view: their shadows can fall into it.
+                    if (!close && !InView(c, radius * scale)) continue;
+                    // Far trees thin out in the haze: all kept to 250 m, about a third by 600 m. Each tree's own hash decides,
+                    // so a tree does not flicker; it only comes or goes as the distance crosses its threshold.
+                    if (near > 0f && d2 > ThinFrom * ThinFrom)
+                    {
+                        var t = Mathf.Clamp01((Mathf.Sqrt(d2) - ThinFrom) / (TreeRadiusMetres - 50f - ThinFrom));
+                        var h = Mathf.Abs(Mathf.Sin(m.m03 * 12.9898f + m.m23 * 78.233f) * 43758.547f) % 1f;
+                        if (h > Mathf.Lerp(1f, 0.35f, t)) continue;
+                    }
+                    var target = close ? inNear : inFar;
+                    if (!target.TryGetValue(pair.Key, out var list)) target[pair.Key] = list = new List<Matrix4x4>();
+                    list.Add(m);
+                }
+            }
+        }
+
+        private bool InView(Vector3 c, float r)
+        {
+            for (var i = 0; i < 6; i++)
+                if (_planes[i].GetDistanceToPoint(c) < -r) return false;
+            return true;
         }
 
         private void Draw(Dictionary<int, List<Matrix4x4>> byKind, Material[] materials, Vector3 at, float radius, ShadowCastingMode shadows, Camera camera)

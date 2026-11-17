@@ -1,0 +1,10 @@
+p29_terrain_01_settlement_approach: The arrival outside the town: its roads leading out across the country (dry).
+p29_terrain_02_countryside: Representative countryside: grassland and meadow, forest edges (dry).
+p29_terrain_05_wet_ground: The same view with the ground wet (fixture: muddy, wetness 78).
+p29_terrain_06_snow: The same view under deep snow (fixture: snow cover 70: level ground whitens).
+p29_terrain_03_hills_and_steep_ground: Hills and steep ground: rocky slopes and crags (dry).
+p29_terrain_04_road_and_bridge: A road crossing water by its bridge or causeway (dry).
+p29_terrain_08_road_and_bridge_wet: The road and bridge with the ground wet (fixture: muddy).
+p29_terrain_09_road_and_bridge_snow: The road and bridge under deep snow (fixture).
+p29_terrain_07_region_from_above: The whole region from above (5.12 km a side), haze as in play.
+p29_terrain: Unity Terrain; arrival (740,3100); steep (10, 59); bridge (61, 62); field (12, 66).

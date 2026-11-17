@@ -10,6 +10,7 @@ Shader "Realmkeeper/Water"
         _GlintPower ("Glint Power", Range(8, 512)) = 160
         _RippleScale ("Ripple Scale", Float) = 0.35
         _RippleStrength ("Ripple Strength", Range(0, 0.3)) = 0.06
+        _SkyReflection ("Sky Reflection", Range(0, 1)) = 0.75
     }
 
     SubShader
@@ -25,24 +26,35 @@ Shader "Realmkeeper/Water"
             half _GlintPower;
             float _RippleScale;
             half _RippleStrength;
+            half _SkyReflection;
         CBUFFER_END
 
         // Orthographic-safe linear fog (see VertexColorLit.shader).
-        half RkFogFactor(float3 positionWS)
+        // Visual pass (2026-11-16): exponential fog too (towns and the country); see TerrainGround.shader.
+        float RkFogFactor(float3 positionWS)
         {
-        #if defined(FOG_LINEAR)
+        #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
             float3 forward = -UNITY_MATRIX_V[2].xyz;
             float depth = dot(positionWS - _WorldSpaceCameraPos, forward);
+            #if defined(FOG_LINEAR)
             return saturate(depth * unity_FogParams.z + unity_FogParams.w);
+            #else
+            return max(depth, 0.0);
+            #endif
         #else
             return 1;
         #endif
         }
 
-        half3 RkMixFog(half3 color, half fogFactor)
+        half3 RkMixFog(half3 color, float fogFactor)
         {
         #if defined(FOG_LINEAR)
             return lerp(unity_FogColor.rgb, color, fogFactor);
+        #elif defined(FOG_EXP)
+            return lerp(unity_FogColor.rgb, color, saturate(exp2(-fogFactor * unity_FogParams.y)));
+        #elif defined(FOG_EXP2)
+            float d = fogFactor * unity_FogParams.x;
+            return lerp(unity_FogColor.rgb, color, saturate(exp2(-d * d)));
         #else
             return color;
         #endif
@@ -77,7 +89,7 @@ Shader "Realmkeeper/Water"
             {
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
-                half fogFactor : TEXCOORD1;
+                float fogFactor : TEXCOORD1;
                 half4 color : COLOR;
             };
 
@@ -112,10 +124,15 @@ Shader "Realmkeeper/Water"
                 half3 ambient = max(half3(0, 0, 0), SampleSH(half3(0, 1, 0)));
                 half nDotL = saturate(dot(normalWS, mainLight.direction));
                 half3 color = _ShallowColor.rgb * (ambient + mainLight.color * nDotL * shadow);
+                // Visual pass (2026-11-16): the sky in the water at grazing angles (the ambient probe holds the sky's colour),
+                // so lakes seen across the land read as water rather than flat dark navy. Nothing extra is sampled.
+                half fresnel = pow(1.0 - saturate(dot(normalWS, viewDirWS)), 4.0) * _SkyReflection;
+                half3 sky = max(half3(0, 0, 0), SampleSH(reflect(-viewDirWS, normalWS))) * 1.15;
+                color = lerp(color, sky, fresnel);
                 color += _GlintColor.rgb * mainLight.color * glint;
-                color = RkMixFog(color, input.fogFactor);
+                color = RkMixFog(color, RkFogFactor(input.positionWS)); // per pixel: the water is one quad whose corners can lie behind the camera
 
-                half alpha = saturate(_ShallowColor.a * input.color.a + glint * 0.5);
+                half alpha = saturate(_ShallowColor.a * input.color.a + glint * 0.5 + fresnel * 0.4);
                 return half4(max(half3(0, 0, 0), color), alpha);
             }
             ENDHLSL

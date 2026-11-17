@@ -1,0 +1,14 @@
+GraphicsCaptureTests (the Graphics Pass poses), baseline run 2026-11-16, RTX 4070 Laptop GPU, Direct3D 11.
+Restored by hand from the session output: the file it wrote (before_stats.txt) was overwritten by the next capture, which uses the
+same name. Note: these poses no longer suit the walled, planned towns (see the preflight).
+
+map              render CPU   2.01 ms (mean of 10)  visible renderers    12  materials    2  per render: draw calls    38  batches    38  set-pass    3  triangles    566516  shadow casters    26
+gate             render CPU   2.86 ms (mean of 10)  visible renderers  1625  materials  217  per render: draw calls   322  batches   322  set-pass   21  triangles    671424  shadow casters    11
+street           render CPU   2.93 ms (mean of 10)  visible renderers  1608  materials  209  per render: draw calls   314  batches   314  set-pass   25  triangles    673869  shadow casters     9
+building         render CPU   3.01 ms (mean of 10)  visible renderers  1213  materials  193  per render: draw calls   298  batches   298  set-pass   38  triangles    550656  shadow casters    45
+character        render CPU   1.93 ms (mean of 10)  visible renderers   347  materials   76  per render: draw calls   248  batches   248  set-pass   24  triangles    582208  shadow casters   174
+plaza_residents  render CPU   2.43 ms (mean of 10)  visible renderers   812  materials  142  per render: draw calls   252  batches   252  set-pass   29  triangles    653887  shadow casters    98
+interior         render CPU   1.25 ms (mean of 10)  visible renderers   351  materials   84  per render: draw calls   107  batches   106  set-pass    8  triangles    328956  shadow casters    38
+overview         render CPU   3.83 ms (mean of 10)  visible renderers  1861  materials  225  per render: draw calls   374  batches   374  set-pass   40  triangles    743578  shadow casters     0
+scene total: renderers 1865, triangles 4098917, materials 225, colliders 492, residents 12, buildings 71
+graphics device: NVIDIA GeForce RTX 4070 Laptop GPU (Direct3D11)

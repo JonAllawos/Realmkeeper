@@ -1,0 +1,16 @@
+Simulated weather here now: Windy, 4 °C · Spring; Farms yield 85 % of their usual this season (growing).
+01_simulated_now: The weather the world simulated here now: Windy, 4 °C · Spring rain False/False 0/s 0, snow False/False 0/s 0 at (69.46, 10.10, -49.74); sun 0.30, fog 0.0062.
+02_clear_noon: Clear, spring noon. rain False/False 0/s 0, snow False/False 0/s 0 at (83.84, 10.10, -44.81); sun 1.54, fog 0.0048.
+03_partly_cloudy: Partly cloudy. rain False/False 0/s 0, snow False/False 0/s 0 at (80.73, 10.10, -45.88); sun 1.22, fog 0.0051.
+04_overcast: Overcast: flat grey light, soft shadows. rain False/False 0/s 0, snow False/False 0/s 0 at (81.90, 10.10, -45.48); sun 0.52, fog 0.0058.
+05_light_rain: Light rain, wet ground. rain True/True 910/s 864, snow False/False 0/s 0 at (81.90, 10.10, -45.48); sun 0.44, fog 0.0099.
+06_heavy_rain: Heavy rain, haze, darker wet ground. rain True/True 2080/s 1976, snow False/False 0/s 0 at (76.07, 10.10, -47.48); sun 0.34, fog 0.0151.
+07_thunderstorm: Thunderstorm: dark, lamps on early. rain True/True 2340/s 2223, snow False/False 0/s 0 at (70.23, 10.10, -49.48); sun 0.34, fog 0.0163.
+08_fog_morning: Autumn morning fog (after an October sunrise of about 07:40). rain True/True 0/s 0, snow False/False 0/s 0 at (86.57, 10.10, -43.88); sun 1.07, fog 0.0182.
+09_light_snow: Light snow, a thin cover. rain True/True 0/s 0, snow True/True 315/s 1260 at (84.62, 10.10, -44.54); sun 0.44, fog 0.0099.
+10_heavy_snow: Heavy snow lying on ground and roofs. rain True/True 0/s 0, snow True/True 720/s 2882 at (78.01, 10.10, -46.81); sun 0.34, fog 0.0151.
+11_winter_dusk: Midwinter: the sun is down by half past four. rain True/True 0/s 0, snow True/True 0/s 0 at (85.79, 10.10, -44.14); sun 0.63, fog 0.0053.
+12_summer_evening: Midsummer: still light at half past seven. rain True/True 0/s 0, snow True/True 0/s 0 at (85.79, 10.10, -44.14); sun 1.54, fog 0.0048.
+12b_autumn_afternoon: Autumn: the broadleaf trees turned (pines keep their green). rain True/True 0/s 0, snow True/True 0/s 0 at (84.62, 10.10, -44.54); sun 1.43, fog 0.0049.
+13_clear_night: A clear night: stars and the moon. rain True/True 0/s 0, snow True/True 0/s 0 at (86.18, 10.10, -44.01); sun 0.00, fog 0.0062.
+14_rainy_night: A rainy night: no stars, lamps in the wet. rain True/True 1950/s 1852, snow True/True 0/s 0 at (78.01, 10.10, -46.81); sun 0.00, fog 0.0188.

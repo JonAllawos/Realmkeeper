@@ -44,21 +44,33 @@ Shader "Realmkeeper/TerrainGround"
         TEXTURE2D(_RockTex); SAMPLER(sampler_RockTex);
 
         // Linear fog by view depth, as Realmkeeper/VertexColorLit (the camera is orthographic).
-        half RkFogFactor(float3 positionWS)
+        // Visual pass (2026-11-16): exponential fog too. Towns and the country use exponential-squared haze, which this
+        // shader ignored, so the ground and water stayed full colour to the horizon while everything on them faded.
+        // For FOG_EXP/EXP2 the view depth is interpolated and curved per pixel in RkMixFog.
+        float RkFogFactor(float3 positionWS)
         {
-        #if defined(FOG_LINEAR)
+        #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
             float3 forward = -UNITY_MATRIX_V[2].xyz;
             float depth = dot(positionWS - _WorldSpaceCameraPos, forward);
+            #if defined(FOG_LINEAR)
             return saturate(depth * unity_FogParams.z + unity_FogParams.w);
+            #else
+            return max(depth, 0.0);
+            #endif
         #else
             return 1;
         #endif
         }
 
-        half3 RkMixFog(half3 color, half fogFactor)
+        half3 RkMixFog(half3 color, float fogFactor)
         {
         #if defined(FOG_LINEAR)
             return lerp(unity_FogColor.rgb, color, fogFactor);
+        #elif defined(FOG_EXP)
+            return lerp(unity_FogColor.rgb, color, saturate(exp2(-fogFactor * unity_FogParams.y)));
+        #elif defined(FOG_EXP2)
+            float d = fogFactor * unity_FogParams.x;
+            return lerp(unity_FogColor.rgb, color, saturate(exp2(-d * d)));
         #else
             return color;
         #endif
@@ -93,7 +105,7 @@ Shader "Realmkeeper/TerrainGround"
                 float4 positionCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;
                 half3 normalWS : TEXCOORD1;
-                half fogFactor : TEXCOORD2;
+                float fogFactor : TEXCOORD2;
                 float2 map : TEXCOORD3;
             };
 
@@ -145,7 +157,7 @@ Shader "Realmkeeper/TerrainGround"
                 }
 
                 half3 color = albedo * (direct + ambient);
-                color = RkMixFog(color, input.fogFactor);
+                color = RkMixFog(color, RkFogFactor(input.positionWS)); // per pixel: the water is one quad whose corners can lie behind the camera
                 return half4(max(half3(0, 0, 0), color), 1);
             }
             ENDHLSL

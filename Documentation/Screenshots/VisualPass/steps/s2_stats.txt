@@ -1,0 +1,3 @@
+diag_water_sky0.00               frame  19.51 ms  batches   392  set-pass  166  triangles 122148413  shadow casters   110
+diag_water_sky0.75               frame  20.24 ms  batches   392  set-pass  166  triangles 122148413  shadow casters   110
+diag_water_nofog                 frame  18.78 ms  batches   383  set-pass  166  triangles 109269230  shadow casters   110

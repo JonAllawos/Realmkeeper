@@ -87,6 +87,10 @@ Every system at level 5 in the feature matrix for release scope; cross-system co
 
 Character art beyond placeholders, effects, ambience and mix, interface pass, accessibility (remapping, colour checks), performance budgets on target hardware.
 
+Two optional briefs, written 2026-11-16 at the owner's request, can bring part of M8 forward if the owner chooses. Neither is started, and neither changes the approved order (M1.2 next). The owner asked whether to move to Unreal Engine; Claude advised against it, because the move would mean rewriting the C# code and its tests, and these two briefs test the cheaper routes to better visuals.
+- `../Briefs/Visual-Quality-Pass-Brief.md`: light, atmosphere, material finish and small detail with the current art, within the Graphics Pass budget.
+- `../Briefs/KitBash3D-Trial-Brief.md`: one purchased KitBash3D kit in a separate trial scene, compared with the current art by screenshots and numbers. Evaluation only.
+
 ### M9. Release readiness (M)
 
 Release acceptance (`../Testing/Release-Acceptance.md`, drafted in Phase 30, refined in M7): full regression, long-session stability, save reliability, resolution matrix, the owner's full playthrough.
