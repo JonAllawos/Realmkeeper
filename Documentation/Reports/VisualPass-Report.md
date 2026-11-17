@@ -77,4 +77,4 @@ No existing test was changed.
 
 ## Git
 
-One local commit, at the owner's word after the focused runs ("Commit locally, do not run edit mode or play mode"). **Not pushed.** The full suites were not run, as the owner directed. The preserved uncommitted files are untouched: `M_LampGlow.mat`, the Unity MCP lines in `Packages/`, the untracked `Assets/InitTestScene*` scenes. `ProjectSettings/EditorSettings.asset` (changed by test runs) was restored before the commit.
+One local commit (`a6c0d51`), at the owner's word after the focused runs ("Commit locally, do not run edit mode or play mode"). **Pushed 2026-11-17** at the owner's instruction ("Push it"), with the seven earlier local commits beneath it (audio pass to M1.1). The full suites were not run, as the owner directed. The preserved uncommitted files are untouched: `M_LampGlow.mat`, the Unity MCP lines in `Packages/`, the untracked `Assets/InitTestScene*` scenes. `ProjectSettings/EditorSettings.asset` (changed by test runs) was restored before the commit.
